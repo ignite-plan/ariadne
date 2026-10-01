@@ -4,13 +4,14 @@
   "type": "module",
   "packageManager": "pnpm@9.14.2",
   "scripts": {
-    "import:docx": "tsx src/import-docx.ts",
-    "make:reference": "tsx src/make-reference.ts",
-    "login": "tsx src/login.ts",
-    "capture": "tsx src/capture.ts",
-    "build": "tsx src/build.ts",
-    "affected": "tsx src/affected.ts",
-    "typecheck": "tsc --noEmit"
+    "import:docx": "tsx src/cli/import-docx.ts",
+    "make:reference": "tsx src/cli/make-reference.ts",
+    "login": "tsx src/cli/login.ts",
+    "capture": "tsx src/cli/capture.ts",
+    "build": "tsx src/cli/build.ts",
+    "affected": "tsx src/cli/affected.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "devDependencies": {
     "@types/node": "^22.19.0",

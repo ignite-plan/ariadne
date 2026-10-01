@@ -1,4 +1,4 @@
-import { defineShots } from '../../src/shot.ts'
+import { defineShots } from '../../src/core/shot.ts'
 
 // 컨텐츠 영역 셀렉터. HMG Admin 셸(헤더/LNB)을 제외한 BO 앱 루트
 const CONTENT = '#root'
