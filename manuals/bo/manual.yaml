@@ -1,0 +1,9 @@
+title: Dealers Admin User Manual
+version: 1.0.7
+chapters:
+  - title: Dealer Management
+    dir: 02-dealer-management
+    sections:
+      - 01-dealer-list-view.md
+      - 02-dealer-creation-screen.md
+      - 03-dealer-detail-view-edit-screen.md
