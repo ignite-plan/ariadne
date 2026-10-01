@@ -1,5 +1,5 @@
 // manual.yaml 순서대로 Markdown을 합쳐 Word를 만든다.
-// usage: pnpm build --manual bo
+// usage: pnpm build --manual bo [--chapters 2,5]
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -7,17 +7,25 @@ import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import YAML from 'yaml'
 
-const { values } = parseArgs({ options: { manual: { type: 'string', default: 'bo' } } })
+const { values } = parseArgs({
+  options: { manual: { type: 'string', default: 'bo' }, chapters: { type: 'string' } },
+})
 
 const manualDir = resolve('manuals', values.manual!)
 const manual = YAML.parse(readFileSync(join(manualDir, 'manual.yaml'), 'utf8'))
+const targets = values.chapters?.split(',').map(Number)
 
 function stripFrontMatter(md: string) {
   return md.replace(/^---\n[\s\S]*?\n---\n/, '')
 }
 
-const body = manual.chapters
-  .map((chapter: { title: string; dir: string; sections: string[] }) => {
+const chapters = (manual.chapters as { title: string; dir: string; sections: string[] }[]).filter(
+  (chapter) => !targets || targets.includes(Number.parseInt(chapter.dir, 10)),
+)
+if (!chapters.length) throw new Error(`빌드할 장이 없습니다: --chapters ${values.chapters}`)
+
+const body = chapters
+  .map((chapter) => {
     const no = Number.parseInt(chapter.dir, 10)
     const sections = chapter.sections.map((file) =>
       stripFrontMatter(readFileSync(join(manualDir, chapter.dir, file), 'utf8')).trim(),
@@ -28,8 +36,9 @@ const body = manual.chapters
 
 const distDir = resolve('dist')
 mkdirSync(distDir, { recursive: true })
-const merged = join(distDir, `${values.manual}.md`)
-const output = join(distDir, `Hyundai-Dealers Admin User Manual_v${manual.version}_EN.docx`)
+const suffix = targets ? `_ch${targets.join('-')}` : ''
+const merged = join(distDir, `${values.manual}${suffix}.md`)
+const output = join(distDir, `Hyundai-Dealers Admin User Manual_v${manual.version}_EN${suffix}.docx`)
 writeFileSync(merged, `---\ntitle: ${manual.title}\n---\n\n${body}\n`)
 
 execFileSync(

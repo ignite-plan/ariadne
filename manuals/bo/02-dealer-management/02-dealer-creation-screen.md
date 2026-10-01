@@ -25,7 +25,7 @@ i18nPrefix:
 
 - Dealer basic information
 
-![Dealer Basic Information1](images/dealer-basic-information1.png){width=6.31in}
+![Dealer Basic Information1](images/dealer-basic-information1.png){width=6.31in height=1.47in}
 
 - **Dealer name**:
 

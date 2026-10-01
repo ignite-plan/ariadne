@@ -5,6 +5,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFi
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
+import { PNG } from 'pngjs'
 import YAML from 'yaml'
 
 interface TocEntry {
@@ -39,7 +40,52 @@ execFileSync('pandoc', [
   `--extract-media=${workDir}`,
   '-o', join(workDir, 'full.md'),
 ])
-const lines = readFileSync(join(workDir, 'full.md'), 'utf8').split('\n')
+interface Drawing {
+  crop: { l: number; t: number; r: number; b: number }
+  widthIn: number
+  ratio: number
+}
+
+// pandoc은 Word의 자르기(srcRect)와 비율 변경을 버린다. 문서 순서대로 drawing 정보를 읽어 이미지에 다시 적용한다
+const EMU_PER_INCH = 914400
+const documentXml = execFileSync('unzip', ['-p', resolve(values.docx), 'word/document.xml'], {
+  encoding: 'utf8',
+  maxBuffer: 256 * 1024 * 1024,
+})
+const drawings: Drawing[] = [...documentXml.matchAll(/<w:drawing>[\s\S]*?<\/w:drawing>/g)].map(([xml]) => {
+  const [, cx, cy] = xml.match(/<wp:extent cx="(\d+)" cy="(\d+)"/)!
+  const rect = xml.match(/<a:srcRect([^>]*)\/>/)?.[1] ?? ''
+  const edge = (k: string) => Math.max(0, Number(rect.match(new RegExp(`\\b${k}="(-?\\d+)"`))?.[1] ?? 0)) / 100000
+  return {
+    crop: { l: edge('l'), t: edge('t'), r: edge('r'), b: edge('b') },
+    widthIn: Number(cx) / EMU_PER_INCH,
+    ratio: Number(cy) / Number(cx),
+  }
+})
+
+let imageIndex = 0
+const lines = readFileSync(join(workDir, 'full.md'), 'utf8')
+  .split('\n')
+  .map((l) => l.replace(/\]\(([^)\s]+\/media\/[^)\s]+)\)/g, (_, src: string) => `](${src}#${imageIndex++})`))
+if (imageIndex !== drawings.length) throw new Error(`이미지 수 불일치: md ${imageIndex}, docx ${drawings.length}`)
+
+// 자르기를 반영해 저장하고, 원본 표시 비율과 다르면(늘이기) 높이를 함께 돌려준다
+function writeImage(src: string, dest: string, { crop, widthIn, ratio }: Drawing) {
+  const png = PNG.sync.read(readFileSync(src))
+  const x = Math.round(png.width * crop.l)
+  const y = Math.round(png.height * crop.t)
+  const width = Math.round(png.width * (1 - crop.l - crop.r))
+  const height = Math.round(png.height * (1 - crop.t - crop.b))
+  if (width === png.width && height === png.height) copyFileSync(src, dest)
+  else {
+    const out = new PNG({ width, height })
+    PNG.bitblt(png, out, x, y, width, height, 0, 0)
+    writeFileSync(dest, PNG.sync.write(out))
+  }
+  const stretched = Math.abs(height / width - ratio) / ratio > 0.03
+  const size = `width=${widthIn.toFixed(2)}in`
+  return stretched ? `{${size} height=${(widthIn * ratio).toFixed(2)}in}` : `{${size}}`
+}
 
 function plain(text: string) {
   return text
@@ -120,17 +166,15 @@ function clean(body: string[], sectionSlug: string) {
     .map((l) => l.replace(/\[\]\{#[^}]*\}/g, ''))
     .map((l) => l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1'))
     .map((l) =>
-      l.replace(/!\[([^\]]*)\]\(([^)]+)\)(\{[^}]*\})?/g, (_, alt: string, src: string, attrs = '') => {
+      l.replace(/!\[([^\]]*)\]\(([^)#]+)#(\d+)\)(\{[^}]*\})?/g, (_, alt: string, src: string, index: string) => {
         // Word가 자동 생성한 한글 대체 텍스트는 caption이 아니다
         const caption = /[가-힣]/.test(alt) ? '' : alt
-        const width = attrs.match(/width="([^"]+)"/)?.[1]
         const base = caption ? slugify(caption) : `${sectionSlug}-img-${++unnamed}`
         let name = base
         const taken = (n: string) => usedImages.has(n) || existsSync(join(manualDir, 'images', `${n}.png`))
         for (let n = 2; taken(name); n++) name = `${base}-${n}`
         usedImages.add(name)
-        copyFileSync(src, join(manualDir, 'images', `${name}.png`))
-        const size = width ? `{width=${Number.parseFloat(width).toFixed(2)}in}` : ''
+        const size = writeImage(src, join(manualDir, 'images', `${name}.png`), drawings[Number(index)])
         return `![${caption}](images/${name}.png)${size}`
       }),
     )
