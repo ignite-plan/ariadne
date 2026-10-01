@@ -47,6 +47,11 @@ ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne
 - `ARIADNE_USER_DATA`로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꿀 수 있다 (E2E, 두 번째 프로필)
 - Apple Developer ID가 없어 ad-hoc 서명만 한다 (`app/build/after-pack.cjs`). 자동 업데이트 대신 실행 시 GitHub Releases의 `app-v*`를 확인해 알린다
 
+## 리모트
+
+- `origin` = ignite-plan/ariadne: 기준 리포. 앱의 기본 리포이자 기획자 제출이 들어오는 곳
+- `zi-gae` = zi-gae/ariadne: 미러. `git push zi-gae main`으로 맞춘다
+
 ## 앱 릴리즈
 
 ```bash
