@@ -50,7 +50,7 @@ ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne
 ## 앱 릴리즈
 
 ```bash
-git tag app-v1.1.0 && git push ignite-plan app-v1.1.0
+git tag app-v1.1.0 && git push origin app-v1.1.0
 ```
 
 `.github/workflows/release-app.yml`이 테스트 후 dmg를 만들어 Release에 올린다. 버전은 태그에서 정한다.
