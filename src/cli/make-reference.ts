@@ -1,6 +1,6 @@
 // 원본 Word에서 본문과 이미지를 걷어내고, pandoc 스타일을 원본 서식에 맞춰 정의한 reference.docx를 만든다.
 // 원본 본문은 대부분 직접 서식(Calibri 14pt)이라 스타일 정의로 옮겨 담는다.
-// usage: pnpm tsx src/make-reference.ts --docx ~/Desktop/Hyundai.docx --manual bo
+// usage: pnpm make:reference --docx ~/Desktop/Hyundai.docx --manual bo
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
