@@ -9,5 +9,5 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["src", "manuals/**/*.ts"]
+  "include": ["src", "manuals/**/*.ts", "app/main", "app/preload", "app/shared", "app/e2e", "electron.vite.config.ts"]
 }

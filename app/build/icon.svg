@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbf8f2"/>
+      <stop offset="1" stop-color="#ece5d8"/>
+    </linearGradient>
+    <linearGradient id="thread" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d0583b"/>
+      <stop offset="1" stop-color="#9d3a24"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#3b2a1a" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <!-- macOS 아이콘 그리드: 824px 본체, 100px 여백 -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)" filter="url(#shadow)"/>
+  <!-- 미궁 -->
+  <g fill="none" stroke="#cbbfa9" stroke-width="26" stroke-linecap="round">
+    <path d="M512 232 A280 280 0 1 1 300 330"/>
+    <path d="M512 322 A190 190 0 1 0 690 450"/>
+    <path d="M512 412 A100 100 0 1 1 430 455"/>
+  </g>
+  <!-- 아리아드네의 실: 밖에서 중심으로 -->
+  <path d="M232 790 C 300 690, 250 600, 350 565 S 480 590, 512 500"
+        fill="none" stroke="url(#thread)" stroke-width="34" stroke-linecap="round"/>
+  <circle cx="512" cy="500" r="34" fill="url(#thread)"/>
+  <circle cx="232" cy="790" r="46" fill="#9d3a24"/>
+  <circle cx="232" cy="790" r="20" fill="#f3d6cc"/>
+</svg>

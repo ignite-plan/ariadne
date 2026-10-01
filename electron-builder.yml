@@ -1,0 +1,33 @@
+appId: kr.co.ignite.ariadne
+productName: Ariadne
+copyright: Copyright © Ignite
+directories:
+  output: release
+  buildResources: app/build
+files:
+  - out/**
+  - package.json
+# asar 안에서는 실행 파일을 띄울 수 없다
+asarUnpack:
+  - node_modules/esbuild/**
+  - node_modules/@esbuild/**
+  - node_modules/playwright-core/**
+npmRebuild: false
+electronLanguages: [en, ko]
+mac:
+  target:
+    - target: dmg
+      arch: [arm64]
+  category: public.app-category.productivity
+  icon: app/build/icon.png
+  # Apple Developer ID가 없어 서명/notarization을 하지 않는다. afterPack에서 ad-hoc 서명만 한다
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  extendInfo:
+    LSMinimumSystemVersion: '12.0'
+afterPack: app/build/after-pack.cjs
+dmg:
+  title: Ariadne ${version}
+  artifactName: Ariadne-${version}-arm64.${ext}
+publish: null

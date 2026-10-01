@@ -1,0 +1,34 @@
+# app-v<version> 태그를 push하면 arm64 dmg를 만들어 GitHub Release에 올린다.
+# 앱은 실행할 때 이 리포의 최신 app-v 릴리즈를 확인해 새 버전을 알린다
+name: Release app
+on:
+  push:
+    tags: ['app-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: brew install pandoc
+      - name: 태그에서 버전 지정
+        run: npm pkg set version="${GITHUB_REF_NAME#app-v}"
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm app:dist
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/*.dmg \
+            --title "Ariadne ${GITHUB_REF_NAME#app-v}" \
+            --notes-file app/INSTALL.md
