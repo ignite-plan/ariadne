@@ -26,6 +26,15 @@ describe('STG 안전장치', () => {
     assert.ok(!isAllowedRequest('PUT', 'https://stg/api/v1/menus/12'))
     assert.ok(!isAllowedRequest('DELETE', 'https://stg/api/v1/menus/12'))
     assert.ok(!isAllowedRequest('PATCH', 'https://stg/api/v1/menus/12'))
+    // 로그인 세션 유지는 통과 (막으면 권한 조회가 403)
+    assert.ok(isAllowedRequest('POST', 'https://stg-admin-api.hmg-corp.io/sso/HK1298/token'))
+    assert.ok(isAllowedRequest('POST', 'https://stg-admin-api.hmg-corp.io/sso/settings'))
+    assert.ok(isAllowedRequest('POST', 'https://stg-apigw-us.hmg-corp.io/dealers_bo/v0200/hyd/hacc/api/v1/auth/bo'))
+    assert.ok(isAllowedRequest('POST', 'https://stg-apigw-us.hmg-corp.io/dealers_bo/v0200/hyd/hacc/api/v1/auth/bo/refresh'))
+    // 이름에 auth가 들어 있어도 경로 구간이 아니면 막는다. 접속 기록 전송도 막는다
+    assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/menus/12/authorities'))
+    assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/tokens-issue'))
+    assert.ok(!isAllowedRequest('POST', 'https://browser-intake-datadoghq.com/api/v2/rum'))
   })
 })
 

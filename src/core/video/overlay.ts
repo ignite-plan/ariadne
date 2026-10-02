@@ -136,10 +136,17 @@ export function overlayScript({ personal = false }: OverlayOptions = {}) {
     card(title, subtitle) { state.card = title ? { title, subtitle } : null; save(); if (ensure()) render() },
     highlight(rect, ms) {
       if (!ensure()) return
+      // 화면보다 큰 요소도 테두리가 보이도록 화면 안으로 자른다
       const pad = 6
+      const edge = 4
+      const left = Math.max(edge, rect.x - pad)
+      const top = Math.max(edge, rect.y - pad)
+      const right = Math.min(innerWidth - edge, rect.x + rect.width + pad)
+      const bottom = Math.min(innerHeight - edge, rect.y + rect.height + pad)
+      if (right <= left || bottom <= top) return
       const box = document.createElement('div')
       box.className = 'hl'
-      Object.assign(box.style, { left: rect.x - pad + 'px', top: rect.y - pad + 'px', width: rect.width + pad * 2 + 'px', height: rect.height + pad * 2 + 'px' })
+      Object.assign(box.style, { left: left + 'px', top: top + 'px', width: right - left + 'px', height: bottom - top + 'px' })
       root.insertBefore(box, els.caption)
       setTimeout(() => { box.style.opacity = '0'; setTimeout(() => box.remove(), 300) }, ms)
     },

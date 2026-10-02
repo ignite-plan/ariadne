@@ -11,6 +11,9 @@ export function isBlockedLabel(name: string) {
 
 // 조회로 보이는 POST만 통과시킨다 (BO 목록/검색 API 중 POST가 있다)
 const READ_POST = /(search|list|query|count|lookup|tree|options|codes?|filter|preview|summary)(\b|[/?_-]|$)/i
+// 로그인 세션 유지(SSO 토큰, BO 인증·갱신). 막으면 그다음 권한 조회가 403이 되어 화면이 안 열린다
+// 예: /sso/HK1298/token, /sso/settings, /hacc/api/v1/auth/bo, /auth/bo/refresh
+const SESSION_POST = /(^|\/)(sso|auth)(\/|$)|(^|\/)(token|refresh)(\/|$)/i
 
 export function isAllowedRequest(method: string, url: string) {
   const m = method.toUpperCase()
@@ -22,5 +25,5 @@ export function isAllowedRequest(method: string, url: string) {
   } catch {
     // 상대 경로면 그대로 본다
   }
-  return READ_POST.test(path)
+  return READ_POST.test(path) || SESSION_POST.test(path)
 }

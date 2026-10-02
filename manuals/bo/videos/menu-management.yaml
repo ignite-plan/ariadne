@@ -1,0 +1,70 @@
+title: Menu Management
+intro: This video shows how to view, search, and check menus in Menu Management.
+section: 08-menu-management/01-menu-list-view.md
+maskPersonal: true
+scenes:
+  - say: Menu Management lets you manage the menus of Hyundai Dealers, and create, edit, and delete menus.
+    steps:
+      - open: /menu
+      - waitFor:
+          text: Dealers Menu
+  - say: Menus can be created up to a maximum of 4 depths. Users with permission see the Group Addition button and can create menus.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Group Addition
+          ms: 2500
+  - say: You can view the registered menus in the menu list.
+    steps:
+      - highlight:
+          target:
+            role: tree
+            nth: 1
+          ms: 2500
+  - say: When you type words in the search box, matching menus are found in real time, and the keywords are highlighted.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the menu name
+          text: GDSI
+      - pause: 1500
+  - say: Clear the search box to return to the full menu list.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the menu name
+          text: ""
+      - waitFor:
+          role: treeitem
+          name: Bulletins
+  - say: Click a menu name in the menu list to see the menu details on the right.
+    steps:
+      - click:
+          role: treeitem
+          name: GDSI Image Guide
+      - waitFor:
+          text: Menu Display Status
+  - say: The Menu Details tab shows the saved menu properties, such as the display setting, the menu type, and the menu URL.
+    steps:
+      - highlight:
+          target:
+            role: tabpanel
+            name: Menu Details
+          ms: 3000
+  - say: For bulletin board menus, use Go to Manage Boards and Go to Manage Posts to move to the linked bulletin board.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Manage Boards
+          ms: 2000
+  - say: The Menu Access Permission tab shows the job titles and users who can access the menu.
+    steps:
+      - click:
+          role: tab
+          name: Menu Access Permission
+      - waitFor:
+          role: columnheader
+          name: Job title
+      - pause: 1500

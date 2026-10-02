@@ -17,6 +17,9 @@ export interface DirectorOptions {
 
 type Target = Locator | string
 
+// 화면 아래 자막이 덮는 높이. 누르거나 강조할 곳은 이 위에 오게 한다
+const CAPTION_ZONE = 160
+
 export class Director {
   private cursor = { x: 0, y: 0 }
   private readonly base: string
@@ -100,7 +103,7 @@ export class Director {
   // 대상을 화면 가운데로 부드럽게 스크롤
   async scroll(target: Target) {
     const locator = this.locate(target).first()
-    await locator.evaluate((el) => el.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    await locator.evaluate((el) => el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }))
     await this.wait(700)
   }
 
@@ -114,10 +117,20 @@ export class Director {
   // 대상 가운데로 커서를 옮긴다. 거리에 따라 300~900ms
   async moveTo(target: Target) {
     const locator = this.locate(target).first()
-    await locator.scrollIntoViewIfNeeded()
+    await this.bringIntoView(locator)
     const box = await locator.boundingBox()
     if (!box) throw new Error(`화면에 보이지 않는 대상: ${locator}`)
-    const to = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+    // 화면보다 긴 요소는 보이는 부분(자막 위)의 가운데로 간다
+    const view = this.page.viewportSize() ?? { width: box.x + box.width, height: box.y + box.height }
+    const clamp = (from: number, to: number, max: number) => {
+      const a = Math.max(from, 0)
+      const b = Math.min(to, max)
+      return b > a ? (a + b) / 2 : (from + to) / 2
+    }
+    const to = {
+      x: clamp(box.x, box.x + box.width, view.width),
+      y: clamp(box.y, box.y + box.height, view.height - CAPTION_ZONE),
+    }
     const from = this.cursor
     const distance = Math.hypot(to.x - from.x, to.y - from.y)
     const duration = Math.min(900, Math.max(300, distance * 0.7)) * this.pace
@@ -130,6 +143,23 @@ export class Director {
     }
     this.cursor = to
     return locator
+  }
+
+  // 대상이 자막 위에 잘 보이게 세로로만 스크롤한다. 이미 잘 보이면 움직이지 않는다.
+  // 화면보다 넓은 요소(상세 패널 등) 때문에 화면 전체가 가로로 밀리지 않도록 가로 위치는 되돌린다
+  private async bringIntoView(locator: Locator) {
+    await locator.evaluate((el, captionZone) => {
+      const rect = el.getBoundingClientRect()
+      const safe = innerHeight - captionZone
+      const tall = rect.height > safe * 0.8
+      // 긴 요소는 위쪽이 화면 위 절반에 보이면, 작은 요소는 전체가 자막 위에 보이면 그대로 둔다
+      if (tall ? rect.top >= 0 && rect.top < innerHeight / 2 : rect.top >= 0 && rect.bottom <= safe) return
+      const saved: [Element, number][] = []
+      for (let node = el.parentElement; node; node = node.parentElement) saved.push([node, node.scrollLeft])
+      if (document.scrollingElement) saved.push([document.scrollingElement, document.scrollingElement.scrollLeft])
+      el.scrollIntoView({ block: tall ? 'start' : 'center', inline: 'nearest' })
+      for (const [node, left] of saved) node.scrollLeft = left
+    }, CAPTION_ZONE)
   }
 
   // 녹화 시작 전 커서를 화면 가운데에 둔다

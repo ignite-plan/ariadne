@@ -51,6 +51,9 @@ export interface VideoOptions extends ManualRef {
   baseUrl?: string
   viewport?: Viewport
   authFile?: string
+  // 유지되는 Chrome 프로필로 연다 (authFile 대신). BO는 접속할 때마다 토큰을 갱신해서,
+  // 저장한 storageState로 새 컨텍스트를 여러 번 열면 예전 토큰으로 접속해 로그아웃된다
+  profileDir?: string
   // false면 내레이션 없이 자막만. 없으면 manual.yaml video.tts. provider를 직접 넘길 수도 있다 (테스트)
   tts?: false | TtsConfig | TtsProvider
   // Kokoro 모델 위치. 기본 <root>/.video-cache/models. localModel이면 내려받지 않는다 (앱)
@@ -113,6 +116,7 @@ export async function renderVideo({
   baseUrl: baseUrlOption,
   viewport: viewportOption,
   authFile,
+  profileDir,
   tts: ttsOption,
   modelDir,
   localModel,
@@ -140,7 +144,7 @@ export async function renderVideo({
   if (!baseUrl) throw new Error('녹화 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')
   const viewport = viewportOption ?? manual.capture?.viewport ?? DEFAULT_VIEWPORT
   const auth = authFile ?? defaultAuthFile(ref)
-  if (!existsSync(auth)) throw new Error(`${auth} 없음. 로그인 먼저 실행`)
+  if (!profileDir && !existsSync(auth)) throw new Error(`${auth} 없음. 로그인 먼저 실행`)
   const work = videoWorkDir(ref, scenario.id)
   mkdirSync(work, { recursive: true })
   const outputs = videoOutputs(ref, scenario.id, outDir)
@@ -166,12 +170,17 @@ export async function renderVideo({
   const blockedRequests: string[] = []
   const video = join(work, 'screen.mp4')
   let durationMs = 0
-  const browser = await chromium.launch({ channel: 'chrome', headless: !(headed ?? preview) })
-  const abort = () => void browser.close().catch(() => {})
+  const headless = !(headed ?? preview)
+  const options = { viewport, deviceScaleFactor: 1, locale: 'en-US' }
+  const browser = profileDir ? undefined : await chromium.launch({ channel: 'chrome', headless })
+  const context = profileDir
+    ? await chromium.launchPersistentContext(profileDir, { channel: 'chrome', headless, ...options })
+    : await browser!.newContext({ storageState: auth, ...options })
+  const closeAll = () => (browser ? browser.close() : context.close()).catch(() => {})
+  const abort = () => void closeAll()
   signal?.addEventListener('abort', abort, { once: true })
   try {
     signal?.throwIfAborted()
-    const context = await browser.newContext({ storageState: auth, viewport, deviceScaleFactor: 1, locale: 'en-US' })
     await context.addInitScript({ content: overlayScript({ personal: scenario.maskPersonal }) })
     if (!scenario.mutates) {
       await context.route('**/*', (route) => {
@@ -181,7 +190,7 @@ export async function renderVideo({
         return route.abort('blockedbyclient')
       })
     }
-    const page = await context.newPage()
+    const page = (profileDir && context.pages()[0]) || (await context.newPage())
     page.setDefaultTimeout(stepTimeout)
     const v = new Director(page, { baseUrl, mutates: scenario.mutates })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다
@@ -251,7 +260,7 @@ export async function renderVideo({
     throw error
   } finally {
     signal?.removeEventListener('abort', abort)
-    await browser.close().catch(() => {})
+    await closeAll()
   }
   if (preview) return { cues, durationMs, blockedRequests }
 
