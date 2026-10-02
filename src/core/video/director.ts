@@ -1,16 +1,13 @@
 // 시나리오가 쓰는 조작 헬퍼. 사람이 조작하는 것처럼 커서를 옮기고, 누를 곳을 강조한 뒤 누른다.
 import type { Locator, Page } from 'playwright'
+import { isBlockedLabel } from '../safety.ts'
 import type { OverlayApi } from './overlay.ts'
-
-// mutates가 아닌 시나리오에서 누르면 안 되는 버튼 (STG 데이터를 바꾸는 동작).
-// "Create"는 정확히 그 이름일 때만 (목록의 "Create New"는 화면 이동)
-export const MUTATING_LABEL = /^\s*(save|delete|remove|send|approve|reject|submit|register|publish|terminate|discard)\b|^\s*create\s*$/i
 
 export class MutationBlockedError extends Error {}
 
 export interface DirectorOptions {
   baseUrl: string
-  // false면 MUTATING_LABEL 버튼 클릭을 막는다
+  // false면 저장/삭제류 버튼(safety.ts isBlockedLabel) 클릭을 막는다
   mutates?: boolean
   // 1이면 정상 속도, 0이면 대기 없이 (테스트용)
   pace?: number
@@ -61,8 +58,8 @@ export class Director {
     const locator = this.locate(target).first()
     if (!this.mutates) {
       const label = (await locator.getAttribute('aria-label')) ?? (await locator.innerText().catch(() => ''))
-      if (MUTATING_LABEL.test(label)) {
-        throw new MutationBlockedError(`"${label.trim()}" 버튼은 mutates: true 시나리오에서만 누를 수 있습니다`)
+      if (isBlockedLabel(label)) {
+        throw new MutationBlockedError(`"${label.trim()}"은(는) 데이터를 바꿀 수 있는 버튼이라 'STG에 실제 저장 허용' 시나리오에서만 누를 수 있습니다`)
       }
     }
     await this.moveTo(locator)

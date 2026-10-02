@@ -1,8 +1,7 @@
 // 내레이션 음성 생성. 같은 문장·음성은 .video-cache/tts에 캐시한다.
 // 사내 TLS 프록시 때문에 모델 다운로드·API 호출은 node --use-system-ca 로 실행해야 한다 (package.json 스크립트)
 import { createHash } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, renameSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
 
 export interface TtsConfig {
@@ -23,20 +22,43 @@ export interface Clip {
   ms: number
 }
 
-export async function createProvider(config: TtsConfig, modelDir: string): Promise<TtsProvider> {
+export interface ProviderOptions {
+  // Kokoro 모델 위치
+  modelDir: string
+  // true면 모델을 내려받지 않고 modelDir에 있는 것만 쓴다 (앱: main이 net.fetch로 미리 받음)
+  localOnly?: boolean
+}
+
+export async function createProvider(config: TtsConfig, options: ProviderOptions): Promise<TtsProvider> {
   if (config.provider === 'openai') {
     const { openaiProvider } = await import('./openai.ts')
     return openaiProvider(config)
   }
   const { kokoroProvider } = await import('./kokoro.ts')
-  return kokoroProvider(config, modelDir)
+  return kokoroProvider(config, options)
+}
+
+// WAV 헤더로 길이(ms)를 잰다. ffmpeg-static에는 ffprobe가 없다
+export function wavDuration(buffer: Buffer) {
+  if (buffer.toString('ascii', 0, 4) !== 'RIFF' || buffer.toString('ascii', 8, 12) !== 'WAVE') throw new Error('WAV 파일이 아닙니다')
+  let byteRate = 0
+  for (let offset = 12; offset + 8 <= buffer.length; ) {
+    const id = buffer.toString('ascii', offset, offset + 4)
+    const size = buffer.readUInt32LE(offset + 4)
+    if (id === 'fmt ') byteRate = buffer.readUInt32LE(offset + 16)
+    if (id === 'data') {
+      if (!byteRate) throw new Error('WAV fmt 정보가 없습니다')
+      // 스트리밍으로 만든 WAV는 크기 칸이 0이나 0xFFFFFFFF다. 그때는 파일 끝까지
+      const bytes = size && size !== 0xffffffff ? Math.min(size, buffer.length - offset - 8) : buffer.length - offset - 8
+      return Math.round((bytes / byteRate) * 1000)
+    }
+    offset += 8 + size + (size % 2)
+  }
+  throw new Error('WAV data가 없습니다')
 }
 
 export function audioDuration(file: string) {
-  const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', file], {
-    encoding: 'utf8',
-  })
-  return Math.round(Number(out.trim()) * 1000)
+  return wavDuration(readFileSync(file))
 }
 
 // 문장마다 wav를 만든다. 캐시에 있으면 다시 만들지 않는다

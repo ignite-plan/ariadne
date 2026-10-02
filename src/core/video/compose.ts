@@ -10,6 +10,8 @@ export interface ComposeInput {
   srt?: string
   durationMs: number
   out: string
+  // 기본 PATH의 ffmpeg. 앱은 번들된 ffmpeg-static 경로를 넘긴다
+  ffmpegPath?: string
 }
 
 export function composeArgs({ video, audio, srt, durationMs, out }: ComposeInput) {
@@ -33,7 +35,7 @@ export function composeArgs({ video, audio, srt, durationMs, out }: ComposeInput
 }
 
 export async function compose(input: ComposeInput) {
-  await promisify(execFile)('ffmpeg', composeArgs(input), { maxBuffer: 16 * 1024 * 1024 }).catch((error: Error & { stderr?: string }) => {
+  await promisify(execFile)(input.ffmpegPath ?? 'ffmpeg', composeArgs(input), { maxBuffer: 16 * 1024 * 1024 }).catch((error: Error & { stderr?: string }) => {
     throw new Error(`ffmpeg 합성 실패: ${error.stderr?.trim() || error.message}`)
   })
 }

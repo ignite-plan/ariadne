@@ -4,33 +4,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium, type Browser, type BrowserContext, type Locator, type Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
+import { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
 
 export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
 
-// 화면을 바꾸는 동작으로 보이는 이름. 단어 단위로 본다
-const BLOCKED_LABEL =
-  /\b(save|delete|remove|submit|approve|reject|send|register|publish|confirm|apply changes|deactivate|activate|terminate|reset password|upload|import|sync|resend|withdraw)\b|저장|삭제|승인|반려|발송|전송|등록|게시|확인|적용|업로드|탈퇴|해지/i
-
-export function isBlockedLabel(name: string) {
-  return BLOCKED_LABEL.test(name)
-}
-
-// 조회로 보이는 POST만 통과시킨다 (BO 목록/검색 API 중 POST가 있다)
-const READ_POST = /(search|list|query|count|lookup|tree|options|codes?|filter|preview|summary)(\b|[/?_-]|$)/i
-
-export function isAllowedRequest(method: string, url: string) {
-  const m = method.toUpperCase()
-  if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return true
-  if (m !== 'POST') return false
-  let path = url
-  try {
-    path = new URL(url).pathname
-  } catch {
-    // 상대 경로면 그대로 본다
-  }
-  return READ_POST.test(path)
-}
+// 저장/삭제류 버튼, 쓰기 요청 판단은 가이드 영상과 같은 규칙을 쓴다
+export { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
 
 export type ShotStep =
   | { click: { role: Role; name: string; nth?: number } }

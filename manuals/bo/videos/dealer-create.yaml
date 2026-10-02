@@ -1,0 +1,69 @@
+title: Dealer Creation
+intro: This video shows how to start registering a new dealer and save it as a draft.
+section: 02-dealer-management/02-dealer-creation-screen.md
+mutates: true
+maskPersonal: true
+scenes:
+  - say: To register a new dealer, click Create New on the Dealer List screen.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          text: Total
+      - click:
+          text: Create New
+          exact: true
+      - waitFor:
+          text: Dealer Basic Information
+  - say: Dealer creation consists of four steps, starting with Dealer Basic Information.
+    steps:
+      - highlight:
+          target:
+            text: Dealer Basic Information
+          ms: 2000
+  - say: Enter the dealer name in English and French. Each name can be up to 20 characters.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Dealer Name
+          text: Video Test {stamp}
+      - type:
+          target:
+            placeholder: Enter Dealer Name
+            nth: 1
+          text: Video Test {stamp}
+  - say: Enter the 9-digit DUNS number, and the official company name.
+    steps:
+      - type:
+          target:
+            placeholder: Enter 9-digit DUNS Number
+          text: 9{stamp}
+      - type:
+          target:
+            placeholder: Enter Legal Business Company Name
+          text: Video Test {stamp} Inc.
+  - say: You can save the form at any time, even with partial information. Click Save Draft.
+    steps:
+      - click:
+          role: button
+          name: Save Draft
+  - say: The dealer is saved with the Draft status, and appears in the Dealer List as a draft entry.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          text: Video Test {stamp}
+      - highlight:
+          target:
+            role: row
+            name: Video Test {stamp}
+          ms: 2500
+cleanup:
+  - open: /dealer/company
+  - click:
+      role: button
+      name: Delete
+      within:
+        role: row
+        name: Video Test {stamp}
+  - click:
+      role: button
+      name: Discard

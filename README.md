@@ -285,7 +285,7 @@ brew install ffmpeg     # 가이드 영상(pnpm video)에만 필요
 | `pnpm build --manual bo [--chapters 2,5]` | `dist/*.docx` |
 | `pnpm import:docx --docx <file> --manual <id> [--title] [--version] [--keep-source]` | Word 원본 → 새 매뉴얼. `--analyze`는 분석만 합니다 |
 | `pnpm make:reference --docx <file> --manual <id>` | 원본 서식으로 `reference.docx`를 다시 만듭니다 |
-| `pnpm video --manual bo [--id id,…] [--no-tts] [--headed]` | 가이드 영상. `manuals/bo/videos/<id>.ts` → `dist/videos/<id>.mp4`·`.srt`·`.vtt` |
+| `pnpm video --manual bo [--id id,…] [--no-tts] [--headed] [--preview] [--from n]` | 가이드 영상. `manuals/bo/videos/<id>.yaml` → `dist/videos/<id>.mp4`·`.srt`·`.vtt` |
 | `pnpm typecheck` / `pnpm test` | 타입 검사 / core + app 테스트 |
 
 ### 릴리즈 변경 반영
@@ -329,40 +329,47 @@ Claude Code에서 **"<메뉴> 매뉴얼 추가"**(`manual-new-section` 스킬)�
 ```bash
 pnpm login --manual bo                       # 세션이 없을 때 (캡처와 같은 .auth/bo.json)
 pnpm video --manual bo --id dealer-list      # → dist/videos/dealer-list.mp4, .srt, .vtt
-pnpm video --manual bo --id dealer-list --headed --no-tts   # 시나리오 작성 중: 브라우저를 띄우고 음성 생략
+pnpm video --manual bo --id dealer-list --preview   # 시나리오 작성 중: 브라우저를 띄워 실행만 (음성·파일 없음)
 ```
 
 - 결과 mp4에는 영상(h264), 내레이션(aac), 자막 트랙(mov_text)이 들어 있습니다. 자막은 화면에도 그려져 있어 어느 플레이어에서나 보입니다. `.srt`·`.vtt`는 LMS나 YouTube에 따로 올릴 때 씁니다.
 - 내레이션은 로컬 TTS 모델 **Kokoro**(무료, API 키 없음)로 만듭니다. 첫 실행 때 모델(약 90MB)을 `.video-cache/models`에 받고, 만든 음성은 `.video-cache/tts`에 캐시합니다. 사내 TLS 프록시 때문에 `pnpm video`는 `--use-system-ca`로 실행됩니다.
 - OpenAI 음성을 쓰려면 `manual.yaml`에 `video.tts.provider: openai`(voice 예: `alloy`)를 지정하고 `.env`에 `OPENAI_API_KEY`를 넣습니다. ElevenLabs는 사내 webfilter로 막혀 있습니다.
 
-시나리오(`manuals/bo/videos/<id>.ts`)는 장면(scene) 목록입니다. 장면마다 `say`(자막 겸 내레이션)를 띄우고 `do`의 조작을 함께 진행합니다. 장면 길이는 내레이션 길이에 맞춰집니다.
+시나리오(`manuals/bo/videos/<id>.yaml`, id는 파일 이름)는 장면(scene) 목록입니다. 장면마다 `say`(자막 겸 내레이션)를 띄우고 `steps`의 조작을 함께 진행합니다. 장면 길이는 내레이션 길이에 맞춰집니다. 코드가 아닌 데이터라 정해진 단계만 실행합니다. 저장은 `saveVideo`(`YAML.stringify`)로만 해서 앱과 CLI가 같은 diff를 냅니다.
 
-```ts
-export default defineVideo({
-  id: 'dealer-list',
-  title: 'Dealer List View',                     // 시작 카드
-  intro: 'This video shows how to ...',           // 시작 카드 내레이션
-  section: '02-dealer-management/01-dealer-list-view.md',
-  mask: ['.email'],                               // blur 처리할 곳
-  scenes: [
-    { say: 'The Dealer List screen provides ...', do: async (v) => { await v.goto('/dealer/company'); await v.ready('text=Total') } },
-    { say: 'Click the Location icon to ...', do: async (v) => v.click(v.page.getByRole('button', { name: 'Location' }).first()) },
-  ],
-})
+```yaml
+title: Dealer List View                       # 시작 카드
+intro: This video shows how to ...             # 시작 카드 내레이션
+section: 02-dealer-management/01-dealer-list-view.md
+maskPersonal: true                             # 이메일·전화번호처럼 보이는 글자 자동 blur
+mask: [{ role: cell, name: Owner }]            # 추가로 가릴 요소 (선택)
+scenes:
+  - say: The Dealer List screen provides a list of all registered dealers.
+    steps:
+      - open: /dealer/company
+      - waitFor: { text: Total }
+  - say: Click the Location icon to open a popup showing the dealer's registered address.
+    steps:
+      - click: { role: button, name: Location }
+      - waitFor: { text: Location Information }
 ```
 
-| `v` 헬퍼 | 동작 |
+| 단계 | 동작 |
 |---|---|
-| `goto(path)` / `ready(locator)` | `baseUrl` 기준 이동 / 화면 준비 대기. 로그인 페이지로 튕기면 세션 만료로 멈춥니다 |
-| `click(locator)` | 커서를 옮기고, 대상을 강조한 뒤 누릅니다 |
-| `type(locator, text)` | 한 글자씩 입력합니다 |
-| `choose(trigger, option)` | HDS(MUI) Select를 열고 옵션을 고릅니다. native select는 `select(locator, value)` |
-| `highlight(locator, ms)` / `hover` / `scroll` / `pause(ms)` | 누르지 않고 강조 / 올려놓기 / 스크롤 / 대기 |
+| `open: <path>` | `baseUrl` 기준 이동. 로그인 페이지로 튕기면 세션 만료로 멈춥니다 |
+| `waitFor: <대상>` | 대상이 보일 때까지 기다립니다 (기본 15초) |
+| `click: <대상>` | 커서를 옮기고, 대상을 강조한 뒤 누릅니다 |
+| `type: { target, text }` | 한 글자씩 입력합니다 |
+| `choose: { target, option }` | HDS(MUI) Select를 열고 옵션을 고릅니다. native select는 `select: { target, value }` |
+| `highlight: { target, ms }` / `hover` / `scroll` / `pause: <ms>` | 누르지 않고 강조 / 올려놓기 / 스크롤 / 대기 |
+
+대상은 `{ role, name }`(접근성 이름, 예: `button`/`Location`)을 먼저 쓰고, 없으면 `label`·`placeholder`·`text`를 씁니다. 같은 대상이 여러 개면 `nth`(0부터), 특정 행 안에서 찾으려면 `within`을 씁니다. 문자열의 `{stamp}`는 실행 시각(MMDDHHmm)으로 바뀝니다.
 
 - 문장은 해당 매뉴얼 섹션에서 가져오고, UI 라벨은 `en.json` 그대로 씁니다([작성 규칙](#작성-규칙)).
-- 기본적으로 저장/삭제/발송/승인 류 버튼(`Save`, `Save Draft`, `Delete`, `Discard`, `Send`, `Approve`, `Create` 등)은 누르지 못합니다. 생성·수정 과정을 보여 줘야 하면 `mutates: true`로 표시하고 **STG 테스트 데이터로만** 실행합니다. 이름에 `Video Test`를 붙이고, `cleanup`에서 만든 데이터를 지웁니다. 이메일이 발송되는 화면은 테스트 계정 주소만 씁니다. 외부 시스템 연동이 있는 버튼(예: 딜러 생성 마지막 단계의 `Create`, HMG Partner 연동)은 누르지 않습니다.
-- 새 시나리오는 STG에서 처음 실행할 때 `--headed --no-tts`로 selector를 확인합니다.
+- 기본적으로 저장/삭제/발송/승인 류 버튼(`Save`, `Save Draft`, `Delete`, `Discard`, `Send`, `Approve`, 정확히 `Create` 등, `src/core/safety.ts`)은 누르지 못하고, 쓰기 요청(PUT/PATCH/DELETE, 조회가 아닌 POST)도 막습니다. Claude STG 탐색과 같은 규칙입니다.
+- 생성·수정 과정을 보여 줘야 하면 `mutates: true`로 표시하고 **STG 테스트 데이터로만** 실행합니다. 이름에 `Video Test {stamp}`를 쓰고, `cleanup` 단계에서 만든 데이터를 지웁니다. 이메일이 발송되는 화면은 테스트 계정 주소만 씁니다. 외부 시스템 연동이 있는 버튼(예: 딜러 생성 마지막 단계의 `Create`, HMG Partner 연동)은 누르지 않습니다.
+- 새 시나리오는 `pnpm video --id <id> --preview`로 브라우저를 띄워 확인합니다. 특정 장면부터 보려면 `--from <장면 번호>`를 붙입니다(앞 장면은 녹화 없이 빠르게 재생).
 
 ### 리모트
 

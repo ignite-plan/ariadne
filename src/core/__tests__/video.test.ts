@@ -1,9 +1,15 @@
 import assert from 'node:assert/strict'
-import { describe, it } from 'node:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { after, describe, it } from 'node:test'
+import { isBlockedLabel } from '../safety.ts'
 import { composeArgs } from '../video/compose.ts'
-import { MUTATING_LABEL } from '../video/director.ts'
+import { describeStep } from '../video/describe.ts'
 import { FrameSlots } from '../video/recorder.ts'
+import { applyVars, deleteVideo, listVideos, loadVideo, parseVideo, saveVideo, videoVars, type VideoScenario } from '../video/scenario.ts'
 import { readingTime, toSrt, toVtt } from '../video/subtitles.ts'
+import { wavDuration } from '../video/tts/index.ts'
+import { createFixture } from './fixture.ts'
 
 describe('subtitles', () => {
   const cues = [
@@ -82,13 +88,103 @@ describe('composeArgs', () => {
   })
 })
 
-describe('MUTATING_LABEL', () => {
-  it('저장/삭제/발송/승인 류만 막는다', () => {
-    for (const label of ['Save', 'Save Draft', 'Delete', ' Send email', 'Approve', 'Submit', 'Register', 'Discard', 'Create']) {
-      assert.ok(MUTATING_LABEL.test(label), label)
+describe('isBlockedLabel (영상)', () => {
+  it('Discard와 정확히 Create인 버튼도 막고, Create New는 통과', () => {
+    for (const label of ['Save Draft', 'Discard', 'Create', ' create ']) assert.ok(isBlockedLabel(label), label)
+    for (const label of ['Create New', 'View', 'Location', 'OK', 'Active']) assert.ok(!isBlockedLabel(label), label)
+  })
+})
+
+describe('시나리오 YAML', () => {
+  const fx = createFixture()
+  after(fx.cleanup)
+  const scenario: VideoScenario = {
+    id: 'dealer-list',
+    title: 'Dealer List View',
+    maskPersonal: true,
+    scenes: [
+      { say: 'Open the list.', steps: [{ open: '/dealer/company' }, { waitFor: { text: 'Total' } }] },
+      { steps: [{ click: { role: 'button', name: 'Delete', within: { role: 'row', name: 'Video Test {stamp}' } } }] },
+    ],
+  }
+
+  it('저장하면 id 없이 YAML로 쓰고, 읽으면 파일 이름이 id', () => {
+    saveVideo(fx.ref, scenario)
+    const text = readFileSync(join(fx.dir, 'videos', 'dealer-list.yaml'), 'utf8')
+    assert.ok(text.startsWith('title: Dealer List View\n'))
+    assert.ok(!/^id:/m.test(text))
+    assert.deepEqual(loadVideo(fx.ref, 'dealer-list'), scenario)
+    assert.deepEqual(listVideos(fx.ref), ['dealer-list'])
+    deleteVideo(fx.ref, 'dealer-list')
+    assert.deepEqual(listVideos(fx.ref), [])
+  })
+
+  it('형식이 틀리면 어디가 틀렸는지 알려 준다', () => {
+    assert.throws(() => parseVideo('x', { title: 'X', scenes: [{ steps: [{ click: { nth: 1 } }] }] }), /scenes\.0\.steps\.0/)
+    assert.throws(() => parseVideo('x', { title: 'X', scenes: [{ steps: [{ run: 'rm -rf /' }] }] }), /형식 오류/)
+    assert.throws(() => parseVideo('x', { scenes: [] }), /title/)
+    assert.throws(() => saveVideo(fx.ref, { ...scenario, id: '../x' }), /영문 소문자/)
+  })
+
+  it('장면 단계가 없으면 빈 배열', () => {
+    assert.deepEqual(parseVideo('x', { title: 'X', scenes: [{ say: 'Hi' }] }).scenes, [{ say: 'Hi', steps: [] }])
+  })
+
+  it('{stamp}를 모든 문자열에서 바꾸고 모르는 변수는 둔다', () => {
+    const vars = videoVars(new Date(2026, 9, 2, 8, 5))
+    assert.deepEqual(vars, { stamp: '10020805' })
+    const applied = applyVars(scenario, vars)
+    assert.deepEqual(applied.scenes[1].steps[0], {
+      click: { role: 'button', name: 'Delete', within: { role: 'row', name: 'Video Test 10020805' } },
+    })
+    assert.equal(applyVars('{unknown} {stamp}', vars), '{unknown} 10020805')
+  })
+})
+
+describe('describeStep', () => {
+  it('기획자가 읽는 문장', () => {
+    assert.equal(describeStep({ open: '/dealer/company' }), '/dealer/company 화면 열기')
+    assert.equal(describeStep({ click: { role: 'button', name: 'Location', nth: 1 } }), "'Location' 버튼 2번째 클릭")
+    assert.equal(
+      describeStep({ click: { role: 'button', name: 'Delete', within: { role: 'row', name: 'A' } } }),
+      "'A' 행 안의 'Delete' 버튼 클릭",
+    )
+    assert.equal(describeStep({ type: { target: { placeholder: 'Dealer Name' }, text: 'X' } }), "'Dealer Name' 입력칸에 \"X\" 입력")
+    assert.equal(describeStep({ choose: { target: { role: 'combobox' }, option: 'Active' } }), "선택 상자에서 'Active' 선택")
+    assert.equal(describeStep({ waitFor: { text: 'Total' } }), "'Total' 글자 표시 기다림")
+    assert.equal(describeStep({ pause: 1500 }), '1.5초 멈춤')
+  })
+})
+
+describe('wavDuration', () => {
+  const wav = (dataBytes: number, byteRate: number, sizeField = dataBytes, extra = 0) => {
+    const buf = Buffer.alloc(44 + extra + dataBytes)
+    buf.write('RIFF', 0, 'ascii')
+    buf.write('WAVE', 8, 'ascii')
+    buf.write('fmt ', 12, 'ascii')
+    buf.writeUInt32LE(16, 16)
+    buf.writeUInt32LE(byteRate, 28)
+    let offset = 36
+    if (extra) {
+      buf.write('LIST', offset, 'ascii')
+      buf.writeUInt32LE(extra - 8, offset + 4)
+      offset += extra
     }
-    for (const label of ['Search', 'Reset', 'Create New', 'Detail', 'View', 'Location', 'Cancel', 'Saved filters']) {
-      assert.ok(!MUTATING_LABEL.test(label), label)
-    }
+    buf.write('data', offset, 'ascii')
+    buf.writeUInt32LE(sizeField, offset + 4)
+    return buf
+  }
+
+  it('data 크기 / byteRate', () => {
+    assert.equal(wavDuration(wav(48000, 96000)), 500)
+    assert.equal(wavDuration(wav(96000, 96000, 96000, 26)), 1000)
+  })
+
+  it('스트리밍 WAV(크기 칸 0xFFFFFFFF)는 파일 끝까지', () => {
+    assert.equal(wavDuration(wav(24000, 48000, 0xffffffff)), 500)
+  })
+
+  it('WAV가 아니면 오류', () => {
+    assert.throws(() => wavDuration(Buffer.from('not a wav file at all, really')), /WAV/)
   })
 })

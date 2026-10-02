@@ -44,9 +44,14 @@ export class FrameSlots {
   }
 }
 
-export async function startRecording(page: Page, file: string, { width, height }: Viewport, fps = 30): Promise<Recording> {
+export async function startRecording(
+  page: Page,
+  file: string,
+  { width, height }: Viewport,
+  { fps = 30, ffmpegPath = 'ffmpeg' }: { fps?: number; ffmpegPath?: string } = {},
+): Promise<Recording> {
   const ffmpeg = spawn(
-    'ffmpeg',
+    ffmpegPath,
     [
       '-hide_banner', '-loglevel', 'error', '-y',
       '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', 'pipe:0',
@@ -59,7 +64,7 @@ export async function startRecording(page: Page, file: string, { width, height }
   let stderr = ''
   ffmpeg.stderr.on('data', (chunk) => (stderr += chunk))
   const exited = new Promise<void>((resolve, reject) => {
-    ffmpeg.on('error', (error) => reject(new Error(`ffmpeg 실행 실패 (brew install ffmpeg): ${error.message}`)))
+    ffmpeg.on('error', (error) => reject(new Error(`ffmpeg 실행 실패 (${ffmpegPath}): ${error.message}`)))
     ffmpeg.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg 녹화 실패: ${stderr.trim()}`))))
   })
   // 쓰기 순서를 지키고 backpressure를 따른다

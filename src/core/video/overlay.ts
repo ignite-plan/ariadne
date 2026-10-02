@@ -3,8 +3,12 @@
 // tsx(esbuild)가 함수에 helper를 끼워 넣으면 브라우저에서 깨지므로 함수가 아닌 문자열로 주입한다.
 
 export interface OverlayOptions {
-  mask?: string[]
+  // 이메일·전화번호처럼 보이는 글자를 자동으로 blur
+  personal?: boolean
 }
+
+// 이 속성이 붙은 요소는 blur된다. 시나리오 mask Target은 runner가 이 속성을 붙인다
+export const MASK_ATTR = 'data-ariadne-mask'
 
 // window.__ariadneVideo API. 상태는 sessionStorage에 두어 전체 새로고침 뒤에도 다시 그린다
 export interface OverlayApi {
@@ -13,11 +17,14 @@ export interface OverlayApi {
   highlight(rect: { x: number; y: number; width: number; height: number }, ms: number): void
 }
 
-export function overlayScript({ mask = [] }: OverlayOptions = {}) {
+export function overlayScript({ personal = false }: OverlayOptions = {}) {
   return `(() => {
   if (window.__ariadneVideo || window.top !== window) return
   const KEY = '__ariadneVideo'
-  const MASK = ${JSON.stringify(mask)}
+  const PERSONAL = ${JSON.stringify(personal)}
+  const MASK_ATTR = ${JSON.stringify(MASK_ATTR)}
+  const EMAIL = /[\\w.+-]+@[\\w-]+\\.[\\w.-]+/
+  const PHONE = /(\\+?1[\\s.-]?)?\\(?\\d{3}\\)?[\\s.-]\\d{3}[\\s.-]\\d{4}/
   const load = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || '{}') } catch { return {} } }
   const state = Object.assign({ caption: null, card: null, cursor: null }, load())
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(state)) } catch {} }
@@ -56,10 +63,10 @@ export function overlayScript({ mask = [] }: OverlayOptions = {}) {
     root.innerHTML = '<style>' + CSS + '</style><div class="card"><h1></h1><p></p></div><div class="caption"></div><div class="cursor">' + CURSOR + '</div>'
     els = { card: root.querySelector('.card'), caption: root.querySelector('.caption'), cursor: root.querySelector('.cursor') }
     document.documentElement.appendChild(host)
-    if (MASK.length && !document.getElementById('ariadne-video-mask')) {
+    if (!document.getElementById('ariadne-video-mask')) {
       const style = document.createElement('style')
       style.id = 'ariadne-video-mask'
-      style.textContent = MASK.join(',') + '{ filter: blur(7px) !important; }'
+      style.textContent = '[' + MASK_ATTR + ']{ filter: blur(7px) !important; }'
       document.documentElement.appendChild(style)
     }
     render()
@@ -91,6 +98,35 @@ export function overlayScript({ mask = [] }: OverlayOptions = {}) {
     root.appendChild(r)
     setTimeout(() => r.remove(), 600)
   }, { capture: true, passive: true })
+  // 개인정보처럼 보이는 글자의 부모 요소를 가린다. 화면이 바뀔 때마다 다시 본다
+  const personalText = (text) => text && text.length >= 6 && (EMAIL.test(text) || PHONE.test(text))
+  const scan = () => {
+    if (!document.body) return
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const el = node.parentElement
+      if (el && !el.hasAttribute(MASK_ATTR) && personalText(node.nodeValue)) el.setAttribute(MASK_ATTR, '')
+    }
+    for (const input of document.querySelectorAll('input, textarea')) {
+      if (!input.hasAttribute(MASK_ATTR) && personalText(input.value)) input.setAttribute(MASK_ATTR, '')
+    }
+  }
+  if (PERSONAL) {
+    let queued = false
+    const queue = () => {
+      if (queued) return
+      queued = true
+      requestAnimationFrame(() => { queued = false; scan() })
+    }
+    const observe = () => {
+      if (!document.body) return false
+      new MutationObserver(queue).observe(document.body, { childList: true, subtree: true, characterData: true })
+      document.addEventListener('input', queue, true)
+      scan()
+      return true
+    }
+    if (!observe()) document.addEventListener('DOMContentLoaded', observe)
+  }
   document.addEventListener('DOMContentLoaded', ensure)
   // SPA가 documentElement 자식을 갈아끼워도 다시 붙인다
   setInterval(ensure, 300)

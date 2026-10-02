@@ -1,5 +1,6 @@
-// usage: pnpm video --manual bo [--id dealer-list,dealer-create] [--no-tts] [--headed]
-// --id가 없으면 manuals/<manual>/videos/ 시나리오를 모두 만든다
+// usage: pnpm video --manual bo [--id dealer-list,dealer-create] [--no-tts] [--headed] [--from 3] [--preview]
+// --id가 없으면 manuals/<manual>/videos/*.yaml 시나리오를 모두 만든다
+// --from: 이 장면(1부터)부터 녹화 / --preview: 브라우저를 띄워 실행만 해 본다 (파일 없음)
 import { relative } from 'node:path'
 import { parseArgs } from 'node:util'
 import { defaultAuthFile, listVideos, renderVideo } from '../core/index.ts'
@@ -15,6 +16,8 @@ const { values } = parseArgs({
     id: { type: 'string' },
     'no-tts': { type: 'boolean', default: false },
     headed: { type: 'boolean', default: false },
+    preview: { type: 'boolean', default: false },
+    from: { type: 'string' },
   },
 })
 // .env BO_BASE_URL은 bo 매뉴얼의 주소를 덮어쓴다 (capture와 같음)
@@ -34,10 +37,15 @@ for (const id of ids) {
       baseUrl,
       authFile,
       tts: values['no-tts'] ? false : undefined,
-      headed: values.headed,
-      onProgress: ({ stage, message }) => console.log(`  ${stage} ${message}`),
+      headed: values.headed || undefined,
+      preview: values.preview,
+      fromScene: values.from ? Number(values.from) - 1 : undefined,
+      onProgress: ({ stage, message, step }) => console.log(`  ${stage} ${message}${step === undefined ? '' : ` 단계 ${step + 1}`}`),
     })
-    console.log(`  ✓ ${relative(ref.root, result.mp4)} (${(result.durationMs / 1000).toFixed(1)}s, 자막 ${result.cues.length}개)`)
+    for (const request of result.blockedRequests) console.log(`  ⚠ 쓰기 요청 차단: ${request}`)
+    if (result.mp4) {
+      console.log(`  ✓ ${relative(ref.root, result.mp4)} (${(result.durationMs / 1000).toFixed(1)}s, 자막 ${result.cues.length}개)`)
+    } else console.log(`  ✓ 미리보기 끝 (${(result.durationMs / 1000).toFixed(1)}s)`)
   } catch (error) {
     failed++
     const message = error instanceof Error ? error.message : String(error)

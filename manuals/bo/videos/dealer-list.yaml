@@ -1,0 +1,54 @@
+title: Dealer List View
+intro: This video shows how to search for dealers and view their information in Dealer Management.
+section: 02-dealer-management/01-dealer-list-view.md
+maskPersonal: true
+scenes:
+  - say: The Dealer List screen provides a list of all registered dealers.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          text: Total
+  - say: Use the search filters to find dealers by company name, dealer number, dealer name, or status.
+    steps:
+      - highlight:
+          target:
+            role: form
+          ms: 2500
+  - say: For example, select Active as the status, and click Search.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            nth: 1
+          option: Active
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: Total
+  - say: Each row shows the dealer's zone, district, business end date, and current status.
+    steps:
+      - highlight:
+          target:
+            role: row
+            nth: 1
+          ms: 2500
+  - say: Click the Location icon to open a popup showing the dealer's registered address.
+    steps:
+      - click:
+          role: button
+          name: Location
+      - waitFor:
+          text: Location Information
+  - say: Click OK to close the popup.
+    steps:
+      - click:
+          role: button
+          name: OK
+          exact: true
+  - say: To see more details, click the View icon. The dealer's detail page opens.
+    steps:
+      - click:
+          role: button
+          name: View
