@@ -6,7 +6,7 @@ import { homedir } from 'node:os'
 import { basename, delimiter, dirname, join, relative } from 'node:path'
 import { promisify } from 'node:util'
 import type { ClaudeEvent, DraftSummary } from '../../shared/api.ts'
-import { claudeEnv, KEY_VARS, keySource, type ClaudeAuth } from './claude-auth.ts'
+import { claudeEnv, keySource, SHELL_VARS, type ClaudeAuth, type ShellVars } from './claude-auth.ts'
 
 export type { ClaudeEvent, DraftSummary }
 
@@ -15,15 +15,15 @@ const run = promisify(execFile)
 // Finder에서 띄운 앱은 PATH와 ~/.zshrc 환경변수가 없다. 로그인 셸에서 claude 위치, PATH, 키 환경변수를 얻는다 (nvm 설치도 찾도록 -i)
 export async function shellLookup() {
   const shell = process.env.SHELL || '/bin/zsh'
-  const keys = KEY_VARS.map((k) => `__${k}__%s\\n`).join('')
-  const values = KEY_VARS.map((k) => `"\${${k}-}"`).join(' ')
+  const keys = SHELL_VARS.map((k) => `__${k}__%s\\n`).join('')
+  const values = SHELL_VARS.map((k) => `"\${${k}-}"`).join(' ')
   try {
     const { stdout } = await run(shell, ['-lic', `printf "__PATH__%s\\n__CLAUDE__%s\\n${keys}" "$PATH" "$(command -v claude)" ${values}`], {
       timeout: 15000,
       env: { ...process.env, TERM: 'dumb' },
     })
-    const vars: Partial<Record<(typeof KEY_VARS)[number], string>> = {}
-    for (const key of KEY_VARS) {
+    const vars: ShellVars = {}
+    for (const key of SHELL_VARS) {
       const value = stdout.match(new RegExp(`__${key}__(.*)`))?.[1]?.trim()
       if (value) vars[key] = value
     }

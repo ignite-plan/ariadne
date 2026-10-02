@@ -70,7 +70,8 @@ export async function startDraft({
   onEvent: (event: DraftEvent) => void
 }): Promise<DraftResult> {
   if (current) throw new Error('이미 초안을 만드는 중입니다')
-  const cli = await findClaude(claudePath || undefined, false, claudeAuth)
+  // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
+  const cli = await findClaude(claudePath || undefined, true, claudeAuth)
   if (!cli) throw new Error('Claude Code CLI(claude)를 찾지 못했습니다. 설정 → 환경 점검을 확인하세요')
   if (claudeAuth === 'apiKey' && !cli.keySource) {
     throw new Error('ANTHROPIC_API_KEY를 찾지 못했습니다. ~/.zshrc에 키를 넣거나, 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 바꾸세요')
@@ -121,7 +122,7 @@ export async function startDraft({
     return {
       manual: ref.manual,
       ok: result.ok,
-      text: result.ok ? result.text : explainFailure(result.text, claudeAuth),
+      text: result.ok ? result.text : explainFailure(result.text, claudeAuth, cli.env),
       summary: parseSummary(result.text),
       costUsd: result.costUsd,
       durationMs: result.durationMs,

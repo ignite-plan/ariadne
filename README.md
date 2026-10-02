@@ -226,7 +226,9 @@ BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴�
 | 토큰이 유효하지 않거나 만료 | 설정 → 계정에서 새 토큰으로 바꿉니다 |
 | 권한이 없습니다 / SSO | 토큰 페이지에서 `ignite-plan` 조직 SSO를 승인합니다. fine-grained 토큰이 막혀 있으면 classic 토큰(`repo` 권한)을 씁니다 |
 | 미리보기가 안 나옴 | 설정 → 환경 점검에서 pandoc을 확인합니다 |
-| 초안·최신화가 `ANTHROPIC_API_KEY로 인증하지 못했습니다`로 실패 | `~/.zshrc`의 키가 만료·무효입니다. 키를 바꾸거나(앱 재시작 불필요), 설정 → 고급 → Claude 인증을 **claude.ai 로그인**으로 바꿉니다 |
+| 초안·최신화가 `ANTHROPIC_API_KEY(…1234)로 인증하지 못했습니다`로 실패 | `~/.zshrc`의 키가 만료·무효입니다(끝 4자리로 어느 키인지 확인). 키를 바꾸거나(앱 재시작 불필요), 설정 → 고급 → Claude 인증을 **claude.ai 로그인**으로 바꿉니다 |
+| 초안·최신화가 `ANTHROPIC_AUTH_TOKEN(…1234)로 … 인증하지 못했습니다`로 실패 | `ANTHROPIC_AUTH_TOKEN`이 있으면 `ANTHROPIC_API_KEY`보다 먼저 쓰입니다. H-Chat 설정 스크립트는 `ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`만 쓰므로, `~/.zshrc`에 남은 `export ANTHROPIC_AUTH_TOKEN`을 지웁니다 |
+| 초안·최신화가 `… 모델을 받지 않습니다`로 실패 | 게이트웨이(H-Chat 등)가 그 모델을 지원하지 않습니다(예: 4.6 지원 종료). `~/.zshrc`에 `export ANTHROPIC_MODEL="claude-sonnet-5"`처럼 쓸 수 있는 모델을 넣습니다. H-Chat은 Claude Code `2.1.278`(`npm i -g @anthropic-ai/claude-code@2.1.278`)을 씁니다 |
 | 초안·최신화가 `claude.ai 로그인으로 인증하지 못했습니다`로 실패 | 터미널에서 `claude`를 열어 `/login` 하거나, Claude 인증을 **ANTHROPIC_API_KEY**로 바꿉니다 |
 | 초안 만들기에서 Claude Code를 못 찾음 | 터미널에서 `claude --version`이 되는지 확인하고, 안 되면 설정 → 고급 → Claude Code CLI 경로를 지정합니다 |
 | 초안에 기획서 근거가 없음 | Claude Code에 Atlassian MCP가 연결됐는지 확인합니다(`claude mcp list`) |
