@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { adoptShots, capture, captureDir } from '../capture.ts'
 import type { Shot } from '../shot.ts'
-import { markSession, openProfile, sessionInfo } from '../session.ts'
+import { checkSession, markSession, openProfile, sessionInfo } from '../session.ts'
 import { createFixture } from './fixture.ts'
 
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -109,6 +109,22 @@ describe('capture (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, (
     // 로그인 표식을 지워 다음에는 로그인부터 하게 한다
     assert.equal(sessionInfo(profileDir).exists, false)
     await assert.rejects(capture({ ...fx.ref, baseUrl, profileDir, shots }), /STG 로그인 세션 없음/)
+  })
+
+  it('세션 확인: 살아 있으면 표식 시각을 갱신하고, 로그인 페이지로 튕기면 표식을 지운다', async () => {
+    markSession(profileDir, baseUrl)
+    const before = sessionInfo(profileDir).savedAt!
+    await new Promise((r) => setTimeout(r, 20))
+    const alive = await checkSession(profileDir, baseUrl)
+    assert.equal(alive.valid, true)
+    assert.ok(alive.savedAt! > before)
+    // 다른 origin(MPASS) 로그인 페이지로 보내는 주소
+    const expired = await checkSession(profileDir, `${baseUrl}/expired`)
+    assert.equal(expired.valid, false)
+    assert.equal(sessionInfo(profileDir).exists, false)
+    // 표식이 없으면 브라우저를 열지 않고 없다고 한다
+    assert.deepEqual(await checkSession(profileDir, baseUrl), { exists: false, valid: false })
+    markSession(profileDir, baseUrl)
   })
 
   it('같은 프로필을 두 번 열면 다른 작업이 쓰고 있다고 알려 준다', async () => {

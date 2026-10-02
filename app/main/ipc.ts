@@ -8,7 +8,7 @@ import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
 import { loadManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
 import { deleteVideo, loadVideo, saveVideo, type VideoScenario } from '../../src/core/video/scenario.ts'
-import { sessionInfo } from '../../src/core/session.ts'
+import { checkSession, sessionInfo } from '../../src/core/session.ts'
 import type {
   AuthStatus,
   EnvCheck,
@@ -473,6 +473,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     }))
   })
   handle('capture:session', () => sessionInfo(profileDir(ref().manual)))
+  handle('capture:checkSession', () => withProfile('세션 확인', () => checkSession(profileDir(ref().manual), captureBaseUrl())))
   handle('capture:login', async () => {
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
     pendingLogin?.reject(new Error('새 로그인으로 대체되었습니다'))

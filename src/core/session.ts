@@ -74,3 +74,29 @@ export async function openProfile(
   const page = context.pages()[0] ?? (await context.newPage())
   return { context, page }
 }
+
+export interface SessionCheck extends StgSessionInfo {
+  // 실제로 STG 화면이 열렸는지 (false면 로그인 페이지로 튕김)
+  valid: boolean
+  url?: string
+}
+
+// 화면 없이 STG를 열어 로그인 페이지로 튕기는지 본다. 살아 있으면 표식 시각을 갱신하고, 만료됐으면 표식을 지운다
+export async function checkSession(profileDir: string, baseUrl: string): Promise<SessionCheck> {
+  if (!sessionInfo(profileDir).exists) return { exists: false, valid: false }
+  const { context, page } = await openProfile(profileDir)
+  try {
+    await page.goto(baseUrl)
+    await page.waitForLoadState('networkidle').catch(() => {})
+    const url = page.url()
+    // 세션이 끝나면 다른 origin의 로그인·로그아웃 페이지(MPASS, stg-admin logout.html)로 넘어간다
+    if (new URL(url).origin !== new URL(baseUrl).origin) {
+      clearSession(profileDir)
+      return { exists: false, valid: false, url }
+    }
+    markSession(profileDir, baseUrl)
+    return { ...sessionInfo(profileDir), valid: true, url }
+  } finally {
+    await context.close().catch(() => {})
+  }
+}

@@ -2532,3 +2532,15 @@ details.advanced summary {
 .editor-grid.three {
   grid-template-columns: 1fr 1fr 1fr;
 }
+
+.session .session-actions {
+  display: flex;
+  flex-direction: row;
+  flex: none;
+  gap: 4px;
+}
+
+.small-note {
+  margin: 0;
+  font-size: 12px;
+}

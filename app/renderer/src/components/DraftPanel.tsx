@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { Icon } from './Icon.tsx'
+import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
 
 interface LogLine {
@@ -38,7 +39,6 @@ export function DraftPanel({
   const [log, setLog] = useState<LogLine[]>([])
   const [result, setResult] = useState<DraftResult>()
   const [error, setError] = useState('')
-  const [loggingIn, setLoggingIn] = useState(false)
   const started = useRef(Date.now())
   const logEnd = useRef<HTMLDivElement>(null)
 
@@ -61,19 +61,26 @@ export function DraftPanel({
     logEnd.current?.scrollIntoView({ block: 'end' })
   }, [log])
 
-  const login = async () => {
-    setLoggingIn(true)
-    try {
-      await api.capture.login()
-      setSession(await api.capture.session())
-    } catch (e) {
-      if (!errorMessage(e).includes('취소')) toast.error(e)
-    } finally {
-      setLoggingIn(false)
-    }
-  }
+  // 세션 표시를 다시 읽게 할 때 올린다
+  const [sessionVersion, setSessionVersion] = useState(0)
 
   const start = async () => {
+    // 만료된 세션으로 몇 분씩 돌지 않게 시작 전에 실제로 STG를 열어 본다
+    if (session.exists) {
+      setPhase('check')
+      try {
+        const checked = await api.capture.checkSession()
+        setSession(checked)
+        setSessionVersion((v) => v + 1)
+        if (!checked.valid) {
+          setPhase('ready')
+          return toast.show('error', 'STG 로그인 세션이 만료되었습니다. [다시 로그인]을 누른 뒤 시작하세요')
+        }
+      } catch (e) {
+        setPhase('ready')
+        return toast.error(e)
+      }
+    }
     setPhase('running')
     setLog([])
     setError('')
@@ -86,6 +93,8 @@ export function DraftPanel({
       setError(errorMessage(e))
     } finally {
       setPhase('done')
+      // 작업 중에 세션이 만료됐으면 표시를 갱신한다
+      setSessionVersion((v) => v + 1)
     }
   }
 
@@ -152,19 +161,8 @@ export function DraftPanel({
                     : '연결이 없습니다. 기획서 없이 쓰고 정책은 TODO로 남깁니다'
               }
             />
-            <CheckRow
-              ok={session.exists}
-              warn={!session.exists}
-              label="STG 로그인"
-              detail={session.exists ? '로그인 세션 있음' : '없으면 화면 확인과 캡처를 건너뜁니다'}
-              action={
-                !session.exists && (
-                  <button className="button small" onClick={login} disabled={loggingIn || phase === 'running'}>
-                    로그인
-                  </button>
-                )
-              }
-            />
+            <StgSession disabled={phase === 'running' || phase === 'check'} onChange={setSession} version={sessionVersion} />
+            {!session.exists && <p className="muted small-note">STG 로그인이 없으면 화면 확인과 캡처를 건너뜁니다</p>}
           </div>
 
           <dl className="draft-input">

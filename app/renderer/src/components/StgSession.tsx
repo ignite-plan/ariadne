@@ -13,10 +13,20 @@ function age(ms: number) {
   return hours < 48 ? `${hours}시간 전` : `${Math.round(hours / 24)}일 전`
 }
 
-export function StgSession({ disabled, onChange }: { disabled?: boolean; onChange?: (session: SessionInfo) => void }) {
+export function StgSession({
+  disabled,
+  onChange,
+  version,
+}: {
+  disabled?: boolean
+  onChange?: (session: SessionInfo) => void
+  // 바뀌면 세션 상태를 다시 읽는다 (다른 곳에서 확인·만료된 뒤)
+  version?: number
+}) {
   const toast = useToast()
   const [session, setSession] = useState<SessionInfo>({ exists: false })
   const [loggingIn, setLoggingIn] = useState(false)
+  const [checking, setChecking] = useState(false)
 
   const update = (next: SessionInfo) => {
     setSession(next)
@@ -26,7 +36,7 @@ export function StgSession({ disabled, onChange }: { disabled?: boolean; onChang
   useEffect(() => {
     void api.capture.session().then(update)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [version])
 
   const login = async () => {
     setLoggingIn(true)
@@ -41,6 +51,21 @@ export function StgSession({ disabled, onChange }: { disabled?: boolean; onChang
     }
   }
 
+  // 표식만 보고 '로그인됨'이라고 하지 않도록 실제로 STG를 열어 본다
+  const check = async () => {
+    setChecking(true)
+    try {
+      const result = await api.capture.checkSession()
+      update(result)
+      if (result.valid) toast.show('success', 'STG 로그인 세션이 살아 있습니다')
+      else toast.show('error', 'STG 로그인 세션이 만료되었습니다. 다시 로그인하세요')
+    } catch (e) {
+      toast.error(e)
+    } finally {
+      setChecking(false)
+    }
+  }
+
   return (
     <>
       <div className={`session ${session.exists ? 'ok' : ''}`}>
@@ -48,12 +73,19 @@ export function StgSession({ disabled, onChange }: { disabled?: boolean; onChang
         <div>
           <b>{session.exists ? 'STG 로그인됨' : 'STG 로그인 필요'}</b>
           <span className="muted">
-            {session.exists && session.savedAt ? `${age(session.savedAt)} 로그인` : 'MFA 로그인이 필요합니다'}
+            {session.exists && session.savedAt ? `${age(session.savedAt)} 확인됨` : 'MFA 로그인이 필요합니다'}
           </span>
         </div>
-        <button className="button small" onClick={login} disabled={loggingIn || disabled}>
-          {session.exists ? '다시 로그인' : '로그인'}
-        </button>
+        <div className="session-actions">
+          {session.exists && (
+            <button className="button small ghost" onClick={check} disabled={checking || loggingIn || disabled} title="STG를 열어 세션이 살아 있는지 확인합니다">
+              {checking ? '확인 중…' : '확인'}
+            </button>
+          )}
+          <button className="button small" onClick={login} disabled={loggingIn || checking || disabled}>
+            {session.exists ? '다시 로그인' : '로그인'}
+          </button>
+        </div>
       </div>
 
       {loggingIn && (

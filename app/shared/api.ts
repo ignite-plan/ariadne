@@ -369,6 +369,8 @@ export interface AriadneApi {
     shots(): Promise<ShotInfo[]>
     session(): Promise<SessionInfo>
     login(): Promise<void>
+    // STG를 화면 없이 열어 세션이 살아 있는지 확인한다. 만료됐으면 로그인 표식을 지운다
+    checkSession(): Promise<SessionInfo & { valid: boolean }>
     finishLogin(): Promise<void>
     cancelLogin(): Promise<void>
     run(ids: string[]): Promise<CaptureReport>

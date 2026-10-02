@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import type { BrowserContext, Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
 import { isAllowedRequest, isBlockedLabel, isTelemetryRequest } from '../../../src/core/safety.ts'
-import { openProfile } from '../../../src/core/session.ts'
+import { clearSession, openProfile } from '../../../src/core/session.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
 
 export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
@@ -172,7 +172,9 @@ export class StgSession {
     const page = await this.ensurePage()
     await page.goto(this.url(path))
     if (new URL(page.url()).origin !== new URL(this.baseUrl).origin) {
-      throw new Error(`로그인 페이지로 이동했습니다(세션 만료). 앱의 캡처 화면에서 다시 로그인해야 합니다: ${page.url()}`)
+      // 앱이 '로그인 세션 있음'으로 잘못 보여 주지 않게 로그인 표식을 지운다
+      clearSession(this.options.profileDir)
+      throw new Error(`로그인 페이지로 이동했습니다(세션 만료). 앱에서 [다시 로그인]을 눌러 로그인해야 합니다: ${page.url()}`)
     }
     return this.describe(page)
   }
