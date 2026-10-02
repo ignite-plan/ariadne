@@ -301,9 +301,12 @@ try {
       "Click the Location icon to see the dealer's address.",
     )
     assert.ok(!readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8').includes('mutates'))
+    // 리포에 다른 영상(dealer-list, dealer-create)이 있을 수 있어 빈 목록이 아니라 지운 영상 하나만 사라졌는지 본다
+    const videosBefore = await page.locator('.video-item').count()
     await page.locator('.video-toolbar').getByTitle('삭제', { exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: '삭제' }).click()
-    await page.locator('.empty', { hasText: '아직 영상이 없습니다' }).waitFor()
+    await page.waitForFunction((n) => document.querySelectorAll('.video-item').length === n - 1, videosBefore)
+    assert.ok(!existsSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml')))
     await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
     // 만들었다 지웠으니 제출할 변경이 없다
     await page.getByRole('tab', { name: /변경/ }).click()
