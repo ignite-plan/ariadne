@@ -108,6 +108,13 @@ export function parseVideo(id: string, data: unknown): VideoScenario {
   return { id, ...result.data }
 }
 
+// 장면 하나 (Claude가 장면 하나만 채울 때)
+export function parseScene(data: unknown): Scene {
+  const result = scene.safeParse(data)
+  if (!result.success) throw new Error(`장면 형식 오류\n${formatIssues(result.error)}`)
+  return result.data
+}
+
 export function listVideos(ref: ManualRef) {
   const dir = videosDir(ref)
   if (!existsSync(dir)) return []

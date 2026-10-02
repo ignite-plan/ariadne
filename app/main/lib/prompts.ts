@@ -4,7 +4,12 @@ import { join } from 'node:path'
 import type { ManualRef } from '../../../src/core/manual.ts'
 import type { DraftInput } from '../../shared/api.ts'
 
-export const SKILL_BY_MODE = { create: 'manual-draft', refresh: 'manual-refresh', video: 'manual-video-draft' } as const
+export const SKILL_BY_MODE = {
+  create: 'manual-draft',
+  refresh: 'manual-refresh',
+  video: 'manual-video-draft',
+  'video-scene': 'manual-video-scene',
+} as const
 
 // 작업 폴더(리포)의 스킬을 우선 쓴다. 오래된 clone이면 앱에 묶인 것을 쓴다
 export function skillText(root: string, mode: DraftInput['mode'], bundled: Record<string, string>) {
@@ -17,6 +22,21 @@ export function skillText(root: string, mode: DraftInput['mode'], bundled: Recor
 
 export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?: string } = {}) {
   const lines = ['## 이번 작업', `- 매뉴얼 id: ${ref.manual}`, `- 메뉴: ${input.menu}`]
+  if (input.mode === 'video-scene') {
+    const scene = input.scene ?? 0
+    const start = input.insert ? scene + 1 : scene
+    lines.push(`- 할 일: 가이드 영상 시나리오 \`${input.video}\`의 장면 하나를 채운다 (video_get → video_open_scene → STG 확인 → video_save_scene → video_check)`)
+    lines.push(
+      input.insert
+        ? `- 대상: 장면 ${scene + 1} 다음에 새 장면 (장면 ${start + 1}). video_open_scene(scene: ${start}), video_check(fromScene: ${start})`
+        : `- 대상: 장면 ${scene + 1}. video_open_scene(scene: ${scene}), video_check(fromScene: ${scene})`,
+    )
+    lines.push(`- 기획자 요청 (이 장면에서 보여 줄 것): ${input.notes?.trim() || '(없음 — 지금 장면의 내레이션을 따른다)'}`)
+    lines.push(
+      input.targets?.[0] ? `- 연결된 매뉴얼 화면: manuals/${ref.manual}/${input.targets[0]} (내레이션 문장의 근거)` : '- 연결된 매뉴얼 화면: 없음',
+    )
+    return lines.join('\n')
+  }
   if (input.mode === 'video') {
     lines.push(`- 할 일: 가이드 영상 시나리오 \`${input.video}\`를 채운다 (video_get → STG 확인 → video_save → video_check)`)
     lines.push(

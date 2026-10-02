@@ -30,8 +30,11 @@ export function DraftPanel({
   onClose: (changed: boolean) => void
 }) {
   const refresh = input.mode === 'refresh'
-  const video = input.mode === 'video'
-  const name = video ? 'Claude로 영상 초안' : refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
+  // 장면 하나 채우기는 영상 초안과 같은 화면에 문구만 다르다
+  const sceneMode = input.mode === 'video-scene'
+  const video = input.mode === 'video' || sceneMode
+  const sceneNo = (input.scene ?? 0) + (input.insert ? 2 : 1)
+  const name = sceneMode ? 'Claude로 장면 채우기' : video ? 'Claude로 영상 초안' : refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
   const toast = useToast()
   const [phase, setPhase] = useState<Phase>('check')
   const [check, setCheck] = useState<DraftCheck>()
@@ -116,7 +119,9 @@ export function DraftPanel({
           <h1>{name}</h1>
           <p className="muted">
             {input.menu} ·{' '}
-            {video
+            {sceneMode
+              ? `요청대로 STG 화면을 보고 장면 ${sceneNo}의 영어 내레이션과 단계를 씁니다. 다른 장면은 건드리지 않습니다.`
+              : video
               ? '연결된 매뉴얼 화면의 문장으로 내레이션을 쓰고, STG 화면을 확인해 단계를 만든 뒤 실제로 실행해 봅니다.'
               : refresh
                 ? '최신 Confluence 기획서와 STG 화면을 지금 본문과 비교해 바뀐 곳만 고칩니다. 근거가 다르면 TODO로 남깁니다.'
@@ -168,7 +173,14 @@ export function DraftPanel({
           <dl className="draft-input">
             <dt>{video ? '영상' : refresh ? '장' : '메뉴'}</dt>
             <dd>{input.menu}</dd>
-            {video ? (
+            {sceneMode ? (
+              <>
+                <dt>장면</dt>
+                <dd>{input.insert ? `장면 ${sceneNo - 1} 다음에 새 장면` : `장면 ${sceneNo}`}</dd>
+                <dt>요청</dt>
+                <dd>{input.notes || '(지금 내레이션대로)'}</dd>
+              </>
+            ) : video ? (
               <>
                 <dt>연결 화면</dt>
                 <dd>{input.targets?.[0] ?? '없음'}</dd>
@@ -211,11 +223,11 @@ export function DraftPanel({
             </button>
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude} onClick={start}>
-              <Icon name={refresh || video ? 'sparkle' : 'flag'} /> {video ? '영상 초안 시작' : refresh ? '최신화 시작' : '초안 만들기 시작'}
+              <Icon name={refresh || video ? 'sparkle' : 'flag'} /> {sceneMode ? '장면 채우기 시작' : video ? '영상 초안 시작' : refresh ? '최신화 시작' : '초안 만들기 시작'}
             </button>
           )}
           <p className="hint">
-            {video ? '영상 하나에 수 분' : refresh ? '화면 수에 따라 수 분에서 10분 이상' : '초안 하나에 수 분에서 10분 이상'} 걸리고, 내 Claude 사용량을 씁니다.
+            {sceneMode ? '장면 하나에 몇 분' : video ? '영상 하나에 수 분' : refresh ? '화면 수에 따라 수 분에서 10분 이상' : '초안 하나에 수 분에서 10분 이상'} 걸리고, 내 Claude 사용량을 씁니다.
           </p>
         </aside>
 
@@ -225,7 +237,9 @@ export function DraftPanel({
             <div className="empty-state">
               <Icon name="flag" size={32} />
               <p>
-                {video
+                {sceneMode
+                  ? `[장면 채우기 시작]을 누르면 Claude가 장면 ${sceneNo}이 시작되는 화면까지 앞 장면을 재생하고, 요청대로 STG를 살펴본 뒤 그 장면만 써서 실행해 봅니다.`
+                  : video
                   ? '[영상 초안 시작]을 누르면 Claude가 매뉴얼 본문으로 장면을 나누고, STG에서 단계를 찾아 시나리오를 쓴 뒤 끝까지 실행해 봅니다.'
                   : refresh
                     ? '[최신화 시작]을 누르면 Claude가 지금 본문을 읽고, 최신 기획서와 STG 화면과 비교해 바뀐 곳만 고칩니다.'
@@ -277,6 +291,7 @@ export function DraftPanel({
               error={error}
               refresh={refresh}
               video={video}
+              sceneMode={sceneMode}
               onOpenSection={onOpenSection}
               onDiff={onDiff}
             />
@@ -342,6 +357,7 @@ function DraftSummaryCard({
   error,
   refresh,
   video,
+  sceneMode,
   onOpenSection,
   onDiff,
 }: {
@@ -349,6 +365,7 @@ function DraftSummaryCard({
   error: string
   refresh: boolean
   video?: boolean
+  sceneMode?: boolean
   onOpenSection: (path: string) => void
   onDiff: (path: string, title: string) => void
 }) {
@@ -361,7 +378,9 @@ function DraftSummaryCard({
           ? refresh
             ? '최신화를 끝까지 하지 못했습니다'
             : '초안을 끝까지 만들지 못했습니다'
-          : video
+          : sceneMode
+            ? '장면을 채웠습니다'
+            : video
             ? '영상 시나리오 초안을 만들었습니다'
             : refresh
               ? summary?.sections.length

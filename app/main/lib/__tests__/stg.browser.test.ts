@@ -10,6 +10,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { markSession } from '../../../../src/core/session.ts'
 import { loadManual } from '../../../../src/core/manual.ts'
+import { loadVideo, saveVideo } from '../../../../src/core/video/scenario.ts'
 import { startAriadneMcp } from '../mcp.ts'
 import { StgSession } from '../stg.ts'
 
@@ -172,6 +173,60 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
       await mcp.close()
     })
 
+    it('장면 하나 채우기: 앞 장면을 재생해 열고, 그 장면만 저장한다', async () => {
+      saveVideo(fx.ref, {
+        id: 'menu',
+        title: 'Menu Management',
+        speed: 1.2,
+        scenes: [
+          { say: 'Open the menu.', steps: [{ open: '/menu' }, { click: { role: 'button', name: '+ Group Addition' } }] },
+          { say: 'Close it.', steps: [{ click: { role: 'button', name: 'Cancel' } }] },
+        ],
+      })
+      // 장면 1 다음(장면 2)에 넣는 작업
+      const sceneMcp = await startAriadneMcp({
+        ref: fx.ref,
+        stg: () => (stg ??= new StgSession({ ...fx.ref, baseUrl, profileDir })),
+        videoScene: { id: 'menu', index: 0, insert: true },
+      })
+      const sceneClient = new Client({ name: 'test-scene', version: '1.0.0' })
+      await sceneClient.connect(
+        new StreamableHTTPClientTransport(new URL(sceneMcp.url), { requestInit: { headers: { Authorization: `Bearer ${sceneMcp.token}` } } }),
+      )
+      const textOf = (r: unknown) => ((r as { content: { text: string }[] }).content[0].text)
+      try {
+        // 장면 1을 재생하면 팝업이 열린 화면에서 시작한다
+        const opened = await sceneClient.callTool({ name: 'video_open_scene', arguments: { id: 'menu', scene: 1 } })
+        assert.match(textOf(opened), /dialog "Menu Information"/)
+        // 전체 저장은 막힌다
+        const whole = await sceneClient.callTool({ name: 'video_save', arguments: { id: 'menu', yaml: 'title: X\nscenes: []\n' } })
+        assert.equal(whole.isError, true)
+        assert.match(textOf(whole), /장면 하나만 바꿉니다/)
+        const first = await sceneClient.callTool({
+          name: 'video_save_scene',
+          arguments: { id: 'menu', yaml: 'say: Enter a menu name.\nsteps:\n  - type: { target: { label: Menu name }, text: Notice }\n' },
+        })
+        assert.match(textOf(first), /장면 2로 저장했습니다/)
+        // 다시 저장하면 넣은 장면을 고친다 (또 넣지 않는다)
+        await sceneClient.callTool({ name: 'video_save_scene', arguments: { id: 'menu', yaml: 'say: Type the menu name.\nsteps: []\n' } })
+        const v = loadVideo(fx.ref, 'menu')
+        assert.deepEqual(v.scenes.map((s) => s.say), ['Open the menu.', 'Type the menu name.', 'Close it.'])
+        assert.equal(v.speed, 1.2, '시나리오 설정은 그대로')
+        // 형식이 틀리면 저장하지 않는다
+        const bad = await sceneClient.callTool({ name: 'video_save_scene', arguments: { id: 'menu', yaml: 'steps:\n  - run: x\n' } })
+        assert.equal(bad.isError, true)
+        assert.equal(loadVideo(fx.ref, 'menu').scenes.length, 3)
+      } finally {
+        await sceneClient.close()
+        await sceneMcp.close()
+      }
+      // 장면 작업이 아닌 서버에서는 장면 저장을 거절한다
+      const refused = await client.callTool({ name: 'video_save_scene', arguments: { id: 'menu', yaml: 'say: x\nsteps: []\n' } })
+      assert.equal(refused.isError, true)
+      // 뒤 테스트가 도구 호출 기록을 순서대로 본다
+      events.length = 0
+    })
+
     it('도구 목록', async () => {
       const { tools } = await client.listTools()
       assert.deepEqual(tools.map((t) => t.name).sort(), [
@@ -183,7 +238,9 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
         'stg_open',
         'video_check',
         'video_get',
+        'video_open_scene',
         'video_save',
+        'video_save_scene',
       ])
     })
 

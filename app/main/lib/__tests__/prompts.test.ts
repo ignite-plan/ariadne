@@ -44,6 +44,15 @@ describe('작업 지시', () => {
     assert.match(skillText(process.cwd(), 'video', bundled), /^# 가이드 영상 시나리오 초안/)
   })
 
+  it('장면 하나: 대상 장면, 요청, 시작 장면 번호', () => {
+    const insert = taskText({ root, manual: 'bo' }, { mode: 'video-scene', menu: 'Menu', video: 'menu', scene: 4, insert: true, notes: 'Edit 팝업에서 체크' })
+    assert.match(insert, /장면 5 다음에 새 장면 \(장면 6\)\. video_open_scene\(scene: 5\), video_check\(fromScene: 5\)/)
+    assert.match(insert, /기획자 요청 \(이 장면에서 보여 줄 것\): Edit 팝업에서 체크/)
+    const fill = taskText({ root, manual: 'bo' }, { mode: 'video-scene', menu: 'Menu', video: 'menu', scene: 5 })
+    assert.match(fill, /대상: 장면 6\. video_open_scene\(scene: 5\)/)
+    assert.match(skillText(process.cwd(), 'video-scene', {}), /^# 가이드 영상 장면 하나 채우기/)
+  })
+
   it('초안: 넣을 위치, 코드 없음', () => {
     const text = taskText({ root, manual: 'fo' }, { menu: 'Notice', newChapterTitle: 'Notice', chapterIndex: 3 })
     assert.match(text, /새 장 "Notice"을\(를\) chapterIndex 3 위치에 만든다/)

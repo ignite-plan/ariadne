@@ -10,7 +10,7 @@ import YAML from 'yaml'
 import { z } from 'zod'
 import { loadManual, manualDir, type ManualRef } from '../../../src/core/manual.ts'
 import { describeStep } from '../../../src/core/video/describe.ts'
-import { listVideos, loadVideo, parseVideo, saveVideo } from '../../../src/core/video/scenario.ts'
+import { applyVars, listVideos, loadVideo, parseScene, parseVideo, saveVideo, videoVars } from '../../../src/core/video/scenario.ts'
 import { createSection, readTree } from './sections.ts'
 import type { OpenResult, Role, ShotInput, StgSession } from './stg.ts'
 
@@ -27,6 +27,8 @@ export interface AriadneMcpDeps {
   stg: () => StgSession
   // 가이드 영상 시나리오를 STG에서 화면만 띄워 실행해 본다 (녹화·저장 없음)
   videoCheck?: (id: string, fromScene?: number) => Promise<VideoCheck>
+  // 장면 하나만 채우는 작업이면 그 장면. insert면 index 다음에 새 장면을 넣는다 (처음 저장한 뒤로는 그 장면을 고친다)
+  videoScene?: { id: string; index: number; insert: boolean }
   onEvent?: (event: ToolEvent) => void
 }
 
@@ -264,6 +266,7 @@ function buildServer(deps: AriadneMcpDeps) {
     async ({ id, yaml }) => {
       try {
         return await run('video_save', `영상 시나리오 저장: ${id}`, () => {
+          if (deps.videoScene) throw new Error('이 작업은 장면 하나만 바꿉니다. video_save_scene을 쓰세요')
           if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
           const next = parseVideo(id, YAML.parse(yaml))
           // 저장·삭제 버튼을 실제로 누를지는 기획자가 정한다
@@ -272,6 +275,60 @@ function buildServer(deps: AriadneMcpDeps) {
           }
           saveVideo(deps.ref, next)
           return text(`저장했습니다.\n${outline(id)}`)
+        })
+      } catch (error) {
+        return fail(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'video_open_scene',
+    {
+      description:
+        '가이드 영상 시나리오의 앞 장면(0부터 scene-1까지) 단계를 STG 브라우저에서 재생해, 그 장면이 시작되는 화면을 연다. 돌려준 접근성 트리로 이어서 stg_click/stg_fill을 쓴다',
+      inputSchema: { id: z.string(), scene: z.number().int().min(0).describe('이 장면(0부터)이 시작되는 화면까지 재생') },
+    },
+    async ({ id, scene }) => {
+      try {
+        return await run('video_open_scene', `장면 ${scene + 1} 앞까지 재생: ${id}`, async () => {
+          const v = applyVars(loadVideo(deps.ref, id), videoVars())
+          // 저장 허용 시나리오는 앞 장면을 재생하면 STG에 저장이 한 번 더 일어난다
+          if (v.mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 앞 장면을 재생하지 않습니다. 앱의 [STG에서 기록]을 쓰세요')
+          return text(describe(await deps.stg().replay(v.scenes.slice(0, scene), v.mutates)))
+        })
+      } catch (error) {
+        return fail(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'video_save_scene',
+    {
+      description:
+        '이번 작업의 대상 장면 하나만 YAML로 저장한다 (say, caption, steps). 다른 장면과 시나리오 설정은 그대로 둔다. 처음 저장하면 새 장면이 들어가고, 다시 저장하면 그 장면을 고친다',
+      inputSchema: { id: z.string(), yaml: z.string().describe('장면 하나의 YAML. 예: say: ... / steps: [...]') },
+    },
+    async ({ id, yaml }) => {
+      try {
+        return await run('video_save_scene', `장면 저장: ${id}`, () => {
+          const target = deps.videoScene
+          if (!target || target.id !== id) throw new Error('이 작업에서는 장면 하나만 저장할 수 없습니다')
+          const scene = parseScene(YAML.parse(yaml))
+          const v = loadVideo(deps.ref, id)
+          const scenes = [...v.scenes]
+          if (target.insert) {
+            scenes.splice(target.index + 1, 0, scene)
+            // 다음 저장부터는 방금 넣은 장면을 고친다
+            target.index += 1
+            target.insert = false
+          } else {
+            if (!scenes[target.index]) throw new Error(`장면 ${target.index + 1}이 없습니다`)
+            scenes[target.index] = scene
+          }
+          saveVideo(deps.ref, { ...v, scenes })
+          return text(`장면 ${target.index + 1}로 저장했습니다. 확인: video_check(fromScene: ${target.index})\n${outline(id)}`)
         })
       } catch (error) {
         return fail(error)

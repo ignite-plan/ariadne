@@ -58,6 +58,7 @@ export function VideoEditor({
   recordingScene,
   onPreviewFrom,
   onRecord,
+  onClaudeScene,
 }: {
   scenario: VideoScenario
   onChange: (next: VideoScenario) => void
@@ -70,6 +71,8 @@ export function VideoEditor({
   recordingScene?: number
   onPreviewFrom: (scene: number) => void
   onRecord?: (scene: number) => void
+  // 이 장면을 Claude로 채운다 (요청을 묻는 창은 VideoPanel이 연다)
+  onClaudeScene?: (scene: number) => void
 }) {
   const { speaking, speak } = useSpeak(scenario.speed)
   const [editing, setEditing] = useState<{ where: number | 'cleanup'; index?: number; step?: VideoStep }>()
@@ -245,6 +248,16 @@ export function VideoEditor({
               <button className="button small ghost" disabled={disabled} onClick={() => onPreviewFrom(i)} title="앞 장면은 빠르게 재생하고 이 장면부터 화면을 띄워 봅니다">
                 <Icon name="play" /> 여기부터 미리보기
               </button>
+              {onClaudeScene && (
+                <button
+                  className="button small ghost"
+                  disabled={disabled}
+                  onClick={() => onClaudeScene(i)}
+                  title="보여 줄 내용을 적으면 Claude가 STG를 보고 이 장면만 채웁니다"
+                >
+                  <Icon name="sparkle" /> Claude로 이 장면
+                </button>
+              )}
               {onRecord && (
                 <button className="button small ghost" disabled={disabled} onClick={() => onRecord(i)} title="STG에서 직접 조작해 이 장면에 단계를 붙입니다">
                   <Icon name="record" /> STG에서 기록

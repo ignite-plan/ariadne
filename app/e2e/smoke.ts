@@ -302,6 +302,24 @@ try {
       "Click the Location icon to see the dealer's address.",
     )
     assert.ok(!readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8').includes('mutates'))
+
+    // Claude로 이 장면: 장면 2 다음에 새 장면 (가짜 claude → video_open_scene/video_save_scene/video_check)
+    await page.locator('.scene-list .scene').nth(1).getByRole('button', { name: 'Claude로 이 장면' }).click()
+    const ask = page.getByRole('dialog', { name: 'Claude로 장면 2' })
+    await ask.locator('textarea').fill('Location 팝업에 주소가 보이는 화면')
+    await ask.getByText('장면 2 다음에 새 장면으로 추가').click()
+    await ask.getByRole('button', { name: '다음' }).click()
+    await page.getByRole('heading', { name: 'Claude로 장면 채우기' }).waitFor()
+    await page.getByRole('button', { name: '장면 채우기 시작' }).click({ timeout: 60000 })
+    await page.getByRole('heading', { name: '장면을 채웠습니다' }).waitFor({ timeout: 90000 })
+    await snap('08f-video-scene')
+    await page.getByRole('button', { name: '닫고 결과 보기' }).click()
+    await page.locator('.scene-list .scene').nth(2).locator('textarea').first().waitFor()
+    assert.equal(await page.locator('.scene-list .scene').count(), 3)
+    assert.equal(
+      await page.locator('.scene-list .scene').nth(2).locator('textarea').first().inputValue(),
+      'The popup shows the registered address of the dealer.',
+    )
     // 리포에 다른 영상(dealer-list, dealer-create)이 있을 수 있어 빈 목록이 아니라 지운 영상 하나만 사라졌는지 본다
     const videosBefore = await page.locator('.video-item').count()
     await page.locator('.video-toolbar').getByTitle('삭제', { exact: true }).click()

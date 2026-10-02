@@ -10,6 +10,7 @@ import {
   type VideoModelStatus,
   type VideoProgress,
   type VideoRunResult,
+  type DraftInput,
   type VideoScenario,
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
@@ -59,7 +60,10 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   const recordingRef = useRef<{ scene: number }>(undefined)
   const scenarioRef = useRef<VideoScenario>(undefined)
   const [tree, setTree] = useState<ManualTree>()
-  const [drafting, setDrafting] = useState(false)
+  // Claude 작업 (영상 전체 초안 또는 장면 하나)
+  const [drafting, setDrafting] = useState<DraftInput>()
+  // 장면 하나를 Claude로 채울 때 요청을 묻는 창
+  const [sceneAsk, setSceneAsk] = useState<number>()
   // 고칠 때마다 0.6초 뒤 저장한다. 실행·전환·닫기 전에는 바로 저장한다
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'error'>('saved')
   const [saveError, setSaveError] = useState('')
@@ -341,7 +345,14 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                 </label>
                 <button
                   className="button ghost"
-                  onClick={() => void flush().then((ok) => ok && setDrafting(true))}
+                  onClick={() =>
+                    void flush().then(
+                      (ok) =>
+                        ok &&
+                        scenario &&
+                        setDrafting({ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined }),
+                    )
+                  }
                   disabled={Boolean(running || recording)}
                   title="매뉴얼 본문과 STG 화면으로 Claude가 장면과 단계를 씁니다"
                 >
@@ -441,6 +452,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                   onPreviewFrom={(i) => void run(true, i)}
                   recordingScene={recording?.scene}
                   onRecord={session.exists && !running && !recording ? (i) => void record(i) : undefined}
+                  onClaudeScene={!running && !recording ? (i) => setSceneAsk(i) : undefined}
                 />
               )}
 
@@ -470,14 +482,35 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
         </section>
       </div>
 
+      {sceneAsk !== undefined && scenario && (
+        <SceneDraftDialog
+          scene={sceneAsk}
+          say={scenario.scenes[sceneAsk]?.say}
+          onClose={() => setSceneAsk(undefined)}
+          onStart={async (notes, insert) => {
+            setSceneAsk(undefined)
+            if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
+            setDrafting({
+              mode: 'video-scene',
+              menu: scenario.title,
+              video: scenario.id,
+              scene: sceneAsk,
+              insert,
+              notes,
+              targets: scenario.section ? [scenario.section] : undefined,
+            })
+          }}
+        />
+      )}
+
       {drafting && scenario && (
         <div className="overlay">
           <DraftPanel
-            input={{ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined }}
+            input={drafting}
             onOpenSection={() => undefined}
             onDiff={() => undefined}
             onClose={(changed) => {
-              setDrafting(false)
+              setDrafting(undefined)
               if (!changed) return
               // Claude가 시나리오 파일을 고쳤다. 디스크에서 다시 읽는다
               void refresh()
@@ -613,6 +646,56 @@ function CreateVideoDialog({
         </button>
         <button className="button primary" onClick={() => void create()} disabled={!title.trim() || saving}>
           만들기
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+// 장면 하나를 Claude로 채울 때: 보여 줄 내용(한국어 가능)과 채우기/새 장면 넣기
+function SceneDraftDialog({
+  scene,
+  say,
+  onClose,
+  onStart,
+}: {
+  scene: number
+  say?: string
+  onClose: () => void
+  onStart: (notes: string, insert: boolean) => void
+}) {
+  // 영어 내레이션이 아니면(요청을 적어 둔 것이면) 요청 칸에 옮겨 둔다
+  const [notes, setNotes] = useState(say && /[^\x00-\x7F]/.test(say) ? say : '')
+  const [insert, setInsert] = useState(false)
+  return (
+    <Modal title={`Claude로 장면 ${scene + 1}`} onClose={onClose} width={520}>
+      <label className="field">
+        <span>이 장면에서 보여 줄 것 (한국어로 써도 됩니다)</span>
+        <textarea
+          rows={4}
+          value={notes}
+          autoFocus
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="예: Menu Access Permission > Job title에서 Edit을 눌러 나오는 팝업에서 체크박스를 체크하는 화면"
+        />
+      </label>
+      <div className="editor-checks">
+        <label>
+          <input type="radio" checked={!insert} onChange={() => setInsert(false)} />
+          장면 {scene + 1} 채우기 (지금 내용을 바꿈)
+        </label>
+        <label>
+          <input type="radio" checked={insert} onChange={() => setInsert(true)} />
+          장면 {scene + 1} 다음에 새 장면으로 추가
+        </label>
+      </div>
+      <p className="muted">Claude가 앞 장면을 STG에서 재생해 이 장면이 시작되는 화면부터 살펴보고, 영어 내레이션과 단계를 씁니다. 다른 장면은 그대로입니다.</p>
+      <div className="actions">
+        <button className="button" onClick={onClose}>
+          취소
+        </button>
+        <button className="button primary" disabled={!notes.trim()} onClick={() => onStart(notes.trim(), insert)}>
+          <Icon name="sparkle" /> 다음
         </button>
       </div>
     </Modal>

@@ -319,11 +319,12 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         pending.current = null
         clearTimeout(saveTimer.current)
         await api.workspace.revert(targets.map((t) => t.path))
-        await refreshSide()
         const t = await api.manual.tree()
         const all = t.chapters.flatMap((c) => c.sections.map((s) => s.path))
         const next = doc && all.includes(doc.path) ? doc.path : all[0]
+        // 문서를 먼저 연다. 변경 목록이 먼저 비면 그 사이 다른 화면을 연 것을 늦게 덮어쓴다
         if (next) await openSection(next)
+        await refreshSide()
         toast.show('success', '되돌렸습니다')
       },
     })

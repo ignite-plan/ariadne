@@ -36,6 +36,6 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - STG 로그인 세션은 `src/core/session.ts`의 유지 프로필(`openProfile`)로만 연다. storageState 파일로 새 컨텍스트를 여러 번 열면 BO 토큰 갱신 때문에 로그아웃된다. 프로필은 한 번에 브라우저 하나라 앱은 `main/lib/profile-lock.ts`로 로그인·캡처·영상·STG 기록·Claude 작업을 하나씩만 돌린다
 - 쓰기 요청 차단(`safety.ts` `isAllowedRequest`)은 로그인 세션 유지 POST(sso/auth 경로, token/refresh)를 통과시킨다. 막으면 BO 인증이 실패해 화면이 403
 - 앱 main에서 네트워크는 `net.fetch`만 쓴다 (사내 TLS 프록시 때문에 Node fetch 실패). git은 isomorphic-git
-- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-refresh`(기존 화면 최신화, 앱의 "Claude로 최신화"), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안") — 셋 다 비대화형
+- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-refresh`(기존 화면 최신화, 앱의 "Claude로 최신화"), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안"), `manual-video-scene`(영상 장면 하나 채우기, 장면 편집기의 "Claude로 이 장면") — 앱용은 모두 비대화형
 - 영상 시나리오는 Claude가 `video_save`(YAML 형식 검사)로만 쓰고 `video_check`(headless 실행)로 확인한다. `mutates`는 Claude가 켤 수 없고, mutates 시나리오는 `video_check`가 실행하지 않는다
 - 앱의 초안 만들기는 `claude -p`에 허용 도구만 준다: Read/Glob/Grep, `manuals/<m>/` 쓰기, Ariadne MCP(STG는 앱이 대신 열고 저장/삭제 버튼과 쓰기 요청을 막음), Confluence 읽기 도구

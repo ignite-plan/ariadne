@@ -55,8 +55,8 @@ export interface DraftSummary {
 }
 
 export interface DraftInput {
-  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, video: 가이드 영상 시나리오 초안
-  mode?: 'create' | 'refresh' | 'video'
+  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, video: 가이드 영상 시나리오 초안, video-scene: 영상 장면 하나
+  mode?: 'create' | 'refresh' | 'video' | 'video-scene'
   // 메뉴 이름. 예: Menu Management
   menu: string
   // 최신화할 화면 (<chapter dir>/<file>)
@@ -70,6 +70,9 @@ export interface DraftInput {
   notes?: string
   // video: 채울 영상 시나리오 id (manuals/<m>/videos/<id>.yaml)
   video?: string
+  // video-scene: 대상 장면(0부터)과, 그 장면을 채울지(false) 그 다음에 새 장면을 넣을지(true). 요청은 notes
+  scene?: number
+  insert?: boolean
 }
 
 export type DraftEvent =

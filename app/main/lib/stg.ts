@@ -5,7 +5,10 @@ import { join } from 'node:path'
 import type { BrowserContext, Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
 import { isAllowedRequest, isBlockedLabel, isTelemetryRequest } from '../../../src/core/safety.ts'
-import { clearSession, openProfile } from '../../../src/core/session.ts'
+import { clearSession, isSessionExpired, openProfile } from '../../../src/core/session.ts'
+import { Director } from '../../../src/core/video/director.ts'
+import type { Scene } from '../../../src/core/video/scenario.ts'
+import { runSteps } from '../../../src/core/video/steps.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
 
 export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
@@ -185,6 +188,21 @@ export class StgSession {
     const count = await all.count()
     if (!count) throw new Error(`화면에 ${role} "${name}"이(가) 없습니다`)
     return nth === undefined ? all.first() : all.nth(nth)
+  }
+
+  // 가이드 영상의 앞 장면들을 이 브라우저에서 재생해, 다음 장면이 시작되는 화면을 연다 (Claude가 장면 하나를 채울 때)
+  async replay(scenes: Scene[], mutates = false) {
+    const page = await this.ensurePage()
+    page.setDefaultTimeout(15_000)
+    const v = new Director(page, { baseUrl: this.baseUrl, mutates, pace: 0, overlay: false })
+    try {
+      await v.goto('/')
+      for (const [index, scene] of scenes.entries()) await runSteps(v, scene.steps, index)
+    } catch (error) {
+      if (isSessionExpired(error)) clearSession(this.options.profileDir)
+      throw error
+    }
+    return this.describe(page)
   }
 
   async click(role: Role, name: string, nth?: number) {

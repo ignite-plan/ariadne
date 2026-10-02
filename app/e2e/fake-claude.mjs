@@ -38,6 +38,24 @@ const call = async (name, input) => {
 }
 
 const prompt = args[args.indexOf('-p') + 1] ?? ''
+if (prompt.includes('의 장면 하나를 채운다')) {
+  // 장면 하나: 앞 장면을 재생해 열고, 그 장면만 저장한 뒤 그 장면부터 실행해 본다
+  const video = prompt.match(/가이드 영상 시나리오 `([a-z0-9-]+)`의 장면 하나/)[1]
+  const start = Number(prompt.match(/video_open_scene\(scene: (\d+)\)/)[1])
+  await call('video_get', { id: video })
+  const opened = await call('video_open_scene', { id: video, scene: start })
+  if (!opened.text.includes('Location Information')) throw new Error('앞 장면을 재생한 화면이 아닙니다')
+  await call('video_save_scene', {
+    id: video,
+    yaml: 'say: The popup shows the registered address of the dealer.\nsteps:\n  - waitFor: { text: Location Information }\n  - pause: 500\n',
+  })
+  const checked = await call('video_check', { id: video, fromScene: start })
+  await client.close()
+  const summary = { sections: [], video, scenes: 1, todos: 0, notes: checked.isError ? checked.text : '' }
+  emit({ type: 'result', subtype: checked.isError ? 'error' : 'success', is_error: checked.isError, result: `장면을 채웠습니다.\n\`\`\`json\n${JSON.stringify(summary)}\n\`\`\``, duration_ms: 700, permission_denials: [] })
+  process.exit(0)
+}
+
 if (prompt.includes('가이드 영상 시나리오')) {
   // 영상 초안: 시나리오를 읽고, STG를 보고, 저장한 뒤 실행해 본다
   const video = prompt.match(/가이드 영상 시나리오 `([a-z0-9-]+)`/)[1]

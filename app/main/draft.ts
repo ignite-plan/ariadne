@@ -7,6 +7,7 @@ import type { DraftCheck, DraftEvent, DraftInput, DraftResult } from '../shared/
 import draftSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
 import refreshSkill from '../../.claude/skills/manual-refresh/SKILL.md?raw'
 import videoSkill from '../../.claude/skills/manual-video-draft/SKILL.md?raw'
+import videoSceneSkill from '../../.claude/skills/manual-video-scene/SKILL.md?raw'
 import { renderVideo } from '../../src/core/video/index.ts'
 import { StepError } from '../../src/core/video/steps.ts'
 import { skillText, taskText } from './lib/prompts.ts'
@@ -47,7 +48,12 @@ export async function checkDraft(claudePath?: string, refresh = false, auth: Cla
   }
 }
 
-const BUNDLED = { 'manual-draft': draftSkill, 'manual-refresh': refreshSkill, 'manual-video-draft': videoSkill }
+const BUNDLED = {
+  'manual-draft': draftSkill,
+  'manual-refresh': refreshSkill,
+  'manual-video-draft': videoSkill,
+  'manual-video-scene': videoSceneSkill,
+}
 
 export async function startDraft({
   ref,
@@ -89,6 +95,11 @@ export async function startDraft({
   const mcp = await startAriadneMcp({
     ref,
     stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir })),
+    // 장면 하나만 채우는 작업이면 그 장면만 저장할 수 있다
+    videoScene:
+      input.mode === 'video-scene' && input.video
+        ? { id: input.video, index: input.scene ?? 0, insert: Boolean(input.insert) }
+        : undefined,
     // 영상 시나리오를 화면 없이(headless) 실행해 본다. 녹화·음성·파일 없음
     // 프로필은 한 번에 하나만 열 수 있어 STG 탐색 브라우저를 닫고 실행한다 (다음 stg_* 도구에서 다시 연다)
     videoCheck: async (id, fromScene) => {
