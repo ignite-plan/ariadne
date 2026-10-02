@@ -70,6 +70,8 @@ const api: AriadneApi = {
     speak: invoke('video:speak'),
     model: invoke('video:model'),
     downloadModel: invoke('video:downloadModel'),
+    record: invoke('video:record'),
+    stopRecord: invoke('video:stopRecord'),
   },
   draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel') },
   affected: { run: invoke('affected:run') },

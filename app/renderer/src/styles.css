@@ -2435,3 +2435,39 @@ details.advanced summary {
   padding-left: 12px;
   border-left: 2px solid var(--border);
 }
+.recording-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  background: var(--danger-soft);
+}
+.recording-bar > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.recording-bar .muted {
+  font-size: 12px;
+}
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: rec-blink 1.2s infinite;
+}
+@keyframes rec-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+.rec-warning {
+  color: var(--warn);
+  font-size: 12px;
+}

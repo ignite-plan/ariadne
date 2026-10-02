@@ -4,6 +4,7 @@ import type { CaptureReport } from '../../src/core/capture.ts'
 import type { DocxAnalysis, ImportProgress } from '../../src/core/import.ts'
 import type { Manual, SectionMeta, Viewport } from '../../src/core/manual.ts'
 import type { VideoProgress, VideoResult } from '../../src/core/video/index.ts'
+import type { RecordEvent } from '../../src/core/video/record.ts'
 import type { Scene, Step, Target, VideoScenario } from '../../src/core/video/scenario.ts'
 
 export type { AffectedSection, CaptureReport, DocxAnalysis, ImportProgress, SectionMeta, Viewport }
@@ -246,6 +247,9 @@ export type VideoRunResult =
   | ({ ok: true } & VideoResult)
   | { ok: false; error: string; scene?: number | 'cleanup'; step?: number }
 
+// STG에서 기록할 때 오는 이벤트. ready: 앞 단계 재생이 끝나 기록을 시작함
+export type VideoRecordEvent = RecordEvent | { kind: 'ready' }
+
 export interface VideoModelStatus {
   ready: boolean
   bytes: number
@@ -360,6 +364,9 @@ export interface AriadneApi {
     speak(text: string): Promise<{ path: string; ms: number }>
     model(): Promise<VideoModelStatus>
     downloadModel(): Promise<VideoModelStatus>
+    // 고른 장면까지 재생한 뒤 기록을 시작한다. 단계는 'video-record' 이벤트로 온다
+    record(id: string, scene: number): Promise<void>
+    stopRecord(): Promise<void>
   }
   draft: {
     check(refresh?: boolean): Promise<DraftCheck>
@@ -380,6 +387,7 @@ export interface AriadneApi {
   on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void
   on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
   on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
+  on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void
 }
 
 // 리포 안 파일을 renderer에서 보여 줄 때 쓰는 custom protocol

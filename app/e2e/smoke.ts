@@ -8,7 +8,7 @@ import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
-import { _electron as electron, type Page } from 'playwright'
+import { _electron as electron, chromium, type Page } from 'playwright'
 
 const { values } = parseArgs({ options: { shots: { type: 'string' }, repo: { type: 'string' }, app: { type: 'string' } } })
 const token = process.env.ARIADNE_E2E_TOKEN
@@ -48,6 +48,8 @@ const app = await electron.launch({
     ARIADNE_CAPTURE_BASE_URL: boBaseUrl,
     // 가짜 Claude: LLM 없이 Ariadne MCP 도구를 실제로 부른다
     ARIADNE_CLAUDE_PATH: resolve('app/e2e/fake-claude.mjs'),
+    // STG 기록 브라우저를 이 테스트가 조작한다
+    ARIADNE_E2E_RECORD_PORT: '9339',
   },
 })
 const errors: string[] = []
@@ -259,6 +261,30 @@ try {
     // 미리보기 (가짜 BO, 녹화 없음)
     await page.locator('.video-toolbar').getByRole('button', { name: '미리보기', exact: true }).click()
     await toast(page, /미리보기를 마쳤습니다/).waitFor({ timeout: 60000 })
+
+    // STG에서 기록: 장면 2를 만들고, 장면 1을 재생한 화면에서 이어서 조작한다
+    await page.getByRole('button', { name: '장면 추가' }).click()
+    const scene2 = page.locator('.scene-list .scene').nth(1)
+    await scene2.getByRole('button', { name: 'STG에서 기록' }).click()
+    await page.locator('.recording-bar', { hasText: '장면 2에 단계가 붙습니다' }).waitFor({ timeout: 30000 })
+    const recorder = await chromium.connectOverCDP('http://127.0.0.1:9339')
+    const bo = recorder.contexts().flatMap((c) => c.pages()).find((p) => p.url().includes('/ca/admin'))!
+    await bo.getByText('Location Information').waitFor()
+    await bo.locator('ariadne-recorder').getByRole('button', { name: '기다릴 글자 고르기' }).click()
+    await bo.getByText('Location Information').click()
+    await bo.getByRole('button', { name: 'Location' }).click()
+    await scene2.locator('.step-text').nth(1).waitFor()
+    await snap('08d-video-record')
+    await bo.locator('ariadne-recorder').getByRole('button', { name: '기록 끝' }).click()
+    await page.locator('.recording-bar').waitFor({ state: 'detached', timeout: 10000 })
+    await recorder.close().catch(() => {})
+    assert.deepEqual(await scene2.locator('.step-text').allTextContents(), [
+      "'Location Information' 글자 표시 기다림",
+      "'Location' 버튼 클릭",
+    ])
+    await page.locator('.video-title', { hasText: '저장됨' }).waitFor()
+    const recorded = readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8')
+    assert.ok(recorded.includes('text: Location Information'), recorded)
     await page.locator('.video-toolbar').getByTitle('삭제', { exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: '삭제' }).click()
     await page.locator('.empty', { hasText: '아직 영상이 없습니다' }).waitFor()

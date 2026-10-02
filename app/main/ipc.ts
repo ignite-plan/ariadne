@@ -27,6 +27,7 @@ import type {
 } from '../shared/api.ts'
 import { findChrome, findFfmpeg, findPandoc, formatAge } from './lib/environment.ts'
 import { downloadModel, modelStatus } from './lib/video-model.ts'
+import { isRecording, startRecording, stopRecording } from './lib/video-record.ts'
 import { createVideo, videoInfos } from './lib/videos.ts'
 import { cancelVideo, runVideo, speak } from './video.ts'
 import * as gitOps from './lib/git.ts'
@@ -500,6 +501,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('video:create', (input: { title: string; section?: string }) => createVideo(ref(), input))
   handle('video:remove', (id: string) => deleteVideo(ref(), id))
   handle('video:run', async (id: string, options: VideoRunOptions = {}): Promise<VideoRunResult> => {
+    if (isRecording()) throw new Error('STG 기록을 먼저 끝내세요')
     const r = ref()
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
     const session = authFile(r.manual)
@@ -536,6 +538,14 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     const clip = await speak({ op: 'speak', root: r.root, text: text.trim(), tts, modelDir: videoModelDir() })
     return { path: relative(r.root, clip.file), ms: clip.ms }
   })
+  handle('video:record', async (id: string, scene: number) => {
+    const r = ref()
+    if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
+    const session = authFile(r.manual)
+    if (!existsSync(session)) throw new Error('STG 로그인이 필요합니다')
+    await startRecording({ ...r, id, scene, baseUrl: captureBaseUrl(), authFile: session, onEvent: (event) => send('video-record', event) })
+  })
+  handle('video:stopRecord', () => stopRecording())
   handle('video:model', () => modelStatus(videoModelDir()))
   handle('video:downloadModel', () =>
     downloadModel(videoModelDir(), (url) => netFetch(url), (progress) => send('video-model-progress', progress)),

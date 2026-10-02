@@ -11,6 +11,8 @@ export interface DirectorOptions {
   mutates?: boolean
   // 1이면 정상 속도, 0이면 대기 없이 (테스트용)
   pace?: number
+  // false면 자막·강조를 그리지 않는다 (overlay가 없는 기록 브라우저에서 단계를 다시 재생할 때)
+  overlay?: boolean
 }
 
 type Target = Locator | string
@@ -21,15 +23,17 @@ export class Director {
   private readonly origin: string
   private readonly mutates: boolean
   private readonly pace: number
+  private readonly drawOverlay: boolean
 
   constructor(
     readonly page: Page,
-    { baseUrl, mutates = false, pace = 1 }: DirectorOptions,
+    { baseUrl, mutates = false, pace = 1, overlay = true }: DirectorOptions,
   ) {
     this.base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
     this.origin = new URL(baseUrl).origin
     this.mutates = mutates
     this.pace = pace
+    this.drawOverlay = overlay
   }
 
   // baseUrl 기준 경로로 이동. 로그인 페이지로 튕기면 세션 만료로 멈춘다
@@ -148,6 +152,7 @@ export class Director {
   }
 
   private async overlay<K extends keyof OverlayApi>(method: K, args: Parameters<OverlayApi[K]>) {
+    if (!this.drawOverlay) return
     // 페이지 이동 직후에는 overlay가 아직 없을 수 있다
     await this.page.waitForFunction(() => '__ariadneVideo' in window)
     await this.page.evaluate(

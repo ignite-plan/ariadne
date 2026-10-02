@@ -1,5 +1,6 @@
 // 가이드 영상: 시나리오 목록, 미리보기 실행, 영상 만들기, 결과 재생
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { appendRecorded } from '../../../../src/core/video/edit.ts'
 import {
   assetUrl,
   type ManualTree,
@@ -50,8 +51,12 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   const [narration, setNarration] = useState(true)
   const [tab, setTab] = useState<'scenes' | 'video'>('scenes')
   const [dialog, setDialog] = useState<
-    { type: 'create' } | { type: 'delete' } | { type: 'mutates'; preview: boolean; fromScene?: number }
+    { type: 'create' } | { type: 'delete' } | { type: 'mutates'; action: 'preview' | 'render' | 'record'; scene?: number }
   >()
+  // STG에서 기록 중인 장면. 기록 이벤트는 몰려 오므로 최신 시나리오·장면은 ref로 본다
+  const [recording, setRecording] = useState<{ scene: number; ready: boolean; warnings: string[] }>()
+  const recordingRef = useRef<{ scene: number }>(undefined)
+  const scenarioRef = useRef<VideoScenario>(undefined)
   const [tree, setTree] = useState<ManualTree>()
   // 고칠 때마다 0.6초 뒤 저장한다. 실행·전환·닫기 전에는 바로 저장한다
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'error'>('saved')
@@ -85,7 +90,10 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
     setFailure(undefined)
     setBlocked([])
     if (!selected) return
-    api.video.load(selected).then(setScenario, (e) => toast.error(e))
+    api.video.load(selected).then((s) => {
+      scenarioRef.current = s
+      setScenario(s)
+    }, (e) => toast.error(e))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected])
 
@@ -111,6 +119,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   }
 
   const change = (next: VideoScenario) => {
+    scenarioRef.current = next
     setScenario(next)
     pending.current = next
     setSaveState('saving')
@@ -141,10 +150,58 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
     }
   }
 
+  useEffect(
+    () =>
+      api.on('video-record', (event) => {
+        const s = scenarioRef.current
+        const rec = recordingRef.current
+        const warn = (message: string) => setRecording((r) => r && { ...r, warnings: [...r.warnings, message].slice(-4) })
+        if (event.kind === 'ready') return setRecording((r) => r && { ...r, ready: true })
+        if (event.kind === 'stop') {
+          recordingRef.current = undefined
+          setRecording(undefined)
+          void flush()
+          return toast.show('success', '기록을 마쳤습니다. 내레이션을 쓰고 미리보기로 확인하세요')
+        }
+        if (event.kind === 'warning') return warn(event.message)
+        if (!s || !rec) return
+        if (event.kind === 'step') {
+          const scene = s.scenes[rec.scene]
+          change({ ...s, scenes: s.scenes.map((x, i) => (i === rec.scene ? { ...scene, steps: appendRecorded(scene.steps, event.step) } : x)) })
+          if (event.warning) warn(event.warning)
+        } else if (event.kind === 'mask') {
+          change({ ...s, mask: [...(s.mask ?? []), event.target] })
+        } else if (event.kind === 'scene') {
+          change({ ...s, scenes: [...s.scenes, { say: '', steps: [] }] })
+          recordingRef.current = { scene: s.scenes.length }
+          setRecording((r) => r && { ...r, scene: s.scenes.length })
+        }
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+
+  const record = async (scene: number, confirmed = false) => {
+    if (!selected || !scenario) return
+    if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
+    if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', action: 'record', scene })
+    setDialog(undefined)
+    setFailure(undefined)
+    recordingRef.current = { scene }
+    setRecording({ scene, ready: false, warnings: [] })
+    try {
+      await api.video.record(selected, scene)
+    } catch (e) {
+      recordingRef.current = undefined
+      setRecording(undefined)
+      toast.error(e)
+    }
+  }
+
   const run = async (preview: boolean, fromScene?: number, confirmed = false) => {
     if (!selected || !scenario) return
     if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
-    if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', preview, fromScene })
+    if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', action: preview ? 'preview' : 'render', scene: fromScene })
     setDialog(undefined)
     setRunning(preview ? 'preview' : 'render')
     setProgress(undefined)
@@ -186,7 +243,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   }
 
   const narrate = narration && model?.ready
-  const canRun = Boolean(scenario && session.exists && !running && scenario.scenes.length)
+  const canRun = Boolean(scenario && session.exists && !running && !recording && scenario.scenes.length)
 
   return (
     <div className="capture-panel">
@@ -195,7 +252,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
           <h1>가이드 영상</h1>
           <p className="muted">STG 화면을 녹화하고 영어 자막과 내레이션을 넣어 사용법 영상을 만듭니다.</p>
         </div>
-        <button className="icon-button" onClick={() => void close()} aria-label="닫기" disabled={Boolean(running)}>
+        <button className="icon-button" onClick={() => void close()} aria-label="닫기" disabled={Boolean(running || recording)}>
           <Icon name="x" />
         </button>
       </header>
@@ -232,7 +289,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                 key={v.id}
                 className={`video-item ${v.id === selected ? 'active' : ''}`}
                 onClick={() => void select(v.id)}
-                disabled={Boolean(running)}
+                disabled={Boolean(running || recording)}
                 title={v.error ?? v.section ?? v.id}
               >
                 <span className="ellipsis">
@@ -248,7 +305,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
             ))}
           </div>
 
-          <button className="button block" onClick={() => setDialog({ type: 'create' })} disabled={Boolean(running)}>
+          <button className="button block" onClick={() => setDialog({ type: 'create' })} disabled={Boolean(running || recording)}>
             <Icon name="plus" /> 새 영상
           </button>
         </aside>
@@ -291,6 +348,27 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
               </div>
 
               {saveError && <pre className="form-error video-error">{saveError}</pre>}
+              {recording && (
+                <div className="recording-bar">
+                  <span className="rec-dot" />
+                  <div>
+                    <b>
+                      {recording.ready ? `STG 창에서 조작하면 장면 ${recording.scene + 1}에 단계가 붙습니다` : '앞 단계를 재생하는 중…'}
+                    </b>
+                    <span className="muted">
+                      Chrome 창 오른쪽 아래 막대에서 강조할 곳·가릴 곳·기다릴 글자를 고르거나 새 장면을 시작합니다.
+                    </span>
+                    {recording.warnings.map((w, i) => (
+                      <span key={i} className="rec-warning">
+                        {w}
+                      </span>
+                    ))}
+                  </div>
+                  <button className="button small" onClick={() => void api.video.stopRecord()}>
+                    <Icon name="stop" /> 기록 끝
+                  </button>
+                </div>
+              )}
               {!session.exists && <p className="notice">STG 로그인 후 미리보기와 영상 만들기를 할 수 있습니다.</p>}
               {running && (
                 <div className="video-progress">
@@ -344,6 +422,8 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                   failure={failure}
                   currentScene={running ? progress?.scene : undefined}
                   onPreviewFrom={(i) => void run(true, i)}
+                  recordingScene={recording?.scene}
+                  onRecord={session.exists && !running && !recording ? (i) => void record(i) : undefined}
                 />
               )}
 
@@ -402,12 +482,21 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
       {dialog?.type === 'mutates' && (
         <Modal title="STG에 실제로 저장합니다" onClose={() => setDialog(undefined)} width={460}>
           <p>이 시나리오는 STG에서 저장·삭제 버튼을 실제로 누릅니다. 테스트 데이터(이름에 Video Test)만 쓰는지 확인하세요.</p>
-          <p className="muted">녹화가 끝나면 정리 단계가 만든 데이터를 지웁니다.</p>
+          <p className="muted">
+            {dialog.action === 'record'
+              ? '기록하기 전에 앞 단계를 다시 실행하므로 저장이 한 번 더 일어날 수 있습니다. 기록 중에 만든 데이터는 STG에서 직접 지우세요.'
+              : '녹화가 끝나면 정리 단계가 만든 데이터를 지웁니다.'}
+          </p>
           <div className="actions">
             <button className="button" onClick={() => setDialog(undefined)}>
               취소
             </button>
-            <button className="button primary" onClick={() => void run(dialog.preview, dialog.fromScene, true)}>
+            <button
+              className="button primary"
+              onClick={() =>
+                void (dialog.action === 'record' ? record(dialog.scene ?? 0, true) : run(dialog.action === 'preview', dialog.scene, true))
+              }
+            >
               계속
             </button>
           </div>

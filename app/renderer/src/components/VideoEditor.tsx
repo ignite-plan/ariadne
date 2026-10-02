@@ -1,6 +1,6 @@
 // 가이드 영상 장면 편집기. 기본 정보, 장면(내레이션 + 단계), 정리 단계, 가릴 곳을 고친다.
 // 바뀔 때마다 onChange로 넘기고 저장은 VideoPanel이 한다
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { describeStep, describeTarget, ROLE_NAMES } from '../../../../src/core/video/describe.ts'
 import { assetUrl, type ManualTree, type VideoScenario, type VideoScene, type VideoStep, type VideoTarget } from '../../../shared/api.ts'
 import { api } from '../api.ts'
@@ -73,6 +73,13 @@ export function VideoEditor({
   const { speaking, speak } = useSpeak()
   const [editing, setEditing] = useState<{ where: number | 'cleanup'; index?: number; step?: VideoStep }>()
   const [maskEditing, setMaskEditing] = useState<{ index?: number; target?: VideoTarget }>()
+
+  // 기록 중인 장면과 새로 붙은 단계가 보이게 한다
+  const recordedSteps = recordingScene === undefined ? 0 : (scenario.scenes[recordingScene]?.steps.length ?? 0)
+  useEffect(() => {
+    if (recordingScene === undefined) return
+    document.querySelector('.scene.recording')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [recordingScene, recordedSteps])
 
   const set = (patch: Partial<VideoScenario>) => onChange({ ...scenario, ...patch })
   const setScene = (index: number, patch: Partial<VideoScene>) =>
