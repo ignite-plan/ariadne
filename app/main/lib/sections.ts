@@ -1,5 +1,5 @@
 // 섹션 Markdown, manual.yaml, 이미지 파일 조작. Electron에 의존하지 않는다 (단위 테스트 대상)
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, resolve, sep } from 'node:path'
 import { PNG } from 'pngjs'
 import YAML from 'yaml'
@@ -141,9 +141,69 @@ export function slugify(text: string) {
 const writeManual = (ref: ManualRef, manual: Manual) => saveManual(ref, manual)
 
 const pad = (n: number) => String(n).padStart(2, '0')
+const stripNo = (name: string) => name.replace(/^\d+-/, '')
+
+// 장 번호는 폴더 앞 번호(08-)다. manual.yaml 순서대로 01-부터 다시 매기고 폴더 이름을 바꾼다.
+// 이름이 겹치지 않게 임시 이름을 거쳐 두 번에 바꾼다. 바뀐 경로를 돌려준다 (old dir → new dir)
+export function renumberChapters(ref: ManualRef, manual: Manual) {
+  const dir = manualDir(ref)
+  const moves = manual.chapters
+    .map((chapter, i) => ({ chapter, from: chapter.dir, to: `${pad(i + 1)}-${stripNo(chapter.dir)}` }))
+    .filter((m) => m.from !== m.to)
+  moves.forEach((m, i) => renameSync(join(dir, m.from), join(dir, `.renumber-${i}`)))
+  moves.forEach((m, i) => {
+    renameSync(join(dir, `.renumber-${i}`), join(dir, m.to))
+    m.chapter.dir = m.to
+  })
+  return new Map(moves.map((m) => [m.from, m.to]))
+}
+
+// 장 안 화면 파일 번호를 순서대로 다시 매긴다. 장 소개(00-intro.md)는 맨 앞일 때 00을 지킨다
+function renumberSections(ref: ManualRef, chapter: Manual['chapters'][number]) {
+  const dir = join(manualDir(ref), chapter.dir)
+  const hasIntro = chapter.sections[0] === '00-intro.md'
+  const moves = chapter.sections
+    .map((file, i) => ({
+      from: file,
+      to: hasIntro && i === 0 ? file : `${pad(hasIntro ? i : i + 1)}-${stripNo(file)}`,
+    }))
+  const changed = moves.filter((m) => m.from !== m.to)
+  changed.forEach((m, i) => renameSync(join(dir, m.from), join(dir, `.renumber-${i}`)))
+  changed.forEach((m, i) => renameSync(join(dir, `.renumber-${i}`), join(dir, m.to)))
+  chapter.sections = moves.map((m) => m.to)
+  return new Map(changed.map((m) => [`${chapter.dir}/${m.from}`, `${chapter.dir}/${m.to}`]))
+}
+
+// 장을 toIndex(0부터) 위치로 옮긴다
+export function moveChapter(ref: ManualRef, chapterDir: string, toIndex: number) {
+  const manual = loadManual(ref)
+  const from = manual.chapters.findIndex((c) => c.dir === chapterDir)
+  if (from < 0) throw new Error(`없는 장: ${chapterDir}`)
+  const [chapter] = manual.chapters.splice(from, 1)
+  manual.chapters.splice(Math.max(0, Math.min(toIndex, manual.chapters.length)), 0, chapter)
+  const renamed = renumberChapters(ref, manual)
+  writeManual(ref, manual)
+  return renamed
+}
+
+// 화면을 같은 장 안 toIndex 위치로 옮긴다. 장 소개는 맨 앞에 고정한다
+export function moveSection(ref: ManualRef, path: string, toIndex: number) {
+  const manual = loadManual(ref)
+  const [dirName, file] = path.split('/')
+  const chapter = manual.chapters.find((c) => c.dir === dirName)
+  if (!chapter || !chapter.sections.includes(file)) throw new Error(`manual.yaml에 없는 섹션: ${path}`)
+  if (file === '00-intro.md') throw new Error('장 소개는 맨 앞에 둡니다')
+  const from = chapter.sections.indexOf(file)
+  chapter.sections.splice(from, 1)
+  const min = chapter.sections[0] === '00-intro.md' ? 1 : 0
+  chapter.sections.splice(Math.max(min, Math.min(toIndex, chapter.sections.length)), 0, file)
+  const renamed = renumberSections(ref, chapter)
+  writeManual(ref, manual)
+  return renamed
+}
 
 // 장 번호는 기존 마지막 장 다음, 파일 번호는 장 안 마지막 다음
-export function createSection(ref: ManualRef, { title, chapterDir, newChapterTitle }: NewSectionInput) {
+export function createSection(ref: ManualRef, { title, chapterDir, newChapterTitle, chapterIndex }: NewSectionInput) {
   const name = title.trim()
   if (!name) throw new Error('화면 이름을 입력하세요')
   const slug = slugify(name)
@@ -168,6 +228,11 @@ export function createSection(ref: ManualRef, { title, chapterDir, newChapterTit
   writeFileSync(full, joinSection(serializeFrontMatter({ title: name }), body))
   chapter.sections.push(file)
   writeManual(ref, manual)
+  // 새 장을 원하는 위치에 넣는다 (예: 메뉴 관리를 8장으로)
+  if (!chapterDir && chapterIndex !== undefined) {
+    const renamed = moveChapter(ref, chapter.dir, chapterIndex)
+    return `${renamed.get(chapter.dir) ?? chapter.dir}/${file}`
+  }
   return `${chapter.dir}/${file}`
 }
 

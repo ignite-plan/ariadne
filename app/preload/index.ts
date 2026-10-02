@@ -39,6 +39,8 @@ const api: AriadneApi = {
     write: invoke('manual:write'),
     create: invoke('manual:create'),
     remove: invoke('manual:remove'),
+    moveChapter: invoke('manual:moveChapter'),
+    moveSection: invoke('manual:moveSection'),
     todos: invoke('manual:todos'),
     images: invoke('manual:images'),
     pickImageFile: invoke('manual:pickImageFile'),
@@ -56,6 +58,7 @@ const api: AriadneApi = {
     run: invoke('capture:run'),
     adopt: invoke('capture:adopt'),
   },
+  draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel') },
   affected: { run: invoke('affected:run') },
   app: {
     version: invoke('app:version'),

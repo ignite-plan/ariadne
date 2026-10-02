@@ -16,6 +16,7 @@ export function defaultSettings(): Settings {
     pandocPath: '',
     dealerhubWebDir: '',
     submitMode: 'push',
+    claudePath: '',
   }
 }
 

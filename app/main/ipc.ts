@@ -11,6 +11,7 @@ import type {
   AuthStatus,
   EnvCheck,
   FileChange,
+  DraftInput,
   GithubUser,
   ImportImageInput,
   ImportInput,
@@ -23,7 +24,9 @@ import type {
 } from '../shared/api.ts'
 import { findChrome, findPandoc, formatAge } from './lib/environment.ts'
 import * as gitOps from './lib/git.ts'
+import { cancelDraft, checkDraft, startDraft } from './draft.ts'
 import { analyzeInWorker, importInWorker } from './importer.ts'
+import { findClaude } from './lib/claude.ts'
 import { checkRepoAccess, commitAuthor, createPullRequest, getUser, latestAppRelease } from './lib/github.ts'
 import { renderSection } from './lib/preview.ts'
 import {
@@ -32,6 +35,8 @@ import {
   importImage,
   listImages,
   listManuals,
+  moveChapter,
+  moveSection,
   readSectionDoc,
   readTree,
   removeSection,
@@ -229,6 +234,15 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       detail: chrome ?? '설치되어 있지 않습니다. 캡처를 쓰지 않으면 없어도 됩니다',
       link: chrome ? undefined : { label: 'Chrome 받기', url: 'https://www.google.com/chrome/' },
     })
+    const claude = await findClaude(settings.claudePath || undefined)
+    checks.push({
+      id: 'claude',
+      ok: Boolean(claude),
+      required: false,
+      label: 'Claude Code CLI (Claude로 초안 만들기)',
+      detail: claude ? `${claude.version} · ${claude.path}` : '찾지 못했습니다. 초안 만들기를 쓰지 않으면 없어도 됩니다',
+      link: claude ? undefined : { label: '설치 안내', url: 'https://docs.claude.com/en/docs/claude-code/setup' },
+    })
     const session = workspaceState().cloned ? authFile(ref().manual) : authFile(settings.manual)
     checks.push({
       id: 'session',
@@ -346,6 +360,11 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('manual:write', (path: string, body: string, meta?: SectionMeta) => writeSectionDoc(ref(), path, body, meta))
   handle('manual:create', (input: NewSectionInput) => createSection(ref(), input))
   handle('manual:remove', (path: string) => removeSection(ref(), path))
+  handle('manual:moveChapter', (dir: string, toIndex: number) => [...moveChapter(ref(), dir, toIndex)])
+  handle('manual:moveSection', (path: string, toIndex: number) => {
+    const renamed = moveSection(ref(), path, toIndex)
+    return renamed.get(path) ?? path
+  })
   handle('manual:todos', () => collectTodos(ref()))
   handle('manual:images', () => listImages(ref()))
   handle('manual:suggestImageId', (caption: string) => suggestImageId(ref(), caption))
@@ -435,6 +454,22 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     })
   })
   handle('capture:adopt', (ids: string[]) => adoptShots(ref(), ids))
+
+  // Claude로 초안 만들기
+  handle('draft:check', (refresh?: boolean) => checkDraft(getSettings().claudePath, refresh))
+  handle('draft:start', (input: DraftInput) => {
+    requireWorkspace()
+    const r = ref()
+    return startDraft({
+      ref: r,
+      input,
+      claudePath: getSettings().claudePath,
+      captureBaseUrl: captureBaseUrl(),
+      authFile: authFile(r.manual),
+      onEvent: (event) => send('draft-event', event),
+    })
+  })
+  handle('draft:cancel', () => cancelDraft())
 
   // affected (개발자용)
   handle('affected:run', (base: string, head: string) => {

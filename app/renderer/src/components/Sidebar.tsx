@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type DragEvent } from 'react'
 import type { FileChange, ManualTree, Todo } from '../../../shared/api.ts'
 import { Icon } from './Icon.tsx'
 
@@ -18,6 +18,8 @@ export function Sidebar({
   onNewSection,
   onRemoveSection,
   onRevert,
+  onMoveChapter,
+  onMoveSection,
 }: {
   tab: SidebarTab
   onTab: (tab: SidebarTab) => void
@@ -30,9 +32,45 @@ export function Sidebar({
   onNewSection: (chapterDir?: string) => void
   onRemoveSection: (path: string, title: string) => void
   onRevert: (changes: FileChange[]) => void
+  onMoveChapter: (dir: string, toIndex: number) => void
+  onMoveSection: (path: string, toIndex: number) => void
 }) {
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  // 끌어 놓기: 놓은 줄의 자리로 옮긴다. 화면은 같은 장 안에서만
+  const [drag, setDrag] = useState<{ type: 'chapter'; dir: string } | { type: 'section'; path: string; chapter: string }>()
+  const [over, setOver] = useState<string>()
+  const canReorder = !query.trim()
+  const dragProps = (item: NonNullable<typeof drag>) =>
+    canReorder
+      ? {
+          draggable: true,
+          onDragStart: (e: DragEvent) => {
+            e.dataTransfer.effectAllowed = 'move'
+            setDrag(item)
+          },
+          onDragEnd: () => {
+            setDrag(undefined)
+            setOver(undefined)
+          },
+        }
+      : {}
+  const dropProps = (key: string, accept: boolean, onDrop: () => void) =>
+    accept
+      ? {
+          onDragOver: (e: DragEvent) => {
+            e.preventDefault()
+            setOver(key)
+          },
+          onDragLeave: () => setOver((o) => (o === key ? undefined : o)),
+          onDrop: (e: DragEvent) => {
+            e.preventDefault()
+            setOver(undefined)
+            setDrag(undefined)
+            onDrop()
+          },
+        }
+      : {}
 
   const chapters = useMemo(() => {
     if (!tree) return []
@@ -77,9 +115,16 @@ export function Sidebar({
             <input placeholder="화면 찾기" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
           <div className="sidebar-scroll">
-            {chapters.map((chapter) => (
+            {chapters.map((chapter, chapterIndex) => (
               <section key={chapter.dir} className="toc-chapter">
-                <div className="toc-chapter-row">
+                <div
+                  className={`toc-chapter-row ${over === chapter.dir ? 'drop-target' : ''}`}
+                  title={canReorder ? '끌어서 장 순서를 바꿀 수 있습니다' : undefined}
+                  {...dragProps({ type: 'chapter', dir: chapter.dir })}
+                  {...dropProps(chapter.dir, drag?.type === 'chapter' && drag.dir !== chapter.dir, () =>
+                    onMoveChapter((drag as { dir: string }).dir, chapterIndex),
+                  )}
+                >
                   <button className="toc-chapter-title" onClick={() => toggle(chapter.dir)}>
                     <Icon name="chevron" size={12} className={collapsed.has(chapter.dir) ? 'chevron' : 'chevron open'} />
                     <span className="toc-no">{chapter.no}</span>
@@ -95,8 +140,17 @@ export function Sidebar({
                 </div>
                 {!collapsed.has(chapter.dir) && (
                   <ul>
-                    {chapter.sections.map((s) => (
-                      <li key={s.path} className={s.path === current ? 'active' : ''}>
+                    {chapter.sections.map((s, sectionIndex) => (
+                      <li
+                        key={s.path}
+                        className={`${s.path === current ? 'active' : ''} ${over === s.path ? 'drop-target' : ''}`}
+                        {...(s.path.endsWith('/00-intro.md') ? {} : dragProps({ type: 'section', path: s.path, chapter: chapter.dir }))}
+                        {...dropProps(
+                          s.path,
+                          drag?.type === 'section' && drag.chapter === chapter.dir && drag.path !== s.path,
+                          () => onMoveSection((drag as { path: string }).path, sectionIndex),
+                        )}
+                      >
                         <button className="toc-section" onClick={() => onOpen(s.path)} title={s.path}>
                           <span className="ellipsis">{s.title}</span>
                           {s.todos > 0 && <span className="badge todo">{s.todos}</span>}

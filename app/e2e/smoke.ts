@@ -42,7 +42,13 @@ const app = await electron.launch({
   ...(values.app
     ? { executablePath: join(resolve(values.app), 'Contents/MacOS/Ariadne'), args: [] }
     : { args: [resolve('out/main/index.js')] }),
-  env: { ...process.env, ARIADNE_USER_DATA: userData, ARIADNE_CAPTURE_BASE_URL: boBaseUrl },
+  env: {
+    ...process.env,
+    ARIADNE_USER_DATA: userData,
+    ARIADNE_CAPTURE_BASE_URL: boBaseUrl,
+    // 가짜 Claude: LLM 없이 Ariadne MCP 도구를 실제로 부른다
+    ARIADNE_CLAUDE_PATH: resolve('app/e2e/fake-claude.mjs'),
+  },
 })
 const errors: string[] = []
 const page = await app.firstWindow()
@@ -159,7 +165,9 @@ try {
 
   await step('새 화면 추가 → 삭제', async () => {
     await page.getByRole('button', { name: '새 화면' }).click()
-    await page.getByPlaceholder('Enrollment Request List').fill('E2E Smoke Screen')
+    await page.getByRole('dialog').getByRole('button', { name: '빈 화면 직접 쓰기' }).click()
+    await page.getByRole('dialog').locator('select').first().selectOption({ index: 15 }) // 마지막 장
+    await page.getByPlaceholder('Menu List View').fill('E2E Smoke Screen')
     await page.getByRole('dialog').getByRole('button', { name: '추가' }).click()
     await page.locator('.breadcrumb', { hasText: 'E2E Smoke Screen' }).waitFor()
     await page.locator('.page .todo').first().waitFor()
@@ -203,7 +211,7 @@ try {
     }
     await page.getByRole('button', { name: '선택한 1장 반영' }).click()
     await toast(page, '이미지 1장을 반영했습니다').waitFor()
-    await page.getByRole('button', { name: '닫기' }).first().click()
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
     await page.getByRole('tab', { name: /변경/ }).click()
     await page.locator('.change-item', { hasText: 'location-popup' }).waitFor({ timeout: 10000 })
     assert.equal(await page.locator('.change-item').count(), 1)
@@ -254,6 +262,55 @@ try {
     await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
     assert.ok(!existsSync(join(workspace, 'manuals/fo-e2e/manual.yaml')))
+    await page.getByRole('tab', { name: '목차' }).click()
+  })
+
+  await step('목차 끌어 놓기로 장 순서 바꾸기 → 되돌리기', async () => {
+    const titles = () => page.locator('.toc-chapter-title .ellipsis').allTextContents()
+    const before = await titles()
+    await page.locator('.toc-chapter-row', { hasText: 'Job Management' }).dragTo(page.locator('.toc-chapter-row', { hasText: 'Dealer Management' }))
+    await page.waitForFunction(() => document.querySelectorAll('.toc-chapter-title .ellipsis')[1]?.textContent === 'Job Management')
+    const after = await titles()
+    assert.equal(after[1], 'Job Management')
+    assert.equal(after[2], before[1])
+    assert.ok(existsSync(join(workspace, 'manuals/bo/02-job-management')))
+    await page.getByRole('tab', { name: /변경/ }).click()
+    await page.getByRole('button', { name: '모두 되돌리기' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    await page.getByRole('tab', { name: '목차' }).click()
+    await page.waitForFunction(() => document.querySelectorAll('.toc-chapter-title .ellipsis')[1]?.textContent === 'Dealer Management')
+  })
+
+  await step('Claude로 초안 만들기 (가짜 claude → Ariadne MCP → STG)', async () => {
+    await page.getByRole('button', { name: '새 화면' }).click()
+    await page.getByPlaceholder('Menu Management').first().fill('Menu Management E2E')
+    await page.getByRole('dialog').locator('select').nth(1).selectOption({ index: 8 }) // 8장 (기존 8장 앞)
+    await page.getByRole('dialog').getByRole('button', { name: '다음' }).click()
+    await page.getByRole('heading', { name: 'Claude로 초안 만들기' }).waitFor()
+    await page.locator('.check-row.ok', { hasText: 'Claude Code' }).waitFor({ timeout: 30000 })
+    await page.locator('.check-row.ok', { hasText: 'Confluence' }).waitFor({ timeout: 30000 })
+    await page.getByRole('button', { name: '초안 만들기 시작' }).click()
+    await page.locator('.draft-summary', { hasText: '초안을 만들었습니다' }).waitFor({ timeout: 90000 })
+    // 저장/삭제 버튼 거절이 로그에 보인다
+    await page.locator('.log li.log-tool.failed', { hasText: 'STG 누르기: Delete' }).waitFor()
+    await page.locator('.log li', { hasText: '캡처 저장: menu-e2e-list' }).waitFor()
+    await snap('12-draft')
+    assert.ok(existsSync(join(workspace, 'manuals/bo/08-menu-management-e2e/01-menu-list-view.md')))
+    assert.ok(existsSync(join(workspace, 'manuals/bo/09-menu-management/00-intro.md')), '기존 8장이 9장으로 밀린다')
+    assert.ok(existsSync(join(workspace, 'manuals/bo/images/menu-e2e-list.png')))
+    assert.match(readFileSync(join(workspace, 'manuals/bo/shots.ts'), 'utf8'), /id: 'menu-e2e-list'/)
+    await page.locator('.draft-summary button.link', { hasText: '08-menu-management-e2e/01-menu-list-view.md' }).click()
+    await page.locator('.breadcrumb', { hasText: 'Menu List View' }).waitFor()
+    await page.locator('.page .todo', { hasText: '최대 길이' }).waitFor({ timeout: 15000 })
+    await page.getByRole('tab', { name: /TODO/ }).click()
+    await page.locator('.todo-item', { hasText: '최대 길이' }).waitFor()
+
+    await page.getByRole('tab', { name: /변경/ }).click()
+    await page.getByRole('button', { name: '모두 되돌리기' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    assert.ok(existsSync(join(workspace, 'manuals/bo/08-menu-management/00-intro.md')), '되돌리면 8장이 제자리')
     await page.getByRole('tab', { name: '목차' }).click()
   })
 

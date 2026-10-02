@@ -130,6 +130,12 @@ export function SettingsDialog({
                 placeholder="/opt/homebrew/bin/pandoc"
                 onSave={(pandocPath) => update({ pandocPath })}
               />
+              <TextSetting
+                label="Claude Code CLI 경로 (비우면 자동으로 찾음)"
+                value={settings.claudePath}
+                placeholder="~/.local/bin/claude"
+                onSave={(claudePath) => update({ claudePath })}
+              />
               <DirSetting
                 label="dealerhub-web 경로 (개발자용, 변경 영향 분석)"
                 value={settings.dealerhubWebDir}

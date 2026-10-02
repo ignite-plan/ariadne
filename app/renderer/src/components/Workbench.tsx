@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
+  DraftInput,
   FileChange,
   ManualTree,
   SectionDoc,
@@ -12,6 +13,7 @@ import type {
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { CapturePanel } from './CapturePanel.tsx'
+import { DraftPanel } from './DraftPanel.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
 import { Icon, type IconName } from './Icon.tsx'
 import { ImageDialog, type PastedImage } from './ImageDialog.tsx'
@@ -73,6 +75,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [layout, setLayoutState] = useState<Layout>(() => (storage(LAYOUT) as Layout) || 'split')
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [capturing, setCapturing] = useState(false)
+  const [drafting, setDrafting] = useState<DraftInput>()
   const [building, setBuilding] = useState(false)
   const [buildMenu, setBuildMenu] = useState(false)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
@@ -343,6 +346,37 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     })
   }
 
+  // 순서를 바꾸면 폴더/파일 번호가 바뀐다. 지금 연 화면을 번호를 뺀 이름으로 다시 찾는다
+  const reopenAfterMove = async () => {
+    const t = await api.manual.tree()
+    setTree(t)
+    if (!doc) return
+    const key = (path: string) => path.split('/').map((p) => p.replace(/^\d+-/, '')).join('/')
+    const next = t.chapters.flatMap((c) => c.sections).find((s) => key(s.path) === key(doc.path))
+    if (next && next.path !== doc.path) await openSection(next.path)
+    await refreshSide()
+  }
+
+  const moveChapter = async (dir: string, toIndex: number) => {
+    if (!(await flush())) return
+    try {
+      await api.manual.moveChapter(dir, toIndex)
+      await reopenAfterMove()
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
+  const moveSection = async (path: string, toIndex: number) => {
+    if (!(await flush())) return
+    try {
+      await api.manual.moveSection(path, toIndex)
+      await reopenAfterMove()
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
   // 다른 매뉴얼로 바꾸면 목차와 첫 화면을 다시 연다
   const switchManual = async (id: string) => {
     if (!(await flush())) return
@@ -452,6 +486,8 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           onNewSection={(chapterDir) => setDialog({ type: 'new', chapterDir })}
           onRemoveSection={askRemove}
           onRevert={askRevert}
+          onMoveChapter={(dir, i) => void moveChapter(dir, i)}
+          onMoveSection={(path, i) => void moveSection(path, i)}
         />
 
         <main className="document">
@@ -546,6 +582,22 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         </div>
       )}
 
+      {drafting && (
+        <div className="overlay">
+          <DraftPanel
+            input={drafting}
+            onOpenSection={(path) => {
+              setDrafting(undefined)
+              void refreshSide().then(() => openSection(path))
+            }}
+            onClose={(changed) => {
+              setDrafting(undefined)
+              if (changed) void refreshSide().then(() => setTab('toc'))
+            }}
+          />
+        </div>
+      )}
+
       {dialog?.type === 'image' && settings && (
         <ImageDialog
           manual={settings.manual}
@@ -568,6 +620,10 @@ export function Workbench({ onReset }: { onReset: () => void }) {
             await refreshSide()
             await openSection(path)
             setTab('toc')
+          }}
+          onDraft={async (input) => {
+            setDialog(null)
+            if (await flush()) setDrafting(input)
           }}
         />
       )}

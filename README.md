@@ -11,8 +11,10 @@ Dealers 사용자 매뉴얼(영문, Word)을 만드는 리포입니다. BO, FO �
 | 앱 설치 | [설치 가이드](app/INSTALL.md) |
 | 앱으로 매뉴얼 고치기 | [기획자 사용법](#기획자-사용법) |
 | Word 원본으로 새 매뉴얼 만들기 | [새 매뉴얼 가져오기](#새-매뉴얼-가져오기) |
+| 매뉴얼에 없는 메뉴를 새로 쓰기 | [Claude로 초안 만들기](#claude로-초안-만들기) |
 | 매뉴얼 문장 규칙 | [작성 규칙](#작성-규칙) |
 | 릴리즈 변경 반영, 신규 메뉴 추가 | [개발자 사용법](#개발자-사용법) |
+| 사용법 가이드 영상(자막, 내레이션) 만들기 | [가이드 영상](#가이드-영상) |
 | 앱 수정·배포 | [앱 개발](#앱-개발) |
 
 ---
@@ -95,10 +97,31 @@ PNG가 아닌 이미지는 PNG로 바꿔 저장합니다.
 - `수동` 표시가 붙은 이미지는 자동으로 찍지 않습니다(아이콘을 잘라 낸 이미지 등).
 - 목록에 원하는 화면이 없으면 개발자에게 캡처 정의(`shots.ts`) 추가를 요청합니다.
 
-### 화면(섹션) 추가·삭제
+### 화면(섹션) 추가·삭제·순서
 
-- **추가**: 목차 아래 **새 화면**을 누르거나, 장 이름 옆 **+**를 누릅니다. 장을 고르고 화면 이름(영어)을 넣습니다. 새 장도 만들 수 있습니다.
+- **추가**: 목차 아래 **새 화면**을 누르거나, 장 이름 옆 **+**를 누릅니다. **빈 화면 직접 쓰기**를 고르고 장과 화면 이름(영어)을 넣습니다. 새 장은 원하는 위치(예: 8장)에 넣을 수 있습니다.
 - **삭제**: 목차에서 화면에 마우스를 올리고 🗑를 누릅니다. 제출 전이면 **변경** 탭에서 되돌릴 수 있습니다.
+- **순서 바꾸기**: 목차에서 장이나 화면을 끌어 다른 줄에 놓으면 그 자리로 옮겨집니다. 장 번호(폴더 번호)는 자동으로 다시 매겨집니다. 화면은 같은 장 안에서만 옮길 수 있고, 장 소개는 맨 앞에 고정입니다.
+
+### Claude로 초안 만들기
+
+매뉴얼에 없는 메뉴(예: Menu Management)의 화면 섹션 초안을 Claude가 씁니다. 근거는 **Confluence DLRS 기획서 최신 output**과 **실제 STG 화면**입니다.
+
+준비(한 번만): 터미널의 Claude Code(`claude`)가 설치·로그인되어 있고, Claude Code에 Atlassian(Confluence) MCP가 연결되어 있어야 합니다. 설정 → 환경 점검에서 확인할 수 있습니다.
+
+1. **새 화면** → **Claude로 초안 만들기**
+2. **메뉴 이름**(영어)과 **장**(새 장이면 이름과 위치)을 고릅니다. STG 경로나 메모를 알려 줄 수도 있습니다(선택).
+3. **다음** → 점검 화면에서 Claude Code, Confluence, STG 로그인 상태를 확인합니다. STG 로그인이 없으면 여기서 로그인합니다.
+4. **초안 만들기 시작**. Claude가 하는 일이 한 줄씩 나옵니다.
+   - 기획서 검색·읽기 → STG 화면 열기·팝업 열기 → 캡처 저장 → 화면별 섹션 쓰기
+   - 저장·삭제·승인·발송 같은 버튼은 앱이 거절하고(빨간 줄), STG로 가는 쓰기 요청도 막습니다
+   - 언제든 **중지**할 수 있습니다
+5. 끝나면 만든 화면, 이미지, TODO 수, 참고한 기획서 링크가 나옵니다. **TODO** 탭에서 확인할 곳을 보고 다듬은 뒤 **제출**합니다.
+
+- 기획서와 STG 화면이 다르면 Claude가 판단하지 않고 `TODO: 기획서(…)는 A, STG 화면은 B`로 남깁니다.
+- Claude가 만든 캡처 정의(`shots.ts`)가 같이 생겨서, 다음 릴리즈부터 **캡처** 버튼으로 다시 찍을 수 있습니다.
+- 초안 하나에 수 분에서 10분 이상 걸리고, 내 Claude 사용량을 씁니다.
+- 마음에 들지 않으면 **변경** 탭의 **모두 되돌리기**로 지우고 다시 만듭니다.
 
 ### 새 매뉴얼 가져오기
 
@@ -161,6 +184,8 @@ BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴�
 | 토큰이 유효하지 않거나 만료 | 설정 → 계정에서 새 토큰으로 바꿉니다 |
 | 권한이 없습니다 / SSO | 토큰 페이지에서 `ignite-plan` 조직 SSO를 승인합니다. fine-grained 토큰이 막혀 있으면 classic 토큰(`repo` 권한)을 씁니다 |
 | 미리보기가 안 나옴 | 설정 → 환경 점검에서 pandoc을 확인합니다 |
+| 초안 만들기에서 Claude Code를 못 찾음 | 터미널에서 `claude --version`이 되는지 확인하고, 안 되면 설정 → 고급 → Claude Code CLI 경로를 지정합니다 |
+| 초안에 기획서 근거가 없음 | Claude Code에 Atlassian MCP가 연결됐는지 확인합니다(`claude mcp list`) |
 | 캡처가 `세션 만료`로 실패 | 캡처 화면에서 **다시 로그인** |
 | 동기화가 `오프라인` | 네트워크를 확인하고 동기화 표시를 다시 누릅니다. 편집과 저장은 오프라인에서도 됩니다 |
 | 새 버전 알림 | 알림의 **받기**로 dmg를 받아 덮어 설치합니다 |
@@ -210,6 +235,8 @@ capture:
   viewport: { width: 1440, height: 900 }                  # 없으면 1440x900
 code:
   app: apps/hyundai-bo                                    # affected가 볼 en.json: <app>/src/locales/en.json
+video:
+  tts: { provider: kokoro, voice: af_heart, speed: 1 }    # 가이드 영상 내레이션 (없으면 이 값)
 chapters: [...]
 ```
 
@@ -221,6 +248,7 @@ chapters: [...]
 pnpm install
 cp .env.example .env    # DEALERHUB_WEB_DIR(dealerhub-web 로컬 경로), BO_BASE_URL(bo 캡처 주소 덮어쓰기, 선택)
 brew install pandoc     # Google Chrome도 필요
+brew install ffmpeg     # 가이드 영상(pnpm video)에만 필요
 ```
 
 사내망에서 Electron 바이너리 다운로드가 실패하면 `NODE_USE_SYSTEM_CA=1 node node_modules/electron/install.js`를 실행합니다.
@@ -235,6 +263,7 @@ brew install pandoc     # Google Chrome도 필요
 | `pnpm build --manual bo [--chapters 2,5]` | `dist/*.docx` |
 | `pnpm import:docx --docx <file> --manual <id> [--title] [--version] [--keep-source]` | Word 원본 → 새 매뉴얼. `--analyze`는 분석만 합니다 |
 | `pnpm make:reference --docx <file> --manual <id>` | 원본 서식으로 `reference.docx`를 다시 만듭니다 |
+| `pnpm video --manual bo [--id id,…] [--no-tts] [--headed]` | 가이드 영상. `manuals/bo/videos/<id>.ts` → `dist/videos/<id>.mp4`·`.srt`·`.vtt` |
 | `pnpm typecheck` / `pnpm test` | 타입 검사 / core + app 테스트 |
 
 ### 릴리즈 변경 반영
@@ -271,6 +300,48 @@ Claude Code에서 **"<메뉴> 매뉴얼 추가"**(`manual-new-section` 스킬)�
 
 4. `pnpm capture --manual bo --only <ids>` → `pnpm build --manual bo`
 
+### 가이드 영상
+
+시나리오 파일 하나로 STG 화면 녹화, 영어 자막, 영어 내레이션을 한 번에 만듭니다. 화면이 바뀌면 다시 실행하면 됩니다.
+
+```bash
+pnpm login --manual bo                       # 세션이 없을 때 (캡처와 같은 .auth/bo.json)
+pnpm video --manual bo --id dealer-list      # → dist/videos/dealer-list.mp4, .srt, .vtt
+pnpm video --manual bo --id dealer-list --headed --no-tts   # 시나리오 작성 중: 브라우저를 띄우고 음성 생략
+```
+
+- 결과 mp4에는 영상(h264), 내레이션(aac), 자막 트랙(mov_text)이 들어 있습니다. 자막은 화면에도 그려져 있어 어느 플레이어에서나 보입니다. `.srt`·`.vtt`는 LMS나 YouTube에 따로 올릴 때 씁니다.
+- 내레이션은 로컬 TTS 모델 **Kokoro**(무료, API 키 없음)로 만듭니다. 첫 실행 때 모델(약 90MB)을 `.video-cache/models`에 받고, 만든 음성은 `.video-cache/tts`에 캐시합니다. 사내 TLS 프록시 때문에 `pnpm video`는 `--use-system-ca`로 실행됩니다.
+- OpenAI 음성을 쓰려면 `manual.yaml`에 `video.tts.provider: openai`(voice 예: `alloy`)를 지정하고 `.env`에 `OPENAI_API_KEY`를 넣습니다. ElevenLabs는 사내 webfilter로 막혀 있습니다.
+
+시나리오(`manuals/bo/videos/<id>.ts`)는 장면(scene) 목록입니다. 장면마다 `say`(자막 겸 내레이션)를 띄우고 `do`의 조작을 함께 진행합니다. 장면 길이는 내레이션 길이에 맞춰집니다.
+
+```ts
+export default defineVideo({
+  id: 'dealer-list',
+  title: 'Dealer List View',                     // 시작 카드
+  intro: 'This video shows how to ...',           // 시작 카드 내레이션
+  section: '02-dealer-management/01-dealer-list-view.md',
+  mask: ['.email'],                               // blur 처리할 곳
+  scenes: [
+    { say: 'The Dealer List screen provides ...', do: async (v) => { await v.goto('/dealer/company'); await v.ready('text=Total') } },
+    { say: 'Click the Location icon to ...', do: async (v) => v.click(v.page.getByRole('button', { name: 'Location' }).first()) },
+  ],
+})
+```
+
+| `v` 헬퍼 | 동작 |
+|---|---|
+| `goto(path)` / `ready(locator)` | `baseUrl` 기준 이동 / 화면 준비 대기. 로그인 페이지로 튕기면 세션 만료로 멈춥니다 |
+| `click(locator)` | 커서를 옮기고, 대상을 강조한 뒤 누릅니다 |
+| `type(locator, text)` | 한 글자씩 입력합니다 |
+| `choose(trigger, option)` | HDS(MUI) Select를 열고 옵션을 고릅니다. native select는 `select(locator, value)` |
+| `highlight(locator, ms)` / `hover` / `scroll` / `pause(ms)` | 누르지 않고 강조 / 올려놓기 / 스크롤 / 대기 |
+
+- 문장은 해당 매뉴얼 섹션에서 가져오고, UI 라벨은 `en.json` 그대로 씁니다([작성 규칙](#작성-규칙)).
+- 기본적으로 저장/삭제/발송/승인 류 버튼(`Save`, `Save Draft`, `Delete`, `Discard`, `Send`, `Approve`, `Create` 등)은 누르지 못합니다. 생성·수정 과정을 보여 줘야 하면 `mutates: true`로 표시하고 **STG 테스트 데이터로만** 실행합니다. 이름에 `Video Test`를 붙이고, `cleanup`에서 만든 데이터를 지웁니다. 이메일이 발송되는 화면은 테스트 계정 주소만 씁니다. 외부 시스템 연동이 있는 버튼(예: 딜러 생성 마지막 단계의 `Create`, HMG Partner 연동)은 누르지 않습니다.
+- 새 시나리오는 STG에서 처음 실행할 때 `--headed --no-tts`로 selector를 확인합니다.
+
 ### 리모트
 
 - `origin` = ignite-plan/ariadne: 기준 리포입니다. 앱의 기본 리포이고, 기획자 제출이 여기로 들어옵니다. 작업 전에 `git pull`을 합니다.
@@ -288,7 +359,8 @@ ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne
 ```
 
 - E2E는 실제 GitHub에서 clone하고, 편집, 되돌리기, Word 만들기, 가짜 BO 캡처, Word 가져오기를 확인합니다. 제출(push)은 하지 않습니다.
-- `ARIADNE_CAPTURE_BASE_URL`은 캡처 주소를 덮어씁니다(E2E의 가짜 BO).
+- `ARIADNE_CAPTURE_BASE_URL`은 캡처 주소를 덮어씁니다(E2E의 가짜 BO). `ARIADNE_CLAUDE_PATH`는 Claude Code CLI 위치를 덮어씁니다(E2E는 `app/e2e/fake-claude.mjs`: LLM 없이 Ariadne MCP 도구를 실제로 부름).
+- 초안 만들기 구조: 앱이 `127.0.0.1` 임의 포트에 토큰을 붙여 Ariadne MCP(HTTP)를 열고, `claude -p --mcp-config … --allowedTools …`를 작업 폴더에서 실행합니다. 지시는 `.claude/skills/manual-draft/SKILL.md`입니다. 허용 도구는 Read/Glob/Grep, `Edit|Write(./manuals/<m>/**)`, `mcp__ariadne`, Confluence 읽기 도구뿐이라 나머지는 `-p` 모드에서 자동 거절됩니다.
 - 앱 main의 네트워크는 Electron `net.fetch`만 씁니다(사내 TLS 프록시 때문에 Node fetch가 실패). git은 isomorphic-git이라 기획자 PC에 Xcode CLT가 없어도 됩니다.
 - 제출은 main에 바로 push합니다. 충돌하면 `ariadne/<login>-<시각>` 브랜치와 PR을 만듭니다.
 - `ARIADNE_USER_DATA`로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꿀 수 있습니다(E2E, 두 번째 프로필).
@@ -309,7 +381,7 @@ manuals/<id>/        매뉴얼 원본 (manual.yaml, 장/화면 .md, images/, sho
 src/core/            빌드·캡처·로그인·affected·Word 가져오기 함수 (CLI와 앱 공용)
 src/cli/             pnpm 명령 진입점
 app/main/            Electron main (IPC, git, GitHub, pandoc 미리보기, 가져오기 utilityProcess)
-app/main/lib/        Electron에 의존하지 않는 로직 (단위 테스트 대상)
+app/main/lib/        Electron에 의존하지 않는 로직 (git, sections, stg, mcp, claude — 단위 테스트 대상)
 app/preload/         window.ariadne 노출
 app/renderer/        React UI
 app/shared/api.ts    main ↔ renderer 계약

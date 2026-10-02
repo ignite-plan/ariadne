@@ -1,0 +1,172 @@
+// 시나리오가 쓰는 조작 헬퍼. 사람이 조작하는 것처럼 커서를 옮기고, 누를 곳을 강조한 뒤 누른다.
+import type { Locator, Page } from 'playwright'
+import type { OverlayApi } from './overlay.ts'
+
+// mutates가 아닌 시나리오에서 누르면 안 되는 버튼 (STG 데이터를 바꾸는 동작).
+// "Create"는 정확히 그 이름일 때만 (목록의 "Create New"는 화면 이동)
+export const MUTATING_LABEL = /^\s*(save|delete|remove|send|approve|reject|submit|register|publish|terminate|discard)\b|^\s*create\s*$/i
+
+export class MutationBlockedError extends Error {}
+
+export interface DirectorOptions {
+  baseUrl: string
+  // false면 MUTATING_LABEL 버튼 클릭을 막는다
+  mutates?: boolean
+  // 1이면 정상 속도, 0이면 대기 없이 (테스트용)
+  pace?: number
+}
+
+type Target = Locator | string
+
+export class Director {
+  private cursor = { x: 0, y: 0 }
+  private readonly base: string
+  private readonly origin: string
+  private readonly mutates: boolean
+  private readonly pace: number
+
+  constructor(
+    readonly page: Page,
+    { baseUrl, mutates = false, pace = 1 }: DirectorOptions,
+  ) {
+    this.base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
+    this.origin = new URL(baseUrl).origin
+    this.mutates = mutates
+    this.pace = pace
+  }
+
+  // baseUrl 기준 경로로 이동. 로그인 페이지로 튕기면 세션 만료로 멈춘다
+  async goto(path: string) {
+    await this.page.goto(new URL(path.replace(/^\//, ''), this.base).href)
+    if (!this.page.url().startsWith(this.origin)) throw new Error(`세션 만료로 보임: ${this.page.url()}`)
+    await this.page.waitForLoadState('networkidle')
+  }
+
+  // 화면 준비 완료까지 기다린다
+  async ready(target: Target) {
+    await this.locate(target).first().waitFor()
+    await this.page.waitForLoadState('networkidle')
+  }
+
+  async pause(ms: number) {
+    await this.wait(ms)
+  }
+
+  async hover(target: Target) {
+    const locator = await this.moveTo(target)
+    await locator.hover()
+  }
+
+  async click(target: Target) {
+    const locator = this.locate(target).first()
+    if (!this.mutates) {
+      const label = (await locator.getAttribute('aria-label')) ?? (await locator.innerText().catch(() => ''))
+      if (MUTATING_LABEL.test(label)) {
+        throw new MutationBlockedError(`"${label.trim()}" 버튼은 mutates: true 시나리오에서만 누를 수 있습니다`)
+      }
+    }
+    await this.moveTo(locator)
+    await this.highlightBox(locator, 450)
+    await this.wait(250)
+    await locator.click()
+    await this.wait(300)
+  }
+
+  // 한 글자씩 입력한다
+  async type(target: Target, text: string, { clear = true } = {}) {
+    const locator = this.locate(target).first()
+    await this.moveTo(locator)
+    await locator.click()
+    if (clear) await locator.fill('')
+    await locator.pressSequentially(text, { delay: 55 * this.pace })
+    await this.wait(250)
+  }
+
+  async select(target: Target, value: string | string[]) {
+    const locator = this.locate(target).first()
+    await this.moveTo(locator)
+    await this.highlightBox(locator, 400)
+    await locator.selectOption(value)
+    await this.wait(300)
+  }
+
+  // HDS(MUI) Select: 드롭다운을 열고 옵션을 고른다
+  async choose(trigger: Target, option: string) {
+    await this.click(trigger)
+    await this.click(this.page.getByRole('option', { name: option, exact: true }))
+  }
+
+  // 대상을 화면 가운데로 부드럽게 스크롤
+  async scroll(target: Target) {
+    const locator = this.locate(target).first()
+    await locator.evaluate((el) => el.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    await this.wait(700)
+  }
+
+  // 커서를 옮기고 대상을 잠시 강조한다 (누르지 않음)
+  async highlight(target: Target, ms = 1500) {
+    const locator = await this.moveTo(target)
+    await this.highlightBox(locator, ms)
+    await this.wait(ms)
+  }
+
+  // 대상 가운데로 커서를 옮긴다. 거리에 따라 300~900ms
+  async moveTo(target: Target) {
+    const locator = this.locate(target).first()
+    await locator.scrollIntoViewIfNeeded()
+    const box = await locator.boundingBox()
+    if (!box) throw new Error(`화면에 보이지 않는 대상: ${locator}`)
+    const to = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+    const from = this.cursor
+    const distance = Math.hypot(to.x - from.x, to.y - from.y)
+    const duration = Math.min(900, Math.max(300, distance * 0.7)) * this.pace
+    const steps = Math.max(1, Math.round(duration / 16))
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps
+      const e = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
+      await this.page.mouse.move(from.x + (to.x - from.x) * e, from.y + (to.y - from.y) * e)
+      if (this.pace) await this.page.waitForTimeout(16)
+    }
+    this.cursor = to
+    return locator
+  }
+
+  // 녹화 시작 전 커서를 화면 가운데에 둔다
+  async placeCursor(x: number, y: number) {
+    await this.page.mouse.move(x, y)
+    this.cursor = { x, y }
+  }
+
+  async caption(text: string | null) {
+    await this.overlay('caption', [text])
+  }
+
+  async card(title: string | null, subtitle?: string) {
+    await this.overlay('card', [title, subtitle])
+  }
+
+  private async highlightBox(locator: Locator, ms: number) {
+    const box = await locator.boundingBox()
+    if (box) await this.overlay('highlight', [box, ms * this.pace])
+  }
+
+  private async overlay<K extends keyof OverlayApi>(method: K, args: Parameters<OverlayApi[K]>) {
+    // 페이지 이동 직후에는 overlay가 아직 없을 수 있다
+    await this.page.waitForFunction(() => '__ariadneVideo' in window)
+    await this.page.evaluate(
+      ([name, values]) => {
+        const api = (window as unknown as { __ariadneVideo: Record<string, (...a: unknown[]) => void> }).__ariadneVideo
+        api[name](...values)
+      },
+      [method, args] as [string, unknown[]],
+    )
+  }
+
+  private locate(target: Target) {
+    return typeof target === 'string' ? this.page.locator(target) : target
+  }
+
+  private async wait(ms: number) {
+    if (ms * this.pace > 0) await this.page.waitForTimeout(ms * this.pace)
+  }
+}

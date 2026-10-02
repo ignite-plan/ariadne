@@ -1956,3 +1956,161 @@ details.advanced summary {
 .hint.first {
   margin: 0 0 14px;
 }
+
+/* ---------- reorder (drag & drop) ---------- */
+.toc-chapter-row[draggable='true'],
+.toc-chapter li[draggable='true'] {
+  cursor: grab;
+}
+.drop-target {
+  box-shadow: inset 0 2px 0 var(--accent);
+  background: var(--accent-soft) !important;
+}
+
+/* ---------- draft (Claude) ---------- */
+.field-row.wide {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 10px;
+}
+.draft-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.check-row > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.check-row .muted {
+  font-size: 12px;
+  word-break: break-all;
+}
+.check-row.ok .env-icon {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.check-row.warn .env-icon {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.check-row.fail .env-icon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.draft-input {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 6px 10px;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.draft-input dt {
+  color: var(--text-3);
+}
+.draft-input dd {
+  margin: 0;
+  min-width: 0;
+  word-break: break-word;
+}
+.draft-log .log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.draft-log .log li {
+  display: flex;
+  gap: 10px;
+  padding: 5px 2px;
+  border-bottom: 1px dashed var(--border);
+}
+.log-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 20px;
+  color: var(--text-3);
+}
+.log li.log-tool .log-icon {
+  color: var(--ok);
+}
+.log li.failed .log-icon,
+.log li.failed .log-text {
+  color: var(--danger);
+}
+.log li.log-warning .log-icon,
+.log li.log-warning .log-text {
+  color: var(--warn);
+}
+.log li.log-text .log-text {
+  color: var(--text-2);
+  white-space: pre-wrap;
+  user-select: text;
+}
+.log li.log-status .log-text {
+  color: var(--text-3);
+}
+.log-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+.draft-summary {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.draft-summary.failed {
+  border-color: var(--danger);
+}
+.draft-summary h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.draft-summary h3 {
+  margin: 14px 0 4px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.draft-summary ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.draft-summary details {
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+.report-summary.inline {
+  position: static;
+  margin: 0 0 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.pill.todo {
+  background: var(--todo-soft);
+  color: var(--todo);
+}
+.denials code {
+  font-size: 11px;
+  word-break: break-all;
+}

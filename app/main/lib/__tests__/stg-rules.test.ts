@@ -1,0 +1,67 @@
+import assert from 'node:assert/strict'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { after, describe, it } from 'node:test'
+import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
+import { loadShotsBundled } from '../shots.ts'
+import { appendShot, isAllowedRequest, isBlockedLabel, shotToCode } from '../stg.ts'
+
+describe('STG 안전장치', () => {
+  it('데이터를 바꾸는 버튼 이름을 막는다', () => {
+    for (const name of ['Save', 'Delete Menu', 'Submit', 'Approve', 'Send Email', 'Register', '저장', '삭제', 'Confirm', 'Upload File', 'Deactivate']) {
+      assert.ok(isBlockedLabel(name), name)
+    }
+    for (const name of ['Search', 'Location', 'Menu Information', 'Detail', 'Cancel', 'Close', 'Next', '+ Group Addition', 'Reset', 'Saved Filters view']) {
+      assert.equal(isBlockedLabel(name), false, name)
+    }
+  })
+
+  it('조회 요청만 통과시킨다', () => {
+    assert.ok(isAllowedRequest('GET', 'https://stg/api/v1/menus'))
+    assert.ok(isAllowedRequest('POST', 'https://stg/api/v1/dealers/search'))
+    assert.ok(isAllowedRequest('POST', 'https://stg/api/v1/menus/tree'))
+    assert.ok(isAllowedRequest('POST', 'https://stg/api/v1/posts/list?page=1'))
+    assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/menus'))
+    assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/menus/12/listing-order'))
+    assert.ok(!isAllowedRequest('PUT', 'https://stg/api/v1/menus/12'))
+    assert.ok(!isAllowedRequest('DELETE', 'https://stg/api/v1/menus/12'))
+    assert.ok(!isAllowedRequest('PATCH', 'https://stg/api/v1/menus/12'))
+  })
+})
+
+describe('캡처 정의 코드 생성', () => {
+  const fx = createFixture()
+  after(fx.cleanup)
+
+  it('구조화된 단계를 Playwright 코드로', () => {
+    const code = shotToCode({
+      id: 'menu-create-popup',
+      path: '/menu',
+      ready: 'text=Total',
+      steps: [{ click: { role: 'button', name: "Group's Addition" } }, { fill: { label: 'Menu name', value: 'Sample' } }, { waitFor: '[role="dialog"]' }],
+      clip: '[role="dialog"]',
+    })
+    assert.match(code, /id: 'menu-create-popup'/)
+    assert.match(code, /await page\.getByRole\('button', \{ name: 'Group\\'s Addition' \}\)\.first\(\)\.click\(\)/)
+    assert.match(code, /await page\.getByLabel\('Menu name'\)\.first\(\)\.fill\('Sample'\)/)
+    assert.match(code, /clip: '\[role="dialog"\]'/)
+  })
+
+  it('빈 shots.ts와 기존 shots.ts 끝에 붙이고, 만든 파일이 실제로 불러와진다', async () => {
+    const empty = "import { defineShots } from '../../src/core/shot.ts'\n\nexport const shots = defineShots([])\n"
+    const one = appendShot(empty, { id: 'menu-list', path: '/menu', clip: '#root' })
+    const two = appendShot(one, { id: 'menu-popup', path: '/menu', steps: [{ click: { role: 'button', name: 'Location' } }], clip: '[role="dialog"]' })
+    assert.throws(() => appendShot(two, { id: 'menu-list', path: '/x' }), /이미 있는 id/)
+
+    const bo = readFileSync(join(process.cwd(), 'manuals/bo/shots.ts'), 'utf8')
+    assert.match(appendShot(bo, { id: 'new-shot', path: '/x' }), /manual: true \},\n  \{\n    id: 'new-shot'/)
+
+    // shots.ts는 ../../src/core/shot.ts를 import한다. fixture 루트에 그 파일을 둔다
+    mkdirSync(join(fx.ref.root, 'src/core'), { recursive: true })
+    writeFileSync(join(fx.ref.root, 'src/core/shot.ts'), readFileSync(join(process.cwd(), 'src/core/shot.ts')))
+    writeFileSync(join(fx.dir, 'shots.ts'), two)
+    const shots = await loadShotsBundled(fx.ref)
+    assert.deepEqual(shots.map((s) => s.id), ['menu-list', 'menu-popup'])
+    assert.equal(typeof shots[1].steps, 'function')
+  })
+})

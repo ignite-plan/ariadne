@@ -27,6 +27,55 @@ export interface ImportInput {
   keepSource: boolean
 }
 
+// Claude Code stream-json을 화면용으로 바꾼 이벤트
+export type ClaudeEvent =
+  | { kind: 'init'; model?: string; mcp: { name: string; status: string }[] }
+  | { kind: 'text'; text: string }
+  | { kind: 'tool'; id: string; name: string; label: string }
+  | { kind: 'tool_result'; id: string; isError: boolean; text: string }
+  | { kind: 'result'; ok: boolean; text: string; costUsd?: number; durationMs?: number; turns?: number; denials: string[] }
+
+// manual-draft 스킬의 마지막 JSON 요약
+export interface DraftSummary {
+  sections: string[]
+  images?: string[]
+  todos?: number
+  sources?: { title: string; url?: string; version?: string }[]
+  notes?: string
+}
+
+export interface DraftInput {
+  // 메뉴 이름. 예: Menu Management
+  menu: string
+  // 기존 장에 넣거나, 새 장 이름과 위치(0부터)
+  chapterDir?: string
+  newChapterTitle?: string
+  chapterIndex?: number
+  // STG 경로 힌트. 예: /menu
+  path?: string
+  notes?: string
+}
+
+export type DraftEvent =
+  | { kind: 'status'; text: string }
+  | { kind: 'warning'; text: string }
+  | { kind: 'claude'; event: ClaudeEvent }
+
+export interface DraftResult {
+  ok: boolean
+  text: string
+  summary?: DraftSummary
+  costUsd?: number
+  durationMs?: number
+  denials: string[]
+}
+
+export interface DraftCheck {
+  claude: { path: string; version: string } | null
+  atlassian: { name: string; connected: boolean }[]
+  error?: string
+}
+
 export interface Settings {
   // 매뉴얼 리포 (clone/push 대상)
   repoUrl: string
@@ -40,6 +89,8 @@ export interface Settings {
   dealerhubWebDir: string
   // push: main에 바로 반영, pr: 브랜치 + PR
   submitMode: 'push' | 'pr'
+  // 비어 있으면 로그인 셸과 흔한 설치 위치에서 찾는다
+  claudePath: string
 }
 
 export interface GithubUser {
@@ -55,7 +106,7 @@ export interface AuthStatus {
   error?: string
 }
 
-export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session'
+export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'atlassian'
 
 export interface EnvCheck {
   id: EnvCheckId
@@ -172,6 +223,8 @@ export interface NewSectionInput {
   // 기존 장에 추가. 없으면 newChapterTitle로 새 장을 만든다
   chapterDir?: string
   newChapterTitle?: string
+  // 새 장을 넣을 위치 (0부터). 없으면 맨 뒤
+  chapterIndex?: number
 }
 
 export interface ImportImageInput {
@@ -216,6 +269,9 @@ export interface AriadneApi {
     write(path: string, body: string, meta?: SectionMeta): Promise<void>
     create(input: NewSectionInput): Promise<string>
     remove(path: string): Promise<void>
+    // 바뀐 장 폴더 [old, new]
+    moveChapter(dir: string, toIndex: number): Promise<[string, string][]>
+    moveSection(path: string, toIndex: number): Promise<string>
     todos(): Promise<Todo[]>
     images(): Promise<ImageInfo[]>
     pickImageFile(): Promise<string | null>
@@ -238,6 +294,11 @@ export interface AriadneApi {
     run(ids: string[]): Promise<CaptureReport>
     adopt(ids: string[]): Promise<void>
   }
+  draft: {
+    check(refresh?: boolean): Promise<DraftCheck>
+    start(input: DraftInput): Promise<DraftResult>
+    cancel(): Promise<void>
+  }
   affected: {
     run(base: string, head: string): Promise<{ range: string; affected: AffectedSection[] }>
   }
@@ -249,6 +310,7 @@ export interface AriadneApi {
   on(event: 'capture-progress', listener: (progress: CaptureProgress) => void): () => void
   on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
   on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
+  on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void
 }
 
 // 리포 안 파일을 renderer에서 보여 줄 때 쓰는 custom protocol

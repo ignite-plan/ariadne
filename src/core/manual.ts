@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import YAML from 'yaml'
+import type { TtsConfig } from './video/tts/index.ts'
 
 // 리포 루트와 매뉴얼 이름(manuals/<manual>). process.cwd()에 기대지 않도록 모든 core 함수가 받는다
 export interface ManualRef {
@@ -29,6 +30,8 @@ export interface Manual {
   capture?: { baseUrl?: string; viewport?: Viewport }
   // affected가 볼 dealerhub-web 앱
   code?: { app?: string; locale?: string }
+  // 가이드 영상 내레이션 (pnpm video)
+  video?: { tts?: TtsConfig }
   chapters: Chapter[]
 }
 

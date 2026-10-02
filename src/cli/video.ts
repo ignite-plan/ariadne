@@ -1,0 +1,48 @@
+// usage: pnpm video --manual bo [--id dealer-list,dealer-create] [--no-tts] [--headed]
+// --id가 없으면 manuals/<manual>/videos/ 시나리오를 모두 만든다
+import { relative } from 'node:path'
+import { parseArgs } from 'node:util'
+import { defaultAuthFile, listVideos, renderVideo } from '../core/index.ts'
+
+try {
+  process.loadEnvFile()
+} catch {
+  // .env 없이 manual.yaml capture.baseUrl만 써도 된다
+}
+const { values } = parseArgs({
+  options: {
+    manual: { type: 'string', default: 'bo' },
+    id: { type: 'string' },
+    'no-tts': { type: 'boolean', default: false },
+    headed: { type: 'boolean', default: false },
+  },
+})
+// .env BO_BASE_URL은 bo 매뉴얼의 주소를 덮어쓴다 (capture와 같음)
+const baseUrl = values.manual === 'bo' ? process.env.BO_BASE_URL : undefined
+const ref = { root: process.cwd(), manual: values.manual! }
+const authFile = defaultAuthFile(ref)
+const ids = values.id?.split(',') ?? listVideos(ref)
+if (!ids.length) throw new Error(`manuals/${ref.manual}/videos/에 시나리오가 없습니다`)
+
+let failed = 0
+for (const id of ids) {
+  console.log(`▶ ${id}`)
+  try {
+    const result = await renderVideo({
+      ...ref,
+      id,
+      baseUrl,
+      authFile,
+      tts: values['no-tts'] ? false : undefined,
+      headed: values.headed,
+      onProgress: ({ stage, message }) => console.log(`  ${stage} ${message}`),
+    })
+    console.log(`  ✓ ${relative(ref.root, result.mp4)} (${(result.durationMs / 1000).toFixed(1)}s, 자막 ${result.cues.length}개)`)
+  } catch (error) {
+    failed++
+    const message = error instanceof Error ? error.message : String(error)
+    console.log(`  ✗ ${message.includes(authFile) ? `${message}: pnpm login --manual ${ref.manual}` : message}`)
+    if (message.includes('세션 만료')) break
+  }
+}
+if (failed) process.exitCode = 1

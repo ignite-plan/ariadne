@@ -5,6 +5,11 @@ capture:
   baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca/admin
 code:
   app: apps/hyundai-bo
+video:
+  tts:
+    provider: kokoro
+    voice: af_heart
+    speed: 1
 chapters:
   - title: Back-office Login
     dir: 01-back-office-login
