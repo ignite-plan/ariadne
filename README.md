@@ -275,7 +275,7 @@ title: Dealers Admin User Manual
 version: 1.0.7
 output: Hyundai-Dealers Admin User Manual_v{version}_EN   # Word 파일 이름
 capture:
-  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca/admin
+  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca
   viewport: { width: 1440, height: 900 }                  # 없으면 1440x900
 code:
   app: apps/hyundai-bo                                    # affected가 볼 en.json: <app>/src/locales/en.json

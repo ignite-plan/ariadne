@@ -2,7 +2,7 @@ title: Dealers Admin User Manual
 version: 1.0.7
 output: Hyundai-Dealers Admin User Manual_v{version}_EN
 capture:
-  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca/admin
+  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca
 code:
   app: apps/hyundai-bo
 video:

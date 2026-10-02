@@ -8,7 +8,7 @@ export interface CodePreset {
 
 export const CODE_PRESETS: CodePreset[] = [
   { app: 'apps/hyundai-fo', label: '딜러포털 FO (hyundai-fo)', baseUrl: 'https://stg-dealers.hyundai-corp.io' },
-  { app: 'apps/hyundai-bo', label: '딜러포털 BO (hyundai-bo)', baseUrl: 'https://stg-dealers-admin.hyundai-corp.io/ca/admin' },
+  { app: 'apps/hyundai-bo', label: '딜러포털 BO (hyundai-bo)', baseUrl: 'https://stg-dealers-admin.hyundai-corp.io/ca' },
   { app: 'apps/dealer-profile', label: 'Dealer Profile (dealer-profile)', baseUrl: '' },
 ]
 
