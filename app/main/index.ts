@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron'
 import { ASSET_PROTOCOL } from '../shared/api.ts'
 import { registerIpc } from './ipc.ts'
+import { isMediaFile, mediaResponse } from './lib/asset.ts'
 import { resolveInside } from './lib/sections.ts'
 import { getSettings } from './settings.ts'
 
@@ -20,7 +21,7 @@ if (app.isPackaged) {
 }
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: ASSET_PROTOCOL, privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
+  { scheme: ASSET_PROTOCOL, privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true } },
 ])
 
 let window: BrowserWindow | undefined
@@ -108,6 +109,8 @@ if (!app.requestSingleInstanceLock()) {
         if (url.host !== 'ws') throw new Error('unknown host')
         const rel = decodeURIComponent(url.pathname.replace(/^\//, ''))
         const file = resolveInside(getSettings().workspaceDir, rel)
+        // 가이드 영상·음성 미리보기
+        if (isMediaFile(file)) return mediaResponse(file, request.headers.get('range'))
         return net.fetch(pathToFileURL(file).href)
       } catch {
         return new Response('not found', { status: 404 })

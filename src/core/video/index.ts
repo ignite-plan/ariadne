@@ -24,6 +24,7 @@ export * from './scenario.ts'
 export * from './steps.ts'
 export * from './subtitles.ts'
 export * from './tts/index.ts'
+export * from './tts/model.ts'
 
 // 음성이 끝난 뒤 다음 장면까지 쉬는 시간
 const GAP_MS = 400

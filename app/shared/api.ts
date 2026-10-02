@@ -3,8 +3,11 @@ import type { AffectedSection } from '../../src/core/affected.ts'
 import type { CaptureReport } from '../../src/core/capture.ts'
 import type { DocxAnalysis, ImportProgress } from '../../src/core/import.ts'
 import type { Manual, SectionMeta, Viewport } from '../../src/core/manual.ts'
+import type { VideoProgress, VideoResult } from '../../src/core/video/index.ts'
+import type { Scene, Step, Target, VideoScenario } from '../../src/core/video/scenario.ts'
 
 export type { AffectedSection, CaptureReport, DocxAnalysis, ImportProgress, SectionMeta, Viewport }
+export type { Scene as VideoScene, Step as VideoStep, Target as VideoTarget, VideoProgress, VideoScenario }
 
 // manual.yaml에서 chapters를 뺀 매뉴얼 설정
 export type ManualConfig = Omit<Manual, 'chapters'>
@@ -115,7 +118,7 @@ export interface AuthStatus {
   error?: string
 }
 
-export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'atlassian'
+export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'atlassian' | 'ffmpeg' | 'voice'
 
 export interface EnvCheck {
   id: EnvCheckId
@@ -216,6 +219,46 @@ export interface SessionInfo {
   savedAt?: number
 }
 
+// 가이드 영상 목록 한 줄. 경로는 작업 폴더 기준
+export interface VideoInfo {
+  id: string
+  title: string
+  section?: string
+  mutates: boolean
+  scenes: number
+  // 만든 영상이 있으면
+  output?: { mp4: string; vtt: string; updatedAt: number; size: number }
+  // YAML 형식이 틀렸으면 그 내용
+  error?: string
+}
+
+export interface VideoRunOptions {
+  // 브라우저를 띄워 실행만 해 본다 (음성·녹화·파일 없음)
+  preview?: boolean
+  // 이 장면(0부터)부터
+  fromScene?: number
+  // false면 내레이션 없이 자막만
+  tts?: boolean
+}
+
+// 실패해도 throw하지 않고 어느 장면·단계인지 돌려준다 (IPC는 Error의 필드를 전달하지 않는다)
+export type VideoRunResult =
+  | ({ ok: true } & VideoResult)
+  | { ok: false; error: string; scene?: number | 'cleanup'; step?: number }
+
+export interface VideoModelStatus {
+  ready: boolean
+  bytes: number
+}
+
+export interface VideoModelProgress {
+  file: string
+  index: number
+  count: number
+  loaded: number
+  total?: number
+}
+
 export interface UpdateInfo {
   current: string
   latest: string
@@ -305,6 +348,19 @@ export interface AriadneApi {
     run(ids: string[]): Promise<CaptureReport>
     adopt(ids: string[]): Promise<void>
   }
+  video: {
+    list(): Promise<VideoInfo[]>
+    load(id: string): Promise<VideoScenario>
+    save(scenario: VideoScenario): Promise<VideoScenario>
+    create(input: { title: string; section?: string }): Promise<VideoScenario>
+    remove(id: string): Promise<void>
+    run(id: string, options?: VideoRunOptions): Promise<VideoRunResult>
+    cancel(): Promise<void>
+    // 한 문장 음성. path는 작업 폴더 기준 wav
+    speak(text: string): Promise<{ path: string; ms: number }>
+    model(): Promise<VideoModelStatus>
+    downloadModel(): Promise<VideoModelStatus>
+  }
   draft: {
     check(refresh?: boolean): Promise<DraftCheck>
     start(input: DraftInput): Promise<DraftResult>
@@ -322,6 +378,8 @@ export interface AriadneApi {
   on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
   on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
   on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void
+  on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
+  on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
 }
 
 // 리포 안 파일을 renderer에서 보여 줄 때 쓰는 custom protocol

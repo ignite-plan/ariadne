@@ -59,6 +59,18 @@ const api: AriadneApi = {
     run: invoke('capture:run'),
     adopt: invoke('capture:adopt'),
   },
+  video: {
+    list: invoke('video:list'),
+    load: invoke('video:load'),
+    save: invoke('video:save'),
+    create: invoke('video:create'),
+    remove: invoke('video:remove'),
+    run: invoke('video:run'),
+    cancel: invoke('video:cancel'),
+    speak: invoke('video:speak'),
+    model: invoke('video:model'),
+    downloadModel: invoke('video:downloadModel'),
+  },
   draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel') },
   affected: { run: invoke('affected:run') },
   app: {

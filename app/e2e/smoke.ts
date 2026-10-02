@@ -220,6 +220,26 @@ try {
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 10000 })
   })
 
+  await step('가이드 영상: 새 영상 → 장면 보기 → 삭제', async () => {
+    await page.getByRole('button', { name: '영상', exact: true }).click()
+    await page.getByRole('heading', { name: '가이드 영상' }).waitFor()
+    await page.getByRole('button', { name: '새 영상' }).click()
+    const dialog = page.getByRole('dialog')
+    // 지금 열린 화면(Dealer List View)이 미리 골라져 있다
+    await dialog.locator('input').and(page.locator('[value="Dealer List View"]')).waitFor()
+    await dialog.getByRole('button', { name: '만들기' }).click()
+    await page.locator('.video-title h2', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.scene').first().waitFor()
+    await snap('08b-video')
+    await page.getByTitle('삭제').click()
+    await page.getByRole('dialog').getByRole('button', { name: '삭제' }).click()
+    await page.locator('.empty', { hasText: '아직 영상이 없습니다' }).waitFor()
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    // 만들었다 지웠으니 제출할 변경이 없다
+    await page.getByRole('tab', { name: /변경/ }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 10000 })
+  })
+
   await step('새 매뉴얼 가져오기 (Word → FO) → 전환 → 되돌리기', async () => {
     // 파일 대화상자 대신 리포의 BO 원본을 고르게 한다
     await app.evaluate(({ dialog }, file) => {

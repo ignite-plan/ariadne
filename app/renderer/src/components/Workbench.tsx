@@ -13,6 +13,7 @@ import type {
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { CapturePanel } from './CapturePanel.tsx'
+import { VideoPanel } from './VideoPanel.tsx'
 import { DiffDialog } from './DiffDialog.tsx'
 import { DraftPanel } from './DraftPanel.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
@@ -79,6 +80,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [layout, setLayoutState] = useState<Layout>(() => (storage(LAYOUT) as Layout) || 'split')
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [capturing, setCapturing] = useState(false)
+  const [videoing, setVideoing] = useState(false)
   const [drafting, setDrafting] = useState<DraftInput>()
   const [building, setBuilding] = useState(false)
   const [buildMenu, setBuildMenu] = useState(false)
@@ -442,6 +444,9 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           <button className="button ghost" onClick={() => setCapturing(true)}>
             <Icon name="camera" /> 캡처
           </button>
+          <button className="button ghost" onClick={() => setVideoing(true)}>
+            <Icon name="video" /> 영상
+          </button>
           <div className="menu-anchor">
             <button className="button ghost" onClick={() => setBuildMenu(!buildMenu)} disabled={building}>
               <Icon name="word" /> {building ? '만드는 중…' : 'Word 만들기'}
@@ -602,6 +607,18 @@ export function Workbench({ onReset }: { onReset: () => void }) {
               setCapturing(false)
               void refreshSide()
               if (doc) void openSection(doc.path)
+            }}
+          />
+        </div>
+      )}
+
+      {videoing && (
+        <div className="overlay">
+          <VideoPanel
+            currentSection={doc?.path}
+            onClose={() => {
+              setVideoing(false)
+              void refreshSide()
             }}
           />
         </div>

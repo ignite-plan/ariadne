@@ -16,7 +16,8 @@
     "app:dev": "electron-vite dev",
     "app:build": "electron-vite build",
     "app:dist": "electron-vite build && electron-builder --mac --arm64 --publish never",
-    "app:e2e": "tsx app/e2e/smoke.ts"
+    "app:e2e": "tsx app/e2e/smoke.ts",
+    "app:e2e:video": "tsx app/e2e/video.ts"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -24,7 +25,6 @@
     "@codemirror/language": "^6.12.4",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.13",
-    "@huggingface/transformers": "^3.8.1",
     "@lezer/highlight": "^1.2.5",
     "@types/node": "^22.19.0",
     "@types/pixelmatch": "^5.2.6",
@@ -38,7 +38,6 @@
     "electron": "^44.5.1",
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
-    "kokoro-js": "^1.2.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tsx": "^4.20.0",
@@ -46,9 +45,12 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@modelcontextprotocol/sdk": "^1.31.0",
     "esbuild": "^0.28.2",
+    "ffmpeg-static": "^5.3.0",
     "isomorphic-git": "^1.42.5",
+    "kokoro-js": "^1.2.1",
     "pixelmatch": "^7.1.0",
     "playwright": "^1.55.0",
     "pngjs": "^7.0.0",

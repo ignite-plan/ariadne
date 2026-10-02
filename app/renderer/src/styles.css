@@ -2181,3 +2181,142 @@ details.advanced summary {
   margin-left: 6px;
   font-size: 12px;
 }
+
+/* 가이드 영상 */
+.tag.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.video-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.video-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.video-item > .ellipsis {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.video-item .muted {
+  font-size: 12px;
+}
+.video-item:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.video-item.active {
+  background: var(--accent-soft);
+}
+.video-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.video-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.video-title {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.video-title h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.video-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.video-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.video-progress .progress {
+  flex: 1;
+}
+.video-error {
+  white-space: pre-wrap;
+}
+.video-main .segmented {
+  align-self: flex-start;
+  margin-bottom: 0;
+}
+.scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scene {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.scene.intro {
+  background: var(--surface-2);
+}
+.scene.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.scene.failed {
+  border-color: var(--danger);
+}
+.scene-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.scene-say {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.scene .steps {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.scene .steps li.failed {
+  color: var(--danger);
+  font-weight: 600;
+}
+.video-player video {
+  width: 100%;
+  max-height: 62vh;
+  border-radius: var(--radius);
+  background: #000;
+}
+.video-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}

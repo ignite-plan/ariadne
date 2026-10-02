@@ -1,14 +1,12 @@
 // Kokoro-82M 로컬 TTS. 첫 실행 때 Hugging Face에서 모델(약 90MB)을 받아 modelDir에 둔다
 import type { ProviderOptions, TtsConfig, TtsProvider } from './index.ts'
-
-export const KOKORO_MODEL = 'onnx-community/Kokoro-82M-v1.0-ONNX'
-// dtype q8에서 읽는 파일. 앱은 이 파일들을 <modelDir>/<KOKORO_MODEL>/ 아래에 미리 받는다
-export const KOKORO_FILES = ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model_quantized.onnx']
+import { KOKORO_MODEL, kokoroReady } from './model.ts'
 
 export async function kokoroProvider({ voice = 'af_heart', speed = 1 }: TtsConfig, { modelDir, localOnly }: ProviderOptions): Promise<TtsProvider> {
   const { env } = await import('@huggingface/transformers')
   env.cacheDir = modelDir
   if (localOnly) {
+    if (!kokoroReady(modelDir)) throw new Error('음성 모델이 없습니다. 환경 점검에서 음성 모델을 받으세요')
     env.allowRemoteModels = false
     env.localModelPath = modelDir
   }

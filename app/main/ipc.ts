@@ -7,6 +7,7 @@ import { buildDocx } from '../../src/core/build.ts'
 import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
 import { loadManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
+import { deleteVideo, loadVideo, saveVideo, type VideoScenario } from '../../src/core/video/scenario.ts'
 import type {
   AuthStatus,
   EnvCheck,
@@ -20,9 +21,14 @@ import type {
   NewSectionInput,
   Settings,
   ShotInfo,
+  VideoRunOptions,
+  VideoRunResult,
   WorkspaceState,
 } from '../shared/api.ts'
-import { findChrome, findPandoc, formatAge } from './lib/environment.ts'
+import { findChrome, findFfmpeg, findPandoc, formatAge } from './lib/environment.ts'
+import { downloadModel, modelStatus } from './lib/video-model.ts'
+import { createVideo, videoInfos } from './lib/videos.ts'
+import { cancelVideo, runVideo, speak } from './video.ts'
 import * as gitOps from './lib/git.ts'
 import { cancelDraft, checkDraft, startDraft } from './draft.ts'
 import { analyzeInWorker, importInWorker } from './importer.ts'
@@ -91,6 +97,15 @@ async function currentUser() {
 function requirePandoc() {
   const found = findPandoc(getSettings().pandocPath || undefined)
   if (!found) throw new Error('pandoc을 찾지 못했습니다. 환경 점검에서 설치 안내를 확인하세요')
+  return found.path
+}
+
+// 내레이션 음성 모델. 작업 폴더가 바뀌어도 다시 받지 않게 userData에 둔다
+const videoModelDir = () => process.env.ARIADNE_VIDEO_MODEL_DIR || join(app.getPath('userData'), 'models')
+
+function requireFfmpeg() {
+  const found = findFfmpeg()
+  if (!found) throw new Error('ffmpeg를 찾지 못했습니다. 환경 점검을 확인하세요')
   return found.path
 }
 
@@ -242,6 +257,24 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       label: 'Claude Code CLI (Claude로 초안 만들기)',
       detail: claude ? `${claude.version} · ${claude.path}` : '찾지 못했습니다. 초안 만들기를 쓰지 않으면 없어도 됩니다',
       link: claude ? undefined : { label: '설치 안내', url: 'https://docs.claude.com/en/docs/claude-code/setup' },
+    })
+    const ffmpeg = findFfmpeg()
+    checks.push({
+      id: 'ffmpeg',
+      ok: Boolean(ffmpeg),
+      required: false,
+      label: 'ffmpeg (가이드 영상)',
+      detail: ffmpeg ? (ffmpeg.bundled ? '앱에 들어 있음' : ffmpeg.path) : '찾지 못했습니다. 가이드 영상을 쓰지 않으면 없어도 됩니다',
+    })
+    const model = modelStatus(videoModelDir())
+    checks.push({
+      id: 'voice',
+      ok: model.ready,
+      required: false,
+      label: '음성 모델 (가이드 영상 내레이션)',
+      detail: model.ready
+        ? `Kokoro · ${Math.round(model.bytes / 1e6)}MB`
+        : '가이드 영상 화면에서 처음 만들 때 받습니다 (약 90MB). 자막만 쓰면 없어도 됩니다',
     })
     const session = workspaceState().cloned ? authFile(ref().manual) : authFile(settings.manual)
     checks.push({
@@ -459,6 +492,54 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     })
   })
   handle('capture:adopt', (ids: string[]) => adoptShots(ref(), ids))
+
+  // 가이드 영상
+  handle('video:list', () => videoInfos(ref()))
+  handle('video:load', (id: string) => loadVideo(ref(), id))
+  handle('video:save', (scenario: VideoScenario) => saveVideo(ref(), scenario))
+  handle('video:create', (input: { title: string; section?: string }) => createVideo(ref(), input))
+  handle('video:remove', (id: string) => deleteVideo(ref(), id))
+  handle('video:run', async (id: string, options: VideoRunOptions = {}): Promise<VideoRunResult> => {
+    const r = ref()
+    if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
+    const session = authFile(r.manual)
+    if (!existsSync(session)) throw new Error('STG 로그인이 필요합니다')
+    const narrate = !options.preview && options.tts !== false
+    if (narrate && !modelStatus(videoModelDir()).ready) throw new Error('음성 모델이 없습니다. 먼저 음성 모델을 받으세요')
+    // 앱은 사내 TLS 프록시 때문에 worker에서 외부 API를 부를 수 없어 Kokoro(로컬)만 쓴다
+    const tts = narrate ? { ...loadManual(r).video?.tts, provider: 'kokoro' as const } : false
+    const result = await runVideo(
+      {
+        ...r,
+        id,
+        baseUrl: captureBaseUrl(),
+        authFile: session,
+        tts,
+        modelDir: videoModelDir(),
+        localModel: true,
+        ffmpegPath: options.preview ? undefined : requireFfmpeg(),
+        preview: options.preview,
+        fromScene: options.fromScene,
+      },
+      (progress) => send('video-progress', progress),
+    )
+    if (!result.ok) return result
+    const rel = (path?: string) => (path ? relative(r.root, path) : undefined)
+    return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt) }
+  })
+  handle('video:cancel', () => cancelVideo())
+  handle('video:speak', async (text: string) => {
+    const r = ref()
+    if (!text.trim()) throw new Error('문장을 입력하세요')
+    if (!modelStatus(videoModelDir()).ready) throw new Error('음성 모델이 없습니다. 먼저 음성 모델을 받으세요')
+    const tts = { ...loadManual(r).video?.tts, provider: 'kokoro' as const }
+    const clip = await speak({ op: 'speak', root: r.root, text: text.trim(), tts, modelDir: videoModelDir() })
+    return { path: relative(r.root, clip.file), ms: clip.ms }
+  })
+  handle('video:model', () => modelStatus(videoModelDir()))
+  handle('video:downloadModel', () =>
+    downloadModel(videoModelDir(), (url) => netFetch(url), (progress) => send('video-model-progress', progress)),
+  )
 
   // Claude로 초안 만들기
   handle('draft:check', (refresh?: boolean) => checkDraft(getSettings().claudePath, refresh))

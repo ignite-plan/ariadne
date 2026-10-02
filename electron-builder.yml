@@ -7,11 +7,23 @@ directories:
 files:
   - out/**
   - package.json
+  # 가이드 영상 TTS: Node 빌드(transformers.node.mjs → onnxruntime-node)만 쓴다. 브라우저용 wasm·다른 OS 바이너리는 뺀다
+  - '!node_modules/onnxruntime-web/**'
+  - '!node_modules/onnxruntime-node/bin/napi-v3/{linux,win32}/**'
+  - '!node_modules/onnxruntime-node/bin/napi-v3/darwin/x64/**'
+  - '!node_modules/@huggingface/transformers/dist/{*.wasm,*.map,transformers.js,transformers.min.js,transformers.web*}'
+  # transformers 기본 캐시(개발 중 모델을 받으면 여기 남는다). 앱은 userData/models를 쓴다
+  - '!node_modules/@huggingface/transformers/.cache/**'
 # asar 안에서는 실행 파일을 띄울 수 없다
 asarUnpack:
   - node_modules/esbuild/**
   - node_modules/@esbuild/**
   - node_modules/playwright-core/**
+  # 가이드 영상: ffmpeg 실행 파일, TTS native 모듈(onnxruntime, transformers가 불러오는 sharp)
+  - node_modules/ffmpeg-static/**
+  - node_modules/onnxruntime-node/**
+  - node_modules/sharp/**
+  - node_modules/@img/**
 npmRebuild: false
 electronLanguages: [en, ko]
 mac:
