@@ -130,6 +130,21 @@ export function SettingsDialog({
                 placeholder="/opt/homebrew/bin/pandoc"
                 onSave={(pandocPath) => update({ pandocPath })}
               />
+              <label className="field">
+                <span>Claude 인증 (Claude로 초안 만들기·최신화)</span>
+                <select
+                  value={settings.claudeAuth}
+                  onChange={(e) => update({ claudeAuth: e.target.value as Settings['claudeAuth'] })}
+                >
+                  <option value="apiKey">ANTHROPIC_API_KEY 환경변수 (~/.zshrc)</option>
+                  <option value="login">claude.ai 로그인</option>
+                </select>
+                <em className="hint">
+                  {settings.claudeAuth === 'apiKey'
+                    ? '로그인 셸(~/.zshrc)의 ANTHROPIC_API_KEY를 씁니다. 키를 바꾼 뒤 앱을 다시 열 필요는 없습니다'
+                    : '키 환경변수를 넘기지 않고 Claude Code의 claude.ai 로그인으로 실행합니다. 터미널에서 claude → /login이 되어 있어야 합니다'}
+                </em>
+              </label>
               <TextSetting
                 label="Claude Code CLI 경로 (비우면 자동으로 찾음)"
                 value={settings.claudePath}

@@ -250,7 +250,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       detail: chrome ?? '설치되어 있지 않습니다. 캡처를 쓰지 않으면 없어도 됩니다',
       link: chrome ? undefined : { label: 'Chrome 받기', url: 'https://www.google.com/chrome/' },
     })
-    const claude = await findClaude(settings.claudePath || undefined)
+    const claude = await findClaude(settings.claudePath || undefined, false, settings.claudeAuth)
     checks.push({
       id: 'claude',
       ok: Boolean(claude),
@@ -552,7 +552,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   )
 
   // Claude로 초안 만들기
-  handle('draft:check', (refresh?: boolean) => checkDraft(getSettings().claudePath, refresh))
+  handle('draft:check', (refresh?: boolean) => checkDraft(getSettings().claudePath, refresh, getSettings().claudeAuth))
   handle('draft:start', (input: DraftInput) => {
     requireWorkspace()
     const r = ref()
@@ -560,6 +560,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       ref: r,
       input,
       claudePath: getSettings().claudePath,
+      claudeAuth: getSettings().claudeAuth,
       codeDir: getSettings().dealerhubWebDir || undefined,
       captureBaseUrl: captureBaseUrl(),
       authFile: authFile(r.manual),

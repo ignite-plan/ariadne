@@ -128,7 +128,7 @@ STG 화면을 녹화하고 영어 자막과 영어 내레이션을 넣어 사용
 
 매뉴얼에 없는 메뉴(예: Menu Management)의 화면 섹션 초안을 Claude가 씁니다. 근거는 **Confluence DLRS 기획서 최신 output**과 **실제 STG 화면**입니다.
 
-준비(한 번만): 터미널의 Claude Code(`claude`)가 설치·로그인되어 있고, Claude Code에 Atlassian(Confluence) MCP가 연결되어 있어야 합니다. 설정 → 환경 점검에서 확인할 수 있습니다.
+준비(한 번만): 터미널의 Claude Code(`claude`)가 설치되어 있고, 인증(기본: `~/.zshrc`의 `ANTHROPIC_API_KEY`, 또는 설정 → 고급에서 claude.ai 로그인)이 되어 있고, Claude Code에 Atlassian(Confluence) MCP가 연결되어 있어야 합니다. 설정 → 환경 점검에서 확인할 수 있습니다.
 
 1. **새 화면** → **Claude로 초안 만들기**
 2. **메뉴 이름**(영어)과 **장**(새 장이면 이름과 위치)을 고릅니다. STG 경로나 메모를 알려 줄 수도 있습니다(선택).
@@ -215,7 +215,7 @@ BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴�
 | 매뉴얼 | 지금 매뉴얼의 제목, 버전, Word 파일 이름, 캡처 주소와 화면 크기, 코드 연결. 바꾸면 제출해야 다른 사람에게 반영됩니다 |
 | 계정 | GitHub 계정 확인, 토큰 바꾸기, 로그아웃 |
 | 환경 점검 | pandoc, Chrome, 로그인 세션 상태와 설치 링크 |
-| 고급 | 리포 주소, 작업 폴더, pandoc 경로, dealerhub-web 경로 |
+| 고급 | 리포 주소, 작업 폴더, pandoc 경로, **Claude 인증**(ANTHROPIC_API_KEY / claude.ai 로그인), Claude Code CLI 경로, dealerhub-web 경로 |
 | 변경 영향 | 개발자용. 두 릴리즈 사이 코드 변경이 어느 화면에 영향을 주는지 찾기 |
 | 정보 | 앱 버전, 새 버전 확인 |
 
@@ -226,6 +226,8 @@ BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴�
 | 토큰이 유효하지 않거나 만료 | 설정 → 계정에서 새 토큰으로 바꿉니다 |
 | 권한이 없습니다 / SSO | 토큰 페이지에서 `ignite-plan` 조직 SSO를 승인합니다. fine-grained 토큰이 막혀 있으면 classic 토큰(`repo` 권한)을 씁니다 |
 | 미리보기가 안 나옴 | 설정 → 환경 점검에서 pandoc을 확인합니다 |
+| 초안·최신화가 `ANTHROPIC_API_KEY로 인증하지 못했습니다`로 실패 | `~/.zshrc`의 키가 만료·무효입니다. 키를 바꾸거나(앱 재시작 불필요), 설정 → 고급 → Claude 인증을 **claude.ai 로그인**으로 바꿉니다 |
+| 초안·최신화가 `claude.ai 로그인으로 인증하지 못했습니다`로 실패 | 터미널에서 `claude`를 열어 `/login` 하거나, Claude 인증을 **ANTHROPIC_API_KEY**로 바꿉니다 |
 | 초안 만들기에서 Claude Code를 못 찾음 | 터미널에서 `claude --version`이 되는지 확인하고, 안 되면 설정 → 고급 → Claude Code CLI 경로를 지정합니다 |
 | 초안에 기획서 근거가 없음 | Claude Code에 Atlassian MCP가 연결됐는지 확인합니다(`claude mcp list`) |
 | 캡처가 `세션 만료`로 실패 | 캡처 화면에서 **다시 로그인** |

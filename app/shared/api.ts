@@ -90,6 +90,8 @@ export interface DraftResult {
 
 export interface DraftCheck {
   claude: { path: string; version: string } | null
+  // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
+  auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
   atlassian: { name: string; connected: boolean }[]
   error?: string
 }
@@ -109,6 +111,8 @@ export interface Settings {
   submitMode: 'push' | 'pr'
   // 비어 있으면 로그인 셸과 흔한 설치 위치에서 찾는다
   claudePath: string
+  // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
+  claudeAuth: 'apiKey' | 'login'
 }
 
 export interface GithubUser {

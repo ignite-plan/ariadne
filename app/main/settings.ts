@@ -17,6 +17,7 @@ export function defaultSettings(): Settings {
     dealerhubWebDir: '',
     submitMode: 'push',
     claudePath: '',
+    claudeAuth: 'apiKey',
   }
 }
 

@@ -20,6 +20,7 @@ import {
   type ClaudeCli,
   type McpStatus,
 } from './lib/claude.ts'
+import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp } from './lib/mcp.ts'
 import { StgSession } from './lib/stg.ts'
 
@@ -34,14 +35,15 @@ async function mcpServers(cli: ClaudeCli, refresh = false) {
   return servers
 }
 
-export async function checkDraft(claudePath?: string, refresh = false): Promise<DraftCheck> {
-  const cli = await findClaude(claudePath || undefined, refresh)
-  if (!cli) return { claude: null, atlassian: [] }
+export async function checkDraft(claudePath?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<DraftCheck> {
+  const cli = await findClaude(claudePath || undefined, refresh, auth)
+  const authInfo = { mode: auth, keySource: cli?.keySource ?? null }
+  if (!cli) return { claude: null, atlassian: [], auth: authInfo }
   try {
     const servers = await mcpServers(cli, refresh)
-    return { claude: { path: cli.path, version: cli.version }, atlassian: servers.filter((s) => isAtlassianServer(s.name)) }
+    return { claude: { path: cli.path, version: cli.version }, atlassian: servers.filter((s) => isAtlassianServer(s.name)), auth: authInfo }
   } catch (error) {
-    return { claude: { path: cli.path, version: cli.version }, atlassian: [], error: (error as Error).message }
+    return { claude: { path: cli.path, version: cli.version }, atlassian: [], auth: authInfo, error: (error as Error).message }
   }
 }
 
@@ -51,6 +53,7 @@ export async function startDraft({
   ref,
   input,
   claudePath,
+  claudeAuth = 'apiKey',
   codeDir,
   captureBaseUrl,
   authFile,
@@ -59,6 +62,7 @@ export async function startDraft({
   ref: ManualRef
   input: DraftInput
   claudePath?: string
+  claudeAuth?: ClaudeAuth
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
   codeDir?: string
   captureBaseUrl: string
@@ -66,8 +70,11 @@ export async function startDraft({
   onEvent: (event: DraftEvent) => void
 }): Promise<DraftResult> {
   if (current) throw new Error('이미 초안을 만드는 중입니다')
-  const cli = await findClaude(claudePath || undefined)
+  const cli = await findClaude(claudePath || undefined, false, claudeAuth)
   if (!cli) throw new Error('Claude Code CLI(claude)를 찾지 못했습니다. 설정 → 환경 점검을 확인하세요')
+  if (claudeAuth === 'apiKey' && !cli.keySource) {
+    throw new Error('ANTHROPIC_API_KEY를 찾지 못했습니다. ~/.zshrc에 키를 넣거나, 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 바꾸세요')
+  }
 
   onEvent({ kind: 'status', text: 'Confluence 연결 확인 중' })
   const atlassian = (await mcpServers(cli).catch(() => [] as McpStatus[])).filter((s) => isAtlassianServer(s.name))
@@ -114,7 +121,7 @@ export async function startDraft({
     return {
       manual: ref.manual,
       ok: result.ok,
-      text: result.text,
+      text: result.ok ? result.text : explainFailure(result.text, claudeAuth),
       summary: parseSummary(result.text),
       costUsd: result.costUsd,
       durationMs: result.durationMs,

@@ -6,25 +6,34 @@ import { homedir } from 'node:os'
 import { basename, delimiter, dirname, join, relative } from 'node:path'
 import { promisify } from 'node:util'
 import type { ClaudeEvent, DraftSummary } from '../../shared/api.ts'
+import { claudeEnv, KEY_VARS, keySource, type ClaudeAuth } from './claude-auth.ts'
 
 export type { ClaudeEvent, DraftSummary }
 
 const run = promisify(execFile)
 
-// Finder에서 띄운 앱은 PATH가 짧다. 로그인 셸에서 claude 위치와 PATH를 얻는다 (nvm 설치도 찾도록 -i)
-async function shellLookup() {
+// Finder에서 띄운 앱은 PATH와 ~/.zshrc 환경변수가 없다. 로그인 셸에서 claude 위치, PATH, 키 환경변수를 얻는다 (nvm 설치도 찾도록 -i)
+export async function shellLookup() {
   const shell = process.env.SHELL || '/bin/zsh'
+  const keys = KEY_VARS.map((k) => `__${k}__%s\\n`).join('')
+  const values = KEY_VARS.map((k) => `"\${${k}-}"`).join(' ')
   try {
-    const { stdout } = await run(shell, ['-lic', 'printf "__PATH__%s\\n__CLAUDE__%s\\n" "$PATH" "$(command -v claude)"'], {
+    const { stdout } = await run(shell, ['-lic', `printf "__PATH__%s\\n__CLAUDE__%s\\n${keys}" "$PATH" "$(command -v claude)" ${values}`], {
       timeout: 15000,
       env: { ...process.env, TERM: 'dumb' },
     })
+    const vars: Partial<Record<(typeof KEY_VARS)[number], string>> = {}
+    for (const key of KEY_VARS) {
+      const value = stdout.match(new RegExp(`__${key}__(.*)`))?.[1]?.trim()
+      if (value) vars[key] = value
+    }
     return {
       path: stdout.match(/__PATH__(.*)/)?.[1]?.trim() ?? '',
       claude: stdout.match(/__CLAUDE__(.*)/)?.[1]?.trim() ?? '',
+      vars,
     }
   } catch {
-    return { path: '', claude: '' }
+    return { path: '', claude: '', vars: {} }
   }
 }
 
@@ -33,12 +42,18 @@ export interface ClaudeCli {
   version: string
   // claude를 실행할 PATH (nvm으로 설치한 claude는 node가 PATH에 있어야 돈다)
   envPath: string
+  // claude를 실행할 환경변수 (인증 방식 반영, 세션 표식 제거)
+  env: NodeJS.ProcessEnv
+  auth: ClaudeAuth
+  // apiKey일 때 키를 어디서 찾았는지 (값은 담지 않는다)
+  keySource: 'shell' | 'env' | null
 }
 
-let cached: ClaudeCli | null | undefined
+const cache = new Map<ClaudeAuth, ClaudeCli | null>()
 
-export async function findClaude(override?: string, refresh = false): Promise<ClaudeCli | null> {
-  if (cached !== undefined && !refresh && !override) return cached
+export async function findClaude(override?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<ClaudeCli | null> {
+  if (cache.has(auth) && !refresh && !override) return cache.get(auth)!
+  const cached = { set: (value: ClaudeCli | null) => cache.set(auth, value) }
   const home = homedir()
   const shell = await shellLookup()
   const candidates = [
@@ -53,16 +68,24 @@ export async function findClaude(override?: string, refresh = false): Promise<Cl
   for (const path of candidates) {
     if (!existsSync(path)) continue
     const envPath = [dirname(path), shell.path, process.env.PATH].filter(Boolean).join(delimiter)
+    const env = claudeEnv(process.env, { path: envPath, auth, shellVars: shell.vars })
     try {
-      const { stdout } = await run(path, ['--version'], { timeout: 20000, env: { ...process.env, PATH: envPath } })
-      const found = { path, version: stdout.trim().split('\n')[0], envPath }
-      if (!override) cached = found
+      const { stdout } = await run(path, ['--version'], { timeout: 20000, env })
+      const found: ClaudeCli = {
+        path,
+        version: stdout.trim().split('\n')[0],
+        envPath,
+        env,
+        auth,
+        keySource: auth === 'apiKey' ? keySource(process.env, shell.vars) : null,
+      }
+      if (!override) cached.set(found)
       return found
     } catch {
       // 다음 후보
     }
   }
-  if (!override) cached = null
+  if (!override) cached.set(null)
   return null
 }
 
@@ -81,7 +104,7 @@ export function parseMcpList(output: string): McpStatus[] {
 }
 
 export async function listMcpServers(cli: ClaudeCli) {
-  const { stdout } = await run(cli.path, ['mcp', 'list'], { timeout: 90000, env: { ...process.env, PATH: cli.envPath } })
+  const { stdout } = await run(cli.path, ['mcp', 'list'], { timeout: 90000, env: cli.env })
   return parseMcpList(stdout)
 }
 
@@ -266,7 +289,7 @@ export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEve
       ...allowedTools,
       ...extraArgs,
     ],
-    { cwd, env: { ...process.env, PATH: cli.envPath }, stdio: ['ignore', 'pipe', 'pipe'] },
+    { cwd, env: cli.env, stdio: ['ignore', 'pipe', 'pipe'] },
   )
   let buffer = ''
   let stderr = ''

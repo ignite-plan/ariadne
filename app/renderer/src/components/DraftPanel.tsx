@@ -123,10 +123,21 @@ export function DraftPanel({
         <aside className="capture-side">
           <div className="draft-checks">
             <CheckRow
-              ok={Boolean(check?.claude)}
+              ok={Boolean(check?.claude) && !(check?.auth.mode === 'apiKey' && !check.auth.keySource)}
               loading={!check}
               label="Claude Code"
-              detail={check?.claude ? check.claude.version : '설치되어 있지 않습니다 (설정 → 환경 점검)'}
+              detail={
+                !check?.claude
+                  ? '설치되어 있지 않습니다 (설정 → 환경 점검)'
+                  : `${check.claude.version} · ${
+                      check.auth.mode === 'login'
+                        ? 'claude.ai 로그인'
+                        : check.auth.keySource
+                          ? `ANTHROPIC_API_KEY (${check.auth.keySource === 'shell' ? '~/.zshrc' : '앱 환경'})`
+                          : 'ANTHROPIC_API_KEY 없음 — 설정 → 고급 → Claude 인증 확인'
+                    }`
+              }
+              warn={Boolean(check?.claude && check.auth.mode === 'apiKey' && !check.auth.keySource)}
             />
             <CheckRow
               ok={Boolean(atlassianOk)}
