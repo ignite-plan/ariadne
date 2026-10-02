@@ -38,6 +38,37 @@ const call = async (name, input) => {
 }
 
 const prompt = args[args.indexOf('-p') + 1] ?? ''
+if (prompt.includes('가이드 영상 시나리오')) {
+  // 영상 초안: 시나리오를 읽고, STG를 보고, 저장한 뒤 실행해 본다
+  const video = prompt.match(/가이드 영상 시나리오 `([a-z0-9-]+)`/)[1]
+  emit({ type: 'assistant', message: { content: [{ type: 'text', text: '매뉴얼 본문과 STG 화면으로 장면을 나누겠습니다.' }] } })
+  await call('video_get', { id: video })
+  await call('stg_open', { path: '/dealer/company' })
+  const yaml = (mutates) => `title: Dealer List View
+intro: This video shows how to view the dealer list.
+section: 02-dealer-management/01-dealer-list-view.md
+maskPersonal: true
+${mutates ? 'mutates: true\n' : ''}scenes:
+  - say: The Dealer List screen provides a list of all registered dealers.
+    steps:
+      - open: /dealer/company
+      - waitFor: { text: Total }
+  - say: Click the Location icon to see the dealer's address.
+    steps:
+      - click: { role: button, name: Location }
+      - waitFor: { text: Location Information }
+`
+  // STG 저장 허용은 앱이 거절해야 한다
+  const refused = await call('video_save', { id: video, yaml: yaml(true) })
+  if (!refused.isError) throw new Error('mutates 저장이 거절되지 않았습니다')
+  await call('video_save', { id: video, yaml: yaml(false) })
+  const checked = await call('video_check', { id: video })
+  await client.close()
+  const summary = { sections: [], video, scenes: 2, todos: 0, sources: [{ title: '02-dealer-management/01-dealer-list-view.md' }], notes: checked.isError ? checked.text : '' }
+  emit({ type: 'result', subtype: checked.isError ? 'error' : 'success', is_error: checked.isError, result: `영상 시나리오를 썼습니다.\n\`\`\`json\n${JSON.stringify(summary)}\n\`\`\``, duration_ms: 900, permission_denials: [] })
+  process.exit(0)
+}
+
 if (prompt.includes('최신화한다')) {
   // 최신화: 대상 화면 한 줄을 고치고, 기존 이미지를 replace로 다시 찍는다
   const target = prompt.match(/^  - (manuals\/\S+\.md)$/m)[1]

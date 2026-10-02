@@ -29,7 +29,8 @@ export function DraftPanel({
   onClose: (changed: boolean) => void
 }) {
   const refresh = input.mode === 'refresh'
-  const name = refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
+  const video = input.mode === 'video'
+  const name = video ? 'Claude로 영상 초안' : refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
   const toast = useToast()
   const [phase, setPhase] = useState<Phase>('check')
   const [check, setCheck] = useState<DraftCheck>()
@@ -106,9 +107,11 @@ export function DraftPanel({
           <h1>{name}</h1>
           <p className="muted">
             {input.menu} ·{' '}
-            {refresh
-              ? '최신 Confluence 기획서와 STG 화면을 지금 본문과 비교해 바뀐 곳만 고칩니다. 근거가 다르면 TODO로 남깁니다.'
-              : 'Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.'}
+            {video
+              ? '연결된 매뉴얼 화면의 문장으로 내레이션을 쓰고, STG 화면을 확인해 단계를 만든 뒤 실제로 실행해 봅니다.'
+              : refresh
+                ? '최신 Confluence 기획서와 STG 화면을 지금 본문과 비교해 바뀐 곳만 고칩니다. 근거가 다르면 TODO로 남깁니다.'
+                : 'Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.'}
           </p>
         </div>
         <button className="icon-button" onClick={() => onClose(Boolean(result))} aria-label="닫기" disabled={phase === 'running'}>
@@ -154,9 +157,14 @@ export function DraftPanel({
           </div>
 
           <dl className="draft-input">
-            <dt>{refresh ? '장' : '메뉴'}</dt>
+            <dt>{video ? '영상' : refresh ? '장' : '메뉴'}</dt>
             <dd>{input.menu}</dd>
-            {refresh ? (
+            {video ? (
+              <>
+                <dt>연결 화면</dt>
+                <dd>{input.targets?.[0] ?? '없음'}</dd>
+              </>
+            ) : refresh ? (
               <>
                 <dt>대상</dt>
                 <dd>
@@ -194,11 +202,11 @@ export function DraftPanel({
             </button>
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude} onClick={start}>
-              <Icon name={refresh ? 'sparkle' : 'flag'} /> {refresh ? '최신화 시작' : '초안 만들기 시작'}
+              <Icon name={refresh || video ? 'sparkle' : 'flag'} /> {video ? '영상 초안 시작' : refresh ? '최신화 시작' : '초안 만들기 시작'}
             </button>
           )}
           <p className="hint">
-            {refresh ? '화면 수에 따라' : '초안 하나에'} 수 분에서 10분 이상 걸리고, 내 Claude 사용량을 씁니다.
+            {video ? '영상 하나에 수 분' : refresh ? '화면 수에 따라 수 분에서 10분 이상' : '초안 하나에 수 분에서 10분 이상'} 걸리고, 내 Claude 사용량을 씁니다.
           </p>
         </aside>
 
@@ -208,9 +216,11 @@ export function DraftPanel({
             <div className="empty-state">
               <Icon name="flag" size={32} />
               <p>
-                {refresh
-                  ? '[최신화 시작]을 누르면 Claude가 지금 본문을 읽고, 최신 기획서와 STG 화면과 비교해 바뀐 곳만 고칩니다.'
-                  : '[초안 만들기 시작]을 누르면 Claude가 기획서를 찾고 STG 화면을 확인하며 초안을 씁니다.'}
+                {video
+                  ? '[영상 초안 시작]을 누르면 Claude가 매뉴얼 본문으로 장면을 나누고, STG에서 단계를 찾아 시나리오를 쓴 뒤 끝까지 실행해 봅니다.'
+                  : refresh
+                    ? '[최신화 시작]을 누르면 Claude가 지금 본문을 읽고, 최신 기획서와 STG 화면과 비교해 바뀐 곳만 고칩니다.'
+                    : '[초안 만들기 시작]을 누르면 Claude가 기획서를 찾고 STG 화면을 확인하며 초안을 씁니다.'}
               </p>
               <p className="muted">진행 상황이 여기에 한 줄씩 나옵니다. 저장·삭제 같은 버튼은 앱이 막습니다.</p>
             </div>
@@ -257,6 +267,7 @@ export function DraftPanel({
               result={result}
               error={error}
               refresh={refresh}
+              video={video}
               onOpenSection={onOpenSection}
               onDiff={onDiff}
             />
@@ -321,12 +332,14 @@ function DraftSummaryCard({
   result,
   error,
   refresh,
+  video,
   onOpenSection,
   onDiff,
 }: {
   result?: DraftResult
   error: string
   refresh: boolean
+  video?: boolean
   onOpenSection: (path: string) => void
   onDiff: (path: string, title: string) => void
 }) {
@@ -339,20 +352,28 @@ function DraftSummaryCard({
           ? refresh
             ? '최신화를 끝까지 하지 못했습니다'
             : '초안을 끝까지 만들지 못했습니다'
-          : refresh
-            ? summary?.sections.length
-              ? '최신화했습니다'
-              : '바꿀 곳이 없었습니다'
-            : '초안을 만들었습니다'}
+          : video
+            ? '영상 시나리오 초안을 만들었습니다'
+            : refresh
+              ? summary?.sections.length
+                ? '최신화했습니다'
+                : '바꿀 곳이 없었습니다'
+              : '초안을 만들었습니다'}
       </h2>
       {error && <p className="form-error">{error}</p>}
       {summary ? (
         <>
           <div className="report-summary inline">
-            <span className="pill accent">
-              {refresh ? '고친 화면' : '화면'} {summary.sections.length}
-            </span>
-            <span className="pill">이미지 {summary.images?.length ?? 0}</span>
+            {video ? (
+              <span className="pill accent">장면 {summary.scenes ?? 0}</span>
+            ) : (
+              <>
+                <span className="pill accent">
+                  {refresh ? '고친 화면' : '화면'} {summary.sections.length}
+                </span>
+                <span className="pill">이미지 {summary.images?.length ?? 0}</span>
+              </>
+            )}
             <span className={`pill ${summary.todos ? 'todo' : ''}`}>TODO {summary.todos ?? 0}</span>
             {result?.durationMs && <span className="pill">{minutes(result.durationMs)}</span>}
           </div>
@@ -383,7 +404,7 @@ function DraftSummaryCard({
           )}
           {summary.sources && summary.sources.length > 0 && (
             <>
-              <h3>참고한 기획서</h3>
+              <h3>{video ? '참고한 문서' : '참고한 기획서'}</h3>
               <ul>
                 {summary.sources.map((s) => (
                   <li key={s.url ?? s.title}>
@@ -417,7 +438,11 @@ function DraftSummaryCard({
           </ul>
         </details>
       )}
-      <p className="hint">TODO 탭에서 확인할 곳을 모아 볼 수 있습니다. 검토한 뒤 제출하세요.</p>
+      <p className="hint">
+        {video
+          ? '[닫고 결과 보기]를 누르면 장면 편집기로 돌아갑니다. 내레이션을 듣고 미리보기로 확인한 뒤 영상을 만드세요.'
+          : 'TODO 탭에서 확인할 곳을 모아 볼 수 있습니다. 검토한 뒤 제출하세요.'}
+      </p>
     </article>
   )
 }

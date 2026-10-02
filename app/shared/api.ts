@@ -49,11 +49,14 @@ export interface DraftSummary {
   todos?: number
   sources?: { title: string; url?: string; version?: string }[]
   notes?: string
+  // video: 쓴 영상 시나리오와 장면 수
+  video?: string
+  scenes?: number
 }
 
 export interface DraftInput {
-  // create: 새 메뉴 초안, refresh: 기존 화면 최신화
-  mode?: 'create' | 'refresh'
+  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, video: 가이드 영상 시나리오 초안
+  mode?: 'create' | 'refresh' | 'video'
   // 메뉴 이름. 예: Menu Management
   menu: string
   // 최신화할 화면 (<chapter dir>/<file>)
@@ -65,6 +68,8 @@ export interface DraftInput {
   // STG 경로 힌트. 예: /menu
   path?: string
   notes?: string
+  // video: 채울 영상 시나리오 id (manuals/<m>/videos/<id>.yaml)
+  video?: string
 }
 
 export type DraftEvent =

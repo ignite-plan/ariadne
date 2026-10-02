@@ -13,6 +13,7 @@ import {
   type VideoScenario,
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
+import { DraftPanel } from './DraftPanel.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { StgSession } from './StgSession.tsx'
@@ -58,6 +59,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   const recordingRef = useRef<{ scene: number }>(undefined)
   const scenarioRef = useRef<VideoScenario>(undefined)
   const [tree, setTree] = useState<ManualTree>()
+  const [drafting, setDrafting] = useState(false)
   // 고칠 때마다 0.6초 뒤 저장한다. 실행·전환·닫기 전에는 바로 저장한다
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'error'>('saved')
   const [saveError, setSaveError] = useState('')
@@ -336,6 +338,14 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                   />
                   내레이션
                 </label>
+                <button
+                  className="button ghost"
+                  onClick={() => void flush().then((ok) => ok && setDrafting(true))}
+                  disabled={Boolean(running || recording)}
+                  title="매뉴얼 본문과 STG 화면으로 Claude가 장면과 단계를 씁니다"
+                >
+                  <Icon name="sparkle" /> Claude로 초안
+                </button>
                 <button className="button" onClick={() => void run(true)} disabled={!canRun} title="브라우저를 띄워 처음부터 실행해 봅니다 (녹화하지 않음)">
                   <Icon name="eye" /> {running === 'preview' ? '미리보기 중…' : '미리보기'}
                 </button>
@@ -452,6 +462,26 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
           )}
         </section>
       </div>
+
+      {drafting && scenario && (
+        <div className="overlay">
+          <DraftPanel
+            input={{ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined }}
+            onOpenSection={() => undefined}
+            onDiff={() => undefined}
+            onClose={(changed) => {
+              setDrafting(false)
+              if (!changed) return
+              // Claude가 시나리오 파일을 고쳤다. 디스크에서 다시 읽는다
+              void refresh()
+              void api.video.load(scenario.id).then((s) => {
+                scenarioRef.current = s
+                setScenario(s)
+              })
+            }}
+          />
+        </div>
+      )}
 
       {dialog?.type === 'create' && (
         <CreateVideoDialog

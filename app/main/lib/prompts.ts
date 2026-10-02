@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import type { ManualRef } from '../../../src/core/manual.ts'
 import type { DraftInput } from '../../shared/api.ts'
 
-export const SKILL_BY_MODE = { create: 'manual-draft', refresh: 'manual-refresh' } as const
+export const SKILL_BY_MODE = { create: 'manual-draft', refresh: 'manual-refresh', video: 'manual-video-draft' } as const
 
 // 작업 폴더(리포)의 스킬을 우선 쓴다. 오래된 clone이면 앱에 묶인 것을 쓴다
 export function skillText(root: string, mode: DraftInput['mode'], bundled: Record<string, string>) {
@@ -17,6 +17,17 @@ export function skillText(root: string, mode: DraftInput['mode'], bundled: Recor
 
 export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?: string } = {}) {
   const lines = ['## 이번 작업', `- 매뉴얼 id: ${ref.manual}`, `- 메뉴: ${input.menu}`]
+  if (input.mode === 'video') {
+    lines.push(`- 할 일: 가이드 영상 시나리오 \`${input.video}\`를 채운다 (video_get → STG 확인 → video_save → video_check)`)
+    lines.push(
+      input.targets?.[0]
+        ? `- 연결된 매뉴얼 화면: manuals/${ref.manual}/${input.targets[0]} (내레이션 문장의 근거)`
+        : '- 연결된 매뉴얼 화면: 없음 (STG 화면과 기획서로 내레이션을 쓴다)',
+    )
+    lines.push(`- STG 경로 힌트: ${input.path || '(없음 — 연결 화면의 front-matter routes에서 찾는다)'}`)
+    if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
+    return lines.join('\n')
+  }
   if (input.mode === 'refresh') {
     lines.push('- 할 일: 아래 기존 화면을 최신 기획서와 STG 화면에 맞춰 최신화한다')
     lines.push('- 대상 화면:')

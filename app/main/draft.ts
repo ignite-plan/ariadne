@@ -6,6 +6,9 @@ import type { ManualRef } from '../../src/core/manual.ts'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult } from '../shared/api.ts'
 import draftSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
 import refreshSkill from '../../.claude/skills/manual-refresh/SKILL.md?raw'
+import videoSkill from '../../.claude/skills/manual-video-draft/SKILL.md?raw'
+import { renderVideo } from '../../src/core/video/index.ts'
+import { StepError } from '../../src/core/video/steps.ts'
 import { skillText, taskText } from './lib/prompts.ts'
 import {
   buildAllowedTools,
@@ -42,7 +45,7 @@ export async function checkDraft(claudePath?: string, refresh = false): Promise<
   }
 }
 
-const BUNDLED = { 'manual-draft': draftSkill, 'manual-refresh': refreshSkill }
+const BUNDLED = { 'manual-draft': draftSkill, 'manual-refresh': refreshSkill, 'manual-video-draft': videoSkill }
 
 export async function startDraft({
   ref,
@@ -77,6 +80,15 @@ export async function startDraft({
   const mcp = await startAriadneMcp({
     ref,
     stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, authFile })),
+    // 영상 시나리오를 화면 없이(headless) 실행해 본다. 녹화·음성·파일 없음
+    videoCheck: (id, fromScene) =>
+      renderVideo({ ...ref, id, baseUrl: captureBaseUrl, authFile, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
+        (r) => ({ ok: true as const, durationMs: r.durationMs, blockedRequests: r.blockedRequests }),
+        (error: Error) =>
+          error instanceof StepError
+            ? { ok: false as const, error: error.message, scene: error.scene, step: error.step }
+            : { ok: false as const, error: error.message },
+      ),
   })
   const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
   const mcpConfigFile = join(work, 'mcp.json')

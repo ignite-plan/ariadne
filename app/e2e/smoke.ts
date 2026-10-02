@@ -285,6 +285,22 @@ try {
     await page.locator('.video-title', { hasText: '저장됨' }).waitFor()
     const recorded = readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8')
     assert.ok(recorded.includes('text: Location Information'), recorded)
+
+    // Claude로 초안 (가짜 claude → Ariadne MCP video_get/video_save/video_check → STG)
+    await page.locator('.video-toolbar').getByRole('button', { name: 'Claude로 초안' }).click()
+    await page.getByRole('heading', { name: 'Claude로 영상 초안' }).waitFor()
+    await page.getByRole('button', { name: '영상 초안 시작' }).click({ timeout: 60000 })
+    await page.getByRole('heading', { name: '영상 시나리오 초안을 만들었습니다' }).waitFor({ timeout: 90000 })
+    assert.ok(await page.locator('.log li', { hasText: '영상 시나리오 실행해 보기' }).count())
+    await snap('08e-video-draft')
+    await page.getByRole('button', { name: '닫고 결과 보기' }).click()
+    await page.locator('.scene-list .scene').nth(1).locator('textarea').first().waitFor()
+    assert.equal(await page.locator('.scene-list .scene').count(), 2)
+    assert.equal(
+      await page.locator('.scene-list .scene').nth(1).locator('textarea').first().inputValue(),
+      "Click the Location icon to see the dealer's address.",
+    )
+    assert.ok(!readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8').includes('mutates'))
     await page.locator('.video-toolbar').getByTitle('삭제', { exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: '삭제' }).click()
     await page.locator('.empty', { hasText: '아직 영상이 없습니다' }).waitFor()

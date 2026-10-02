@@ -173,7 +173,17 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
 
     it('도구 목록', async () => {
       const { tools } = await client.listTools()
-      assert.deepEqual(tools.map((t) => t.name).sort(), ['create_section', 'manual_outline', 'save_shot', 'stg_click', 'stg_fill', 'stg_open'])
+      assert.deepEqual(tools.map((t) => t.name).sort(), [
+        'create_section',
+        'manual_outline',
+        'save_shot',
+        'stg_click',
+        'stg_fill',
+        'stg_open',
+        'video_check',
+        'video_get',
+        'video_save',
+      ])
     })
 
     it('목차 → 새 장을 1장 위치에 만들기', async () => {

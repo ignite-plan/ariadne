@@ -6,8 +6,11 @@ import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import YAML from 'yaml'
 import { z } from 'zod'
 import { loadManual, manualDir, type ManualRef } from '../../../src/core/manual.ts'
+import { describeStep } from '../../../src/core/video/describe.ts'
+import { listVideos, loadVideo, parseVideo, saveVideo } from '../../../src/core/video/scenario.ts'
 import { createSection, readTree } from './sections.ts'
 import type { OpenResult, Role, ShotInput, StgSession } from './stg.ts'
 
@@ -22,8 +25,12 @@ export interface AriadneMcpDeps {
   ref: ManualRef
   // 처음 STG 도구를 부를 때 만든다 (로그인 세션이 필요)
   stg: () => StgSession
+  // 가이드 영상 시나리오를 STG에서 화면만 띄워 실행해 본다 (녹화·저장 없음)
+  videoCheck?: (id: string, fromScene?: number) => Promise<VideoCheck>
   onEvent?: (event: ToolEvent) => void
 }
+
+export type VideoCheck = { ok: true; durationMs: number; blockedRequests: string[] } | { ok: false; error: string; scene?: number | 'cleanup'; step?: number }
 
 const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combobox', 'option', 'treeitem', 'row'] as const
 
@@ -199,6 +206,97 @@ function buildServer(deps: AriadneMcpDeps) {
         return await run('save_shot', `캡처 저장: ${args.id}`, async () => {
           const saved = await deps.stg().saveShot(args as ShotInput, replace)
           return text(JSON.stringify({ image: saved.image, file: saved.file }))
+        })
+      } catch (error) {
+        return fail(error)
+      }
+    },
+  )
+
+  // 가이드 영상 시나리오. 정해진 단계만 담은 YAML이라 임의 코드는 없다
+  const outline = (id: string) => {
+    const v = loadVideo(deps.ref, id)
+    return v.scenes
+      .map((scene, i) => [`장면 ${i + 1}: ${scene.say ?? '(내레이션 없음)'}`, ...scene.steps.map((step, j) => `  ${j + 1}. ${describeStep(step)}`)].join('\n'))
+      .join('\n')
+  }
+
+  server.registerTool(
+    'video_get',
+    {
+      description:
+        '가이드 영상 시나리오 YAML(manuals/<m>/videos/<id>.yaml)과 형식 안내를 돌려준다. 시나리오를 쓰기 전에 먼저 부른다',
+      inputSchema: { id: z.string() },
+    },
+    async ({ id }) => {
+      try {
+        return await run('video_get', `영상 시나리오 읽기: ${id}`, () => {
+          if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
+          const v = loadVideo(deps.ref, id)
+          const { id: _, ...file } = v
+          return text(
+            JSON.stringify(
+              {
+                id,
+                file: join(manualDir(deps.ref), 'videos', `${id}.yaml`),
+                section: v.section ? join(manualDir(deps.ref), v.section) : null,
+                yaml: YAML.stringify(file),
+                example: join(deps.ref.root, 'manuals', 'bo', 'videos', 'dealer-list.yaml'),
+              },
+              null,
+              2,
+            ),
+          )
+        })
+      } catch (error) {
+        return fail(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'video_save',
+    {
+      description:
+        '가이드 영상 시나리오 전체를 YAML로 저장한다 (형식 검사 후). title, intro, section, maskPersonal, mask, scenes[say, steps]. mutates(STG 저장 허용)는 켤 수 없다',
+      inputSchema: { id: z.string(), yaml: z.string().describe('시나리오 YAML 전체 (id 제외)') },
+    },
+    async ({ id, yaml }) => {
+      try {
+        return await run('video_save', `영상 시나리오 저장: ${id}`, () => {
+          if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
+          const next = parseVideo(id, YAML.parse(yaml))
+          // 저장·삭제 버튼을 실제로 누를지는 기획자가 정한다
+          if (next.mutates && !loadVideo(deps.ref, id).mutates) {
+            throw new Error('mutates(STG 저장 허용)는 켤 수 없습니다. 저장 버튼 직전까지만 시나리오에 넣으세요')
+          }
+          saveVideo(deps.ref, next)
+          return text(`저장했습니다.\n${outline(id)}`)
+        })
+      } catch (error) {
+        return fail(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'video_check',
+    {
+      description:
+        '저장된 가이드 영상 시나리오를 STG에서 화면만 띄워 처음부터(또는 fromScene부터) 실행해 본다. 녹화·음성 없음. 실패하면 장면·단계 번호와 이유를 돌려준다',
+      inputSchema: { id: z.string(), fromScene: z.number().int().min(0).optional().describe('이 장면(0부터)부터. 앞 장면은 빠르게 재생') },
+    },
+    async ({ id, fromScene }) => {
+      try {
+        return await run('video_check', `영상 시나리오 실행해 보기: ${id}`, async () => {
+          if (!deps.videoCheck) throw new Error('이 작업에서는 영상 시나리오를 실행할 수 없습니다')
+          if (loadVideo(deps.ref, id).mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 실행하지 않습니다')
+          const result = await deps.videoCheck(id, fromScene)
+          if (result.ok) {
+            const blocked = result.blockedRequests.length ? `\n막은 쓰기 요청: ${result.blockedRequests.join(', ')}` : ''
+            return text(`끝까지 실행했습니다 (${Math.round(result.durationMs / 1000)}초).${blocked}`)
+          }
+          return { ...text(`실패: ${result.error}`), isError: true }
         })
       } catch (error) {
         return fail(error)

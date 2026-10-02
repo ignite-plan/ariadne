@@ -167,6 +167,9 @@ export function toolLabel(name: string, input: Record<string, unknown>, cwd = ''
       stg_click: `STG 누르기: ${input.name ?? ''}`,
       stg_fill: `STG 입력: ${input.label ?? ''}`,
       save_shot: `캡처 저장: ${input.id ?? ''}`,
+      video_get: `영상 시나리오 읽기: ${input.id ?? ''}`,
+      video_save: `영상 시나리오 저장: ${input.id ?? ''}`,
+      video_check: `영상 시나리오 실행해 보기${input.fromScene === undefined ? '' : ` (장면 ${Number(input.fromScene) + 1}부터)`}`,
     }
     return labels[tool] ?? tool
   }

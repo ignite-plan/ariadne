@@ -31,6 +31,19 @@ describe('작업 지시', () => {
     assert.doesNotMatch(text, /넣을 위치/)
   })
 
+  it('영상 초안: 시나리오 id, 연결 화면, 리포에 있는 영상 스킬', () => {
+    const text = taskText(
+      { root, manual: 'bo' },
+      { mode: 'video', menu: 'Dealer List View', video: 'dealer-list', targets: ['02-dealer-management/01-dealer-list-view.md'] },
+    )
+    assert.match(text, /가이드 영상 시나리오 `dealer-list`를 채운다/)
+    assert.match(text, /연결된 매뉴얼 화면: manuals\/bo\/02-dealer-management\/01-dealer-list-view\.md/)
+    assert.doesNotMatch(text, /넣을 위치|dealerhub-web/)
+    assert.match(taskText({ root, manual: 'bo' }, { mode: 'video', menu: 'X', video: 'x' }), /연결된 매뉴얼 화면: 없음/)
+    assert.throws(() => skillText(root, 'video', bundled), /manual-video-draft/)
+    assert.match(skillText(process.cwd(), 'video', bundled), /^# 가이드 영상 시나리오 초안/)
+  })
+
   it('초안: 넣을 위치, 코드 없음', () => {
     const text = taskText({ root, manual: 'fo' }, { menu: 'Notice', newChapterTitle: 'Notice', chapterIndex: 3 })
     assert.match(text, /새 장 "Notice"을\(를\) chapterIndex 3 위치에 만든다/)
