@@ -382,8 +382,8 @@ export interface AriadneApi {
     remove(id: string): Promise<void>
     run(id: string, options?: VideoRunOptions): Promise<VideoRunResult>
     cancel(): Promise<void>
-    // 한 문장 음성. path는 작업 폴더 기준 wav
-    speak(text: string): Promise<{ path: string; ms: number }>
+    // 한 문장 음성. path는 작업 폴더 기준 wav. speed가 없으면 manual.yaml video.tts.speed
+    speak(text: string, speed?: number): Promise<{ path: string; ms: number }>
     model(): Promise<VideoModelStatus>
     downloadModel(): Promise<VideoModelStatus>
     // 고른 장면까지 재생한 뒤 기록을 시작한다. 단계는 'video-record' 이벤트로 온다

@@ -2,6 +2,7 @@
 // 바뀔 때마다 onChange로 넘기고 저장은 VideoPanel이 한다
 import { useEffect, useState } from 'react'
 import { describeStep, describeTarget, ROLE_NAMES } from '../../../../src/core/video/describe.ts'
+import { SPEED_CHOICES } from '../../../../src/core/video/edit.ts'
 import { assetUrl, type ManualTree, type VideoScenario, type VideoScene, type VideoStep, type VideoTarget } from '../../../shared/api.ts'
 import { api } from '../api.ts'
 import { Icon } from './Icon.tsx'
@@ -25,15 +26,15 @@ function replace<T>(list: T[], index: number, value: T) {
   return list.map((v, i) => (i === index ? value : v))
 }
 
-// 음성 듣기: 한 문장을 만들어 재생한다
-function useSpeak() {
+// 음성 듣기: 한 문장을 시나리오의 내레이션 속도로 만들어 재생한다
+function useSpeak(speed?: number) {
   const toast = useToast()
   const [speaking, setSpeaking] = useState<string>()
   const speak = async (text: string) => {
     if (!text.trim()) return
     setSpeaking(text)
     try {
-      const clip = await api.video.speak(text)
+      const clip = await api.video.speak(text, speed)
       const audio = new Audio(assetUrl(clip.path))
       await audio.play()
       await new Promise((resolve) => audio.addEventListener('ended', resolve, { once: true }))
@@ -70,7 +71,7 @@ export function VideoEditor({
   onPreviewFrom: (scene: number) => void
   onRecord?: (scene: number) => void
 }) {
-  const { speaking, speak } = useSpeak()
+  const { speaking, speak } = useSpeak(scenario.speed)
   const [editing, setEditing] = useState<{ where: number | 'cleanup'; index?: number; step?: VideoStep }>()
   const [maskEditing, setMaskEditing] = useState<{ index?: number; target?: VideoTarget }>()
 
@@ -176,6 +177,44 @@ export function VideoEditor({
             {speakButton(scenario.intro)}
           </div>
         </label>
+        <div className="editor-grid three">
+          <label className="field">
+            <span>자막 크기</span>
+            <select
+              value={scenario.captionSize ?? ''}
+              disabled={disabled}
+              onChange={(e) => set({ captionSize: (e.target.value || undefined) as VideoScenario['captionSize'] })}
+            >
+              <option value="">기본 (매뉴얼 설정)</option>
+              <option value="small">작게</option>
+              <option value="medium">보통</option>
+              <option value="large">크게</option>
+            </select>
+          </label>
+          <label className="field">
+            <span>내레이션 속도</span>
+            <select
+              value={scenario.speed ?? ''}
+              disabled={disabled}
+              onChange={(e) => set({ speed: e.target.value ? Number(e.target.value) : undefined })}
+            >
+              <option value="">기본 (매뉴얼 설정)</option>
+              {SPEED_CHOICES.map((s) => (
+                <option key={s} value={s}>
+                  {s.toFixed(1)}×{s === 1 ? ' (보통)' : s < 1 ? ' (느리게)' : ' (빠르게)'}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span>조작 속도 (커서·입력·강조·쉬는 시간)</span>
+            <select value={scenario.pace ?? ''} disabled={disabled} onChange={(e) => set({ pace: (e.target.value || undefined) as VideoScenario['pace'] })}>
+              <option value="">보통</option>
+              <option value="slow">느리게</option>
+              <option value="fast">빠르게</option>
+            </select>
+          </label>
+        </div>
         <div className="editor-checks">
           <label>
             <input type="checkbox" checked={Boolean(scenario.maskPersonal)} disabled={disabled} onChange={(e) => set({ maskPersonal: e.target.checked || undefined })} />

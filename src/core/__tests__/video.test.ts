@@ -5,7 +5,7 @@ import { after, describe, it } from 'node:test'
 import { isBlockedLabel } from '../safety.ts'
 import { composeArgs } from '../video/compose.ts'
 import { describeStep } from '../video/describe.ts'
-import { sceneHasContent } from '../video/edit.ts'
+import { CAPTION_SCALE, PACE_FACTOR, sceneHasContent, videoStyle } from '../video/edit.ts'
 import { renderVideo } from '../video/index.ts'
 import { FrameSlots } from '../video/recorder.ts'
 import { applyVars, deleteVideo, listVideos, loadVideo, parseVideo, saveVideo, videoVars, type VideoScenario } from '../video/scenario.ts'
@@ -140,6 +140,28 @@ describe('시나리오 YAML', () => {
       click: { role: 'button', name: 'Delete', within: { role: 'row', name: 'Video Test 10020805' } },
     })
     assert.equal(applyVars('{unknown} {stamp}', vars), '{unknown} 10020805')
+  })
+})
+
+describe('자막 크기·속도', () => {
+  it('시나리오 값 → manual.yaml video 기본값 → 기본값 순서', () => {
+    assert.deepEqual(videoStyle({}), { captionSize: 'medium', speed: 1, pace: 'normal' })
+    assert.deepEqual(videoStyle({}, { captionSize: 'small', tts: { speed: 1.1 } }), { captionSize: 'small', speed: 1.1, pace: 'normal' })
+    assert.deepEqual(videoStyle({ captionSize: 'large', speed: 0.9, pace: 'slow' }, { captionSize: 'small', tts: { speed: 1.1 } }), {
+      captionSize: 'large',
+      speed: 0.9,
+      pace: 'slow',
+    })
+    assert.ok(CAPTION_SCALE.small < CAPTION_SCALE.medium && CAPTION_SCALE.medium < CAPTION_SCALE.large)
+    assert.ok(PACE_FACTOR.fast < PACE_FACTOR.normal && PACE_FACTOR.normal < PACE_FACTOR.slow)
+  })
+
+  it('속도는 0.8~1.3, 크기·조작 속도는 정해진 값만', () => {
+    const base = { title: 'X', scenes: [] }
+    assert.equal(parseVideo('x', { ...base, speed: 1.2, captionSize: 'large', pace: 'fast' }).speed, 1.2)
+    assert.throws(() => parseVideo('x', { ...base, speed: 2 }), /speed/)
+    assert.throws(() => parseVideo('x', { ...base, captionSize: 'huge' }), /captionSize/)
+    assert.throws(() => parseVideo('x', { ...base, pace: 'turbo' }), /pace/)
   })
 })
 

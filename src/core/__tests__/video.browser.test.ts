@@ -190,6 +190,36 @@ describe('renderVideo (Chrome)', { skip }, () => {
   })
 })
 
+describe('overlay 자막 크기 (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+  it('배율만큼 자막 글자가 커지고 작아진다', async () => {
+    const browser = await chromium.launch({ channel: 'chrome' })
+    try {
+      // 흰 화면 가운데 세로줄에서 어두운(자막 바탕) 줄 수 = 자막 바 높이
+      const barHeight = async (captionScale: number) => {
+        const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } })
+        await page.addInitScript({ content: overlayScript({ captionScale }) })
+        await page.route('http://fake.test/', (route) => route.fulfill({ contentType: 'text/html', body: '<body style="background:#fff"></body>' }))
+        await page.goto('http://fake.test/')
+        await page.evaluate(() => (window as unknown as { __ariadneVideo: { caption(t: string): void } }).__ariadneVideo.caption('Hello'))
+        await page.waitForTimeout(400) // 자막 페이드
+        const img = PNG.sync.read(await page.screenshot())
+        await page.close()
+        let rows = 0
+        for (let y = 0; y < img.height; y++) {
+          const i = (y * img.width + img.width / 2) * 4
+          if ((img.data[i] + img.data[i + 1] + img.data[i + 2]) / 3 < 110) rows++
+        }
+        return rows
+      }
+      const [small, medium, large] = [await barHeight(0.85), await barHeight(1), await barHeight(1.22)]
+      assert.ok(small < medium && medium < large, `${small} < ${medium} < ${large}`)
+      assert.ok(Math.abs(large / medium - 1.22) < 0.15, `${large / medium}`)
+    } finally {
+      await browser.close()
+    }
+  })
+})
+
 describe('overlay 개인정보 가리기 (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
   it('이메일·전화번호가 있는 요소에 mask 속성을 붙인다 (나중에 생긴 요소 포함)', async () => {
     const browser = await chromium.launch({ channel: 'chrome' })

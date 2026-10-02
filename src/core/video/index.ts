@@ -10,7 +10,7 @@ import { compose } from './compose.ts'
 import { Director } from './director.ts'
 import { MASK_ATTR, overlayScript } from './overlay.ts'
 import { startRecording, type Recording } from './recorder.ts'
-import { sceneHasContent } from './edit.ts'
+import { CAPTION_SCALE, PACE_FACTOR, sceneHasContent, videoStyle } from './edit.ts'
 import { applyVars, loadVideo, videoVars, type Target, type VideoScenario } from './scenario.ts'
 import { locate, runSteps } from './steps.ts'
 import { readingTime, toSrt, toVtt, type Cue } from './subtitles.ts'
@@ -155,6 +155,11 @@ export async function renderVideo({
   mkdirSync(work, { recursive: true })
   const outputs = videoOutputs(ref, scenario.id, outDir)
 
+  // 자막 크기·내레이션 속도·조작 속도 (시나리오 → manual.yaml video → 기본값)
+  const style = videoStyle(scenario, manual.video)
+  // 조작 대기 배율. pace 옵션(테스트에서 줄임)과 시나리오의 조작 속도를 곱한다
+  const stepPace = pace * PACE_FACTOR[style.pace]
+
   // 1. 내레이션
   const tts = preview || ttsOption === false ? undefined : (ttsOption ?? manual.video?.tts ?? {})
   let clips = new Map<string, Clip>()
@@ -163,7 +168,9 @@ export async function renderVideo({
     const lines = [fromScene ? undefined : scenario.intro, ...scenes.map((s) => s.say)].filter((s): s is string => !!s)
     const cache = videoCacheDir(ref)
     const provider =
-      'synthesize' in tts ? tts : await createProvider(tts, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel })
+      'synthesize' in tts
+        ? tts
+        : await createProvider({ ...tts, speed: style.speed }, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel })
     clips = await narrate(lines, provider, join(cache, 'tts'), ({ index, total, cached }) => {
       signal?.throwIfAborted()
       onProgress?.({ stage: 'tts', message: `음성 ${index + 1}/${total}${cached ? ' (캐시)' : ''}` })
@@ -182,7 +189,9 @@ export async function renderVideo({
   signal?.addEventListener('abort', abort, { once: true })
   try {
     signal?.throwIfAborted()
-    await context.addInitScript({ content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask }) })
+    await context.addInitScript({
+      content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask, captionScale: CAPTION_SCALE[style.captionSize] }),
+    })
     if (!scenario.mutates) {
       await context.route('**/*', (route) => {
         const request = route.request()
@@ -192,7 +201,7 @@ export async function renderVideo({
       })
     }
     page.setDefaultTimeout(stepTimeout)
-    const v = new Director(page, { baseUrl, mutates: scenario.mutates })
+    const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: stepPace })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다
     onProgress?.({ stage: 'prepare', message: 'STG 열기' })
     await v.goto('/')
@@ -211,7 +220,8 @@ export async function renderVideo({
     const t0 = recording?.t0 ?? Date.now()
     const now = () => Date.now() - t0
     const hold = async (start: number, text: string | undefined, clip: Clip | undefined, minimum = 0) => {
-      const length = clip ? clip.ms + GAP_MS : text ? readingTime(text) * pace : 0
+      // 음성이 있으면 음성 길이 + 쉬는 시간, 없으면 읽는 시간 (내레이션 속도만큼 빠르게)
+      const length = clip ? clip.ms + GAP_MS * PACE_FACTOR[style.pace] : text ? (readingTime(text) / style.speed) * stepPace : 0
       const remaining = Math.max(length, minimum) - (now() - start)
       if (remaining > 0) await page.waitForTimeout(remaining)
     }
@@ -220,7 +230,7 @@ export async function renderVideo({
         onProgress?.({ stage: 'record', message: '시작 카드' })
         const introClip = scenario.intro ? clips.get(scenario.intro) : undefined
         await v.caption(scenario.intro ?? null)
-        await hold(0, scenario.intro, introClip, CARD_MS * pace)
+        await hold(0, scenario.intro, introClip, CARD_MS * stepPace)
         if (scenario.intro) cues.push({ start: 0, end: now(), text: scenario.intro })
         if (introClip) audio.push({ file: introClip.file, at: 0 })
         await v.caption(null)

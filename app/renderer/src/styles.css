@@ -2528,3 +2528,7 @@ details.advanced summary {
   gap: 8px;
   margin-top: 18px;
 }
+
+.editor-grid.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}

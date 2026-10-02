@@ -7,6 +7,8 @@ export interface OverlayOptions {
   personal?: boolean
   // 항상 blur할 CSS 선택자 (manual.yaml video.mask)
   css?: string[]
+  // 자막 글자 배율 (edit.ts CAPTION_SCALE)
+  captionScale?: number
 }
 
 // 이 속성이 붙은 요소는 blur된다. 시나리오 mask Target은 runner가 이 속성을 붙인다
@@ -19,7 +21,7 @@ export interface OverlayApi {
   highlight(rect: { x: number; y: number; width: number; height: number }, ms: number): void
 }
 
-export function overlayScript({ personal = false, css = [] }: OverlayOptions = {}) {
+export function overlayScript({ personal = false, css = [], captionScale = 1 }: OverlayOptions = {}) {
   return `(() => {
   if (window.__ariadneVideo || window.top !== window) return
   const KEY = '__ariadneVideo'
@@ -45,7 +47,7 @@ export function overlayScript({ personal = false, css = [] }: OverlayOptions = {
       transition: opacity .25s; }
     .caption { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); max-width: 78vw;
       padding: 14px 28px; border-radius: 12px; background: rgba(17,24,39,.84); color: #fff; text-align: center;
-      font-size: calc(14px + 0.9vw); font-weight: 600; line-height: 1.4; letter-spacing: .1px; opacity: 0; transition: opacity .2s; }
+      font-size: calc((14px + 0.9vw) * ${Number(captionScale) || 1}); font-weight: 600; line-height: 1.4; letter-spacing: .1px; opacity: 0; transition: opacity .2s; }
     .caption.on { opacity: 1; }
     .card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 18px; background: linear-gradient(135deg, rgba(0,44,95,.94), rgba(0,24,58,.97)); color: #fff;

@@ -32,7 +32,8 @@ export interface Manual {
   code?: { app?: string; locale?: string }
   // 가이드 영상 (pnpm video). viewport는 녹화 화면 크기 (없으면 1920x1080, 캡처 크기와 따로).
   // mask는 모든 영상에서 흐리게 할 CSS 선택자 (예: 헤더의 로그인 사용자 이름)
-  video?: { tts?: TtsConfig; viewport?: Viewport; mask?: string[] }
+  // captionSize는 자막 크기 기본값 (시나리오가 바꿀 수 있다)
+  video?: { tts?: TtsConfig; viewport?: Viewport; mask?: string[]; captionSize?: 'small' | 'medium' | 'large' }
   chapters: Chapter[]
 }
 

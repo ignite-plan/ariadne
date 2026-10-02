@@ -546,11 +546,12 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt) }
   })
   handle('video:cancel', () => cancelVideo())
-  handle('video:speak', async (text: string) => {
+  handle('video:speak', async (text: string, speed?: number) => {
     const r = ref()
     if (!text.trim()) throw new Error('문장을 입력하세요')
     if (!modelStatus(videoModelDir()).ready) throw new Error('음성 모델이 없습니다. 먼저 음성 모델을 받으세요')
-    const tts = { ...loadManual(r).video?.tts, provider: 'kokoro' as const }
+    const base = loadManual(r).video?.tts
+    const tts = { ...base, provider: 'kokoro' as const, speed: speed ?? base?.speed }
     const clip = await speak({ op: 'speak', root: r.root, text: text.trim(), tts, modelDir: videoModelDir() })
     return { path: relative(r.root, clip.file), ms: clip.ms }
   })

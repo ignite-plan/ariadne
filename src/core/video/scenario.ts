@@ -68,6 +68,12 @@ export const videoFileSchema = z.strictObject({
   mutates: z.boolean().optional(),
   // 이메일·전화번호처럼 보이는 글자를 자동으로 blur
   maskPersonal: z.boolean().optional(),
+  // 자막 크기. 없으면 manual.yaml video.captionSize, 그것도 없으면 medium
+  captionSize: z.enum(['small', 'medium', 'large']).optional(),
+  // 내레이션 속도 (0.8~1.3). 없으면 manual.yaml video.tts.speed, 그것도 없으면 1
+  speed: z.number().min(0.8).max(1.3).optional(),
+  // 조작 속도 (커서 이동, 입력, 강조, 장면 사이 쉬는 시간)
+  pace: z.enum(['slow', 'normal', 'fast']).optional(),
   // 추가로 가릴 요소
   mask: z.array(target).optional(),
   scenes: z.array(scene),
