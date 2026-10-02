@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { loadShotsBundled } from '../shots.ts'
+import { isTelemetryRequest } from '../../../../src/core/safety.ts'
 import { appendShot, isAllowedRequest, isBlockedLabel, removeShot, shotToCode } from '../stg.ts'
 
 describe('STG 안전장치', () => {
@@ -35,6 +36,10 @@ describe('STG 안전장치', () => {
     assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/menus/12/authorities'))
     assert.ok(!isAllowedRequest('POST', 'https://stg/api/v1/tokens-issue'))
     assert.ok(!isAllowedRequest('POST', 'https://browser-intake-datadoghq.com/api/v2/rum'))
+    // 모니터링 전송은 막되 알리지 않는다
+    assert.ok(isTelemetryRequest('https://browser-intake-datadoghq.com/api/v2/rum?ddsource=browser'))
+    assert.ok(isTelemetryRequest('https://stg-admin-config.hmg-corp.io/hadm-log'))
+    assert.ok(!isTelemetryRequest('https://stg/api/v1/menus/12'))
   })
 })
 

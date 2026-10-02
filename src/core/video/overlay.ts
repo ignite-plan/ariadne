@@ -5,6 +5,8 @@
 export interface OverlayOptions {
   // 이메일·전화번호처럼 보이는 글자를 자동으로 blur
   personal?: boolean
+  // 항상 blur할 CSS 선택자 (manual.yaml video.mask)
+  css?: string[]
 }
 
 // 이 속성이 붙은 요소는 blur된다. 시나리오 mask Target은 runner가 이 속성을 붙인다
@@ -17,12 +19,13 @@ export interface OverlayApi {
   highlight(rect: { x: number; y: number; width: number; height: number }, ms: number): void
 }
 
-export function overlayScript({ personal = false }: OverlayOptions = {}) {
+export function overlayScript({ personal = false, css = [] }: OverlayOptions = {}) {
   return `(() => {
   if (window.__ariadneVideo || window.top !== window) return
   const KEY = '__ariadneVideo'
   const PERSONAL = ${JSON.stringify(personal)}
   const MASK_ATTR = ${JSON.stringify(MASK_ATTR)}
+  const MASK_CSS = ${JSON.stringify(css)}
   const EMAIL = /[\\w.+-]+@[\\w-]+\\.[\\w.-]+/
   const PHONE = /(\\+?1[\\s.-]?)?\\(?\\d{3}\\)?[\\s.-]\\d{3}[\\s.-]\\d{4}/
   const load = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || '{}') } catch { return {} } }
@@ -42,7 +45,7 @@ export function overlayScript({ personal = false }: OverlayOptions = {}) {
       transition: opacity .25s; }
     .caption { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); max-width: 78vw;
       padding: 14px 28px; border-radius: 12px; background: rgba(17,24,39,.84); color: #fff; text-align: center;
-      font-size: 26px; font-weight: 600; line-height: 1.4; letter-spacing: .1px; opacity: 0; transition: opacity .2s; }
+      font-size: calc(14px + 0.9vw); font-weight: 600; line-height: 1.4; letter-spacing: .1px; opacity: 0; transition: opacity .2s; }
     .caption.on { opacity: 1; }
     .card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 18px; background: linear-gradient(135deg, rgba(0,44,95,.94), rgba(0,24,58,.97)); color: #fff;
@@ -66,7 +69,7 @@ export function overlayScript({ personal = false }: OverlayOptions = {}) {
     if (!document.getElementById('ariadne-video-mask')) {
       const style = document.createElement('style')
       style.id = 'ariadne-video-mask'
-      style.textContent = '[' + MASK_ATTR + ']{ filter: blur(7px) !important; }'
+      style.textContent = ['[' + MASK_ATTR + ']', ...MASK_CSS].join(',') + '{ filter: blur(7px) !important; }'
       document.documentElement.appendChild(style)
     }
     render()

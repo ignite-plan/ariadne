@@ -284,6 +284,8 @@ code:
   app: apps/hyundai-bo                                    # affected가 볼 en.json: <app>/src/locales/en.json
 video:
   tts: { provider: kokoro, voice: af_heart, speed: 1 }    # 가이드 영상 내레이션 (없으면 이 값)
+  viewport: { width: 1920, height: 1080 }                 # 영상 화면 크기 (없으면 1920x1080. BO는 1440이면 오른쪽이 잘림)
+  mask: ['header div:has(> span):not(:has(button))']      # 모든 영상에서 흐리게 할 CSS (헤더 로그인 사용자 이름)
 chapters: [...]
 ```
 

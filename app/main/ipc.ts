@@ -157,7 +157,7 @@ async function fileChanges(): Promise<FileChange[]> {
   })
 }
 
-function withOptional<K extends 'output' | 'capture' | 'code'>(key: K, patch: Partial<ManualConfig>, current: ManualConfig) {
+function withOptional<K extends 'output' | 'capture' | 'code' | 'video'>(key: K, patch: Partial<ManualConfig>, current: ManualConfig) {
   const value = key in patch ? patch[key] : current[key]
   const empty = value === undefined || value === '' || (typeof value === 'object' && !Object.keys(value as object).length)
   return empty ? {} : { [key]: value }
@@ -351,6 +351,8 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       ...withOptional('output', patch, current),
       ...withOptional('capture', patch, current),
       ...withOptional('code', patch, current),
+      // 설정 화면에 없는 가이드 영상 설정도 지우지 않는다
+      ...withOptional('video', patch, current),
       chapters: current.chapters,
     }
     saveManual(r, next)

@@ -42,7 +42,14 @@ for (const id of ids) {
       fromScene: values.from ? Number(values.from) - 1 : undefined,
       onProgress: ({ stage, message, step }) => console.log(`  ${stage} ${message}${step === undefined ? '' : ` 단계 ${step + 1}`}`),
     })
-    for (const request of result.blockedRequests) console.log(`  ⚠ 쓰기 요청 차단: ${request}`)
+    // 같은 주소는 묶어서 한 줄로 (쿼리 문자열은 뺀다)
+    const blocked = new Map<string, number>()
+    for (const request of result.blockedRequests) {
+      const [method, url] = request.split(' ')
+      const key = `${method} ${url.split('?')[0]}`
+      blocked.set(key, (blocked.get(key) ?? 0) + 1)
+    }
+    for (const [request, count] of blocked) console.log(`  ⚠ 쓰기 요청 차단${count > 1 ? ` ${count}건` : ''}: ${request}`)
     if (result.mp4) {
       console.log(`  ✓ ${relative(ref.root, result.mp4)} (${(result.durationMs / 1000).toFixed(1)}s, 자막 ${result.cues.length}개)`)
     } else console.log(`  ✓ 미리보기 끝 (${(result.durationMs / 1000).toFixed(1)}s)`)

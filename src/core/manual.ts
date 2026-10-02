@@ -30,8 +30,9 @@ export interface Manual {
   capture?: { baseUrl?: string; viewport?: Viewport }
   // affected가 볼 dealerhub-web 앱
   code?: { app?: string; locale?: string }
-  // 가이드 영상 내레이션 (pnpm video)
-  video?: { tts?: TtsConfig }
+  // 가이드 영상 (pnpm video). viewport는 녹화 화면 크기 (없으면 1920x1080, 캡처 크기와 따로).
+  // mask는 모든 영상에서 흐리게 할 CSS 선택자 (예: 헤더의 로그인 사용자 이름)
+  video?: { tts?: TtsConfig; viewport?: Viewport; mask?: string[] }
   chapters: Chapter[]
 }
 

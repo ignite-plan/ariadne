@@ -1,10 +1,11 @@
 // STG에서 기록: 화면이 보이는 Chrome을 띄우고, 고른 장면까지의 단계를 빠르게 재생한 뒤 기획자의 조작을 기록한다.
 // STG 저장 허용이 아니면 쓰기 요청을 막는다 (Claude STG 탐색과 같은 규칙)
 import type { BrowserContext } from 'playwright'
-import { DEFAULT_VIEWPORT, loadManual, type ManualRef } from '../../../src/core/manual.ts'
-import { isAllowedRequest } from '../../../src/core/safety.ts'
+import { loadManual, type ManualRef } from '../../../src/core/manual.ts'
+import { isAllowedRequest, isTelemetryRequest } from '../../../src/core/safety.ts'
 import { openProfile } from '../../../src/core/session.ts'
 import { Director } from '../../../src/core/video/director.ts'
+import { videoViewport } from '../../../src/core/video/index.ts'
 import { attachRecorder, type RecordEvent } from '../../../src/core/video/record.ts'
 import { applyVars, loadVideo, videoVars } from '../../../src/core/video/scenario.ts'
 import { runSteps } from '../../../src/core/video/steps.ts'
@@ -36,7 +37,8 @@ export async function startRecording({ id, scene, baseUrl, profileDir, onEvent, 
   if (current) throw new Error('이미 기록하고 있습니다')
   const scenario = applyVars(loadVideo(ref, id), videoVars())
   if (!scenario.scenes[scene]) throw new Error(`장면 ${scene + 1}이 없습니다`)
-  const viewport = loadManual(ref).capture?.viewport ?? DEFAULT_VIEWPORT
+  // 영상과 같은 크기로 기록해야 몇 번째(nth)·위치가 맞는다
+  const viewport = videoViewport(loadManual(ref))
   const { context, page } = await openProfile(profileDir, { headless: false, viewport, debugPort: process.env.ARIADNE_E2E_RECORD_PORT })
   current = context
   // 기록 끝, 앱에서 멈춤, 기획자가 Chrome 창을 닫음 모두 여기로 온다
@@ -49,7 +51,9 @@ export async function startRecording({ id, scene, baseUrl, profileDir, onEvent, 
       await context.route('**/*', (route) => {
         const request = route.request()
         if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        onEvent({ kind: 'warning', message: `데이터를 바꾸는 요청을 막았습니다: ${request.method()} ${new URL(request.url()).pathname}` })
+        if (!isTelemetryRequest(request.url())) {
+          onEvent({ kind: 'warning', message: `데이터를 바꾸는 요청을 막았습니다: ${request.method()} ${new URL(request.url()).pathname}` })
+        }
         return route.abort('blockedbyclient')
       })
     }

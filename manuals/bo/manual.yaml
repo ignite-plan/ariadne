@@ -10,6 +10,8 @@ video:
     provider: kokoro
     voice: af_heart
     speed: 1
+  mask:
+    - header div:has(> span):not(:has(button))
 chapters:
   - title: Back-office Login
     dir: 01-back-office-login

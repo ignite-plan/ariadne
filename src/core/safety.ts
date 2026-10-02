@@ -15,6 +15,19 @@ const READ_POST = /(search|list|query|count|lookup|tree|options|codes?|filter|pr
 // 예: /sso/HK1298/token, /sso/settings, /hacc/api/v1/auth/bo, /auth/bo/refresh
 const SESSION_POST = /(^|\/)(sso|auth)(\/|$)|(^|\/)(token|refresh)(\/|$)/i
 
+// 화면이 보내는 모니터링·접속 기록. 막되(STG에 남기지 않음) 사용자에게 알리지 않는다
+const TELEMETRY = /(^|\.)datadoghq\.com$|(^|\.)browser-intake-datadoghq\.com$/i
+const TELEMETRY_PATH = /(^|\/)hadm-log(\/|$)/i
+
+export function isTelemetryRequest(url: string) {
+  try {
+    const { host, pathname } = new URL(url)
+    return TELEMETRY.test(host) || TELEMETRY_PATH.test(pathname)
+  } catch {
+    return false
+  }
+}
+
 export function isAllowedRequest(method: string, url: string) {
   const m = method.toUpperCase()
   if (m === 'GET' || m === 'HEAD' || m === 'OPTIONS') return true

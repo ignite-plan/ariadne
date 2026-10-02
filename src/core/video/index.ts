@@ -3,8 +3,8 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Page } from 'playwright'
-import { DEFAULT_VIEWPORT, loadManual, type ManualRef, type Viewport } from '../manual.ts'
-import { isAllowedRequest } from '../safety.ts'
+import { loadManual, type Manual, type ManualRef, type Viewport } from '../manual.ts'
+import { isAllowedRequest, isTelemetryRequest } from '../safety.ts'
 import { clearSession, defaultProfileDir, isSessionExpired, openProfile, requireSession } from '../session.ts'
 import { compose } from './compose.ts'
 import { Director } from './director.ts'
@@ -29,6 +29,14 @@ export * from './subtitles.ts'
 export * from './tts/index.ts'
 export * from './tts/model.ts'
 
+// 영상 화면 크기. BO 화면은 1440에서 오른쪽이 잘려 Full HD로 녹화한다 (캡처 1440x900과 따로)
+export const VIDEO_VIEWPORT: Viewport = { width: 1920, height: 1080 }
+
+// 영상 만들기·미리보기·STG 기록이 같은 크기를 써야 기록한 단계의 위치가 맞는다
+export function videoViewport(manual: Manual) {
+  return manual.video?.viewport ?? VIDEO_VIEWPORT
+}
+
 // 음성이 끝난 뒤 다음 장면까지 쉬는 시간
 const GAP_MS = 400
 const CARD_MS = 2500
@@ -49,6 +57,7 @@ export interface VideoOptions extends ManualRef {
   scenario?: VideoScenario
   // 없으면 manual.yaml capture.baseUrl
   baseUrl?: string
+  // 없으면 manual.yaml video.viewport, 그것도 없으면 1920x1080
   viewport?: Viewport
   // 로그인 세션(유지되는 Chrome 프로필, session.ts). 기본 <root>/.auth/<manual>-profile
   profileDir?: string
@@ -139,7 +148,7 @@ export async function renderVideo({
   if (fromScene < 0 || fromScene >= scenario.scenes.length) throw new Error(`장면 ${fromScene + 1}이 없습니다`)
   const baseUrl = baseUrlOption || manual.capture?.baseUrl
   if (!baseUrl) throw new Error('녹화 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')
-  const viewport = viewportOption ?? manual.capture?.viewport ?? DEFAULT_VIEWPORT
+  const viewport = viewportOption ?? videoViewport(manual)
   const profile = profileDir ?? defaultProfileDir(ref)
   requireSession(profile)
   const work = videoWorkDir(ref, scenario.id)
@@ -173,12 +182,12 @@ export async function renderVideo({
   signal?.addEventListener('abort', abort, { once: true })
   try {
     signal?.throwIfAborted()
-    await context.addInitScript({ content: overlayScript({ personal: scenario.maskPersonal }) })
+    await context.addInitScript({ content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask }) })
     if (!scenario.mutates) {
       await context.route('**/*', (route) => {
         const request = route.request()
         if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        blockedRequests.push(`${request.method()} ${request.url()}`)
+        if (!isTelemetryRequest(request.url())) blockedRequests.push(`${request.method()} ${request.url()}`)
         return route.abort('blockedbyclient')
       })
     }

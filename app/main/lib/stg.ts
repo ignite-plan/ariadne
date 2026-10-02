@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { BrowserContext, Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
-import { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
+import { isAllowedRequest, isBlockedLabel, isTelemetryRequest } from '../../../src/core/safety.ts'
 import { openProfile } from '../../../src/core/session.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
 
@@ -136,7 +136,7 @@ export class StgSession {
       await context.route('**/*', (route) => {
         const request = route.request()
         if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        this.blocked.push(`${request.method()} ${request.url()}`)
+        if (!isTelemetryRequest(request.url())) this.blocked.push(`${request.method()} ${request.url()}`)
         return route.abort('blockedbyclient')
       })
       this.context = context
