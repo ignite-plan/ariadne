@@ -2,7 +2,11 @@
 import { parseArgs } from 'node:util'
 import { capture, defaultAuthFile } from '../core/index.ts'
 
-process.loadEnvFile()
+try {
+  process.loadEnvFile()
+} catch {
+  // .env 없이 manual.yaml capture.baseUrl만 써도 된다
+}
 const { values } = parseArgs({
   options: {
     manual: { type: 'string', default: 'bo' },
@@ -10,8 +14,8 @@ const { values } = parseArgs({
     threshold: { type: 'string', default: '0.005' },
   },
 })
-const baseUrl = process.env.BO_BASE_URL
-if (!baseUrl) throw new Error('.env에 BO_BASE_URL이 없습니다')
+// .env BO_BASE_URL은 bo 매뉴얼의 캡처 주소를 덮어쓴다 (예전 설정 호환)
+const baseUrl = values.manual === 'bo' ? process.env.BO_BASE_URL : undefined
 const ref = { root: process.cwd(), manual: values.manual! }
 const authFile = defaultAuthFile(ref)
 

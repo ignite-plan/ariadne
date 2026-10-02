@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
-import type { AffectedSection, AuthStatus, EnvCheck, Settings, UpdateInfo } from '../../../shared/api.ts'
+import type { AffectedSection, AuthStatus, EnvCheck, ManualConfig, ManualInfo, Settings, UpdateInfo } from '../../../shared/api.ts'
+import { CODE_PRESETS, VIEWPORTS, viewportKey, type ViewportKey } from '../../../shared/presets.ts'
 import { api, errorMessage } from '../api.ts'
 import { EnvList } from './EnvList.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { useToast } from './Toast.tsx'
 
-type Tab = 'general' | 'account' | 'env' | 'advanced' | 'affected' | 'about'
+type Tab = 'general' | 'manual' | 'account' | 'env' | 'advanced' | 'affected' | 'about'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'general', label: '일반' },
+  { id: 'manual', label: '매뉴얼' },
   { id: 'account', label: '계정' },
   { id: 'env', label: '환경 점검' },
   { id: 'advanced', label: '고급' },
@@ -33,7 +35,7 @@ export function SettingsDialog({
   const toast = useToast()
   const [tab, setTab] = useState<Tab>(initialTab)
   const [settings, setSettings] = useState<Settings>()
-  const [manuals, setManuals] = useState<string[]>([])
+  const [manuals, setManuals] = useState<ManualInfo[]>([])
 
   useEffect(() => {
     void api.settings.get().then(setSettings)
@@ -68,9 +70,9 @@ export function SettingsDialog({
               <label className="field">
                 <span>매뉴얼</span>
                 <select value={settings.manual} onChange={(e) => update({ manual: e.target.value })}>
-                  {(manuals.length ? manuals : [settings.manual]).map((m) => (
-                    <option key={m} value={m}>
-                      {m}
+                  {(manuals.length ? manuals : [{ id: settings.manual, title: settings.manual, version: '' }]).map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.title} ({m.id})
                     </option>
                   ))}
                 </select>
@@ -92,13 +94,9 @@ export function SettingsDialog({
                   </div>
                 </label>
               </fieldset>
-              <TextSetting
-                label="BO 주소 (STG, 캡처 대상)"
-                value={settings.boBaseUrl}
-                onSave={(boBaseUrl) => update({ boBaseUrl })}
-              />
             </>
           )}
+          {tab === 'manual' && <ManualPane />}
           {tab === 'account' && <AccountPane onReset={onReset} />}
           {tab === 'env' && <EnvPane />}
           {tab === 'advanced' && (
@@ -195,6 +193,79 @@ function DirSetting({ label, value, onPick }: { label: string; value: string; on
         )}
       </div>
     </div>
+  )
+}
+
+// 지금 매뉴얼의 manual.yaml 설정. 바꾸면 변경 탭에 manual.yaml이 나오고 제출로 공유된다
+function ManualPane() {
+  const toast = useToast()
+  const [config, setConfig] = useState<ManualConfig>()
+
+  useEffect(() => {
+    void api.manual.config().then(setConfig)
+  }, [])
+
+  const save = async (patch: Partial<ManualConfig>) => {
+    try {
+      setConfig(await api.manual.updateConfig(patch))
+      toast.show('success', '매뉴얼 설정을 저장했습니다. 제출하면 다른 사람에게도 반영됩니다')
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
+  if (!config) return <p className="muted">불러오는 중…</p>
+  const capture = config.capture ?? {}
+  const vp = viewportKey(capture.viewport)
+
+  return (
+    <>
+      <p className="hint first">이 매뉴얼의 공용 설정(manual.yaml)입니다. 바꾸면 제출해야 다른 사람에게 반영됩니다.</p>
+      <TextSetting label="매뉴얼 제목" value={config.title} onSave={(title) => save({ title })} />
+      <TextSetting label="버전" value={config.version} onSave={(version) => save({ version })} />
+      <TextSetting
+        label="Word 파일 이름 ({version}은 버전으로 바뀜)"
+        value={config.output ?? ''}
+        placeholder={`${config.title}_v{version}`}
+        onSave={(output) => save({ output })}
+      />
+      <TextSetting
+        label="캡처 주소 (STG)"
+        value={capture.baseUrl ?? ''}
+        placeholder="https://stg-…"
+        onSave={(baseUrl) => save({ capture: { ...capture, baseUrl: baseUrl || undefined } })}
+      />
+      <div className="field">
+        <span>캡처 화면 크기</span>
+        <div className="segmented small">
+          {(Object.keys(VIEWPORTS) as ViewportKey[]).map((k) => (
+            <button
+              key={k}
+              className={vp === k ? 'active' : ''}
+              onClick={() =>
+                save({ capture: { ...capture, viewport: { width: VIEWPORTS[k].width, height: VIEWPORTS[k].height } } })
+              }
+            >
+              {VIEWPORTS[k].label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <label className="field">
+        <span>화면(코드) 연결 · 변경 영향 분석에 씁니다</span>
+        <select
+          value={config.code?.app ?? ''}
+          onChange={(e) => save({ code: e.target.value ? { ...config.code, app: e.target.value } : undefined })}
+        >
+          {CODE_PRESETS.map((p) => (
+            <option key={p.app} value={p.app}>
+              {p.label}
+            </option>
+          ))}
+          <option value="">연결 안 함</option>
+        </select>
+      </label>
+    </>
   )
 }
 

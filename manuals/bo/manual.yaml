@@ -1,5 +1,10 @@
 title: Dealers Admin User Manual
 version: 1.0.7
+output: Hyundai-Dealers Admin User Manual_v{version}_EN
+capture:
+  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca/admin
+code:
+  app: apps/hyundai-bo
 chapters:
   - title: Back-office Login
     dir: 01-back-office-login

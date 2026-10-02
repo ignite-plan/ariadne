@@ -29,6 +29,11 @@ const api: AriadneApi = {
   },
   manual: {
     list: invoke('manual:list'),
+    config: invoke('manual:config'),
+    updateConfig: invoke('manual:updateConfig'),
+    pickDocx: invoke('manual:pickDocx'),
+    analyzeDocx: invoke('manual:analyzeDocx'),
+    importDocx: invoke('manual:importDocx'),
     tree: invoke('manual:tree'),
     read: invoke('manual:read'),
     write: invoke('manual:write'),

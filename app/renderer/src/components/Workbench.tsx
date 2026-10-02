@@ -15,6 +15,8 @@ import { CapturePanel } from './CapturePanel.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
 import { Icon, type IconName } from './Icon.tsx'
 import { ImageDialog, type PastedImage } from './ImageDialog.tsx'
+import { ImportWizard } from './ImportWizard.tsx'
+import { ManualSwitcher } from './ManualSwitcher.tsx'
 import { MetaPanel } from './MetaPanel.tsx'
 import { Confirm } from './Modal.tsx'
 import { NewSectionDialog } from './NewSectionDialog.tsx'
@@ -30,6 +32,7 @@ type Dialog =
   | { type: 'image'; pasted?: PastedImage }
   | { type: 'new'; chapterDir?: string }
   | { type: 'submit' }
+  | { type: 'import' }
   | { type: 'settings'; tab?: 'general' | 'env' | 'affected' }
   | { type: 'confirm'; title: string; message: string; confirmLabel: string; danger?: boolean; run: () => Promise<void> }
 
@@ -340,6 +343,22 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     })
   }
 
+  // 다른 매뉴얼로 바꾸면 목차와 첫 화면을 다시 연다
+  const switchManual = async (id: string) => {
+    if (!(await flush())) return
+    try {
+      setSettings(await api.settings.update({ manual: id }))
+      storage(LAST_PATH, '')
+      setDoc(undefined)
+      await refreshSide()
+      const t = await api.manual.tree()
+      const first = t.chapters[0]?.sections[0]?.path
+      if (first) await openSection(first)
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
   const currentChapter = tree?.chapters.find((c) => doc?.path.startsWith(`${c.dir}/`))
   const syncInfo = sync ? SYNC_LABEL[sync.status] : undefined
   const canSubmit = changes.length > 0 || sync?.status === 'ahead' || sync?.status === 'diverged'
@@ -352,11 +371,13 @@ export function Workbench({ onReset }: { onReset: () => void }) {
             <span className="brand-mark" />
             Ariadne
           </div>
-          {tree && (
-            <span className="manual-title ellipsis">
-              {tree.title} <span className="muted">v{tree.version}</span>
-            </span>
-          )}
+          <ManualSwitcher
+            current={tree?.manual}
+            title={tree?.title}
+            version={tree?.version}
+            onSwitch={(id) => void switchManual(id)}
+            onImport={() => setDialog({ type: 'import' })}
+          />
           {syncInfo && (
             <button
               className={`sync-badge ${sync!.status}`}
@@ -559,21 +580,28 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           onDone={(r) => void onSubmitted(r)}
         />
       )}
+      {dialog?.type === 'import' && (
+        <ImportWizard
+          onClose={() => setDialog(null)}
+          onDone={(id) => {
+            setDialog(null)
+            void switchManual(id).then(() =>
+              toast.show('success', '새 매뉴얼을 가져왔습니다. 미리보기로 확인한 뒤 제출하세요'),
+            )
+          }}
+        />
+      )}
       {dialog?.type === 'settings' && (
         <SettingsDialog
           initialTab={dialog.tab}
-          onClose={() => setDialog(null)}
+          onClose={() => {
+            setDialog(null)
+            // 매뉴얼 설정(제목, 버전)이 바뀌었을 수 있다
+            void refreshSide()
+          }}
           onSettings={(next) => {
-            const manualChanged = next.manual !== settings?.manual
-            setSettings(next)
-            if (manualChanged) {
-              storage(LAST_PATH, '')
-              void refreshSide().then(async () => {
-                const t = await api.manual.tree()
-                const first = t.chapters[0]?.sections[0]?.path
-                if (first) await openSection(first)
-              })
-            }
+            if (next.manual !== settings?.manual) void switchManual(next.manual)
+            else setSettings(next)
           }}
           onOpenSection={(path) => {
             setDialog(null)

@@ -1,7 +1,7 @@
 // dealerhub-web의 두 ref 사이 변경을 매뉴얼 섹션에 매핑한다.
 import { execFileSync } from 'node:child_process'
 import { matchesGlob } from 'node:path'
-import { loadManual, parseFrontMatter, readSection, sectionImages, type ManualRef } from './manual.ts'
+import { loadManual, localePath, parseFrontMatter, readSection, sectionImages, type ManualRef } from './manual.ts'
 
 export interface AffectedOptions extends ManualRef {
   // dealerhub-web 로컬 경로
@@ -50,8 +50,10 @@ export function matchSections(ref: ManualRef, changedFiles: string[], changedKey
   return affected
 }
 
-export function findAffected({ repo, base, head = 'HEAD', locale = DEFAULT_LOCALE, ...ref }: AffectedOptions) {
+// locale을 안 주면 manual.yaml code에서, 그것도 없으면 BO en.json
+export function findAffected({ repo, base, head = 'HEAD', locale, ...ref }: AffectedOptions) {
   const range = `${base}...${head}`
+  locale ??= localePath(loadManual(ref)) ?? DEFAULT_LOCALE
   const git = (...args: string[]) =>
     execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   const changedFiles = git('diff', '--name-only', range).split('\n').filter(Boolean)

@@ -3,7 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { chapterNo, loadManual, manualDir, readSection, stripFrontMatter, type ManualRef } from './manual.ts'
+import { chapterNo, loadManual, manualDir, outputName, readSection, stripFrontMatter, type ManualRef } from './manual.ts'
 
 export interface BuildOptions extends ManualRef {
   // 빌드할 장 번호. 없으면 전체
@@ -56,7 +56,7 @@ export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: Build
   mkdirSync(distDir, { recursive: true })
   const suffix = chapters ? `_ch${chapters.join('-')}` : ''
   const merged = join(distDir, `${ref.manual}${suffix}.md`)
-  const docx = join(distDir, `Hyundai-Dealers Admin User Manual_v${manual.version}_EN${suffix}.docx`)
+  const docx = join(distDir, `${outputName(manual)}${suffix}.docx`)
   writeFileSync(merged, markdown)
 
   const result = spawnSync(

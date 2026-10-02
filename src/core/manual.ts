@@ -1,5 +1,5 @@
 // manual.yaml과 섹션 Markdown을 읽는 공통 함수. CLI와 앱이 같이 쓴다
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import YAML from 'yaml'
 
@@ -15,10 +15,32 @@ export interface Chapter {
   sections: string[]
 }
 
+export interface Viewport {
+  width: number
+  height: number
+}
+
 export interface Manual {
   title: string
   version: string
+  // Word 파일 이름(확장자 제외). {version}을 버전으로 바꾼다
+  output?: string
+  // 캡처 대상 (STG). 매뉴얼마다 사이트가 다르다
+  capture?: { baseUrl?: string; viewport?: Viewport }
+  // affected가 볼 dealerhub-web 앱
+  code?: { app?: string; locale?: string }
   chapters: Chapter[]
+}
+
+export const DEFAULT_VIEWPORT: Viewport = { width: 1440, height: 900 }
+
+export function outputName(manual: Manual) {
+  return (manual.output ?? `${manual.title}_v{version}`).replaceAll('{version}', manual.version)
+}
+
+// code.app만 있으면 en.json 위치를 정해진 규칙으로 찾는다
+export function localePath(manual: Manual) {
+  return manual.code?.locale ?? (manual.code?.app ? `${manual.code.app}/src/locales/en.json` : undefined)
 }
 
 // 섹션 front-matter. dealerhub-web 코드와의 연결 키
@@ -35,6 +57,11 @@ export function manualDir({ root, manual }: ManualRef) {
 
 export function loadManual(ref: ManualRef): Manual {
   return YAML.parse(readFileSync(join(manualDir(ref), 'manual.yaml'), 'utf8'))
+}
+
+// manual.yaml은 YAML.stringify 형식으로만 쓴다 (앱과 CLI가 같은 diff를 내도록)
+export function saveManual(ref: ManualRef, manual: Manual) {
+  writeFileSync(join(manualDir(ref), 'manual.yaml'), YAML.stringify(manual))
 }
 
 export function readSection(ref: ManualRef, chapter: Chapter, file: string) {

@@ -6,13 +6,16 @@ import { findAffected } from '../../src/core/affected.ts'
 import { buildDocx } from '../../src/core/build.ts'
 import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
-import type { ManualRef, SectionMeta } from '../../src/core/manual.ts'
+import { loadManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
 import type {
   AuthStatus,
   EnvCheck,
   FileChange,
   GithubUser,
   ImportImageInput,
+  ImportInput,
+  ManualConfig,
+  ManualInfo,
   NewSectionInput,
   Settings,
   ShotInfo,
@@ -20,6 +23,7 @@ import type {
 } from '../shared/api.ts'
 import { findChrome, findPandoc, formatAge } from './lib/environment.ts'
 import * as gitOps from './lib/git.ts'
+import { analyzeInWorker, importInWorker } from './importer.ts'
 import { checkRepoAccess, commitAuthor, createPullRequest, getUser, latestAppRelease } from './lib/github.ts'
 import { renderSection } from './lib/preview.ts'
 import {
@@ -42,7 +46,30 @@ import { authFile, clearToken, getSettings, readToken, saveToken, updateSettings
 const netFetch = (url: string, init?: RequestInit) => net.fetch(url, init)
 const http = gitOps.makeHttp(netFetch)
 
-const ref = (): ManualRef => ({ root: getSettings().workspaceDir, manual: getSettings().manual })
+// 고른 매뉴얼이 없어졌으면(되돌리기 등) 남은 매뉴얼로 바꾼다
+const ref = (): ManualRef => {
+  const { workspaceDir, manual } = getSettings()
+  if (!existsSync(join(workspaceDir, 'manuals', manual, 'manual.yaml'))) {
+    const fallback = listManuals(workspaceDir)
+    const next = fallback.includes('bo') ? 'bo' : fallback[0]
+    if (next && next !== manual) return { root: workspaceDir, manual: updateSettings({ manual: next }).manual }
+  }
+  return { root: workspaceDir, manual }
+}
+
+// E2E가 가짜 BO를 쓸 때만 덮어쓴다. 평소에는 manual.yaml capture.baseUrl
+function captureBaseUrl() {
+  const url = process.env.ARIADNE_CAPTURE_BASE_URL || loadManual(ref()).capture?.baseUrl
+  if (!url) throw new Error('캡처 대상 주소가 없습니다. 설정 → 매뉴얼에서 지정하세요')
+  return url
+}
+
+function manualInfos(root: string): ManualInfo[] {
+  return listManuals(root).map((id) => {
+    const m = loadManual({ root, manual: id })
+    return { id, title: m.title, version: m.version }
+  })
+}
 
 function requireToken() {
   const token = readToken()
@@ -105,6 +132,12 @@ async function fileChanges(): Promise<FileChange[]> {
     if (path.startsWith(prefix) && path.endsWith('.md')) return { path, status, label: path.slice(prefix.length), kind: 'section' }
     return { path, status, label: path, kind: 'other' }
   })
+}
+
+function withOptional<K extends 'output' | 'capture' | 'code'>(key: K, patch: Partial<ManualConfig>, current: ManualConfig) {
+  const value = key in patch ? patch[key] : current[key]
+  const empty = value === undefined || value === '' || (typeof value === 'object' && !Object.keys(value as object).length)
+  return empty ? {} : { [key]: value }
 }
 
 let pendingLogin: { resolve: () => void; reject: (error: Error) => void } | undefined
@@ -196,12 +229,12 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       detail: chrome ?? '설치되어 있지 않습니다. 캡처를 쓰지 않으면 없어도 됩니다',
       link: chrome ? undefined : { label: 'Chrome 받기', url: 'https://www.google.com/chrome/' },
     })
-    const session = authFile(settings.manual)
+    const session = workspaceState().cloned ? authFile(ref().manual) : authFile(settings.manual)
     checks.push({
       id: 'session',
       ok: existsSync(session),
       required: false,
-      label: 'BO 로그인 세션 (화면 캡처)',
+      label: '로그인 세션 (화면 캡처)',
       detail: existsSync(session)
         ? `${formatAge(Date.now() - statSync(session).mtimeMs)} 로그인. 만료되면 캡처 화면에서 다시 로그인하세요`
         : '캡처할 때 로그인합니다',
@@ -248,7 +281,62 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   })
 
   // manual
-  handle('manual:list', () => listManuals(requireWorkspace()))
+  handle('manual:list', () => manualInfos(requireWorkspace()))
+  handle('manual:config', (): ManualConfig => {
+    const { chapters: _chapters, ...config } = loadManual(ref())
+    return config
+  })
+  handle('manual:updateConfig', (patch: Partial<ManualConfig>): ManualConfig => {
+    const r = ref()
+    const current = loadManual(r)
+    // 키 순서를 지켜 불필요한 diff를 줄인다
+    const next = {
+      title: patch.title ?? current.title,
+      version: patch.version ?? current.version,
+      ...withOptional('output', patch, current),
+      ...withOptional('capture', patch, current),
+      ...withOptional('code', patch, current),
+      chapters: current.chapters,
+    }
+    saveManual(r, next)
+    const { chapters: _chapters, ...config } = next
+    return config
+  })
+  handle('manual:pickDocx', async () => {
+    const window = getWindow()
+    const options = {
+      title: '매뉴얼 Word 파일',
+      properties: ['openFile' as const],
+      filters: [{ name: 'Word', extensions: ['docx'] }],
+    }
+    const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options)
+    return result.canceled ? null : result.filePaths[0]
+  })
+  handle('manual:analyzeDocx', (path: string) => analyzeInWorker(path, requirePandoc()))
+  handle('manual:importDocx', async (input: ImportInput) => {
+    const root = requireWorkspace()
+    if (existsSync(join(root, 'manuals', input.id))) throw new Error(`이미 있는 매뉴얼 id입니다: ${input.id}`)
+    const result = await importInWorker(
+      {
+        root,
+        manual: input.id,
+        docx: input.docx,
+        pandoc: requirePandoc(),
+        title: input.title.trim(),
+        version: input.version.trim(),
+        output: input.output.trim() || undefined,
+        capture: {
+          ...(input.capture.baseUrl.trim() ? { baseUrl: input.capture.baseUrl.trim() } : {}),
+          viewport: input.capture.viewport,
+        },
+        code: input.code,
+        keepSource: input.keepSource,
+      },
+      (progress) => send('import-progress', progress),
+    )
+    updateSettings({ manual: result.manual })
+    return result.manual
+  })
   handle('manual:tree', async () => {
     requireWorkspace()
     const modified = new Set((await gitOps.changes(ref().root)).map((c) => c.path))
@@ -314,16 +402,16 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     }))
   })
   handle('capture:session', () => {
-    const file = authFile(getSettings().manual)
+    const file = authFile(ref().manual)
     return existsSync(file) ? { exists: true, savedAt: statSync(file).mtimeMs } : { exists: false }
   })
   handle('capture:login', async () => {
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
     pendingLogin?.reject(new Error('새 로그인으로 대체되었습니다'))
-    const settings = getSettings()
+    const r = ref()
     await login({
-      baseUrl: settings.boBaseUrl,
-      authFile: authFile(settings.manual),
+      baseUrl: captureBaseUrl(),
+      authFile: authFile(r.manual),
       waitUntilDone: () =>
         new Promise<void>((resolve, reject) => {
           pendingLogin = { resolve, reject }
@@ -335,12 +423,11 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('capture:finishLogin', () => pendingLogin?.resolve())
   handle('capture:cancelLogin', () => pendingLogin?.reject(new Error('로그인을 취소했습니다')))
   handle('capture:run', async (ids: string[]) => {
-    const settings = getSettings()
     const r = ref()
     return capture({
       ...r,
-      baseUrl: settings.boBaseUrl,
-      authFile: authFile(settings.manual),
+      baseUrl: captureBaseUrl(),
+      authFile: authFile(r.manual),
       shots: await loadShotsBundled(r),
       only: ids,
       apply: false,

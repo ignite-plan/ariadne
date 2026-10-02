@@ -8,6 +8,7 @@ import {
   loadManual,
   manualDir,
   parseFrontMatter,
+  saveManual,
   type Manual,
   type ManualRef,
   type SectionMeta,
@@ -137,9 +138,7 @@ export function slugify(text: string) {
     .replace(/^-|-$/g, '')
 }
 
-function writeManual(ref: ManualRef, manual: Manual) {
-  writeFileSync(join(manualDir(ref), 'manual.yaml'), YAML.stringify(manual))
-}
+const writeManual = (ref: ManualRef, manual: Manual) => saveManual(ref, manual)
 
 const pad = (n: number) => String(n).padStart(2, '0')
 

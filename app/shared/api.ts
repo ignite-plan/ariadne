@@ -1,9 +1,31 @@
 // main ↔ renderer 계약. preload가 window.ariadne로 노출한다
 import type { AffectedSection } from '../../src/core/affected.ts'
 import type { CaptureReport } from '../../src/core/capture.ts'
-import type { SectionMeta } from '../../src/core/manual.ts'
+import type { DocxAnalysis, ImportProgress } from '../../src/core/import.ts'
+import type { Manual, SectionMeta, Viewport } from '../../src/core/manual.ts'
 
-export type { AffectedSection, CaptureReport, SectionMeta }
+export type { AffectedSection, CaptureReport, DocxAnalysis, ImportProgress, SectionMeta, Viewport }
+
+// manual.yaml에서 chapters를 뺀 매뉴얼 설정
+export type ManualConfig = Omit<Manual, 'chapters'>
+
+export interface ManualInfo {
+  id: string
+  title: string
+  version: string
+}
+
+export interface ImportInput {
+  docx: string
+  // 새 매뉴얼 id (manuals/<id>)
+  id: string
+  title: string
+  version: string
+  output: string
+  capture: { baseUrl: string; viewport: Viewport }
+  code?: { app: string }
+  keepSource: boolean
+}
 
 export interface Settings {
   // 매뉴얼 리포 (clone/push 대상)
@@ -12,7 +34,6 @@ export interface Settings {
   // 로컬 clone 위치
   workspaceDir: string
   manual: string
-  boBaseUrl: string
   // 비어 있으면 /opt/homebrew/bin, /usr/local/bin에서 찾는다
   pandocPath: string
   // 개발자용. dealerhub-web 로컬 경로, 비어 있으면 변경 영향 메뉴를 숨긴다
@@ -184,7 +205,12 @@ export interface AriadneApi {
     reveal(relPath?: string): Promise<void>
   }
   manual: {
-    list(): Promise<string[]>
+    list(): Promise<ManualInfo[]>
+    config(): Promise<ManualConfig>
+    updateConfig(patch: Partial<ManualConfig>): Promise<ManualConfig>
+    pickDocx(): Promise<string | null>
+    analyzeDocx(path: string): Promise<DocxAnalysis>
+    importDocx(input: ImportInput): Promise<string>
     tree(): Promise<ManualTree>
     read(path: string): Promise<SectionDoc>
     write(path: string, body: string, meta?: SectionMeta): Promise<void>
@@ -222,6 +248,7 @@ export interface AriadneApi {
   }
   on(event: 'capture-progress', listener: (progress: CaptureProgress) => void): () => void
   on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
+  on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
 }
 
 // 리포 안 파일을 renderer에서 보여 줄 때 쓰는 custom protocol

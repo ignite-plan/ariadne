@@ -57,7 +57,7 @@ export function CapturePanel({
     try {
       await api.capture.login()
       setSession(await api.capture.session())
-      toast.show('success', 'BO 로그인 세션을 저장했습니다')
+      toast.show('success', '로그인 세션을 저장했습니다')
     } catch (e) {
       if (!errorMessage(e).includes('취소')) toast.error(e)
     } finally {
@@ -75,7 +75,7 @@ export function CapturePanel({
       setAdopt(new Set(result.changed))
       setStamp(Date.now())
       if (result.failed.some((f) => f.error.startsWith('세션 만료'))) {
-        toast.show('error', 'BO 세션이 만료되었습니다. 다시 로그인하세요')
+        toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
       }
     } catch (e) {
       toast.error(e)
@@ -108,7 +108,7 @@ export function CapturePanel({
       <header className="panel-header">
         <div>
           <h1>화면 캡처</h1>
-          <p className="muted">STG BO 화면을 다시 찍어 바뀐 이미지만 골라 반영합니다. 저장·삭제 버튼은 누르지 않습니다.</p>
+          <p className="muted">STG 화면을 다시 찍어 바뀐 이미지만 골라 반영합니다. 저장·삭제 버튼은 누르지 않습니다.</p>
         </div>
         <button className="icon-button" onClick={onClose} aria-label="닫기" disabled={running}>
           <Icon name="x" />
@@ -120,7 +120,7 @@ export function CapturePanel({
           <div className={`session ${session.exists ? 'ok' : ''}`}>
             <Icon name={session.exists ? 'check' : 'login'} />
             <div>
-              <b>{session.exists ? 'BO 로그인됨' : 'BO 로그인 필요'}</b>
+              <b>{session.exists ? 'STG 로그인됨' : 'STG 로그인 필요'}</b>
               <span className="muted">
                 {session.exists && session.savedAt ? `${age(session.savedAt)} 로그인` : 'MFA 로그인이 필요합니다'}
               </span>
@@ -244,10 +244,10 @@ export function CapturePanel({
       </div>
 
       {loggingIn && (
-        <Modal title="BO 로그인" onClose={() => void api.capture.cancelLogin()} width={440}>
+        <Modal title="STG 로그인" onClose={() => void api.capture.cancelLogin()} width={440}>
           <ol className="howto">
-            <li>방금 열린 Chrome 창에서 STG BO에 로그인합니다 (MFA 포함)</li>
-            <li>BO 메인 화면이 보이면 아래 버튼을 누릅니다</li>
+            <li>방금 열린 Chrome 창에서 STG에 로그인합니다 (MFA 포함)</li>
+            <li>메인 화면이 보이면 아래 버튼을 누릅니다</li>
           </ol>
           <div className="actions">
             <button className="button" onClick={() => void api.capture.cancelLogin()}>

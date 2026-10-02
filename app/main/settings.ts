@@ -13,7 +13,6 @@ export function defaultSettings(): Settings {
     branch: 'main',
     workspaceDir: join(app.getPath('documents'), 'Ariadne'),
     manual: 'bo',
-    boBaseUrl: 'https://stg-dealers-admin.hyundai-corp.io/ca/admin',
     pandocPath: '',
     dealerhubWebDir: '',
     submitMode: 'push',

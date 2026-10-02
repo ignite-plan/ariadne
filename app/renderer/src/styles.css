@@ -671,9 +671,49 @@ details.advanced summary {
 .titlebar-left {
   gap: 14px;
 }
-.manual-title {
+.manual-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 360px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
   color: var(--text-2);
-  max-width: 320px;
+  cursor: pointer;
+}
+.manual-switch:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.chevron.down {
+  transform: rotate(90deg);
+}
+.menu.left {
+  left: 0;
+  right: auto;
+  min-width: 300px;
+}
+.menu-label {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+.menu-divider {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--border);
+}
+.menu button b {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.menu button.current b {
+  color: var(--accent);
 }
 .sync-badge {
   display: inline-flex;
@@ -1806,4 +1846,113 @@ details.advanced summary {
 .toast .icon-button {
   color: inherit;
   opacity: 0.6;
+}
+
+/* ---------- import wizard ---------- */
+.import-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 8px 8px;
+  text-align: center;
+}
+.import-pick > svg {
+  color: var(--accent);
+}
+.import-pick p {
+  margin: 0;
+  line-height: 1.6;
+}
+.import-review {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  min-height: 420px;
+}
+.import-outline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: 60vh;
+}
+.import-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.import-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.import-warnings {
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12.5px;
+}
+.import-warnings li {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+}
+.import-warnings svg {
+  flex: none;
+  margin-top: 2px;
+}
+.import-chapters {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: 10px 12px 10px 14px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.import-chapters > li {
+  margin-bottom: 8px;
+}
+.import-chapters ul {
+  margin: 2px 0 0;
+  padding-left: 16px;
+  list-style: none;
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+.import-chapters ul li {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+.import-form .field-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+}
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+  font-style: normal;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12.5px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.check input {
+  accent-color: var(--accent);
+  margin-top: 2px;
+}
+.hint.first {
+  margin: 0 0 14px;
 }

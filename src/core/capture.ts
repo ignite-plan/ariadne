@@ -5,11 +5,14 @@ import { pathToFileURL } from 'node:url'
 import pixelmatch from 'pixelmatch'
 import { chromium } from 'playwright'
 import { PNG } from 'pngjs'
-import { manualDir, type ManualRef } from './manual.ts'
+import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from './manual.ts'
 import type { Shot } from './shot.ts'
 
 export interface CaptureOptions extends ManualRef {
-  baseUrl: string
+  // 없으면 manual.yaml capture.baseUrl
+  baseUrl?: string
+  // 없으면 manual.yaml capture.viewport, 그것도 없으면 1440x900
+  viewport?: Viewport
   // 기본 <root>/.auth/<manual>.json
   authFile?: string
   // 없으면 manuals/<manual>/shots.ts를 import. 앱은 TS를 직접 import할 수 없어 미리 읽어 넘긴다
@@ -59,7 +62,8 @@ export function adoptShots(ref: ManualRef, ids: string[]) {
 }
 
 export async function capture({
-  baseUrl,
+  baseUrl: baseUrlOption,
+  viewport: viewportOption,
   authFile,
   shots,
   only,
@@ -68,6 +72,10 @@ export async function capture({
   onProgress,
   ...ref
 }: CaptureOptions): Promise<CaptureReport> {
+  const manual = loadManual(ref)
+  const baseUrl = baseUrlOption || manual.capture?.baseUrl
+  if (!baseUrl) throw new Error('캡처 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')
+  const viewport = viewportOption ?? manual.capture?.viewport ?? DEFAULT_VIEWPORT
   const auth = authFile ?? defaultAuthFile(ref)
   if (!existsSync(auth)) throw new Error(`${auth} 없음. 로그인 먼저 실행`)
   const targets = (shots ?? (await loadShots(ref))).filter((s) => !only || only.includes(s.id))
@@ -83,7 +91,7 @@ export async function capture({
   try {
     const context = await browser.newContext({
       storageState: auth,
-      viewport: { width: 1440, height: 900 },
+      viewport,
       deviceScaleFactor: 1,
       locale: 'en-US',
     })

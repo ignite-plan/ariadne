@@ -1,8 +1,8 @@
 # Ariadne
 
-Dealers BO 사용자 매뉴얼(영문, Word)을 만드는 리포입니다.
+Dealers 사용자 매뉴얼(영문, Word)을 만드는 리포입니다. BO, FO 등 매뉴얼 여러 개를 함께 관리합니다.
 
-- 매뉴얼 원본은 `manuals/bo/`의 Markdown입니다. Word 파일은 원본으로 만드는 결과물입니다.
+- 매뉴얼 원본은 `manuals/<매뉴얼 id>/`의 Markdown입니다(예: `manuals/bo/`). Word 파일은 원본으로 만드는 결과물입니다.
 - **기획자**는 macOS 앱 **Ariadne**로 문서를 고치고, 화면을 캡처하고, Word를 만들고, 제출합니다. 터미널과 git은 몰라도 됩니다.
 - **개발자**는 `pnpm` 명령과 Claude 스킬로 dealerhub-web 릴리즈 변경을 매뉴얼에 반영합니다.
 
@@ -10,6 +10,7 @@ Dealers BO 사용자 매뉴얼(영문, Word)을 만드는 리포입니다.
 |---|---|
 | 앱 설치 | [설치 가이드](app/INSTALL.md) |
 | 앱으로 매뉴얼 고치기 | [기획자 사용법](#기획자-사용법) |
+| Word 원본으로 새 매뉴얼 만들기 | [새 매뉴얼 가져오기](#새-매뉴얼-가져오기) |
 | 매뉴얼 문장 규칙 | [작성 규칙](#작성-규칙) |
 | 릴리즈 변경 반영, 신규 메뉴 추가 | [개발자 사용법](#개발자-사용법) |
 | 앱 수정·배포 | [앱 개발](#앱-개발) |
@@ -46,6 +47,7 @@ Dealers BO 사용자 매뉴얼(영문, Word)을 만드는 리포입니다.
 
 | 영역 | 설명 |
 |---|---|
+| 매뉴얼 이름 | 누르면 다른 매뉴얼로 바꾸거나 새 매뉴얼을 가져옵니다 |
 | 동기화 표시 | `최신`, `새 변경 있음`, `합칠 변경 있음`, `오프라인`. 누르면 다시 받아 옵니다 |
 | 목차 탭 | 장과 화면 목록입니다. 노란 숫자는 남은 TODO 수, 빨간 점은 아직 제출하지 않은 변경입니다 |
 | TODO 탭 | 매뉴얼 전체의 TODO를 모아 보여 줍니다. 누르면 그 줄로 이동합니다 |
@@ -80,12 +82,12 @@ Dealers BO 사용자 매뉴얼(영문, Word)을 만드는 리포입니다.
 
 PNG가 아닌 이미지는 PNG로 바꿔 저장합니다.
 
-### 화면 캡처 (STG BO)
+### 화면 캡처 (STG)
 
-BO 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다.
+화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다. 캡처 대상 주소와 화면 크기는 매뉴얼마다 정해져 있습니다(설정 → 매뉴얼).
 
 1. 위쪽 **캡처**를 누릅니다.
-2. 처음이거나 세션이 만료되었으면 **로그인**을 누릅니다. Chrome 창이 열리면 STG BO에 로그인(MFA 포함)하고, 앱에서 **로그인 완료**를 누릅니다.
+2. 처음이거나 세션이 만료되었으면 **로그인**을 누릅니다. Chrome 창이 열리면 STG에 로그인(MFA 포함)하고, 앱에서 **로그인 완료**를 누릅니다. 로그인 세션은 매뉴얼마다 따로 저장합니다.
 3. **지금 화면** 또는 **전체**에서 캡처할 이미지를 고르고 **N장 캡처**를 누릅니다.
 4. 바뀐 이미지만 **지금 매뉴얼 / 새로 찍은 화면**으로 나란히 나옵니다. 반영할 것만 체크하고 **선택한 N장 반영**을 누릅니다.
 
@@ -97,6 +99,30 @@ BO 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다.
 
 - **추가**: 목차 아래 **새 화면**을 누르거나, 장 이름 옆 **+**를 누릅니다. 장을 고르고 화면 이름(영어)을 넣습니다. 새 장도 만들 수 있습니다.
 - **삭제**: 목차에서 화면에 마우스를 올리고 🗑를 누릅니다. 제출 전이면 **변경** 탭에서 되돌릴 수 있습니다.
+
+### 새 매뉴얼 가져오기
+
+BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴얼을 만듭니다.
+
+1. 위쪽 매뉴얼 이름 → **새 매뉴얼 가져오기…**
+2. **Word 파일 고르기…**로 원본을 고릅니다. 앱이 장, 화면, 이미지 수를 분석해 보여 줍니다. 이 단계에서는 아무것도 바뀌지 않습니다.
+   - 노란 경고가 있으면 내용을 확인합니다. 예: 목차의 제목을 본문에서 못 찾은 경우, 이미지 수가 맞지 않는 경우
+3. 정보를 확인합니다. 대부분 자동으로 채워집니다.
+
+   | 항목 | 설명 |
+   |---|---|
+   | 매뉴얼 제목 | 표지에서 가져옵니다. 예: `Dealers FO User Manual` |
+   | id | 폴더 이름(영문). 제목에서 만듭니다. 예: `fo` |
+   | 버전 | 파일 이름의 `_v1.2.3`에서 가져옵니다. 없으면 `1.0.0` |
+   | Word 파일 이름 | Word 만들기로 생기는 파일 이름. `{version}`은 버전으로 바뀝니다 |
+   | 화면(코드) 연결 | 딜러포털 FO / BO / Dealer Profile. 고르면 캡처 주소가 채워집니다 |
+   | 캡처 주소, 화면 크기 | STG 주소와 PC/모바일 |
+   | 원본 Word 보관 | 켜 두면 `manuals/<id>/source/`에 원본을 같이 둡니다(나중에 서식을 다시 뽑을 때 필요) |
+
+4. **가져오기**를 누르면 새 매뉴얼로 바뀝니다. 미리보기로 확인하고 **제출**합니다.
+
+- 가져온 매뉴얼은 자동 캡처 정의가 비어 있습니다. 캡처가 필요하면 개발자에게 `shots.ts` 추가를 요청합니다.
+- 잘못 가져왔으면 제출 전에 다른 매뉴얼로 바꾼 뒤 **변경** 탭의 **모두 되돌리기**로 지웁니다.
 
 ### Word 만들기
 
@@ -120,9 +146,10 @@ BO 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다.
 
 | 탭 | 내용 |
 |---|---|
-| 일반 | 매뉴얼 선택, 제출 방식, BO(STG) 주소 |
+| 일반 | 매뉴얼 선택, 제출 방식 |
+| 매뉴얼 | 지금 매뉴얼의 제목, 버전, Word 파일 이름, 캡처 주소와 화면 크기, 코드 연결. 바꾸면 제출해야 다른 사람에게 반영됩니다 |
 | 계정 | GitHub 계정 확인, 토큰 바꾸기, 로그아웃 |
-| 환경 점검 | pandoc, Chrome, BO 세션 상태와 설치 링크 |
+| 환경 점검 | pandoc, Chrome, 로그인 세션 상태와 설치 링크 |
 | 고급 | 리포 주소, 작업 폴더, pandoc 경로, dealerhub-web 경로 |
 | 변경 영향 | 개발자용. 두 릴리즈 사이 코드 변경이 어느 화면에 영향을 주는지 찾기 |
 | 정보 | 앱 버전, 새 버전 확인 |
@@ -142,7 +169,7 @@ BO 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다.
 
 ## 작성 규칙
 
-매뉴얼 독자는 HMG/법인 BO 운영자입니다. 형식은 [`manuals/bo/_template.md`](manuals/bo/_template.md)를 따릅니다.
+독자는 매뉴얼마다 다릅니다(BO: HMG/법인 운영자, FO: 딜러 사용자). 형식은 [`manuals/bo/_template.md`](manuals/bo/_template.md)를 따릅니다.
 
 - 영어, 현재형, 짧은 문장으로 씁니다.
 - 화면 하나는 파일 하나이고, 제목(H2)도 하나입니다. 장 제목(H1)은 빌드가 붙입니다.
@@ -172,11 +199,27 @@ BO 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다.
 
 ## 개발자 사용법
 
+### 매뉴얼 설정 (`manual.yaml`)
+
+```yaml
+title: Dealers Admin User Manual
+version: 1.0.7
+output: Hyundai-Dealers Admin User Manual_v{version}_EN   # Word 파일 이름
+capture:
+  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca/admin
+  viewport: { width: 1440, height: 900 }                  # 없으면 1440x900
+code:
+  app: apps/hyundai-bo                                    # affected가 볼 en.json: <app>/src/locales/en.json
+chapters: [...]
+```
+
+`manual.yaml`은 `YAML.stringify` 형식으로만 씁니다(`saveManual`). 앱과 CLI가 같은 diff를 내게 하기 위해서입니다.
+
 ### 준비
 
 ```bash
 pnpm install
-cp .env.example .env    # BO_BASE_URL(STG), DEALERHUB_WEB_DIR(dealerhub-web 로컬 경로)
+cp .env.example .env    # DEALERHUB_WEB_DIR(dealerhub-web 로컬 경로), BO_BASE_URL(bo 캡처 주소 덮어쓰기, 선택)
 brew install pandoc     # Google Chrome도 필요
 ```
 
@@ -190,6 +233,8 @@ brew install pandoc     # Google Chrome도 필요
 | `pnpm capture --manual bo [--only id,…]` | STG 캡처. 바뀐 이미지만 교체하고 `.capture/bo/report.json`에 결과를 남깁니다 |
 | `pnpm affected --manual bo --base <ref> [--head <ref>]` | dealerhub-web 두 ref 사이 변경 → 영향 섹션, 변경 i18n key, 이미지 |
 | `pnpm build --manual bo [--chapters 2,5]` | `dist/*.docx` |
+| `pnpm import:docx --docx <file> --manual <id> [--title] [--version] [--keep-source]` | Word 원본 → 새 매뉴얼. `--analyze`는 분석만 합니다 |
+| `pnpm make:reference --docx <file> --manual <id>` | 원본 서식으로 `reference.docx`를 다시 만듭니다 |
 | `pnpm typecheck` / `pnpm test` | 타입 검사 / core + app 테스트 |
 
 ### 릴리즈 변경 반영
@@ -242,7 +287,8 @@ pnpm app:dist     # release/Ariadne-<version>-arm64.dmg
 ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne.app]
 ```
 
-- E2E는 실제 GitHub에서 clone하고, 편집, 되돌리기, Word 만들기, 가짜 BO 캡처를 확인합니다. 제출(push)은 하지 않습니다.
+- E2E는 실제 GitHub에서 clone하고, 편집, 되돌리기, Word 만들기, 가짜 BO 캡처, Word 가져오기를 확인합니다. 제출(push)은 하지 않습니다.
+- `ARIADNE_CAPTURE_BASE_URL`은 캡처 주소를 덮어씁니다(E2E의 가짜 BO).
 - 앱 main의 네트워크는 Electron `net.fetch`만 씁니다(사내 TLS 프록시 때문에 Node fetch가 실패). git은 isomorphic-git이라 기획자 PC에 Xcode CLT가 없어도 됩니다.
 - 제출은 main에 바로 push합니다. 충돌하면 `ariadne/<login>-<시각>` 브랜치와 PR을 만듭니다.
 - `ARIADNE_USER_DATA`로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꿀 수 있습니다(E2E, 두 번째 프로필).
@@ -259,10 +305,10 @@ git tag app-v1.1.0 && git push origin app-v1.1.0
 ### 구조
 
 ```
-manuals/bo/          매뉴얼 원본 (manual.yaml, 장/화면 .md, images/, shots.ts, reference.docx)
-src/core/            빌드·캡처·로그인·affected 함수 (CLI와 앱 공용)
+manuals/<id>/        매뉴얼 원본 (manual.yaml, 장/화면 .md, images/, shots.ts, reference.docx, source/원본.docx)
+src/core/            빌드·캡처·로그인·affected·Word 가져오기 함수 (CLI와 앱 공용)
 src/cli/             pnpm 명령 진입점
-app/main/            Electron main (IPC, git, GitHub, pandoc 미리보기)
+app/main/            Electron main (IPC, git, GitHub, pandoc 미리보기, 가져오기 utilityProcess)
 app/main/lib/        Electron에 의존하지 않는 로직 (단위 테스트 대상)
 app/preload/         window.ariadne 노출
 app/renderer/        React UI
