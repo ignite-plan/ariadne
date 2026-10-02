@@ -75,6 +75,8 @@ const api: AriadneApi = {
   },
   draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel') },
   affected: { run: invoke('affected:run') },
+  log: { write: invoke('log:write'), reveal: invoke('log:reveal') },
+  report: { preview: invoke('report:preview'), submit: invoke('report:submit') },
   app: {
     version: invoke('app:version'),
     checkUpdate: invoke('app:checkUpdate'),

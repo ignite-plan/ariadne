@@ -3,6 +3,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron'
 import { ASSET_PROTOCOL } from '../shared/api.ts'
 import { registerIpc } from './ipc.ts'
+import { installErrorHooks, registerReportIpc } from './report-ipc.ts'
 import { isMediaFile, mediaResponse } from './lib/asset.ts'
 import { resolveInside } from './lib/sections.ts'
 import { getSettings } from './settings.ts'
@@ -11,6 +12,7 @@ const here = fileURLToPath(new URL('.', import.meta.url))
 
 // 테스트나 두 번째 프로필용으로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꾼다
 if (process.env.ARIADNE_USER_DATA) app.setPath('userData', process.env.ARIADNE_USER_DATA)
+installErrorHooks()
 
 // asar 안의 esbuild 바이너리는 실행할 수 없어 unpack된 경로를 알려 준다
 if (app.isPackaged) {
@@ -25,6 +27,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let window: BrowserWindow | undefined
+let openReport: () => void = () => {}
 
 function createWindow() {
   window = new BrowserWindow({
@@ -83,6 +86,8 @@ function buildMenu() {
       {
         role: 'help',
         submenu: [
+          { label: '문제 신고…', click: () => openReport() },
+          { type: 'separator' },
           {
             label: '매뉴얼 리포 열기 (GitHub)',
             click: () => void shell.openExternal(getSettings().repoUrl),
@@ -117,6 +122,7 @@ if (!app.requestSingleInstanceLock()) {
       }
     })
     registerIpc(() => window)
+    openReport = registerReportIpc(() => window)
     buildMenu()
     createWindow()
     app.on('activate', () => {

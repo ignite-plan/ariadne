@@ -108,7 +108,8 @@ function TokenStep({
           <code>{safeRepo(repoUrl)}</code>
         </li>
         <li>
-          <b>Permissions</b>: <code>Contents</code> Read and write, <code>Pull requests</code> Read and write
+          <b>Permissions</b>: <code>Contents</code> Read and write, <code>Pull requests</code> Read and write,{' '}
+          <code>Issues</code> Read and write (문제 신고)
         </li>
         <li>
           <b>Generate token</b>을 누르고 <code>github_pat_</code>로 시작하는 값을 복사해 아래에 붙여 넣습니다

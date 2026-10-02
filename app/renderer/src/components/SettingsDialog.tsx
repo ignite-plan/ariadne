@@ -5,6 +5,7 @@ import { api, errorMessage } from '../api.ts'
 import { EnvList } from './EnvList.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
+import { openReport } from './ReportDialog.tsx'
 import { useToast } from './Toast.tsx'
 
 type Tab = 'general' | 'manual' | 'account' | 'env' | 'advanced' | 'affected' | 'about'
@@ -484,6 +485,15 @@ function AboutPane() {
           새 버전 {update.latest} 받기 <Icon name="external" size={13} />
         </button>
       )}
+      <div className="about-actions">
+        <button className="button small" onClick={() => openReport()}>
+          <Icon name="alert" size={14} /> 문제 신고
+        </button>
+        <button className="button small" onClick={() => api.log.reveal()}>
+          <Icon name="folder" size={14} /> 로그 폴더 열기
+        </button>
+      </div>
+      <p className="hint">문제 신고는 GitHub 매뉴얼 리포에 Issue로 올라갑니다. 토큰·API 키·내 컴퓨터 경로는 가려서 보냅니다.</p>
     </div>
   )
 }
