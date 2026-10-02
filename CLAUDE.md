@@ -16,7 +16,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - 앱 가이드 영상: `renderer/.../VideoPanel.tsx`(목록·실행·재생) + `VideoEditor.tsx`(장면 편집). 영상 만들기·음성 듣기는 `main/video-worker.ts`(utilityProcess), STG 기록은 `main/lib/video-record.ts`(+`src/core/video/record.ts`), 음성 모델은 `main/lib/video-model.ts`(net.fetch → userData/models), ffmpeg는 번들된 `ffmpeg-static`(asar.unpacked)
 
 ## 명령
-- `pnpm login --manual bo`: 브라우저에서 MFA 로그인 후 세션 저장 (사람이 직접)
+- `pnpm login --manual bo`: 브라우저에서 MFA 로그인 (사람이 직접). 세션은 유지되는 Chrome 프로필(`.auth/<m>-profile`, 앱은 userData/profiles/<m>)
 - `pnpm capture --manual bo [--only ids]`: STG 캡처, 바뀐 이미지만 교체, `.capture/bo/report.json`
 - `pnpm affected --manual bo --base <ref> [--head <ref>]`: dealerhub-web 변경 → 영향 섹션
 - `pnpm build --manual bo`: `dist/<output>.docx`
@@ -33,6 +33,8 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - UI 라벨은 실제 화면 표기 그대로(STG 화면 또는 dealerhub-web `en.json`)
 - 정책·화면 근거는 **Confluence DLRS 기획서 최신 output**(`[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`, 연결된 정책 문서)이 우선. 위키 SPEC은 보조. 기획서와 화면이 다르면 판단하지 말고 TODO, 근거 없으면 TODO 주석, 추측 금지
 - STG 캡처 중 저장/삭제/발송/승인 버튼 클릭 금지. 영상도 기본 금지(`src/core/safety.ts`를 Claude STG 탐색과 같이 씀: 버튼 이름 + 쓰기 요청 차단)이고, `mutates: true` 시나리오만 STG 테스트 데이터(`Video Test` 접두어)로 실제 저장하고 `cleanup`으로 지운다. 외부 연동 버튼(딜러 생성 최종 `Create` 등)은 누르지 않는다
+- STG 로그인 세션은 `src/core/session.ts`의 유지 프로필(`openProfile`)로만 연다. storageState 파일로 새 컨텍스트를 여러 번 열면 BO 토큰 갱신 때문에 로그아웃된다. 프로필은 한 번에 브라우저 하나라 앱은 `main/lib/profile-lock.ts`로 로그인·캡처·영상·STG 기록·Claude 작업을 하나씩만 돌린다
+- 쓰기 요청 차단(`safety.ts` `isAllowedRequest`)은 로그인 세션 유지 POST(sso/auth 경로, token/refresh)를 통과시킨다. 막으면 BO 인증이 실패해 화면이 403
 - 앱 main에서 네트워크는 `net.fetch`만 쓴다 (사내 TLS 프록시 때문에 Node fetch 실패). git은 isomorphic-git
 - Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-refresh`(기존 화면 최신화, 앱의 "Claude로 최신화"), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안") — 셋 다 비대화형
 - 영상 시나리오는 Claude가 `video_save`(YAML 형식 검사)로만 쓰고 `video_check`(headless 실행)로 확인한다. `mutates`는 Claude가 켤 수 없고, mutates 시나리오는 `video_check`가 실행하지 않는다

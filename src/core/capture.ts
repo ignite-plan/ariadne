@@ -3,9 +3,9 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import pixelmatch from 'pixelmatch'
-import { chromium } from 'playwright'
 import { PNG } from 'pngjs'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from './manual.ts'
+import { clearSession, defaultProfileDir, openProfile, requireSession } from './session.ts'
 import type { Shot } from './shot.ts'
 
 export interface CaptureOptions extends ManualRef {
@@ -13,8 +13,8 @@ export interface CaptureOptions extends ManualRef {
   baseUrl?: string
   // 없으면 manual.yaml capture.viewport, 그것도 없으면 1440x900
   viewport?: Viewport
-  // 기본 <root>/.auth/<manual>.json
-  authFile?: string
+  // 로그인 세션(유지되는 Chrome 프로필). 기본 <root>/.auth/<manual>-profile
+  profileDir?: string
   // 없으면 manuals/<manual>/shots.ts를 import. 앱은 TS를 직접 import할 수 없어 미리 읽어 넘긴다
   shots?: Shot[]
   only?: string[]
@@ -30,10 +30,6 @@ export interface CaptureReport {
   unchanged: string[]
   skipped: string[]
   failed: { id: string; error: string }[]
-}
-
-export function defaultAuthFile({ root, manual }: ManualRef) {
-  return resolve(root, '.auth', `${manual}.json`)
 }
 
 export function captureDir({ root, manual }: ManualRef) {
@@ -64,7 +60,7 @@ export function adoptShots(ref: ManualRef, ids: string[]) {
 export async function capture({
   baseUrl: baseUrlOption,
   viewport: viewportOption,
-  authFile,
+  profileDir,
   shots,
   only,
   threshold = 0.005,
@@ -76,8 +72,8 @@ export async function capture({
   const baseUrl = baseUrlOption || manual.capture?.baseUrl
   if (!baseUrl) throw new Error('캡처 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')
   const viewport = viewportOption ?? manual.capture?.viewport ?? DEFAULT_VIEWPORT
-  const auth = authFile ?? defaultAuthFile(ref)
-  if (!existsSync(auth)) throw new Error(`${auth} 없음. 로그인 먼저 실행`)
+  const profile = profileDir ?? defaultProfileDir(ref)
+  requireSession(profile)
   const targets = (shots ?? (await loadShots(ref))).filter((s) => !only || only.includes(s.id))
   const outDir = captureDir(ref)
   mkdirSync(outDir, { recursive: true })
@@ -86,16 +82,8 @@ export async function capture({
 
   const report: CaptureReport = { changed: [], unchanged: [], skipped: [], failed: [] }
 
-  // 사내망에서 Playwright 브라우저 다운로드가 막혀 있어 설치된 Chrome을 쓴다
-  const browser = await chromium.launch({ channel: 'chrome' })
+  const { context, page } = await openProfile(profile, { viewport })
   try {
-    const context = await browser.newContext({
-      storageState: auth,
-      viewport,
-      deviceScaleFactor: 1,
-      locale: 'en-US',
-    })
-    const page = await context.newPage()
 
     for (const [index, shot] of targets.entries()) {
       onProgress?.({ id: shot.id, index, total: targets.length })
@@ -124,11 +112,14 @@ export async function capture({
       } catch (error) {
         const message = error instanceof Error ? error.message.split('\n')[0] : String(error)
         report.failed.push({ id: shot.id, error: message })
-        if (message.startsWith('세션 만료')) break
+        if (message.startsWith('세션 만료')) {
+          clearSession(profile)
+          break
+        }
       }
     }
   } finally {
-    await browser.close()
+    await context.close().catch(() => {})
   }
   writeFileSync(join(outDir, 'report.json'), JSON.stringify(report, null, 2))
   return report

@@ -56,7 +56,7 @@ export async function startDraft({
   claudeAuth = 'apiKey',
   codeDir,
   captureBaseUrl,
-  authFile,
+  profileDir,
   onEvent,
 }: {
   ref: ManualRef
@@ -66,7 +66,8 @@ export async function startDraft({
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
   codeDir?: string
   captureBaseUrl: string
-  authFile: string
+  // 로그인 세션(유지되는 Chrome 프로필). STG 탐색과 영상 실행해 보기가 번갈아 쓴다
+  profileDir: string
   onEvent: (event: DraftEvent) => void
 }): Promise<DraftResult> {
   if (current) throw new Error('이미 초안을 만드는 중입니다')
@@ -87,16 +88,19 @@ export async function startDraft({
   let stg: StgSession | undefined
   const mcp = await startAriadneMcp({
     ref,
-    stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, authFile })),
+    stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir })),
     // 영상 시나리오를 화면 없이(headless) 실행해 본다. 녹화·음성·파일 없음
-    videoCheck: (id, fromScene) =>
-      renderVideo({ ...ref, id, baseUrl: captureBaseUrl, authFile, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
+    // 프로필은 한 번에 하나만 열 수 있어 STG 탐색 브라우저를 닫고 실행한다 (다음 stg_* 도구에서 다시 연다)
+    videoCheck: async (id, fromScene) => {
+      await stg?.close()
+      return renderVideo({ ...ref, id, baseUrl: captureBaseUrl, profileDir, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
         (r) => ({ ok: true as const, durationMs: r.durationMs, blockedRequests: r.blockedRequests }),
         (error: Error) =>
           error instanceof StepError
             ? { ok: false as const, error: error.message, scene: error.scene, step: error.step }
             : { ok: false as const, error: error.message },
-      ),
+      )
+    },
   })
   const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
   const mcpConfigFile = join(work, 'mcp.json')

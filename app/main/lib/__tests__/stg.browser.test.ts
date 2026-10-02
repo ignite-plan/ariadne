@@ -8,6 +8,7 @@ import { after, before, describe, it } from 'node:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
+import { markSession } from '../../../../src/core/session.ts'
 import { loadManual } from '../../../../src/core/manual.ts'
 import { startAriadneMcp } from '../mcp.ts'
 import { StgSession } from '../stg.ts'
@@ -38,7 +39,7 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
   const requests: string[] = []
   let server: http.Server
   let baseUrl = ''
-  const authFile = join(fx.ref.root, 'auth.json')
+  const profileDir = join(fx.ref.root, 'stg-profile')
 
   before(async () => {
     server = http.createServer((req, res) => {
@@ -56,7 +57,7 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
     })
     await new Promise<void>((done) => server.listen(0, '127.0.0.1', done))
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/ca/admin`
-    writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }))
+    markSession(profileDir, baseUrl)
     writeFileSync(join(fx.dir, 'shots.ts'), "import { defineShots } from '../../src/core/shot.ts'\n\nexport const shots = defineShots([])\n")
     mkdirSync(join(fx.dir, 'images'), { recursive: true })
   })
@@ -66,7 +67,7 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
   })
 
   describe('StgSession', () => {
-    const stg = () => new StgSession({ ...fx.ref, baseUrl, authFile })
+    const stg = () => new StgSession({ ...fx.ref, baseUrl, profileDir })
     let session: StgSession
     before(() => {
       session = stg()
@@ -157,7 +158,7 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
     before(async () => {
       mcp = await startAriadneMcp({
         ref: fx.ref,
-        stg: () => (stg ??= new StgSession({ ...fx.ref, baseUrl, authFile })),
+        stg: () => (stg ??= new StgSession({ ...fx.ref, baseUrl, profileDir })),
         onEvent: (e) => events.push(e.tool),
       })
       client = new Client({ name: 'test', version: '1.0.0' })

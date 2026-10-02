@@ -90,7 +90,8 @@ PNG가 아닌 이미지는 PNG로 바꿔 저장합니다.
 화면이 바뀌었을 때 매뉴얼 이미지를 새로 찍습니다. 캡처 대상 주소와 화면 크기는 매뉴얼마다 정해져 있습니다(설정 → 매뉴얼).
 
 1. 위쪽 **캡처**를 누릅니다.
-2. 처음이거나 세션이 만료되었으면 **로그인**을 누릅니다. Chrome 창이 열리면 STG에 로그인(MFA 포함)하고, 앱에서 **로그인 완료**를 누릅니다. 로그인 세션은 매뉴얼마다 따로 저장합니다.
+2. 처음이거나 세션이 만료되었으면 **로그인**을 누릅니다. Chrome 창이 열리면 STG에 로그인(MFA 포함)하고, STG 화면이 보이면 앱에서 **로그인 완료**를 누릅니다. 로그인 세션은 매뉴얼마다 따로 둔 Chrome 프로필에 남아서 캡처·가이드 영상이 같이 씁니다. 세션이 만료되면 앱이 알려 주니 다시 로그인합니다.
+   - 로그인, 캡처, 영상 만들기·미리보기, STG에서 기록, Claude 작업은 한 번에 하나만 할 수 있습니다(같은 Chrome 프로필을 씁니다).
 3. **지금 화면** 또는 **전체**에서 캡처할 이미지를 고르고 **N장 캡처**를 누릅니다.
 4. 바뀐 이미지만 **지금 매뉴얼 / 새로 찍은 화면**으로 나란히 나옵니다. 반영할 것만 체크하고 **선택한 N장 반영**을 누릅니다.
 
@@ -303,7 +304,7 @@ brew install ffmpeg     # 가이드 영상(pnpm video)에만 필요
 
 | 명령 | 설명 |
 |---|---|
-| `pnpm login --manual bo` | 브라우저에서 STG BO MFA 로그인 → `.auth/bo.json` |
+| `pnpm login --manual bo` | 브라우저에서 STG BO MFA 로그인 → 유지되는 Chrome 프로필 `.auth/bo-profile` |
 | `pnpm capture --manual bo [--only id,…]` | STG 캡처. 바뀐 이미지만 교체하고 `.capture/bo/report.json`에 결과를 남깁니다 |
 | `pnpm affected --manual bo --base <ref> [--head <ref>]` | dealerhub-web 두 ref 사이 변경 → 영향 섹션, 변경 i18n key, 이미지 |
 | `pnpm build --manual bo [--chapters 2,5]` | `dist/*.docx` |
@@ -351,7 +352,7 @@ Claude Code에서 **"<메뉴> 매뉴얼 추가"**(`manual-new-section` 스킬)�
 시나리오 파일 하나로 STG 화면 녹화, 영어 자막, 영어 내레이션을 한 번에 만듭니다. 화면이 바뀌면 다시 실행하면 됩니다.
 
 ```bash
-pnpm login --manual bo                       # 세션이 없을 때 (캡처와 같은 .auth/bo.json)
+pnpm login --manual bo                       # 세션이 없을 때 (캡처와 같은 .auth/bo-profile)
 pnpm video --manual bo --id dealer-list      # → dist/videos/dealer-list.mp4, .srt, .vtt
 pnpm video --manual bo --id dealer-list --preview   # 시나리오 작성 중: 브라우저를 띄워 실행만 (음성·파일 없음)
 ```

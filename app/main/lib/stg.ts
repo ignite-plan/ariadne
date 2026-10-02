@@ -2,9 +2,10 @@
 // 안전장치 두 겹: 저장/삭제류 버튼 클릭 거절, 쓰기 요청(PUT/PATCH/DELETE, 조회가 아닌 POST) 차단
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { chromium, type Browser, type BrowserContext, type Locator, type Page } from 'playwright'
+import type { BrowserContext, Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
 import { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
+import { openProfile } from '../../../src/core/session.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
 
 export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
@@ -109,13 +110,13 @@ export interface OpenResult {
 
 export interface StgOptions extends ManualRef {
   baseUrl: string
-  authFile: string
+  // 로그인 세션(유지되는 Chrome 프로필). 한 번에 브라우저 하나만 열 수 있다
+  profileDir: string
   viewport?: Viewport
   headless?: boolean
 }
 
 export class StgSession {
-  private browser?: Browser
   private context?: BrowserContext
   private page?: Page
   private blocked: string[] = []
@@ -130,26 +131,20 @@ export class StgSession {
 
   private async ensurePage() {
     if (this.page && !this.page.isClosed()) return this.page
-    this.browser ??= await chromium.launch({ channel: 'chrome', headless: this.options.headless ?? true })
-    this.context ??= await this.newContext()
+    if (!this.context) {
+      const { context, page } = await openProfile(this.options.profileDir, { headless: this.options.headless ?? true, viewport: this.viewport })
+      await context.route('**/*', (route) => {
+        const request = route.request()
+        if (isAllowedRequest(request.method(), request.url())) return route.continue()
+        this.blocked.push(`${request.method()} ${request.url()}`)
+        return route.abort('blockedbyclient')
+      })
+      this.context = context
+      this.page = page
+      return page
+    }
     this.page = await this.context.newPage()
     return this.page
-  }
-
-  private async newContext() {
-    const context = await this.browser!.newContext({
-      storageState: this.options.authFile,
-      viewport: this.viewport,
-      deviceScaleFactor: 1,
-      locale: 'en-US',
-    })
-    await context.route('**/*', (route) => {
-      const request = route.request()
-      if (isAllowedRequest(request.method(), request.url())) return route.continue()
-      this.blocked.push(`${request.method()} ${request.url()}`)
-      return route.abort('blockedbyclient')
-    })
-    return context
   }
 
   private url(path: string) {
@@ -251,8 +246,7 @@ export class StgSession {
   }
 
   async close() {
-    await this.browser?.close().catch(() => {})
-    this.browser = undefined
+    await this.context?.close().catch(() => {})
     this.context = undefined
     this.page = undefined
   }

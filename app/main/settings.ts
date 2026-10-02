@@ -64,6 +64,7 @@ export function clearToken() {
 }
 
 // BO 로그인 세션은 리포가 아니라 사용자별 앱 데이터에 둔다
-export function authFile(manual: string) {
-  return join(app.getPath('userData'), 'auth', `${manual}.json`)
+// STG 로그인 세션 = 매뉴얼마다 유지되는 Chrome 프로필 (src/core/session.ts)
+export function profileDir(manual: string) {
+  return join(app.getPath('userData'), 'profiles', manual)
 }

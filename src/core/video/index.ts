@@ -2,10 +2,10 @@
 // TTS 사전 생성 → 녹화(장면마다 자막 표시·조작·음성 길이만큼 대기) → ffmpeg 합성
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { chromium, type Page } from 'playwright'
-import { defaultAuthFile } from '../capture.ts'
+import type { Page } from 'playwright'
 import { DEFAULT_VIEWPORT, loadManual, type ManualRef, type Viewport } from '../manual.ts'
 import { isAllowedRequest } from '../safety.ts'
+import { clearSession, defaultProfileDir, isSessionExpired, openProfile, requireSession } from '../session.ts'
 import { compose } from './compose.ts'
 import { Director } from './director.ts'
 import { MASK_ATTR, overlayScript } from './overlay.ts'
@@ -50,9 +50,7 @@ export interface VideoOptions extends ManualRef {
   // 없으면 manual.yaml capture.baseUrl
   baseUrl?: string
   viewport?: Viewport
-  authFile?: string
-  // 유지되는 Chrome 프로필로 연다 (authFile 대신). BO는 접속할 때마다 토큰을 갱신해서,
-  // 저장한 storageState로 새 컨텍스트를 여러 번 열면 예전 토큰으로 접속해 로그아웃된다
+  // 로그인 세션(유지되는 Chrome 프로필, session.ts). 기본 <root>/.auth/<manual>-profile
   profileDir?: string
   // false면 내레이션 없이 자막만. 없으면 manual.yaml video.tts. provider를 직접 넘길 수도 있다 (테스트)
   tts?: false | TtsConfig | TtsProvider
@@ -115,7 +113,6 @@ export async function renderVideo({
   scenario: scenarioOption,
   baseUrl: baseUrlOption,
   viewport: viewportOption,
-  authFile,
   profileDir,
   tts: ttsOption,
   modelDir,
@@ -143,8 +140,8 @@ export async function renderVideo({
   const baseUrl = baseUrlOption || manual.capture?.baseUrl
   if (!baseUrl) throw new Error('녹화 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')
   const viewport = viewportOption ?? manual.capture?.viewport ?? DEFAULT_VIEWPORT
-  const auth = authFile ?? defaultAuthFile(ref)
-  if (!profileDir && !existsSync(auth)) throw new Error(`${auth} 없음. 로그인 먼저 실행`)
+  const profile = profileDir ?? defaultProfileDir(ref)
+  requireSession(profile)
   const work = videoWorkDir(ref, scenario.id)
   mkdirSync(work, { recursive: true })
   const outputs = videoOutputs(ref, scenario.id, outDir)
@@ -170,13 +167,8 @@ export async function renderVideo({
   const blockedRequests: string[] = []
   const video = join(work, 'screen.mp4')
   let durationMs = 0
-  const headless = !(headed ?? preview)
-  const options = { viewport, deviceScaleFactor: 1, locale: 'en-US' }
-  const browser = profileDir ? undefined : await chromium.launch({ channel: 'chrome', headless })
-  const context = profileDir
-    ? await chromium.launchPersistentContext(profileDir, { channel: 'chrome', headless, ...options })
-    : await browser!.newContext({ storageState: auth, ...options })
-  const closeAll = () => (browser ? browser.close() : context.close()).catch(() => {})
+  const { context, page } = await openProfile(profile, { headless: !(headed ?? preview), viewport })
+  const closeAll = () => context.close().catch(() => {})
   const abort = () => void closeAll()
   signal?.addEventListener('abort', abort, { once: true })
   try {
@@ -190,7 +182,6 @@ export async function renderVideo({
         return route.abort('blockedbyclient')
       })
     }
-    const page = (profileDir && context.pages()[0]) || (await context.newPage())
     page.setDefaultTimeout(stepTimeout)
     const v = new Director(page, { baseUrl, mutates: scenario.mutates })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다
@@ -257,6 +248,8 @@ export async function renderVideo({
     }
   } catch (error) {
     if (signal?.aborted) throw new Error('취소했습니다', { cause: error })
+    // 로그인 페이지로 튕겼으면 로그인 표식을 지워 다음에 다시 로그인하게 한다
+    if (isSessionExpired(error)) clearSession(profile)
     throw error
   } finally {
     signal?.removeEventListener('abort', abort)

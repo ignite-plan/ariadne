@@ -28,13 +28,14 @@ const boBaseUrl = `http://127.0.0.1:${(bo.address() as AddressInfo).port}/ca/adm
 const temp = mkdtempSync(join(tmpdir(), 'ariadne-e2e-'))
 const userData = join(temp, 'user-data')
 const workspace = join(temp, 'workspace')
-mkdirSync(join(userData, 'auth'), { recursive: true })
+mkdirSync(join(userData, 'profiles', 'bo'), { recursive: true })
 writeFileSync(
   join(userData, 'settings.json'),
   JSON.stringify({ workspaceDir: workspace, repoUrl: values.repo ?? 'https://github.com/ignite-plan/ariadne' }),
 )
 // BO 로그인 세션이 있는 상태로 시작한다 (실제 MFA 대신)
-writeFileSync(join(userData, 'auth', 'bo.json'), JSON.stringify({ cookies: [], origins: [] }))
+// 로그인 세션(유지 프로필)의 로그인 표식만 둔다. 가짜 BO는 인증이 없다
+writeFileSync(join(userData, 'profiles', 'bo', 'ariadne-session.json'), JSON.stringify({ baseUrl: boBaseUrl }))
 const shotsDir = values.shots ? resolve(values.shots) : undefined
 if (shotsDir) mkdirSync(shotsDir, { recursive: true })
 

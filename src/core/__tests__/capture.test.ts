@@ -2,7 +2,8 @@ import assert from 'node:assert/strict'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
-import { adoptShots, capture, captureDir, defaultAuthFile, diffRatio, loadShots } from '../capture.ts'
+import { adoptShots, capture, captureDir, diffRatio, loadShots } from '../capture.ts'
+import { defaultProfileDir } from '../session.ts'
 import { createFixture, writePng } from './fixture.ts'
 
 describe('diffRatio', () => {
@@ -47,10 +48,9 @@ describe('capture', () => {
   const fx = createFixture()
   after(fx.cleanup)
 
-  it('세션 파일이 없으면 브라우저를 띄우기 전에 실패', async () => {
-    await assert.rejects(
-      capture({ ...fx.ref, baseUrl: 'https://example.com', shots: [] }),
-      new RegExp(`${defaultAuthFile(fx.ref)} 없음`),
+  it('로그인 세션(프로필 표식)이 없으면 브라우저를 띄우기 전에 실패', async () => {
+    await assert.rejects(capture({ ...fx.ref, baseUrl: 'https://example.com', shots: [] }), (error: Error) =>
+      error.message.startsWith(`STG 로그인 세션 없음 (${defaultProfileDir(fx.ref)})`),
     )
   })
 })

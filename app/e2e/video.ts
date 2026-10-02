@@ -36,7 +36,7 @@ const temp = mkdtempSync(join(tmpdir(), 'ariadne-video-e2e-'))
 const userData = join(temp, 'user-data')
 const workspace = join(temp, 'workspace')
 const models = values.models ? resolve(values.models) : join(temp, 'models')
-mkdirSync(join(userData, 'auth'), { recursive: true })
+mkdirSync(join(userData, 'profiles', 'bo'), { recursive: true })
 cpSync(resolve('manuals/bo'), join(workspace, 'manuals/bo'), { recursive: true })
 writeFileSync(join(workspace, '.gitignore'), 'dist\n.video\n.video-cache\n')
 mkdirSync(join(workspace, 'manuals/bo/videos'), { recursive: true })
@@ -63,7 +63,7 @@ execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: workspace })
 execFileSync('git', ['add', '-A'], { cwd: workspace })
 execFileSync('git', ['-c', 'user.name=e2e', '-c', 'user.email=e2e@local', 'commit', '-q', '-m', 'init'], { cwd: workspace })
 writeFileSync(join(userData, 'settings.json'), JSON.stringify({ workspaceDir: workspace, manual: 'bo' }))
-writeFileSync(join(userData, 'auth', 'bo.json'), JSON.stringify({ cookies: [], origins: [] }))
+writeFileSync(join(userData, 'profiles', 'bo', 'ariadne-session.json'), JSON.stringify({ baseUrl: boBaseUrl }))
 
 const app = await electron.launch({
   ...(values.app

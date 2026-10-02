@@ -10,6 +10,7 @@ import { chromium } from 'playwright'
 import { PNG } from 'pngjs'
 import { MASK_ATTR, overlayScript, renderVideo, StepError, videoWorkDir, type TtsProvider, type VideoScenario } from '../video/index.ts'
 import { createFixture } from './fixture.ts'
+import { markSession } from '../session.ts'
 
 const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const hasFfmpeg = (() => {
@@ -57,7 +58,7 @@ describe('renderVideo (Chrome)', { skip }, () => {
   const posts: string[] = []
   let server: http.Server
   let baseUrl = ''
-  const authFile = join(fx.ref.root, '.auth', 'demo.json')
+  const profileDir = join(fx.ref.root, '.auth', 'demo-profile')
 
   before(async () => {
     server = http.createServer((req, res) => {
@@ -77,15 +78,14 @@ describe('renderVideo (Chrome)', { skip }, () => {
     })
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/admin`
-    mkdirSync(join(fx.ref.root, '.auth'), { recursive: true })
-    writeFileSync(authFile, JSON.stringify({ cookies: [], origins: [] }))
+    markSession(profileDir, baseUrl)
   })
   after(async () => {
     await new Promise((resolve) => server.close(resolve))
     fx.cleanup()
   })
 
-  const options = () => ({ ...fx.ref, baseUrl, authFile, viewport, outDir: 'out' })
+  const options = () => ({ ...fx.ref, baseUrl, profileDir, viewport, outDir: 'out' })
 
   const scenario: VideoScenario = {
     id: 'dealer-list',

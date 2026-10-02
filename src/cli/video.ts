@@ -3,7 +3,7 @@
 // --from: 이 장면(1부터)부터 녹화 / --preview: 브라우저를 띄워 실행만 해 본다 (파일 없음)
 import { relative } from 'node:path'
 import { parseArgs } from 'node:util'
-import { defaultAuthFile, listVideos, renderVideo } from '../core/index.ts'
+import { defaultProfileDir, listVideos, renderVideo } from '../core/index.ts'
 
 try {
   process.loadEnvFile()
@@ -23,7 +23,7 @@ const { values } = parseArgs({
 // .env BO_BASE_URL은 bo 매뉴얼의 주소를 덮어쓴다 (capture와 같음)
 const baseUrl = values.manual === 'bo' ? process.env.BO_BASE_URL : undefined
 const ref = { root: process.cwd(), manual: values.manual! }
-const authFile = defaultAuthFile(ref)
+const profileDir = defaultProfileDir(ref)
 const ids = values.id?.split(',') ?? listVideos(ref)
 if (!ids.length) throw new Error(`manuals/${ref.manual}/videos/에 시나리오가 없습니다`)
 
@@ -35,7 +35,7 @@ for (const id of ids) {
       ...ref,
       id,
       baseUrl,
-      authFile,
+      profileDir,
       tts: values['no-tts'] ? false : undefined,
       headed: values.headed || undefined,
       preview: values.preview,
@@ -49,7 +49,8 @@ for (const id of ids) {
   } catch (error) {
     failed++
     const message = error instanceof Error ? error.message : String(error)
-    console.log(`  ✗ ${message.includes(authFile) ? `${message}: pnpm login --manual ${ref.manual}` : message}`)
+    const relogin = message.includes(profileDir) || message.includes('세션 만료')
+    console.log(`  ✗ ${relogin ? `${message}: pnpm login --manual ${ref.manual}` : message}`)
     if (message.includes('세션 만료')) break
   }
 }

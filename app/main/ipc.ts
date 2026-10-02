@@ -8,6 +8,7 @@ import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
 import { loadManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
 import { deleteVideo, loadVideo, saveVideo, type VideoScenario } from '../../src/core/video/scenario.ts'
+import { sessionInfo } from '../../src/core/session.ts'
 import type {
   AuthStatus,
   EnvCheck,
@@ -52,7 +53,8 @@ import {
   writeSectionDoc,
 } from './lib/sections.ts'
 import { loadShotsBundled, shotSections } from './lib/shots.ts'
-import { authFile, clearToken, getSettings, readToken, saveToken, updateSettings } from './settings.ts'
+import { acquireProfile, withProfile } from './lib/profile-lock.ts'
+import { clearToken, getSettings, profileDir, readToken, saveToken, updateSettings } from './settings.ts'
 
 // 사내망은 TLS를 가로채는 프록시가 있어 Node fetch가 실패한다. Chromium 네트워크 스택(시스템 인증서)을 쓴다
 const netFetch = (url: string, init?: RequestInit) => net.fetch(url, init)
@@ -277,15 +279,15 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         ? `Kokoro · ${Math.round(model.bytes / 1e6)}MB`
         : '가이드 영상 화면에서 처음 만들 때 받습니다 (약 90MB). 자막만 쓰면 없어도 됩니다',
     })
-    const session = workspaceState().cloned ? authFile(ref().manual) : authFile(settings.manual)
+    const session = sessionInfo(profileDir(workspaceState().cloned ? ref().manual : settings.manual))
     checks.push({
       id: 'session',
-      ok: existsSync(session),
+      ok: session.exists,
       required: false,
-      label: '로그인 세션 (화면 캡처)',
-      detail: existsSync(session)
-        ? `${formatAge(Date.now() - statSync(session).mtimeMs)} 로그인. 만료되면 캡처 화면에서 다시 로그인하세요`
-        : '캡처할 때 로그인합니다',
+      label: '로그인 세션 (화면 캡처·가이드 영상)',
+      detail: session.exists
+        ? `${formatAge(Date.now() - session.savedAt!)} 로그인. 만료되면 캡처·영상 화면에서 다시 로그인하세요`
+        : '캡처하거나 영상을 만들 때 로그인합니다',
     })
     return checks
   })
@@ -459,22 +461,21 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       sections: sections.get(s.id) ?? [],
     }))
   })
-  handle('capture:session', () => {
-    const file = authFile(ref().manual)
-    return existsSync(file) ? { exists: true, savedAt: statSync(file).mtimeMs } : { exists: false }
-  })
+  handle('capture:session', () => sessionInfo(profileDir(ref().manual)))
   handle('capture:login', async () => {
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
     pendingLogin?.reject(new Error('새 로그인으로 대체되었습니다'))
     const r = ref()
-    await login({
-      baseUrl: captureBaseUrl(),
-      authFile: authFile(r.manual),
-      waitUntilDone: () =>
-        new Promise<void>((resolve, reject) => {
-          pendingLogin = { resolve, reject }
-        }),
-    }).finally(() => {
+    await withProfile('STG 로그인', () =>
+      login({
+        baseUrl: captureBaseUrl(),
+        profileDir: profileDir(r.manual),
+        waitUntilDone: () =>
+          new Promise<void>((resolve, reject) => {
+            pendingLogin = { resolve, reject }
+          }),
+      }),
+    ).finally(() => {
       pendingLogin = undefined
     })
   })
@@ -482,15 +483,18 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('capture:cancelLogin', () => pendingLogin?.reject(new Error('로그인을 취소했습니다')))
   handle('capture:run', async (ids: string[]) => {
     const r = ref()
-    return capture({
-      ...r,
-      baseUrl: captureBaseUrl(),
-      authFile: authFile(r.manual),
-      shots: await loadShotsBundled(r),
-      only: ids,
-      apply: false,
-      onProgress: (progress) => send('capture-progress', progress),
-    })
+    const shots = await loadShotsBundled(r)
+    return withProfile('화면 캡처', () =>
+      capture({
+        ...r,
+        baseUrl: captureBaseUrl(),
+        profileDir: profileDir(r.manual),
+        shots,
+        only: ids,
+        apply: false,
+        onProgress: (progress) => send('capture-progress', progress),
+      }),
+    )
   })
   handle('capture:adopt', (ids: string[]) => adoptShots(ref(), ids))
 
@@ -504,18 +508,19 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     if (isRecording()) throw new Error('STG 기록을 먼저 끝내세요')
     const r = ref()
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
-    const session = authFile(r.manual)
-    if (!existsSync(session)) throw new Error('STG 로그인이 필요합니다')
+    const session = profileDir(r.manual)
+    if (!sessionInfo(session).exists) throw new Error('STG 로그인이 필요합니다')
     const narrate = !options.preview && options.tts !== false
     if (narrate && !modelStatus(videoModelDir()).ready) throw new Error('음성 모델이 없습니다. 먼저 음성 모델을 받으세요')
     // 앱은 사내 TLS 프록시 때문에 worker에서 외부 API를 부를 수 없어 Kokoro(로컬)만 쓴다
     const tts = narrate ? { ...loadManual(r).video?.tts, provider: 'kokoro' as const } : false
+    const release = acquireProfile(options.preview ? '미리보기' : '영상 만들기')
     const result = await runVideo(
       {
         ...r,
         id,
         baseUrl: captureBaseUrl(),
-        authFile: session,
+        profileDir: session,
         tts,
         modelDir: videoModelDir(),
         localModel: true,
@@ -524,7 +529,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         fromScene: options.fromScene,
       },
       (progress) => send('video-progress', progress),
-    )
+    ).finally(release)
     if (!result.ok) return result
     const rel = (path?: string) => (path ? relative(r.root, path) : undefined)
     return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt) }
@@ -541,9 +546,24 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('video:record', async (id: string, scene: number) => {
     const r = ref()
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
-    const session = authFile(r.manual)
-    if (!existsSync(session)) throw new Error('STG 로그인이 필요합니다')
-    await startRecording({ ...r, id, scene, baseUrl: captureBaseUrl(), authFile: session, onEvent: (event) => send('video-record', event) })
+    const session = profileDir(r.manual)
+    if (!sessionInfo(session).exists) throw new Error('STG 로그인이 필요합니다')
+    // 기록이 끝날 때('stop')까지 프로필을 잡는다
+    const release = acquireProfile('STG 기록')
+    await startRecording({
+      ...r,
+      id,
+      scene,
+      baseUrl: captureBaseUrl(),
+      profileDir: session,
+      onEvent: (event) => {
+        if (event.kind === 'stop') release()
+        send('video-record', event)
+      },
+    }).catch((error) => {
+      release()
+      throw error
+    })
   })
   handle('video:stopRecord', () => stopRecording())
   handle('video:model', () => modelStatus(videoModelDir()))
@@ -556,16 +576,19 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('draft:start', (input: DraftInput) => {
     requireWorkspace()
     const r = ref()
-    return startDraft({
-      ref: r,
-      input,
-      claudePath: getSettings().claudePath,
-      claudeAuth: getSettings().claudeAuth,
-      codeDir: getSettings().dealerhubWebDir || undefined,
-      captureBaseUrl: captureBaseUrl(),
-      authFile: authFile(r.manual),
-      onEvent: (event) => send('draft-event', event),
-    })
+    // Claude가 STG를 살펴보는 동안 프로필을 잡는다
+    return withProfile('Claude 작업', () =>
+      startDraft({
+        ref: r,
+        input,
+        claudePath: getSettings().claudePath,
+        claudeAuth: getSettings().claudeAuth,
+        codeDir: getSettings().dealerhubWebDir || undefined,
+        captureBaseUrl: captureBaseUrl(),
+        profileDir: profileDir(r.manual),
+        onEvent: (event) => send('draft-event', event),
+      }),
+    )
   })
   handle('draft:cancel', () => cancelDraft())
 
