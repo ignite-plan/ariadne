@@ -1,6 +1,5 @@
 // 가이드 영상: 시나리오 목록, 미리보기 실행, 영상 만들기, 결과 재생
-import { useCallback, useEffect, useState } from 'react'
-import { describeStep } from '../../../../src/core/video/describe.ts'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   assetUrl,
   type ManualTree,
@@ -17,6 +16,7 @@ import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
+import { VideoEditor } from './VideoEditor.tsx'
 
 const STAGE: Record<VideoProgress['stage'], string> = {
   tts: '음성 만들기',
@@ -49,7 +49,15 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   const [blocked, setBlocked] = useState<string[]>([])
   const [narration, setNarration] = useState(true)
   const [tab, setTab] = useState<'scenes' | 'video'>('scenes')
-  const [dialog, setDialog] = useState<{ type: 'create' } | { type: 'delete' } | { type: 'mutates'; preview: boolean }>()
+  const [dialog, setDialog] = useState<
+    { type: 'create' } | { type: 'delete' } | { type: 'mutates'; preview: boolean; fromScene?: number }
+  >()
+  const [tree, setTree] = useState<ManualTree>()
+  // 고칠 때마다 0.6초 뒤 저장한다. 실행·전환·닫기 전에는 바로 저장한다
+  const [saveState, setSaveState] = useState<'saved' | 'saving' | 'error'>('saved')
+  const [saveError, setSaveError] = useState('')
+  const pending = useRef<VideoScenario>(undefined)
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const refresh = useCallback(async () => {
     const list = await api.video.list()
@@ -63,6 +71,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
       (e) => setLoadError(errorMessage(e)),
     )
     void api.video.model().then(setModel)
+    void api.manual.tree().then(setTree)
     const offProgress = api.on('video-progress', setProgress)
     const offModel = api.on('video-model-progress', setModelProgress)
     return () => {
@@ -82,6 +91,43 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
 
   const info = videos?.find((v) => v.id === selected)
 
+  const flush = async () => {
+    clearTimeout(saveTimer.current)
+    const next = pending.current
+    if (!next) return saveState !== 'error'
+    pending.current = undefined
+    setSaveState('saving')
+    try {
+      await api.video.save(next)
+      setSaveState('saved')
+      setSaveError('')
+      void refresh()
+      return true
+    } catch (e) {
+      setSaveState('error')
+      setSaveError(errorMessage(e))
+      return false
+    }
+  }
+
+  const change = (next: VideoScenario) => {
+    setScenario(next)
+    pending.current = next
+    setSaveState('saving')
+    clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => void flush(), 600)
+  }
+
+  const select = async (id: string) => {
+    await flush()
+    setSelected(id)
+  }
+
+  const close = async () => {
+    await flush()
+    onClose()
+  }
+
   const downloadModel = async () => {
     setDownloading(true)
     try {
@@ -95,16 +141,17 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
     }
   }
 
-  const run = async (preview: boolean, confirmed = false) => {
+  const run = async (preview: boolean, fromScene?: number, confirmed = false) => {
     if (!selected || !scenario) return
-    if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', preview })
+    if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
+    if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', preview, fromScene })
     setDialog(undefined)
     setRunning(preview ? 'preview' : 'render')
     setProgress(undefined)
     setFailure(undefined)
     setBlocked([])
     try {
-      const result = await api.video.run(selected, { preview, tts: narration })
+      const result = await api.video.run(selected, { preview, fromScene, tts: narration })
       if (!result.ok) {
         setFailure(result)
         setTab('scenes')
@@ -148,7 +195,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
           <h1>가이드 영상</h1>
           <p className="muted">STG 화면을 녹화하고 영어 자막과 내레이션을 넣어 사용법 영상을 만듭니다.</p>
         </div>
-        <button className="icon-button" onClick={onClose} aria-label="닫기" disabled={Boolean(running)}>
+        <button className="icon-button" onClick={() => void close()} aria-label="닫기" disabled={Boolean(running)}>
           <Icon name="x" />
         </button>
       </header>
@@ -184,7 +231,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
               <button
                 key={v.id}
                 className={`video-item ${v.id === selected ? 'active' : ''}`}
-                onClick={() => setSelected(v.id)}
+                onClick={() => void select(v.id)}
                 disabled={Boolean(running)}
                 title={v.error ?? v.section ?? v.id}
               >
@@ -219,7 +266,9 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
               <div className="video-toolbar">
                 <div className="video-title">
                   <h2>{scenario.title}</h2>
-                  <span className="muted ellipsis">{scenario.section ?? '연결된 화면 없음'}</span>
+                  <span className="muted ellipsis">
+                    {scenario.section ?? '연결된 화면 없음'} · {saveState === 'saving' ? '저장 중…' : saveState === 'error' ? '저장 못 함' : '저장됨'}
+                  </span>
                 </div>
                 <label className="video-check" title={model?.ready ? '' : '음성 모델을 받아야 내레이션을 넣을 수 있습니다'}>
                   <input
@@ -230,7 +279,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                   />
                   내레이션
                 </label>
-                <button className="button" onClick={() => void run(true)} disabled={!canRun}>
+                <button className="button" onClick={() => void run(true)} disabled={!canRun} title="브라우저를 띄워 처음부터 실행해 봅니다 (녹화하지 않음)">
                   <Icon name="eye" /> {running === 'preview' ? '미리보기 중…' : '미리보기'}
                 </button>
                 <button className="button primary" onClick={() => void run(false)} disabled={!canRun}>
@@ -241,6 +290,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                 </button>
               </div>
 
+              {saveError && <pre className="form-error video-error">{saveError}</pre>}
               {!session.exists && <p className="notice">STG 로그인 후 미리보기와 영상 만들기를 할 수 있습니다.</p>}
               {running && (
                 <div className="video-progress">
@@ -285,31 +335,16 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
               </div>
 
               {tab === 'scenes' && (
-                <ol className="scene-list">
-                  {scenario.intro && (
-                    <li className="scene intro">
-                      <div className="scene-head">
-                        <b>시작 카드</b>
-                      </div>
-                      <p className="scene-say">{scenario.intro}</p>
-                    </li>
-                  )}
-                  {scenario.scenes.map((scene, i) => (
-                    <li key={i} className={`scene ${failure?.scene === i ? 'failed' : ''} ${progress?.scene === i && running ? 'current' : ''}`}>
-                      <div className="scene-head">
-                        <b>장면 {i + 1}</b>
-                      </div>
-                      <p className="scene-say">{scene.say || <span className="muted">내레이션 없음</span>}</p>
-                      <ul className="steps">
-                        {scene.steps.map((step, j) => (
-                          <li key={j} className={failure?.scene === i && failure.step === j ? 'failed' : ''}>
-                            {describeStep(step)}
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ol>
+                <VideoEditor
+                  scenario={scenario}
+                  onChange={change}
+                  tree={tree}
+                  disabled={Boolean(running)}
+                  voiceReady={model?.ready}
+                  failure={failure}
+                  currentScene={running ? progress?.scene : undefined}
+                  onPreviewFrom={(i) => void run(true, i)}
+                />
               )}
 
               {tab === 'video' &&
@@ -372,7 +407,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
             <button className="button" onClick={() => setDialog(undefined)}>
               취소
             </button>
-            <button className="button primary" onClick={() => void run(dialog.preview, true)}>
+            <button className="button primary" onClick={() => void run(dialog.preview, dialog.fromScene, true)}>
               계속
             </button>
           </div>

@@ -2298,16 +2298,6 @@ details.advanced summary {
   margin: 0 0 6px;
   font-size: 14px;
 }
-.scene .steps {
-  margin: 0;
-  padding-left: 18px;
-  color: var(--text-2);
-  font-size: 13px;
-}
-.scene .steps li.failed {
-  color: var(--danger);
-  font-weight: 600;
-}
 .video-player video {
   width: 100%;
   max-height: 62vh;
@@ -2319,4 +2309,129 @@ details.advanced summary {
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
+}
+.video-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+.video-editor > .button {
+  align-self: flex-start;
+}
+.video-editor .scene {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.video-editor .scene .field {
+  margin: 0;
+}
+.video-editor .scene > .button,
+.video-editor .scene > .link {
+  align-self: flex-start;
+}
+.scene.recording {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+.scene-head .spacer {
+  flex: 1;
+}
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+.say-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.say-row textarea,
+.say-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+.say-row textarea:focus,
+.say-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.editor-checks {
+  display: flex;
+  gap: 18px;
+  color: var(--text-2);
+}
+.editor-checks label,
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.check-inline {
+  padding-bottom: 8px;
+  color: var(--text-2);
+}
+.video-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: video-step;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.video-steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+.video-steps li:not(.empty-step) {
+  counter-increment: video-step;
+}
+.video-steps li:not(.empty-step)::before {
+  content: counter(video-step);
+  min-width: 16px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.video-steps li:hover:not(.empty-step) {
+  background: var(--surface-2);
+}
+.video-steps li.failed {
+  color: var(--danger);
+  font-weight: 600;
+}
+.video-steps .step-text {
+  flex: 1;
+  min-width: 0;
+}
+.step-actions {
+  display: inline-flex;
+  gap: 2px;
+  opacity: 0.35;
+}
+.video-steps li:hover .step-actions {
+  opacity: 1;
+}
+.target-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.target-fields.nested {
+  margin: 4px 0 0 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--border);
 }

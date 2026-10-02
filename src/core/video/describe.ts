@@ -1,7 +1,7 @@
 // 단계를 기획자가 읽는 문장으로. 앱 편집기와 오류 메시지가 같이 쓴다 (playwright를 import하지 않는다)
 import type { Step, Target } from './scenario.ts'
 
-const ROLE_NAMES: Record<string, string> = {
+export const ROLE_NAMES: Record<string, string> = {
   button: '버튼',
   link: '링크',
   tab: '탭',

@@ -229,9 +229,37 @@ try {
     await dialog.locator('input').and(page.locator('[value="Dealer List View"]')).waitFor()
     await dialog.getByRole('button', { name: '만들기' }).click()
     await page.locator('.video-title h2', { hasText: 'Dealer List View' }).waitFor()
-    await page.locator('.scene').first().waitFor()
-    await snap('08b-video')
-    await page.getByTitle('삭제').click()
+    const scene = page.locator('.scene-list .scene').first()
+    await scene.locator('textarea').fill('The Dealer List screen provides a list of all registered dealers.')
+    // 단계 추가: 화면 열기 → 글자 기다리기 → 버튼 클릭
+    const addStep = async (kind: string, fill: (d: typeof dialog) => Promise<void>, shot?: string) => {
+      await scene.getByRole('button', { name: '단계', exact: true }).click()
+      await dialog.locator('select').first().selectOption({ label: kind })
+      await fill(dialog)
+      if (shot) await snap(shot)
+      await dialog.getByRole('button', { name: '추가' }).click()
+      await dialog.waitFor({ state: 'detached' })
+    }
+    await addStep('화면 열기', (d) => d.locator('input').fill('/dealer/company'))
+    await addStep('보일 때까지 기다리기', async (d) => {
+      await d.locator('select').nth(1).selectOption({ label: '화면 글자' })
+      await d.locator('input').first().fill('Total')
+    })
+    await addStep('클릭', (d) => d.locator('input').first().fill('Location'), '08c-video-step')
+    await snap('08b-video-editor')
+    assert.deepEqual(await scene.locator('.step-text').allTextContents(), [
+      '/dealer/company 화면 열기',
+      "'Total' 글자 표시 기다림",
+      "'Location' 버튼 클릭",
+    ])
+    await page.locator('.video-title', { hasText: '저장됨' }).waitFor()
+    const yaml = readFileSync(join(workspace, 'manuals/bo/videos/dealer-list-view.yaml'), 'utf8')
+    assert.ok(yaml.includes('- open: /dealer/company'), yaml)
+    assert.ok(yaml.includes('role: button\n          name: Location'), yaml)
+    // 미리보기 (가짜 BO, 녹화 없음)
+    await page.locator('.video-toolbar').getByRole('button', { name: '미리보기', exact: true }).click()
+    await toast(page, /미리보기를 마쳤습니다/).waitFor({ timeout: 60000 })
+    await page.locator('.video-toolbar').getByTitle('삭제', { exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: '삭제' }).click()
     await page.locator('.empty', { hasText: '아직 영상이 없습니다' }).waitFor()
     await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
