@@ -26,6 +26,7 @@ const api: AriadneApi = {
     revert: invoke('workspace:revert'),
     submit: invoke('workspace:submit'),
     reveal: invoke('workspace:reveal'),
+    diff: invoke('workspace:diff'),
   },
   manual: {
     list: invoke('manual:list'),

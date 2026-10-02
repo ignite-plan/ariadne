@@ -314,6 +314,35 @@ try {
     await page.getByRole('tab', { name: '목차' }).click()
   })
 
+  await step('Claude로 최신화 (기존 화면) → 변경 보기 → 되돌리기', async () => {
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).click()
+    await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.doc-header').getByRole('button', { name: /Claude로 최신화/ }).click()
+    await page.getByRole('heading', { name: 'Claude로 최신화' }).waitFor()
+    await page.locator('.draft-input', { hasText: '02-dealer-management/01-dealer-list-view.md' }).waitFor()
+    await page.getByRole('button', { name: '최신화 시작' }).click()
+    await page.locator('.draft-summary', { hasText: '최신화했습니다' }).waitFor({ timeout: 90000 })
+    await page.locator('.log li', { hasText: '캡처 저장: dealer-list' }).waitFor()
+    // 기존 이미지(정의 있음)를 같은 id로 다시 찍었다
+    assert.equal((readFileSync(join(workspace, 'manuals/bo/shots.ts'), 'utf8').match(/id: 'dealer-list',/g) ?? []).length, 1)
+    await page.locator('.draft-summary').getByRole('button', { name: /변경 보기/ }).click()
+    await page.locator('.diff-row.del', { hasText: 'This screen provides a list of all registered dealers.' }).waitFor()
+    await page.locator('.diff-row.add', { hasText: 'This screen lists all registered dealers and their status.' }).waitFor()
+    await snap('13-refresh-diff')
+    await page.keyboard.press('Escape')
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    // 열려 있던 화면은 Claude가 고친 내용으로 다시 읽힌다
+    await page.locator('.cm-content', { hasText: 'lists all registered dealers and their status' }).waitFor({ timeout: 10000 })
+    // 최신화 뒤에는 변경 탭으로 간다
+    await page.locator('.change-item', { hasText: 'Dealer List View' }).getByTitle('변경 보기').click()
+    await page.locator('.diff-row.add', { hasText: 'their status' }).waitFor()
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: '모두 되돌리기' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    await page.getByRole('tab', { name: '목차' }).click()
+  })
+
   await step('설정: 환경 점검, 정보', async () => {
     await page.getByTitle('설정').click()
     const nav = (name: string) => page.locator('.settings-nav button', { hasText: name })

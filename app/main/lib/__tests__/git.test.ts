@@ -193,6 +193,13 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(server.show('main', 'manuals/bo/b.md'), 'b retried\n')
   })
 
+  it('HEAD 내용 읽기 (변경 보기)', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/b.md', 'changed\n')
+    assert.notEqual(await gitOps.headContent(ctx.dir, 'manuals/bo/b.md'), 'changed\n')
+    assert.equal(await gitOps.headContent(ctx.dir, 'manuals/bo/none.md'), null)
+  })
+
   it('원격에 닿지 않으면 offline', async () => {
     const ctx = await workspace()
     const state = await gitOps.sync({ ...ctx, url: 'http://127.0.0.1:1/nowhere.git' })

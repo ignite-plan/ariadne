@@ -130,6 +130,22 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
       )
       await assert.rejects(session.saveShot({ id: 'Bad Id', path: '/menu' }), /영문 소문자/)
     })
+
+    it('기존 이미지는 replace 없이 덮어쓰지 않고, replace면 이미지와 정의를 바꾼다', async () => {
+      const file = join(fx.dir, 'images', 'menu-information-popup.png')
+      const before = readFileSync(file)
+      await assert.rejects(session.saveShot({ id: 'menu-information-popup', path: '/menu' }), /이미 있는 이미지 id/)
+      assert.ok(readFileSync(file).equals(before))
+      // 정의가 없던(원본 Word에서 온) 이미지도 replace로 정의를 채운다
+      writeFileSync(join(fx.dir, 'images', 'imported-shot.png'), before)
+      await session.saveShot({ id: 'imported-shot', path: '/menu', ready: 'text=Total', clip: '#root' }, true)
+      await session.saveShot({ id: 'menu-information-popup', path: '/menu', ready: 'text=Total', clip: '#root' }, true)
+      assert.ok(!readFileSync(file).equals(before), '전체 화면으로 다시 찍었다')
+      const shots = readFileSync(join(fx.dir, 'shots.ts'), 'utf8')
+      assert.equal(shots.match(/id: 'menu-information-popup'/g)?.length, 1)
+      assert.match(shots, /id: 'imported-shot'/)
+      assert.doesNotMatch(shots, /\+ Group Addition/, 'replace 전 steps는 사라진다')
+    })
   })
 
   describe('Ariadne MCP 서버', () => {

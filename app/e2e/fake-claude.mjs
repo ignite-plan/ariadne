@@ -37,6 +37,28 @@ const call = async (name, input) => {
   return { text, isError: Boolean(result.isError) }
 }
 
+const prompt = args[args.indexOf('-p') + 1] ?? ''
+if (prompt.includes('최신화한다')) {
+  // 최신화: 대상 화면 한 줄을 고치고, 기존 이미지를 replace로 다시 찍는다
+  const target = prompt.match(/^  - (manuals\/\S+\.md)$/m)[1]
+  const root = process.cwd()
+  emit({ type: 'assistant', message: { content: [{ type: 'text', text: '지금 본문과 기획서를 비교하겠습니다.' }] } })
+  await call('manual_outline', {})
+  await call('stg_open', { path: '/dealer/company' })
+  await call('save_shot', { id: 'dealer-list', path: '/dealer/company', ready: 'text=Total', clip: '#root', replace: true })
+  const id = `toolu_${++n}`
+  const file = join(root, target)
+  emit({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Edit', input: { file_path: file } }] } })
+  const before = readFileSync(file, 'utf8')
+  writeFileSync(file, before.replace('- This screen provides a list of all registered dealers.', '- This screen lists all registered dealers and their status.'))
+  emit({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, is_error: false, content: 'ok' }] } })
+  await client.close()
+  const section = target.split('/').slice(2).join('/')
+  const summary = { sections: [section], unchanged: [], images: ['dealer-list'], todos: 0, sources: [{ title: '[202606output][Phase3][BO] 딜러 관리 화면' }] }
+  emit({ type: 'result', subtype: 'success', is_error: false, result: `최신화했습니다.\n\`\`\`json\n${JSON.stringify(summary)}\n\`\`\``, duration_ms: 900, permission_denials: [] })
+  process.exit(0)
+}
+
 emit({ type: 'assistant', message: { content: [{ type: 'text', text: '기획서와 STG 화면을 확인하겠습니다.' }] } })
 await call('manual_outline', {})
 const created = JSON.parse((await call('create_section', { title: 'Menu List View', newChapterTitle: 'Menu Management E2E', chapterIndex: 7 })).text)

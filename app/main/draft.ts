@@ -4,7 +4,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { ManualRef } from '../../src/core/manual.ts'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult } from '../shared/api.ts'
-import bundledSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
+import draftSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
+import refreshSkill from '../../.claude/skills/manual-refresh/SKILL.md?raw'
+import { skillText, taskText } from './lib/prompts.ts'
 import {
   buildAllowedTools,
   findClaude,
@@ -40,32 +42,13 @@ export async function checkDraft(claudePath?: string, refresh = false): Promise<
   }
 }
 
-function skillText(root: string) {
-  const file = join(root, '.claude/skills/manual-draft/SKILL.md')
-  const raw = existsSync(file) ? readFileSync(file, 'utf8') : bundledSkill
-  return raw.replace(/^---\n[\s\S]*?\n---\n/, '').trim()
-}
-
-function taskText(ref: ManualRef, input: DraftInput) {
-  const place = input.chapterDir
-    ? `기존 장 \`${input.chapterDir}\`에 추가`
-    : `새 장 "${input.newChapterTitle ?? input.menu}"을(를) chapterIndex ${input.chapterIndex ?? '맨 뒤'} 위치에 만든다`
-  return [
-    '## 이번 작업',
-    `- 매뉴얼 id: ${ref.manual}`,
-    `- 메뉴: ${input.menu}`,
-    `- 넣을 위치: ${place}`,
-    `- STG 경로 힌트: ${input.path || '(없음 — Confluence 메뉴 LIST에서 찾는다)'}`,
-    input.notes ? `- 기획자 메모: ${input.notes}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
+const BUNDLED = { 'manual-draft': draftSkill, 'manual-refresh': refreshSkill }
 
 export async function startDraft({
   ref,
   input,
   claudePath,
+  codeDir,
   captureBaseUrl,
   authFile,
   onEvent,
@@ -73,6 +56,8 @@ export async function startDraft({
   ref: ManualRef
   input: DraftInput
   claudePath?: string
+  // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
+  codeDir?: string
   captureBaseUrl: string
   authFile: string
   onEvent: (event: DraftEvent) => void
@@ -87,6 +72,7 @@ export async function startDraft({
     onEvent({ kind: 'warning', text: 'Claude Code에 연결된 Atlassian(Confluence) MCP가 없습니다. 기획서 없이 STG 화면만으로 쓰고 정책은 TODO로 남깁니다' })
   }
 
+  const code = codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined
   let stg: StgSession | undefined
   const mcp = await startAriadneMcp({
     ref,
@@ -101,14 +87,20 @@ export async function startDraft({
     const handle = runClaude({
       cli,
       cwd: ref.root,
-      prompt: `${skillText(ref.root)}\n\n${taskText(ref, input)}`,
-      allowedTools: buildAllowedTools(ref.manual, atlassian.filter((s) => s.connected).map((s) => s.name), realpathSync(ref.root)),
+      prompt: `${skillText(ref.root, input.mode, BUNDLED)}\n\n${taskText(ref, input, { codeDir: code })}`,
+      allowedTools: buildAllowedTools(
+        ref.manual,
+        atlassian.filter((s) => s.connected).map((s) => s.name),
+        realpathSync(ref.root),
+        code ? [code] : [],
+      ),
       mcpConfigFile,
       onEvent: (event) => onEvent({ kind: 'claude', event }),
     })
     current = handle
     const result = await handle.done
     return {
+      manual: ref.manual,
       ok: result.ok,
       text: result.text,
       summary: parseSummary(result.text),

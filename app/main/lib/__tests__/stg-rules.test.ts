@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { loadShotsBundled } from '../shots.ts'
-import { appendShot, isAllowedRequest, isBlockedLabel, shotToCode } from '../stg.ts'
+import { appendShot, isAllowedRequest, isBlockedLabel, removeShot, shotToCode } from '../stg.ts'
 
 describe('STG 안전장치', () => {
   it('데이터를 바꾸는 버튼 이름을 막는다', () => {
@@ -45,6 +45,27 @@ describe('캡처 정의 코드 생성', () => {
     assert.match(code, /await page\.getByRole\('button', \{ name: 'Group\\'s Addition' \}\)\.first\(\)\.click\(\)/)
     assert.match(code, /await page\.getByLabel\('Menu name'\)\.first\(\)\.fill\('Sample'\)/)
     assert.match(code, /clip: '\[role="dialog"\]'/)
+  })
+
+  it('기존 항목 바꾸기 (중첩 중괄호가 있는 steps 포함)', async () => {
+    const bo = readFileSync(join(process.cwd(), 'manuals/bo/shots.ts'), 'utf8')
+    const removed = removeShot(bo, 'location-popup')
+    assert.doesNotMatch(removed, /location-popup/)
+    assert.match(removed, /id: 'dealer-list', path/)
+    assert.match(removed, /id: 'dealer-list-search'/)
+    assert.equal(removeShot(bo, 'none'), bo)
+    assert.throws(() => appendShot(bo, { id: 'location-popup', path: '/x' }), /replace: true/)
+    const replaced = appendShot(bo, { id: 'location-popup', path: '/dealer/company', clip: '[role="dialog"]' }, true)
+    assert.equal(replaced.match(/location-popup/g)?.length, 1)
+    assert.match(replaced, /id: 'location-popup',\n    path: '\/dealer\/company',\n    clip: '\[role="dialog"\]'/)
+    // 한 줄짜리 항목도 바꾼다
+    const one = appendShot(bo, { id: 'dealer-list', path: '/dealer/company', ready: 'text=Total' }, true)
+    assert.equal(one.match(/id: 'dealer-list',/g)?.length, 1)
+    mkdirSync(join(fx.ref.root, 'src/core'), { recursive: true })
+    writeFileSync(join(fx.ref.root, 'src/core/shot.ts'), readFileSync(join(process.cwd(), 'src/core/shot.ts')))
+    writeFileSync(join(fx.dir, 'shots.ts'), replaced.replace("'../../src/core/shot.ts'", "'../../src/core/shot.ts'"))
+    const shots = await loadShotsBundled(fx.ref)
+    assert.deepEqual(shots.map((s) => s.id), ['dealer-list', 'dealer-list-search', 'dealer-list-view-img-1', 'dealer-list-view-img-2', 'location-popup'])
   })
 
   it('빈 shots.ts와 기존 shots.ts 끝에 붙이고, 만든 파일이 실제로 불러와진다', async () => {

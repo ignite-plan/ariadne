@@ -1,0 +1,72 @@
+---
+name: manual-refresh
+description: 이미 있는 매뉴얼 화면 섹션을 최신 Confluence 기획서와 STG 화면에 맞춰 최신화한다. 바뀐 곳만 고치고, 근거가 다르면 TODO로 남기고, 자동 캡처 정의를 채운다. Ariadne 앱의 "Claude로 최신화"가 이 절차로 실행한다(사람 확인 없이 진행). "<화면> 매뉴얼 최신화" 요청 시 사용
+---
+
+# 매뉴얼 최신화 (Confluence + STG)
+
+사람에게 묻지 않고 끝까지 진행한다. **바뀐 곳만 고친다.** 근거 없이 문장을 다듬거나 구성을 바꾸지 않는다. 기획자가 앱의 변경 보기로 검토한다.
+
+## 입력 (프롬프트 끝 "이번 작업")
+- 매뉴얼 id, 메뉴(장) 이름, 대상 화면 파일 목록, STG 경로 힌트, dealerhub-web 코드 위치(없을 수 있음)
+
+## 도구
+- `mcp__ariadne__*`: `manual_outline`, `stg_open`/`stg_click`/`stg_fill`, `save_shot`(기존 이미지를 바꿀 때 `replace: true`)
+- Confluence 읽기 도구. **쓰기는 하지 않는다**
+- Read/Glob/Grep, `manuals/<id>/` 안의 Edit/Write. Bash, 웹, 하위 에이전트는 막혀 있다
+
+## 1. 지금 매뉴얼 읽기
+1. `manual_outline`과 대상 화면 파일을 Read로 모두 읽는다. 각 화면의 항목(`**Label**`), 버튼(`**\[Label\]**`), 정책 문장, 이미지(`images/<id>.png`), front-matter `routes`를 정리한다
+2. 같은 장의 다른 화면도 훑어 문체를 맞춘다. 기존 TODO 주석도 확인한다 (근거를 찾으면 해결한다)
+
+## 2. 근거 수집 (Confluence, 스페이스 DLRS)
+- 화면 기획서는 `[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`. 월별로 여러 개면 **가장 최근 output**. 문서 히스토리 표에서 최근 변경(날짜, 티켓, 변경 내용)을 먼저 본다 — 최신화할 곳의 1차 후보다
+- 화면 기획서 머리의 정책 문서도 읽는다
+- 읽은 문서는 제목, URL, 버전을 요약에 넣는다
+
+## 3. 화면 확인 (STG)
+1. front-matter `routes`(없으면 STG 경로 힌트, 그것도 없으면 `법인 별 BO 메뉴 LIST`)로 `stg_open`. 접근성 트리의 이름이 **UI 라벨의 근거**다
+2. 매뉴얼에 있는 팝업·탭·상세 화면을 `stg_click`으로 열어 본다. 생성/수정 화면은 `stg_fill`로 입력 상태까지만
+3. **저장/삭제/승인/발송/등록 버튼은 누르지 않는다** (앱이 거절하고 쓰기 요청도 막는다)
+4. 세션 만료로 로그인 페이지가 나오면 화면 확인을 멈추고 기획서만으로 진행한다 (이미지는 그대로 두고 요약 notes에 적는다)
+
+## 4. 비교하고 고치기
+화면마다 지금 본문 ↔ 기획서 ↔ STG를 비교한다.
+
+| 경우 | 할 일 |
+|---|---|
+| 라벨이 화면과 다르다 | 화면 표기로 바꾼다 |
+| 기획서와 화면 모두 새 항목/버튼이 있다 | 기존 형식대로 그 위치에 추가한다 |
+| 기획서와 화면 모두에서 없어졌다 | 지운다 |
+| 정책·제약(최대 길이, 필수, 권한, 노출 조건)이 기획서에서 바뀌었다 | 기획서대로 고친다 |
+| 기획서와 화면이 다르다 | 고치지 말고 `<!-- TODO: 기획서(<문서 제목>)는 <A>, STG 화면은 <B> -->` |
+| 근거를 못 찾았다 | 그대로 두고, 필요하면 `<!-- TODO: 확인 필요 - <무엇> -->` |
+| 바뀐 것이 없다 | 파일을 건드리지 않는다 (요약 unchanged에 넣는다) |
+
+- 고칠 때는 **Edit로 해당 줄만** 바꾼다. 파일 전체를 다시 쓰지 않는다
+- 형식은 `_template.md`: 영어, 현재형, `- **Label**: description`, 버튼 `**\[Label\]**`
+- 기획서의 미결/검토 중 내용은 확정처럼 쓰지 않는다
+
+## 5. 이미지와 자동 캡처
+- 화면 구성이 바뀐 이미지, 또는 **자동 캡처 정의가 없는 이미지**는 같은 id로 `save_shot(..., replace: true)`. 다음 릴리즈부터 앱의 캡처 버튼으로 다시 찍을 수 있게 된다
+  - 팝업은 `clip: '[role="dialog"]'`, steps는 실제로 열어 본 순서, `ready`/`waitFor`는 접근성 트리에서 본 텍스트만
+  - 잘라 낸 아이콘처럼 화면에서 다시 찍을 수 없는 이미지는 건드리지 않는다
+- 새 항목에 새 이미지가 필요하면 새 id로 `save_shot`(replace 없이)
+
+## 6. front-matter
+- `routes`: 비어 있으면 STG path를 넣는다
+- dealerhub-web 코드 위치가 주어졌으면: `sources`에 화면 폴더 glob(예: `apps/hyundai-bo/src/pages/Menu/**`), `i18nPrefix`에 화면에서 쓰는 en.json key 접두어를 채운다. 코드가 없으면 비워 둔 채로 둔다
+
+## 7. 마지막 응답
+짧은 한국어 요약(화면별로 무엇을 왜 바꿨는지 한두 줄) 뒤에 JSON 블록 하나로 끝낸다:
+
+```json
+{
+  "sections": ["08-menu-management/02-menu-creation.md"],
+  "unchanged": ["08-menu-management/03-menu-view.md"],
+  "images": ["menu-creation"],
+  "todos": 2,
+  "sources": [{ "title": "[202606output][Phase3][BO] 메뉴 관리 화면", "url": "https://hmg.atlassian.net/wiki/spaces/DLRS/pages/536957869", "version": "v1" }],
+  "notes": "General(Directory) 타입 메뉴 권한 추가(GIDPDVO-2067) 반영"
+}
+```

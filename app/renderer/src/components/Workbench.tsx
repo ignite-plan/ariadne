@@ -13,6 +13,7 @@ import type {
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { CapturePanel } from './CapturePanel.tsx'
+import { DiffDialog } from './DiffDialog.tsx'
 import { DraftPanel } from './DraftPanel.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
 import { Icon, type IconName } from './Icon.tsx'
@@ -35,6 +36,7 @@ type Dialog =
   | { type: 'new'; chapterDir?: string }
   | { type: 'submit' }
   | { type: 'import' }
+  | { type: 'diff'; path: string; title: string }
   | { type: 'settings'; tab?: 'general' | 'env' | 'affected' }
   | { type: 'confirm'; title: string; message: string; confirmLabel: string; danger?: boolean; run: () => Promise<void> }
 
@@ -69,6 +71,8 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [syncing, setSyncing] = useState(false)
   const [tab, setTab] = useState<SidebarTab>('toc')
   const [doc, setDoc] = useState<SectionDoc>()
+  // 같은 화면을 다시 읽어도(Claude 수정, 되돌리기) 편집기를 새 내용으로 다시 그리게 한다
+  const [docVersion, setDocVersion] = useState(0)
   const [body, setBody] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('saved')
   const [preview, setPreview] = useState<{ html?: string; error?: string }>({})
@@ -138,6 +142,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         pendingLine.current = line
         setDoc(next)
         setBody(next.body)
+        setDocVersion((v) => v + 1)
         setSaveState('saved')
         storage(LAST_PATH, path)
       } catch (e) {
@@ -346,6 +351,15 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     })
   }
 
+  // Claude로 최신화: 화면 하나 또는 장 전체
+  const startRefresh = async ({ chapterDir, path }: { chapterDir: string; path?: string }) => {
+    const chapter = tree?.chapters.find((c) => c.dir === chapterDir)
+    if (!chapter || !(await flush())) return
+    const targets = path ? [path] : chapter.sections.map((s) => s.path)
+    const hint = path && doc?.path === path ? doc.meta.routes?.[0] : undefined
+    setDrafting({ mode: 'refresh', menu: chapter.title, targets, path: hint })
+  }
+
   // 순서를 바꾸면 폴더/파일 번호가 바뀐다. 지금 연 화면을 번호를 뺀 이름으로 다시 찾는다
   const reopenAfterMove = async () => {
     const t = await api.manual.tree()
@@ -488,6 +502,8 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           onRevert={askRevert}
           onMoveChapter={(dir, i) => void moveChapter(dir, i)}
           onMoveSection={(path, i) => void moveSection(path, i)}
+          onRefresh={(target) => void startRefresh(target)}
+          onDiff={(c) => setDialog({ type: 'diff', path: c.path, title: c.label })}
         />
 
         <main className="document">
@@ -502,6 +518,15 @@ export function Workbench({ onReset }: { onReset: () => void }) {
                   )}{' '}
                   {tree?.chapters.flatMap((c) => c.sections).find((s) => s.path === doc.path)?.title ?? doc.path}
                 </div>
+                {currentChapter && (
+                  <button
+                    className="button small ghost"
+                    title="최신 Confluence 기획서와 STG 화면에 맞춰 이 화면을 고칩니다"
+                    onClick={() => void startRefresh({ chapterDir: currentChapter.dir, path: doc.path })}
+                  >
+                    <Icon name="sparkle" size={14} /> Claude로 최신화
+                  </button>
+                )}
                 <span className={`save-state ${saveState}`}>
                   {{ saved: '저장됨', pending: '입력 중', saving: '저장 중…', error: '저장 실패' }[saveState]}
                 </span>
@@ -543,7 +568,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
                   </div>
                   <Editor
                     ref={editor}
-                    docKey={doc.path}
+                    docKey={`${doc.path}#${docVersion}`}
                     value={body}
                     onChange={onChange}
                     onImageFile={(f) => void onImageFile(f)}
@@ -590,9 +615,16 @@ export function Workbench({ onReset }: { onReset: () => void }) {
               setDrafting(undefined)
               void refreshSide().then(() => openSection(path))
             }}
+            onDiff={(path, title) => setDialog({ type: 'diff', path, title })}
             onClose={(changed) => {
+              const mode = drafting.mode
               setDrafting(undefined)
-              if (changed) void refreshSide().then(() => setTab('toc'))
+              if (!changed) return
+              // Claude가 열린 화면을 고쳤을 수 있다. 디스크에서 다시 읽어 예전 내용이 자동 저장으로 덮어쓰지 않게 한다
+              void refreshSide().then(async () => {
+                if (doc) await openSection(doc.path).catch(() => undefined)
+                setTab(mode === 'refresh' ? 'changes' : 'toc')
+              })
             }}
           />
         </div>
@@ -635,6 +667,9 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           onClose={() => setDialog(null)}
           onDone={(r) => void onSubmitted(r)}
         />
+      )}
+      {dialog?.type === 'diff' && (
+        <DiffDialog path={dialog.path} title={dialog.title} onClose={() => setDialog(null)} />
       )}
       {dialog?.type === 'import' && (
         <ImportWizard

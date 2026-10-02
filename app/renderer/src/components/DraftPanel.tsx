@@ -20,12 +20,16 @@ const minutes = (ms?: number) => (!ms ? '' : ms < 60000 ? `${Math.round(ms / 100
 export function DraftPanel({
   input,
   onOpenSection,
+  onDiff,
   onClose,
 }: {
   input: DraftInput
   onOpenSection: (path: string) => void
+  onDiff: (path: string, title: string) => void
   onClose: (changed: boolean) => void
 }) {
+  const refresh = input.mode === 'refresh'
+  const name = refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
   const toast = useToast()
   const [phase, setPhase] = useState<Phase>('check')
   const [check, setCheck] = useState<DraftCheck>()
@@ -99,9 +103,12 @@ export function DraftPanel({
     <div className="capture-panel draft-panel">
       <header className="panel-header">
         <div>
-          <h1>Claude로 초안 만들기</h1>
+          <h1>{name}</h1>
           <p className="muted">
-            {input.menu} · Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.
+            {input.menu} ·{' '}
+            {refresh
+              ? '최신 Confluence 기획서와 STG 화면을 지금 본문과 비교해 바뀐 곳만 고칩니다. 근거가 다르면 TODO로 남깁니다.'
+              : 'Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.'}
           </p>
         </div>
         <button className="icon-button" onClick={() => onClose(Boolean(result))} aria-label="닫기" disabled={phase === 'running'}>
@@ -147,14 +154,25 @@ export function DraftPanel({
           </div>
 
           <dl className="draft-input">
-            <dt>메뉴</dt>
+            <dt>{refresh ? '장' : '메뉴'}</dt>
             <dd>{input.menu}</dd>
-            <dt>위치</dt>
-            <dd>
-              {input.chapterDir
-                ? input.chapterDir
-                : `새 장 "${input.newChapterTitle ?? input.menu}" · ${input.chapterIndex === undefined ? '맨 뒤' : `${input.chapterIndex + 1}장`}`}
-            </dd>
+            {refresh ? (
+              <>
+                <dt>대상</dt>
+                <dd>
+                  {input.targets?.length === 1 ? input.targets[0] : `화면 ${input.targets?.length ?? 0}개`}
+                </dd>
+              </>
+            ) : (
+              <>
+                <dt>위치</dt>
+                <dd>
+                  {input.chapterDir
+                    ? input.chapterDir
+                    : `새 장 "${input.newChapterTitle ?? input.menu}" · ${input.chapterIndex === undefined ? '맨 뒤' : `${input.chapterIndex + 1}장`}`}
+                </dd>
+              </>
+            )}
             {input.path && (
               <>
                 <dt>STG 경로</dt>
@@ -176,10 +194,12 @@ export function DraftPanel({
             </button>
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude} onClick={start}>
-              <Icon name="flag" /> 초안 만들기 시작
+              <Icon name={refresh ? 'sparkle' : 'flag'} /> {refresh ? '최신화 시작' : '초안 만들기 시작'}
             </button>
           )}
-          <p className="hint">초안 하나에 수 분에서 10분 이상 걸리고, 내 Claude 사용량을 씁니다.</p>
+          <p className="hint">
+            {refresh ? '화면 수에 따라' : '초안 하나에'} 수 분에서 10분 이상 걸리고, 내 Claude 사용량을 씁니다.
+          </p>
         </aside>
 
         <section className="capture-results draft-log">
@@ -187,7 +207,11 @@ export function DraftPanel({
           {phase === 'ready' && (
             <div className="empty-state">
               <Icon name="flag" size={32} />
-              <p>[초안 만들기 시작]을 누르면 Claude가 기획서를 찾고 STG 화면을 확인하며 초안을 씁니다.</p>
+              <p>
+                {refresh
+                  ? '[최신화 시작]을 누르면 Claude가 지금 본문을 읽고, 최신 기획서와 STG 화면과 비교해 바뀐 곳만 고칩니다.'
+                  : '[초안 만들기 시작]을 누르면 Claude가 기획서를 찾고 STG 화면을 확인하며 초안을 씁니다.'}
+              </p>
               <p className="muted">진행 상황이 여기에 한 줄씩 나옵니다. 저장·삭제 같은 버튼은 앱이 막습니다.</p>
             </div>
           )}
@@ -229,7 +253,13 @@ export function DraftPanel({
             </>
           )}
           {phase === 'done' && (
-            <DraftSummaryCard result={result} error={error} onOpenSection={onOpenSection} />
+            <DraftSummaryCard
+              result={result}
+              error={error}
+              refresh={refresh}
+              onOpenSection={onOpenSection}
+              onDiff={onDiff}
+            />
           )}
         </section>
       </div>
@@ -290,35 +320,67 @@ function CheckRow({
 function DraftSummaryCard({
   result,
   error,
+  refresh,
   onOpenSection,
+  onDiff,
 }: {
   result?: DraftResult
   error: string
+  refresh: boolean
   onOpenSection: (path: string) => void
+  onDiff: (path: string, title: string) => void
 }) {
   const summary = result?.summary
+  const manualPrefix = (path: string) => (path.startsWith('manuals/') ? path : `manuals/${result?.manual ?? ''}/${path}`)
   return (
     <article className={`draft-summary ${error ? 'failed' : ''}`}>
-      <h2>{error ? '초안을 끝까지 만들지 못했습니다' : '초안을 만들었습니다'}</h2>
+      <h2>
+        {error
+          ? refresh
+            ? '최신화를 끝까지 하지 못했습니다'
+            : '초안을 끝까지 만들지 못했습니다'
+          : refresh
+            ? summary?.sections.length
+              ? '최신화했습니다'
+              : '바꿀 곳이 없었습니다'
+            : '초안을 만들었습니다'}
+      </h2>
       {error && <p className="form-error">{error}</p>}
       {summary ? (
         <>
           <div className="report-summary inline">
-            <span className="pill accent">화면 {summary.sections.length}</span>
+            <span className="pill accent">
+              {refresh ? '고친 화면' : '화면'} {summary.sections.length}
+            </span>
             <span className="pill">이미지 {summary.images?.length ?? 0}</span>
             <span className={`pill ${summary.todos ? 'todo' : ''}`}>TODO {summary.todos ?? 0}</span>
             {result?.durationMs && <span className="pill">{minutes(result.durationMs)}</span>}
           </div>
-          <h3>만든 화면</h3>
+          {summary.sections.length > 0 && <h3>{refresh ? '고친 화면' : '만든 화면'}</h3>}
           <ul>
             {summary.sections.map((path) => (
               <li key={path}>
                 <button className="link" onClick={() => onOpenSection(path)}>
                   {path}
                 </button>
+                {refresh && (
+                  <button className="link small" onClick={() => onDiff(manualPrefix(path), path)}>
+                    · 변경 보기
+                  </button>
+                )}
               </li>
             ))}
           </ul>
+          {summary.unchanged && summary.unchanged.length > 0 && (
+            <>
+              <h3>그대로인 화면</h3>
+              <ul className="muted">
+                {summary.unchanged.map((path) => (
+                  <li key={path}>{path}</li>
+                ))}
+              </ul>
+            </>
+          )}
           {summary.sources && summary.sources.length > 0 && (
             <>
               <h3>참고한 기획서</h3>

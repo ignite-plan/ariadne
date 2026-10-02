@@ -37,7 +37,10 @@ export type ClaudeEvent =
 
 // manual-draft 스킬의 마지막 JSON 요약
 export interface DraftSummary {
+  // 만든(초안) 또는 고친(최신화) 화면
   sections: string[]
+  // 최신화에서 바꿀 것이 없던 화면
+  unchanged?: string[]
   images?: string[]
   todos?: number
   sources?: { title: string; url?: string; version?: string }[]
@@ -45,8 +48,12 @@ export interface DraftSummary {
 }
 
 export interface DraftInput {
+  // create: 새 메뉴 초안, refresh: 기존 화면 최신화
+  mode?: 'create' | 'refresh'
   // 메뉴 이름. 예: Menu Management
   menu: string
+  // 최신화할 화면 (<chapter dir>/<file>)
+  targets?: string[]
   // 기존 장에 넣거나, 새 장 이름과 위치(0부터)
   chapterDir?: string
   newChapterTitle?: string
@@ -62,6 +69,8 @@ export type DraftEvent =
   | { kind: 'claude'; event: ClaudeEvent }
 
 export interface DraftResult {
+  // 작업한 매뉴얼 id (요약의 화면 경로는 manuals/<manual>/ 기준)
+  manual: string
   ok: boolean
   text: string
   summary?: DraftSummary
@@ -256,6 +265,8 @@ export interface AriadneApi {
     revert(paths: string[]): Promise<void>
     submit(message: string): Promise<SubmitResult>
     reveal(relPath?: string): Promise<void>
+    // 마지막 제출(HEAD) 내용과 지금 내용. 새 파일이면 before가 null
+    diff(path: string): Promise<{ before: string | null; after: string | null }>
   }
   manual: {
     list(): Promise<ManualInfo[]>

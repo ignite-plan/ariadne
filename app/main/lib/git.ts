@@ -140,6 +140,17 @@ export async function revert(dir: string, paths: string[]) {
   }
 }
 
+// 마지막 커밋(HEAD)의 파일 내용. 없으면 null
+export async function headContent(dir: string, filepath: string) {
+  try {
+    const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
+    const { blob } = await git.readBlob({ fs, dir, oid: head, filepath })
+    return Buffer.from(blob).toString('utf8')
+  } catch {
+    return null
+  }
+}
+
 async function oid(dir: string, ref: string) {
   return git.resolveRef({ fs, dir, ref }).catch(() => undefined)
 }

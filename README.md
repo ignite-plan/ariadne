@@ -12,6 +12,7 @@ Dealers 사용자 매뉴얼(영문, Word)을 만드는 리포입니다. BO, FO �
 | 앱으로 매뉴얼 고치기 | [기획자 사용법](#기획자-사용법) |
 | Word 원본으로 새 매뉴얼 만들기 | [새 매뉴얼 가져오기](#새-매뉴얼-가져오기) |
 | 매뉴얼에 없는 메뉴를 새로 쓰기 | [Claude로 초안 만들기](#claude로-초안-만들기) |
+| 이미 있는 화면을 최신 기획서·화면에 맞추기 | [Claude로 최신화](#claude로-최신화) |
 | 매뉴얼 문장 규칙 | [작성 규칙](#작성-규칙) |
 | 릴리즈 변경 반영, 신규 메뉴 추가 | [개발자 사용법](#개발자-사용법) |
 | 사용법 가이드 영상(자막, 내레이션) 만들기 | [가이드 영상](#가이드-영상) |
@@ -120,6 +121,7 @@ PNG가 아닌 이미지는 PNG로 바꿔 저장합니다.
 
 - 기획서와 STG 화면이 다르면 Claude가 판단하지 않고 `TODO: 기획서(…)는 A, STG 화면은 B`로 남깁니다.
 - Claude가 만든 캡처 정의(`shots.ts`)가 같이 생겨서, 다음 릴리즈부터 **캡처** 버튼으로 다시 찍을 수 있습니다.
+- 이미 매뉴얼에 있는 메뉴는 새로 만들지 않습니다. 그때는 [Claude로 최신화](#claude로-최신화)를 씁니다.
 - 초안 하나에 수 분에서 10분 이상 걸리고, 내 Claude 사용량을 씁니다.
 - 마음에 들지 않으면 **변경** 탭의 **모두 되돌리기**로 지우고 다시 만듭니다.
 
@@ -146,6 +148,26 @@ BO 매뉴얼과 같은 형식의 Word 원본(FO 매뉴얼 등)으로 새 매뉴�
 
 - 가져온 매뉴얼은 자동 캡처 정의가 비어 있습니다. 캡처가 필요하면 개발자에게 `shots.ts` 추가를 요청합니다.
 - 잘못 가져왔으면 제출 전에 다른 매뉴얼로 바꾼 뒤 **변경** 탭의 **모두 되돌리기**로 지웁니다.
+
+### Claude로 최신화
+
+이미 있는 화면을 **최신 Confluence 기획서**와 **실제 STG 화면**에 맞춰 Claude가 고칩니다. 바뀐 곳만 고치고, 근거가 다르면 TODO로 남깁니다.
+
+1. 시작하는 곳은 세 군데입니다.
+   - 문서 위쪽 **✦ Claude로 최신화** (지금 화면)
+   - 목차에서 화면에 마우스를 올리고 ✦ (그 화면)
+   - 목차에서 장에 마우스를 올리고 ✦ (장 전체)
+2. 점검 화면을 확인하고 **최신화 시작**을 누릅니다. 진행 로그가 한 줄씩 나옵니다.
+3. 끝나면 **고친 화면 / 그대로인 화면**이 나옵니다. 화면마다 **변경 보기**로 무엇이 바뀌었는지 확인합니다.
+4. 닫으면 **변경** 탭으로 이동합니다. 마음에 들지 않는 화면은 ↺로 되돌리고, 나머지를 **제출**합니다.
+
+- 처음 최신화하는 화면은 Claude가 **자동 캡처 정의**도 채웁니다. 다음부터는 **캡처** 버튼으로 그 화면 이미지를 다시 찍을 수 있습니다.
+- 개발자 PC처럼 설정 → 고급에 dealerhub-web 경로가 있으면, 코드 연결 키(sources, i18nPrefix)도 채웁니다. 코드는 읽기만 합니다.
+- 장 전체 최신화는 화면 수에 따라 10분 이상 걸릴 수 있습니다.
+
+### 변경 보기
+
+**변경** 탭에서 화면 옆 ⑂를 누르면 마지막으로 제출된 내용과 지금 내용을 줄 단위로 비교합니다. 빨간 줄은 지운 것, 초록 줄은 추가한 것입니다. Claude가 고친 내용이나 내가 고친 내용을 제출 전에 확인할 때 씁니다.
 
 ### Word 만들기
 
@@ -360,7 +382,7 @@ ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne
 
 - E2E는 실제 GitHub에서 clone하고, 편집, 되돌리기, Word 만들기, 가짜 BO 캡처, Word 가져오기를 확인합니다. 제출(push)은 하지 않습니다.
 - `ARIADNE_CAPTURE_BASE_URL`은 캡처 주소를 덮어씁니다(E2E의 가짜 BO). `ARIADNE_CLAUDE_PATH`는 Claude Code CLI 위치를 덮어씁니다(E2E는 `app/e2e/fake-claude.mjs`: LLM 없이 Ariadne MCP 도구를 실제로 부름).
-- 초안 만들기 구조: 앱이 `127.0.0.1` 임의 포트에 토큰을 붙여 Ariadne MCP(HTTP)를 열고, `claude -p --mcp-config … --allowedTools …`를 작업 폴더에서 실행합니다. 지시는 `.claude/skills/manual-draft/SKILL.md`입니다. 허용 도구는 Read/Glob/Grep, `Edit|Write(./manuals/<m>/**)`, `mcp__ariadne`, Confluence 읽기 도구뿐이라 나머지는 `-p` 모드에서 자동 거절됩니다.
+- 초안 만들기 구조: 앱이 `127.0.0.1` 임의 포트에 토큰을 붙여 Ariadne MCP(HTTP)를 열고, `claude -p --mcp-config … --allowedTools …`를 작업 폴더에서 실행합니다. 지시는 `.claude/skills/manual-draft/SKILL.md`(초안), `.claude/skills/manual-refresh/SKILL.md`(최신화)입니다. 허용 도구는 Read/Glob/Grep, `Edit|Write(./manuals/<m>/**)`, `mcp__ariadne`, Confluence 읽기 도구뿐이라 나머지는 `-p` 모드에서 자동 거절됩니다.
 - 앱 main의 네트워크는 Electron `net.fetch`만 씁니다(사내 TLS 프록시 때문에 Node fetch가 실패). git은 isomorphic-git이라 기획자 PC에 Xcode CLT가 없어도 됩니다.
 - 제출은 main에 바로 push합니다. 충돌하면 `ariadne/<login>-<시각>` 브랜치와 PR을 만듭니다.
 - `ARIADNE_USER_DATA`로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꿀 수 있습니다(E2E, 두 번째 프로필).

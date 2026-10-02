@@ -124,12 +124,14 @@ export function sessionDataDir(cwd: string) {
   return `~/.claude/projects/${cwd.replace(/[^A-Za-z0-9]/g, '-')}`
 }
 
-export function buildAllowedTools(manual: string, atlassianServers: string[], cwd: string, ariadne = 'ariadne') {
+// readDirs: 작업 폴더 밖에서 읽기만 허용할 폴더 (예: 개발자의 dealerhub-web). 절대 경로 규칙은 //로 시작한다
+export function buildAllowedTools(manual: string, atlassianServers: string[], cwd: string, readDirs: string[] = [], ariadne = 'ariadne') {
   const writable = `./manuals/${manual}/**`
   return [
     // 작업 폴더와 이번 작업의 큰 결과 폴더만 읽는다 (Glob/Grep도 Read 규칙을 따른다)
     'Read(./**)',
     `Read(${sessionDataDir(cwd)}/**)`,
+    ...readDirs.map((dir) => `Read(/${dir.replace(/\/+$/, '')}/**)`),
     'Glob',
     'Grep',
     'TodoWrite',

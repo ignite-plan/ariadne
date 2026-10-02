@@ -188,12 +188,16 @@ function buildServer(deps: AriadneMcpDeps) {
         steps: z.array(step).optional(),
         clip: z.string().optional().describe('찍을 영역 locator. 팝업은 [role="dialog"], 전체 화면은 생략 또는 #root'),
         mask: z.array(z.string()).optional(),
+        replace: z
+          .boolean()
+          .optional()
+          .describe('이미 있는 이미지(images/<id>.png)나 캡처 정의를 바꿀 때 true (최신화). 새 이미지는 생략'),
       },
     },
-    async (args) => {
+    async ({ replace, ...args }) => {
       try {
         return await run('save_shot', `캡처 저장: ${args.id}`, async () => {
-          const saved = await deps.stg().saveShot(args as ShotInput)
+          const saved = await deps.stg().saveShot(args as ShotInput, replace)
           return text(JSON.stringify({ image: saved.image, file: saved.file }))
         })
       } catch (error) {

@@ -1,6 +1,6 @@
 // Claude가 STG 화면을 살펴볼 때 쓰는 브라우저. Claude는 브라우저를 직접 만지지 않고 이 서비스에 요청한다.
 // 안전장치 두 겹: 저장/삭제류 버튼 클릭 거절, 쓰기 요청(PUT/PATCH/DELETE, 조회가 아닌 POST) 차단
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium, type Browser, type BrowserContext, type Locator, type Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
@@ -71,10 +71,41 @@ export function shotToCode(shot: ShotInput) {
   return `  {\n    ${fields.join(',\n    ')},\n  },`
 }
 
-// shots.ts 배열 끝에 넣는다. 같은 id가 있으면 거절
-export function appendShot(source: string, shot: ShotInput) {
-  if (new RegExp(`id:\\s*['"]${shot.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`).test(source)) {
-    throw new Error(`shots.ts에 이미 있는 id: ${shot.id}`)
+const idPattern = (id: string) => new RegExp(`id:\\s*['"]${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`)
+
+// shots.ts에서 id의 { ... } 항목을 지운다 (뒤 쉼표, 줄 포함)
+export function removeShot(source: string, id: string) {
+  const match = idPattern(id).exec(source)
+  if (!match) return source
+  let start = match.index
+  for (let depth = 0; start > 0; start--) {
+    const c = source[start - 1]
+    if (c === '}') depth++
+    else if (c === '{') {
+      if (depth === 0) break
+      depth--
+    }
+  }
+  start -= 1
+  let end = start
+  for (let depth = 0; end < source.length; end++) {
+    if (source[end] === '{') depth++
+    else if (source[end] === '}' && --depth === 0) break
+  }
+  end += 1
+  if (source[end] === ',') end += 1
+  const lineStart = source.lastIndexOf('\n', start - 1) + 1
+  const prefix = source.slice(lineStart, start)
+  const from = /^\s*$/.test(prefix) ? lineStart : start
+  const to = source[end] === '\n' && from === lineStart ? end + 1 : end
+  return source.slice(0, from) + source.slice(to)
+}
+
+// shots.ts 배열 끝에 넣는다. 같은 id가 있으면 거절, replace면 바꾼다
+export function appendShot(source: string, shot: ShotInput, replace = false) {
+  if (idPattern(shot.id).test(source)) {
+    if (!replace) throw new Error(`shots.ts에 이미 있는 id: ${shot.id}. 바꾸려면 replace: true`)
+    source = removeShot(source, shot.id)
   }
   const code = shotToCode(shot)
   const empty = source.match(/defineShots\(\[\s*\]\)/)
@@ -196,7 +227,8 @@ export class StgSession {
   }
 
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
-  async saveShot(shot: ShotInput) {
+  // replace: 이미 있는 이미지/캡처 정의를 바꾼다 (최신화). 아니면 기존 이미지 id는 거절한다
+  async saveShot(shot: ShotInput, replace = false) {
     if (!/^[a-z0-9][a-z0-9-]*$/.test(shot.id)) throw new Error('shot id는 영문 소문자, 숫자, -만 쓸 수 있습니다')
     for (const step of shot.steps ?? []) {
       if ('click' in step && isBlockedLabel(step.click.name)) {
@@ -204,7 +236,11 @@ export class StgSession {
       }
     }
     const shotsFile = join(manualDir(this.options), 'shots.ts')
-    const next = appendShot(readFileSync(shotsFile, 'utf8'), shot)
+    const imageFile = join(manualDir(this.options), 'images', `${shot.id}.png`)
+    if (!replace && existsSync(imageFile)) {
+      throw new Error(`이미 있는 이미지 id입니다: ${shot.id}. 다른 id를 쓰거나, 그 이미지를 바꾸려면 replace: true`)
+    }
+    const next = appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
 
     await this.ensurePage()
     const page = await this.context!.newPage()

@@ -33,5 +33,5 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - 정책·화면 근거는 **Confluence DLRS 기획서 최신 output**(`[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`, 연결된 정책 문서)이 우선. 위키 SPEC은 보조. 기획서와 화면이 다르면 판단하지 말고 TODO, 근거 없으면 TODO 주석, 추측 금지
 - STG 캡처 중 저장/삭제/발송/승인 버튼 클릭 금지. 영상도 기본 금지(director가 막음)이고, `mutates: true` 시나리오만 STG 테스트 데이터(`Video Test` 접두어)로 실제 저장하고 `cleanup`으로 지운다. 외부 연동 버튼(딜러 생성 최종 `Create` 등)은 누르지 않는다
 - 앱 main에서 네트워크는 `net.fetch`만 쓴다 (사내 TLS 프록시 때문에 Node fetch 실패). git은 isomorphic-git
-- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"가 비대화형으로 실행)
+- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-refresh`(기존 화면 최신화, 앱의 "Claude로 최신화") — 둘 다 비대화형
 - 앱의 초안 만들기는 `claude -p`에 허용 도구만 준다: Read/Glob/Grep, `manuals/<m>/` 쓰기, Ariadne MCP(STG는 앱이 대신 열고 저장/삭제 버튼과 쓰기 요청을 막음), Confluence 읽기 도구

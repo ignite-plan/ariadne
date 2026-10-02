@@ -276,6 +276,11 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     return fileChanges()
   })
   handle('workspace:revert', (paths: string[]) => gitOps.revert(requireWorkspace(), paths))
+  handle('workspace:diff', async (path: string) => {
+    const root = requireWorkspace()
+    const file = resolveInside(root, path)
+    return { before: await gitOps.headContent(root, path), after: existsSync(file) ? readFileSync(file, 'utf8') : null }
+  })
   handle('workspace:submit', async (message: string) => {
     requireWorkspace()
     const settings = getSettings()
@@ -464,6 +469,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       ref: r,
       input,
       claudePath: getSettings().claudePath,
+      codeDir: getSettings().dealerhubWebDir || undefined,
       captureBaseUrl: captureBaseUrl(),
       authFile: authFile(r.manual),
       onEvent: (event) => send('draft-event', event),

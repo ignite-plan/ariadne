@@ -20,6 +20,8 @@ export function Sidebar({
   onRevert,
   onMoveChapter,
   onMoveSection,
+  onRefresh,
+  onDiff,
 }: {
   tab: SidebarTab
   onTab: (tab: SidebarTab) => void
@@ -34,6 +36,8 @@ export function Sidebar({
   onRevert: (changes: FileChange[]) => void
   onMoveChapter: (dir: string, toIndex: number) => void
   onMoveSection: (path: string, toIndex: number) => void
+  onRefresh: (target: { chapterDir: string; path?: string }) => void
+  onDiff: (change: FileChange) => void
 }) {
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -132,6 +136,13 @@ export function Sidebar({
                   </button>
                   <button
                     className="icon-button small reveal"
+                    title="이 장 전체를 Claude로 최신화"
+                    onClick={() => onRefresh({ chapterDir: chapter.dir })}
+                  >
+                    <Icon name="sparkle" size={13} />
+                  </button>
+                  <button
+                    className="icon-button small reveal"
                     title="이 장에 화면 추가"
                     onClick={() => onNewSection(chapter.dir)}
                   >
@@ -155,6 +166,13 @@ export function Sidebar({
                           <span className="ellipsis">{s.title}</span>
                           {s.todos > 0 && <span className="badge todo">{s.todos}</span>}
                           {s.modified && <span className="dot" title="제출하지 않은 변경" />}
+                        </button>
+                        <button
+                          className="icon-button small reveal"
+                          title="이 화면을 Claude로 최신화"
+                          onClick={() => onRefresh({ chapterDir: chapter.dir, path: s.path })}
+                        >
+                          <Icon name="sparkle" size={13} />
                         </button>
                         <button
                           className="icon-button small reveal"
@@ -212,6 +230,11 @@ export function Sidebar({
                   {c.kind === 'image' && <Icon name="image" size={13} />}
                   {c.label}
                 </button>
+                {c.kind !== 'image' && (
+                  <button className="icon-button small" title="변경 보기" onClick={() => onDiff(c)}>
+                    <Icon name="diff" size={13} />
+                  </button>
+                )}
                 <button className="icon-button small" title="변경 되돌리기" onClick={() => onRevert([c])}>
                   <Icon name="revert" size={13} />
                 </button>
