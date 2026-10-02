@@ -1,5 +1,10 @@
 // 기록한 단계를 시나리오에 붙이는 규칙. 앱 renderer도 쓰므로 playwright를 import하지 않는다
-import type { Step } from './scenario.ts'
+import type { Scene, Step } from './scenario.ts'
+
+// 내레이션(또는 화면 자막)이나 단계가 하나라도 있는 장면
+export function sceneHasContent(scene: Scene) {
+  return Boolean(scene.say?.trim() || scene.caption?.trim() || scene.steps.length)
+}
 
 // 기록한 단계를 붙인다. 선택 상자 클릭 + 항목 클릭은 '선택'으로, 같은 칸에 다시 입력하면 마지막 값으로 합친다
 export function appendRecorded(steps: Step[], step: Step): Step[] {

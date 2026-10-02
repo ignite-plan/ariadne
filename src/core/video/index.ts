@@ -10,6 +10,7 @@ import { compose } from './compose.ts'
 import { Director } from './director.ts'
 import { MASK_ATTR, overlayScript } from './overlay.ts'
 import { startRecording, type Recording } from './recorder.ts'
+import { sceneHasContent } from './edit.ts'
 import { applyVars, loadVideo, videoVars, type Target, type VideoScenario } from './scenario.ts'
 import { locate, runSteps } from './steps.ts'
 import { readingTime, toSrt, toVtt, type Cue } from './subtitles.ts'
@@ -18,6 +19,7 @@ import { createProvider, narrate, type Clip, type TtsConfig, type TtsProvider } 
 export * from './compose.ts'
 export * from './describe.ts'
 export * from './director.ts'
+export * from './edit.ts'
 export * from './overlay.ts'
 export * from './record.ts'
 export * from './recorder.ts'
@@ -129,6 +131,10 @@ export async function renderVideo({
   const manual = loadManual(ref)
   const scenario = applyVars(scenarioOption ?? loadVideo(ref, id), vars ?? videoVars())
   if (!scenario.scenes.length) throw new Error('장면이 없습니다')
+  // 비어 있는 채로 만들면 시작 카드만 있는 영상이 나온다
+  if (!scenario.scenes.some(sceneHasContent)) {
+    throw new Error('장면이 모두 비어 있습니다. 내레이션을 쓰거나 단계를 넣은 뒤 만드세요')
+  }
   if (fromScene < 0 || fromScene >= scenario.scenes.length) throw new Error(`장면 ${fromScene + 1}이 없습니다`)
   const baseUrl = baseUrlOption || manual.capture?.baseUrl
   if (!baseUrl) throw new Error('녹화 대상 주소가 없습니다. manual.yaml capture.baseUrl을 지정하세요')

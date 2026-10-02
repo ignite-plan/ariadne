@@ -5,6 +5,8 @@ import { after, describe, it } from 'node:test'
 import { isBlockedLabel } from '../safety.ts'
 import { composeArgs } from '../video/compose.ts'
 import { describeStep } from '../video/describe.ts'
+import { sceneHasContent } from '../video/edit.ts'
+import { renderVideo } from '../video/index.ts'
 import { FrameSlots } from '../video/recorder.ts'
 import { applyVars, deleteVideo, listVideos, loadVideo, parseVideo, saveVideo, videoVars, type VideoScenario } from '../video/scenario.ts'
 import { readingTime, toSrt, toVtt } from '../video/subtitles.ts'
@@ -138,6 +140,25 @@ describe('시나리오 YAML', () => {
       click: { role: 'button', name: 'Delete', within: { role: 'row', name: 'Video Test 10020805' } },
     })
     assert.equal(applyVars('{unknown} {stamp}', vars), '{unknown} 10020805')
+  })
+})
+
+describe('빈 시나리오', () => {
+  const fx = createFixture()
+  after(fx.cleanup)
+
+  it('내레이션·화면 자막·단계 중 하나라도 있어야 내용이 있는 장면', () => {
+    assert.equal(sceneHasContent({ say: '', steps: [] }), false)
+    assert.equal(sceneHasContent({ say: '  ', caption: '', steps: [] }), false)
+    assert.equal(sceneHasContent({ say: 'Hi.', steps: [] }), true)
+    assert.equal(sceneHasContent({ steps: [{ pause: 500 }] }), true)
+  })
+
+  it('장면이 모두 비어 있으면 브라우저를 띄우기 전에 멈춘다', async () => {
+    await assert.rejects(
+      renderVideo({ ...fx.ref, id: 'empty', scenario: { id: 'empty', title: 'Empty', scenes: [{ say: '', steps: [] }, { steps: [] }] } }),
+      /장면이 모두 비어 있습니다/,
+    )
   })
 })
 

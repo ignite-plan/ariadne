@@ -1,6 +1,6 @@
 // 가이드 영상: 시나리오 목록, 미리보기 실행, 영상 만들기, 결과 재생
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { appendRecorded } from '../../../../src/core/video/edit.ts'
+import { appendRecorded, sceneHasContent } from '../../../../src/core/video/edit.ts'
 import {
   assetUrl,
   type ManualTree,
@@ -245,7 +245,8 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   }
 
   const narrate = narration && model?.ready
-  const canRun = Boolean(scenario && session.exists && !running && !recording && scenario.scenes.length)
+  const empty = Boolean(scenario && !scenario.scenes.some(sceneHasContent))
+  const canRun = Boolean(scenario && session.exists && !running && !recording && !empty)
 
   return (
     <div className="capture-panel">
@@ -378,6 +379,12 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                     <Icon name="stop" /> 기록 끝
                   </button>
                 </div>
+              )}
+              {empty && !recording && (
+                <p className="notice">
+                  장면이 모두 비어 있습니다. 장면의 [STG에서 기록]이나 위쪽 [Claude로 초안]으로 시작하거나, 내레이션을 쓰고 [+ 단계]로 조작을 넣으세요. 그
+                  다음 미리보기와 영상 만들기를 할 수 있습니다.
+                </p>
               )}
               {!session.exists && <p className="notice">STG 로그인 후 미리보기와 영상 만들기를 할 수 있습니다.</p>}
               {running && (
