@@ -96,6 +96,19 @@ export interface DraftCheck {
   error?: string
 }
 
+export interface ReportInput {
+  description: string
+  // 오류 토스트의 [신고]로 열면 그 오류 문구
+  error?: string
+  includeLog: boolean
+}
+
+export interface ReportResult {
+  // api: GitHub Issue를 만들었다, browser: 권한이 없어 브라우저의 새 Issue 화면을 열었다 (내용은 클립보드)
+  via: 'api' | 'browser'
+  url: string
+}
+
 export interface Settings {
   // 매뉴얼 리포 (clone/push 대상)
   repoUrl: string
@@ -385,12 +398,21 @@ export interface AriadneApi {
   affected: {
     run(base: string, head: string): Promise<{ range: string; affected: AffectedSection[] }>
   }
+  log: {
+    write(level: 'info' | 'warn' | 'error', source: string, message: string): Promise<void>
+    reveal(): Promise<void>
+  }
+  report: {
+    preview(input: ReportInput): Promise<{ title: string; body: string }>
+    submit(input: ReportInput): Promise<ReportResult>
+  }
   app: {
     version(): Promise<string>
     checkUpdate(): Promise<UpdateInfo | null>
     openExternal(url: string): Promise<void>
   }
   on(event: 'capture-progress', listener: (progress: CaptureProgress) => void): () => void
+  on(event: 'open-report', listener: () => void): () => void
   on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
   on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
   on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void

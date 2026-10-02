@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { errorMessage } from '../api.ts'
+import { api, errorMessage } from '../api.ts'
+import { openReport } from './ReportDialog.tsx'
 import { Icon } from './Icon.tsx'
 
 interface ToastItem {
@@ -27,7 +28,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     [dismiss],
   )
-  const error = useCallback((e: unknown) => show('error', errorMessage(e)), [show])
+  // 오류는 로그에 남기고 [신고]로 바로 신고할 수 있게 한다
+  const error = useCallback(
+    (e: unknown) => {
+      const message = errorMessage(e)
+      void api.log.write('error', 'toast', message)
+      show('error', message, { label: '신고', run: () => openReport(message) })
+    },
+    [show],
+  )
   const value = useMemo(() => ({ show, error }), [show, error])
 
   return (

@@ -52,6 +52,7 @@ import {
   writeSectionDoc,
 } from './lib/sections.ts'
 import { loadShotsBundled, shotSections } from './lib/shots.ts'
+import { log } from './report-ipc.ts'
 import { authFile, clearToken, getSettings, readToken, saveToken, updateSettings } from './settings.ts'
 
 // 사내망은 TLS를 가로채는 프록시가 있어 Node fetch가 실패한다. Chromium 네트워크 스택(시스템 인증서)을 쓴다
@@ -164,7 +165,15 @@ function withOptional<K extends 'output' | 'capture' | 'code'>(key: K, patch: Pa
 let pendingLogin: { resolve: () => void; reject: (error: Error) => void } | undefined
 
 function handle<T extends unknown[], R>(channel: string, fn: (...args: T) => R | Promise<R>) {
-  ipcMain.handle(channel, (_event, ...args) => fn(...(args as T)))
+  ipcMain.handle(channel, async (_event, ...args) => {
+    try {
+      return await fn(...(args as T))
+    } catch (error) {
+      // 화면에 오류로 보이는 실패는 모두 로그에 남긴다 (문제 신고에 첨부)
+      log.error(`ipc:${channel}`, error)
+      throw error
+    }
+  })
 }
 
 export function registerIpc(getWindow: () => BrowserWindow | undefined) {

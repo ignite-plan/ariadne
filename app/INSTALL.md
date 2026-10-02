@@ -19,7 +19,7 @@ Dealers 사용자 매뉴얼을 고치고, BO 화면을 캡처하고, Word로 만
 1. **GitHub 연결**: 앱 안의 **토큰 만들기 페이지 열기**를 눌러 토큰을 만듭니다.
    - Resource owner: `ignite-plan`
    - Repository access: **Only select repositories** → `ariadne`
-   - Permissions: **Contents** Read and write, **Pull requests** Read and write
+   - Permissions: **Contents** Read and write, **Pull requests** Read and write, **Issues** Read and write (문제 신고)
    - 만든 토큰(`github_pat_…`)을 붙여 넣습니다. 토큰은 macOS 키체인에 암호화해 저장합니다.
 2. **매뉴얼 내려받기**: 기본 폴더는 `~/Documents/Ariadne`입니다.
 3. **환경 점검**
