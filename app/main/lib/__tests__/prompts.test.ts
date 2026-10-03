@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { buildRows } from '../../../renderer/src/diff-rows.ts'
-import { skillText, taskText } from '../prompts.ts'
+import { skillText, specTaskText, taskText } from '../prompts.ts'
 
 describe('작업 지시', () => {
   const root = mkdtempSync(join(tmpdir(), 'ariadne-prompts-'))
@@ -29,6 +29,31 @@ describe('작업 지시', () => {
     assert.match(text, /  - manuals\/bo\/08-menu-management\/02-menu-creation\.md/)
     assert.match(text, /dealerhub-web 코드: \/Users\/kim\/dealerhub-web \(읽기만 가능/)
     assert.doesNotMatch(text, /넣을 위치/)
+    assert.match(text, /## 기획서 요약\n\(없음/)
+  })
+
+  it('최신화 화면 하나: 그 화면만, 기획서 요약을 붙인다', () => {
+    const text = taskText(
+      { root, manual: 'bo' },
+      { mode: 'refresh', menu: 'Menu Management', targets: ['08-menu-management/02-menu-creation.md'] },
+      { brief: '이 화면:\nMenu Name max 50' },
+    )
+    assert.match(text, /대상 화면: manuals\/bo\/08-menu-management\/02-menu-creation\.md/)
+    assert.match(text, /다른 화면 파일은 고치지 않는다/)
+    assert.match(text, /## 기획서 요약\n이 화면:\nMenu Name max 50/)
+  })
+
+  it('기획서 요약: 파일 경로, 화면 키, 지난 버전', () => {
+    const text = specTaskText(
+      { root, manual: 'bo' },
+      { mode: 'refresh', menu: 'Menu Management', targets: ['08-menu-management/01-menu-list-view.md'] },
+      { digestFile: '/w/.capture/bo/spec/menu-management.json', previous: [{ id: '5369', title: 'Menu 화면', version: 12 }] },
+    )
+    assert.match(text, /요약 파일: \/w\/\.capture\/bo\/spec\/menu-management\.json/)
+    assert.match(text, /  - 08-menu-management\/01-menu-list-view\.md \(manuals\/bo\//)
+    assert.match(text, /  - 5369 v12 Menu 화면/)
+    assert.match(specTaskText({ root, manual: 'bo' }, { menu: 'X', targets: [] }, { digestFile: 'f' }), /지난 요약: 없음/)
+    assert.match(skillText(process.cwd(), 'refresh', {}), /대상 화면 하나만 다룬다/)
   })
 
   it('영상 초안: 시나리오 id, 연결 화면, 리포에 있는 영상 스킬', () => {

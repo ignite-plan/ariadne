@@ -65,6 +65,8 @@ export function MetaPanel({ meta, onSave }: { meta: SectionMeta; onSave: (meta: 
               disabled={!dirty}
               onClick={() =>
                 onSave({
+                  // 최신화 근거 버전(refreshedFrom) 같은 다른 값은 그대로 둔다
+                  ...meta,
                   title: draft.title.trim(),
                   routes: toList(draft.routes),
                   sources: toList(draft.sources),

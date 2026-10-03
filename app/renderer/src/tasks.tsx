@@ -1,7 +1,7 @@
 // 패널을 닫아도 이어지는 작업 상태. Claude 작업과 영상 만들기는 STG 공유 Chrome의 탭을 나눠 써서 동시에 돈다.
 // 패널은 이 상태를 보여 주기만 하고, 상단 칩(TaskChips)에서 다시 연다
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { DraftEvent, DraftInput, DraftResult, VideoProgress, VideoRunOptions, VideoRunResult } from '../../shared/api.ts'
+import type { DraftEvent, DraftInput, DraftResult, ScreenStatus, VideoProgress, VideoRunOptions, VideoRunResult } from '../../shared/api.ts'
 import { api, errorMessage } from './api.ts'
 import { useToast } from './components/Toast.tsx'
 
@@ -11,27 +11,69 @@ export interface LogLine {
   text: string
   done?: boolean
   failed?: boolean
+  // 최신화: 어느 화면 작업의 줄인지
+  target?: string
 }
+
+// 최신화 화면 하나의 진행
+export interface ScreenRow {
+  status: ScreenStatus
+  text?: string
+}
+
+export const SCREEN_LABEL: Record<ScreenStatus, string> = {
+  waiting: '대기',
+  running: '진행 중',
+  done: '고침',
+  unchanged: '바꿀 것 없음',
+  skipped: '건너뜀',
+  failed: '실패',
+  cancelled: '취소',
+}
+
+// 화면 경로에서 파일 이름만 (08-menu-management/02-menu-creation.md → 02-menu-creation)
+export const screenName = (target: string) => target.split('/').pop()!.replace(/\.md$/, '')
 
 export function applyDraftEvent(lines: LogLine[], event: DraftEvent): LogLine[] {
   const id = `${Date.now()}-${Math.random()}`
-  if (event.kind === 'status') return [...lines, { id, kind: 'status', text: event.text }]
-  if (event.kind === 'warning') return [...lines, { id, kind: 'warning', text: event.text }]
+  if (event.kind === 'status') return [...lines, { id, kind: 'status', text: event.text, target: event.target }]
+  if (event.kind === 'warning') return [...lines, { id, kind: 'warning', text: event.text, target: event.target }]
+  if (event.kind === 'phase') return [...lines, { id, kind: 'status', text: event.text }]
+  if (event.kind === 'screen') {
+    // 대기는 줄을 남기지 않는다 (화면 목록에 보인다)
+    if (event.status === 'waiting') return lines
+    const text = `${SCREEN_LABEL[event.status]}${event.text ? ` — ${event.text}` : ''}`
+    return [...lines, { id, kind: event.status === 'failed' ? 'warning' : 'status', text, target: event.target }]
+  }
+  const { target } = event
   const e = event.event
-  if (e.kind === 'tool') return [...lines, { id: e.id, kind: 'tool', text: e.label }]
+  if (e.kind === 'tool') return [...lines, { id: e.id, kind: 'tool', text: e.label, target }]
   if (e.kind === 'tool_result') {
     return lines.map((l) => (l.id === e.id ? { ...l, done: true, failed: e.isError, text: e.isError ? `${l.text} — ${e.text}` : l.text } : l))
   }
   if (e.kind === 'text') {
     // 마지막 요약(JSON)은 결과 카드로 보여 준다
     const text = e.text.replace(/```json[\s\S]*?```/g, '').trim()
-    return text ? [...lines, { id, kind: 'text', text }] : lines
+    return text ? [...lines, { id, kind: 'text', text, target }] : lines
   }
   if (e.kind === 'init' && e.mcp.some((m) => m.status !== 'connected')) {
     const failed = e.mcp.filter((m) => m.status !== 'connected').map((m) => m.name)
-    return [...lines, { id, kind: 'status', text: `연결 안 된 MCP: ${failed.join(', ')}` }]
+    return [...lines, { id, kind: 'status', text: `연결 안 된 MCP: ${failed.join(', ')}`, target }]
   }
   return lines
+}
+
+function applyTaskEvent(task: ClaudeTask, event: DraftEvent): ClaudeTask {
+  const next = { ...task, log: applyDraftEvent(task.log, event) }
+  if (event.kind === 'screen') next.screens = { ...task.screens, [event.target]: { status: event.status, text: event.text } }
+  if (event.kind === 'phase') next.stage = event.text
+  return next
+}
+
+// 최신화 진행: 끝난 화면 수 / 전체
+export function screenProgress(task: ClaudeTask) {
+  const rows = Object.values(task.screens)
+  return { total: rows.length, finished: rows.filter((r) => r.status !== 'waiting' && r.status !== 'running').length }
 }
 
 // 칩·토스트에 쓰는 작업 이름
@@ -50,6 +92,9 @@ export interface ClaudeTask {
   input: DraftInput
   phase: 'running' | 'done'
   log: LogLine[]
+  // 최신화: 화면별 진행과 지금 단계(기획서 요약 / 화면 확인)
+  screens: Record<string, ScreenRow>
+  stage?: string
   result?: DraftResult
   error: string
   startedAt: number
@@ -72,7 +117,8 @@ interface Tasks {
   openDraft(input: DraftInput): void
   showDraft(): void
   hideDraft(): void
-  startClaude(input: DraftInput): Promise<void>
+  // force: 최신화에서 기획서가 안 바뀐 화면도 다시 확인
+  startClaude(input: DraftInput, options?: { force?: boolean }): Promise<void>
   // 끝난 작업을 지우고 패널을 닫는다
   clearClaude(): void
   // 영상 만들기 (미리보기는 패널에서 직접 한다)
@@ -111,7 +157,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     void api.capture.tasks().then(setStgBusy, () => undefined)
     const offTasks = api.on('stg-tasks', (names: string[]) => setStgBusy(names))
     const offDraft = api.on('draft-event', (event: DraftEvent) =>
-      setClaude((c) => (c && c.phase === 'running' ? { ...c, log: applyDraftEvent(c.log, event) } : c)),
+      setClaude((c) => (c && c.phase === 'running' ? applyTaskEvent(c, event) : c)),
     )
     const offVideo = api.on('video-progress', (progress: VideoProgress) => setVideo((v) => v && { ...v, progress }))
     return () => {
@@ -136,13 +182,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   )
 
   const startClaude = useCallback(
-    async (input: DraftInput) => {
-      const task: ClaudeTask = { input, phase: 'running', log: [], error: '', startedAt: Date.now(), seq: ++seq.current }
+    async (input: DraftInput, options: { force?: boolean } = {}) => {
+      const task: ClaudeTask = { input, phase: 'running', log: [], screens: {}, error: '', startedAt: Date.now(), seq: ++seq.current }
       setClaude(task)
       let result: DraftResult | undefined
       let error = ''
       try {
-        result = await api.draft.start(input)
+        // 패널은 input 객체로 작업을 찾으므로 task.input은 그대로 두고 옵션만 붙여 보낸다
+        result = await api.draft.start(options.force ? { ...input, force: true } : input)
         if (!result.ok) error = result.text || 'Claude가 오류로 끝났습니다'
       } catch (e) {
         error = errorMessage(e)

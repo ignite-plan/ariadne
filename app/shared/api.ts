@@ -45,6 +45,8 @@ export interface DraftSummary {
   sections: string[]
   // 최신화에서 바꿀 것이 없던 화면
   unchanged?: string[]
+  // 최신화: 근거 기획서가 지난번 이후 바뀌지 않아 건너뛴 화면
+  skipped?: string[]
   images?: string[]
   todos?: number
   sources?: { title: string; url?: string; version?: string }[]
@@ -73,16 +75,35 @@ export interface DraftInput {
   // video-scene: 대상 장면(0부터)과, 그 장면을 채울지(false) 그 다음에 새 장면을 넣을지(true). 요청은 notes
   scene?: number
   insert?: boolean
+  // 최신화: 기획서 버전이 같아도 다시 확인한다 (기본은 건너뜀)
+  force?: boolean
 }
 
+// 최신화는 화면마다 따로 돈다. target이 있으면 그 화면의 이벤트
+export type ScreenStatus = 'waiting' | 'running' | 'done' | 'unchanged' | 'skipped' | 'failed' | 'cancelled'
+
 export type DraftEvent =
-  | { kind: 'status'; text: string }
-  | { kind: 'warning'; text: string }
-  | { kind: 'claude'; event: ClaudeEvent }
+  | { kind: 'status'; text: string; target?: string }
+  | { kind: 'warning'; text: string; target?: string }
+  | { kind: 'claude'; event: ClaudeEvent; target?: string }
+  // 최신화: 기획서 요약 단계와 화면별 진행
+  | { kind: 'phase'; phase: 'spec' | 'screens' | 'done'; text: string }
+  | { kind: 'screen'; target: string; status: ScreenStatus; text?: string }
+
+export interface ScreenResult {
+  target: string
+  status: ScreenStatus
+  // 실패 이유, 건너뛴 이유
+  text?: string
+  todos?: number
+  durationMs?: number
+}
 
 export interface DraftResult {
   // 작업한 매뉴얼 id (요약의 화면 경로는 manuals/<manual>/ 기준)
   manual: string
+  // 최신화: 화면별 결과
+  screens?: ScreenResult[]
   ok: boolean
   text: string
   summary?: DraftSummary

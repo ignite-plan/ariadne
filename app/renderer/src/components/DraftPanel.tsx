@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
 import { api } from '../api.ts'
-import { useTasks } from '../tasks.tsx'
+import { SCREEN_LABEL, screenName, useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
@@ -39,6 +39,10 @@ export function DraftPanel({
   const log = task?.log ?? []
   const result: DraftResult | undefined = task?.result
   const error = task?.error ?? ''
+  // 최신화: 화면별 진행. 화면을 누르면 그 화면 로그만
+  const screens = task?.screens ?? {}
+  const [filter, setFilter] = useState<string>()
+  const [force, setForce] = useState(false)
   const [check, setCheck] = useState<DraftCheck>()
   const [session, setSession] = useState<SessionInfo>({ exists: false })
   const logEnd = useRef<HTMLDivElement>(null)
@@ -59,7 +63,7 @@ export function DraftPanel({
 
   useEffect(() => {
     logEnd.current?.scrollIntoView({ block: 'end' })
-  }, [log.length])
+  }, [log.length, filter])
 
   // 세션 표시를 다시 읽게 할 때 올린다
   const [sessionVersion, setSessionVersion] = useState(0)
@@ -86,7 +90,8 @@ export function DraftPanel({
       }
       setLocalPhase('ready')
     }
-    void tasks.startClaude(input)
+    setFilter(undefined)
+    void tasks.startClaude(input, { force: refresh && force })
   }
 
   // 진행 시간 표시
@@ -118,7 +123,7 @@ export function DraftPanel({
               : video
               ? '연결된 매뉴얼 화면의 문장으로 내레이션을 쓰고, STG 화면을 확인해 단계를 만든 뒤 실제로 실행해 봅니다.'
               : refresh
-                ? '최신 Confluence 기획서와 STG 화면을 지금 본문과 비교해 바뀐 곳만 고칩니다. 근거가 다르면 TODO로 남깁니다.'
+                ? '최신 Confluence 기획서를 한 번 요약한 뒤, 화면마다 STG 화면과 지금 본문을 비교해 바뀐 곳만 고칩니다(3개씩 동시에). 근거가 다르면 TODO로 남깁니다.'
                 : 'Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.'}
           </p>
         </div>
@@ -216,6 +221,13 @@ export function DraftPanel({
             )}
           </dl>
 
+          {refresh && !task && (
+            <label className="check-inline">
+              <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
+              기획서가 안 바뀐 화면도 다시 확인
+            </label>
+          )}
+
           <span className="spacer" />
           {phase === 'running' ? (
             <button className="button block" onClick={() => void api.draft.cancel()}>
@@ -231,7 +243,13 @@ export function DraftPanel({
             </button>
           )}
           <p className="hint">
-            {sceneMode ? '장면 하나에 몇 분' : video ? '영상 하나에 수 분' : refresh ? '화면 수에 따라 수 분에서 10분 이상' : '초안 하나에 수 분에서 10분 이상'} 걸리고, 내 Claude 사용량을 씁니다.
+            {sceneMode
+              ? '장면 하나에 몇 분'
+              : video
+                ? '영상 하나에 수 분'
+                : refresh
+                  ? '처음에는 15~25분쯤, 기획서가 그대로면 건너뛰어 몇 분'
+                  : '초안 하나에 수 분에서 10분 이상'} 걸리고, 내 Claude 사용량을 씁니다.
           </p>
         </aside>
 
@@ -246,7 +264,7 @@ export function DraftPanel({
                   : video
                   ? '[영상 초안 시작]을 누르면 Claude가 매뉴얼 본문으로 장면을 나누고, STG에서 단계를 찾아 시나리오를 쓴 뒤 끝까지 실행해 봅니다.'
                   : refresh
-                    ? '[최신화 시작]을 누르면 Claude가 지금 본문을 읽고, 최신 기획서와 STG 화면과 비교해 바뀐 곳만 고칩니다.'
+                    ? '[최신화 시작]을 누르면 Claude가 최신 기획서를 요약하고, 지난 최신화 이후 기획서가 바뀐 화면만 STG 화면과 비교해 고칩니다.'
                     : '[초안 만들기 시작]을 누르면 Claude가 기획서를 찾고 STG 화면을 확인하며 초안을 씁니다.'}
               </p>
               <p className="muted">진행 상황이 여기에 한 줄씩 나옵니다. 저장·삭제 같은 버튼은 앱이 막습니다.</p>
@@ -254,8 +272,35 @@ export function DraftPanel({
           )}
           {(phase === 'running' || phase === 'done') && (
             <>
+              {Object.keys(screens).length > 0 && (
+                <div className="screen-progress">
+                  {task?.stage && <p className="muted">{task.stage}</p>}
+                  <ul>
+                    <li>
+                      <button className={`screen-chip ${filter === undefined ? 'active' : ''}`} onClick={() => setFilter(undefined)}>
+                        전체 로그
+                      </button>
+                    </li>
+                    {Object.entries(screens).map(([target, row]) => (
+                      <li key={target}>
+                        <button
+                          className={`screen-chip status-${row.status} ${filter === target ? 'active' : ''}`}
+                          title={row.text ?? target}
+                          onClick={() => setFilter(filter === target ? undefined : target)}
+                        >
+                          {row.status === 'running' && <Icon name="sync" size={12} className="spin" />}
+                          <span>{screenName(target)}</span>
+                          <b>{SCREEN_LABEL[row.status]}</b>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <ol className="log">
-                {log.map((line) => (
+                {log
+                  .filter((line) => filter === undefined || line.target === filter)
+                  .map((line) => (
                   <li key={line.id} className={`log-${line.kind} ${line.failed ? 'failed' : ''}`}>
                     <span className="log-icon">
                       {line.kind === 'tool' ? (
@@ -274,7 +319,10 @@ export function DraftPanel({
                         <Icon name="chevron" size={13} />
                       )}
                     </span>
-                    <span className="log-text">{line.text}</span>
+                    <span className="log-text">
+                      {filter === undefined && line.target && <span className="log-target">{screenName(line.target)}</span>}
+                      {line.text}
+                    </span>
                   </li>
                 ))}
                 {phase === 'running' && (
@@ -410,6 +458,31 @@ function DraftSummaryCard({
                 {summary.unchanged.map((path) => (
                   <li key={path}>{path}</li>
                 ))}
+              </ul>
+            </>
+          )}
+          {summary.skipped && summary.skipped.length > 0 && (
+            <>
+              <h3>건너뛴 화면 (지난 최신화 이후 기획서가 그대로)</h3>
+              <ul className="muted">
+                {summary.skipped.map((path) => (
+                  <li key={path}>{path}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {result?.screens?.some((s) => s.status === 'failed') && (
+            <>
+              <h3>실패한 화면</h3>
+              <ul>
+                {result.screens
+                  .filter((s) => s.status === 'failed')
+                  .map((s) => (
+                    <li key={s.target}>
+                      {s.target}
+                      {s.text && <span className="muted"> · {s.text.slice(0, 200)}</span>}
+                    </li>
+                  ))}
               </ul>
             </>
           )}

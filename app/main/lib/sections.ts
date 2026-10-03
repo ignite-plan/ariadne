@@ -54,6 +54,7 @@ export function serializeFrontMatter(meta: SectionMeta) {
     routes: meta.routes ?? [],
     sources: meta.sources ?? [],
     i18nPrefix: meta.i18nPrefix ?? [],
+    ...(meta.refreshedFrom?.length ? { refreshedFrom: meta.refreshedFrom } : {}),
   }
   return `---\n${YAML.stringify(ordered).trim()}\n---\n`
 }

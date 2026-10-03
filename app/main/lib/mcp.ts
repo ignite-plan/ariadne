@@ -36,6 +36,11 @@ export type VideoCheck = { ok: true; durationMs: number; blockedRequests: string
 
 const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combobox', 'option', 'treeitem', 'row'] as const
 
+const FULL = z
+  .boolean()
+  .optional()
+  .describe('true면 화면 전체 접근성 트리를 길게 돌려준다. 기본은 짧게 (대화상자가 열려 있으면 대화상자만)')
+
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }] })
 const fail = (error: unknown) => ({
   content: [{ type: 'text' as const, text: `오류: ${error instanceof Error ? error.message : String(error)}` }],
@@ -46,10 +51,12 @@ function describe(result: OpenResult) {
   return [
     `URL: ${result.url}`,
     `제목: ${result.title}`,
-    `스크린샷: ${result.screenshot} (Read로 볼 수 있음)`,
+    `스크린샷: ${result.screenshot} (레이아웃 확인이 필요할 때만 Read)`,
     result.blockedRequests.length ? `차단한 쓰기 요청: ${result.blockedRequests.join(', ')}` : '',
     '',
-    '화면 접근성 트리 (UI 라벨은 여기 표기 그대로 쓴다):',
+    result.scope === 'dialog'
+      ? '열린 대화상자의 접근성 트리 (뒤 화면은 생략. 전체는 full: true. UI 라벨은 여기 표기 그대로 쓴다):'
+      : '화면 접근성 트리 (UI 라벨은 여기 표기 그대로 쓴다):',
     result.snapshot,
   ]
     .filter((l) => l !== '')
@@ -132,11 +139,11 @@ function buildServer(deps: AriadneMcpDeps) {
     {
       description:
         'STG 화면을 연다 (캡처 주소 기준 경로, 예: /menu). 화면 접근성 트리와 스크린샷 경로를 돌려준다. 저장/삭제는 할 수 없다',
-      inputSchema: { path: z.string() },
+      inputSchema: { path: z.string(), full: FULL },
     },
-    async ({ path }) => {
+    async ({ path, full }) => {
       try {
-        return await run('stg_open', `화면 열기: ${path}`, async () => text(describe(await deps.stg().open(path))))
+        return await run('stg_open', `화면 열기: ${path}`, async () => text(describe(await deps.stg().open(path, { full }))))
       } catch (error) {
         return fail(error)
       }
@@ -151,12 +158,13 @@ function buildServer(deps: AriadneMcpDeps) {
         role: z.enum(ROLES),
         name: z.string().describe('접근성 트리에 보이는 이름'),
         nth: z.number().int().min(0).optional(),
+        full: FULL,
       },
     },
-    async ({ role, name, nth }) => {
+    async ({ role, name, nth, full }) => {
       try {
         return await run('stg_click', `누르기: ${name}`, async () =>
-          text(describe(await deps.stg().click(role as Role, name, nth))),
+          text(describe(await deps.stg().click(role as Role, name, nth, { full }))),
         )
       } catch (error) {
         return fail(error)
@@ -168,11 +176,11 @@ function buildServer(deps: AriadneMcpDeps) {
     'stg_fill',
     {
       description: '입력칸에 값을 넣는다 (생성/수정 화면을 입력 상태로 보여 줄 때). 저장 버튼은 누르지 않는다',
-      inputSchema: { label: z.string(), value: z.string() },
+      inputSchema: { label: z.string(), value: z.string(), full: FULL },
     },
-    async ({ label, value }) => {
+    async ({ label, value, full }) => {
       try {
-        return await run('stg_fill', `입력: ${label}`, async () => text(describe(await deps.stg().fill(label, value))))
+        return await run('stg_fill', `입력: ${label}`, async () => text(describe(await deps.stg().fill(label, value, { full }))))
       } catch (error) {
         return fail(error)
       }
