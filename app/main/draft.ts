@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileS
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { ManualRef } from '../../src/core/manual.ts'
+import type { OpenTab } from '../../src/core/session.ts'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult } from '../shared/api.ts'
 import draftSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
 import refreshSkill from '../../.claude/skills/manual-refresh/SKILL.md?raw'
@@ -63,6 +64,7 @@ export async function startDraft({
   codeDir,
   captureBaseUrl,
   profileDir,
+  openTab,
   onEvent,
 }: {
   ref: ManualRef
@@ -72,8 +74,10 @@ export async function startDraft({
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
   codeDir?: string
   captureBaseUrl: string
-  // 로그인 세션(유지되는 Chrome 프로필). STG 탐색과 영상 실행해 보기가 번갈아 쓴다
+  // 로그인 세션(유지되는 Chrome 프로필)
   profileDir: string
+  // 탭 여는 방법. 앱은 공유 Chrome의 탭을 넘긴다 (STG 탐색·영상 실행해 보기가 각자 탭을 쓰고, 영상 만들기와 동시에 돈다)
+  openTab?: OpenTab
   onEvent: (event: DraftEvent) => void
 }): Promise<DraftResult> {
   if (current) throw new Error('이미 초안을 만드는 중입니다')
@@ -94,17 +98,17 @@ export async function startDraft({
   let stg: StgSession | undefined
   const mcp = await startAriadneMcp({
     ref,
-    stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir })),
+    stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab })),
     // 장면 하나만 채우는 작업이면 그 장면만 저장할 수 있다
     videoScene:
       input.mode === 'video-scene' && input.video
         ? { id: input.video, index: input.scene ?? 0, insert: Boolean(input.insert) }
         : undefined,
     // 영상 시나리오를 화면 없이(headless) 실행해 본다. 녹화·음성·파일 없음
-    // 프로필은 한 번에 하나만 열 수 있어 STG 탐색 브라우저를 닫고 실행한다 (다음 stg_* 도구에서 다시 연다)
+    // 공유 Chrome이면 탭을 하나 더 연다. 단독 실행(openTab 없음)이면 프로필은 Chrome 하나만 열 수 있어 STG 탐색 브라우저를 닫고 실행한다
     videoCheck: async (id, fromScene) => {
-      await stg?.close()
-      return renderVideo({ ...ref, id, baseUrl: captureBaseUrl, profileDir, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
+      if (!openTab) await stg?.close()
+      return renderVideo({ ...ref, id, baseUrl: captureBaseUrl, profileDir, openTab, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
         (r) => ({ ok: true as const, durationMs: r.durationMs, blockedRequests: r.blockedRequests }),
         (error: Error) =>
           error instanceof StepError

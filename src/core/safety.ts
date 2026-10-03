@@ -1,4 +1,5 @@
 // STG를 바꾸지 않기 위한 공용 규칙. Claude STG 탐색(app/main/lib/stg.ts)과 가이드 영상(video/director.ts)이 같이 쓴다
+import type { Page } from 'playwright'
 
 // 화면을 바꾸는 동작으로 보이는 이름. 단어 단위로 본다.
 // "Create"는 정확히 그 이름일 때만 막는다 (목록의 "Create New"는 화면 이동, 딜러 생성 마지막 단계의 "Create"는 HMG Partner 연동)
@@ -39,4 +40,15 @@ export function isAllowedRequest(method: string, url: string) {
     // 상대 경로면 그대로 본다
   }
   return READ_POST.test(path) || SESSION_POST.test(path)
+}
+
+// 이 탭(과 이 탭이 연 팝업)의 쓰기 요청을 막는다. 공유 Chrome에서 다른 탭(예: STG 저장 허용 영상)에 번지지 않게 page 단위로 건다
+export async function guardWrites(page: Page, onBlocked?: (request: string) => void) {
+  page.on('popup', (popup) => void guardWrites(popup, onBlocked).catch(() => {}))
+  await page.route('**/*', (route) => {
+    const request = route.request()
+    if (isAllowedRequest(request.method(), request.url())) return route.continue()
+    if (!isTelemetryRequest(request.url())) onBlocked?.(`${request.method()} ${request.url()}`)
+    return route.abort('blockedbyclient')
+  })
 }

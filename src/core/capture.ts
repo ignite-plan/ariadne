@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import pixelmatch from 'pixelmatch'
 import { PNG } from 'pngjs'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from './manual.ts'
-import { clearSession, defaultProfileDir, openProfile, requireSession } from './session.ts'
+import { clearSession, defaultProfileDir, profileTab, requireSession, type OpenTab } from './session.ts'
 import type { Shot } from './shot.ts'
 
 export interface CaptureOptions extends ManualRef {
@@ -15,6 +15,8 @@ export interface CaptureOptions extends ManualRef {
   viewport?: Viewport
   // 로그인 세션(유지되는 Chrome 프로필). 기본 <root>/.auth/<manual>-profile
   profileDir?: string
+  // 탭 여는 방법. 기본은 프로필로 Chrome을 단독으로 띄운다. 앱은 공유 Chrome의 탭을 넘긴다
+  openTab?: OpenTab
   // 없으면 manuals/<manual>/shots.ts를 import. 앱은 TS를 직접 import할 수 없어 미리 읽어 넘긴다
   shots?: Shot[]
   only?: string[]
@@ -61,6 +63,7 @@ export async function capture({
   baseUrl: baseUrlOption,
   viewport: viewportOption,
   profileDir,
+  openTab,
   shots,
   only,
   threshold = 0.005,
@@ -82,7 +85,7 @@ export async function capture({
 
   const report: CaptureReport = { changed: [], unchanged: [], skipped: [], failed: [] }
 
-  const { context, page } = await openProfile(profile, { viewport })
+  const { page, close } = await (openTab ?? profileTab(profile))({ viewport })
   try {
 
     for (const [index, shot] of targets.entries()) {
@@ -119,7 +122,7 @@ export async function capture({
       }
     }
   } finally {
-    await context.close().catch(() => {})
+    await close()
   }
   writeFileSync(join(outDir, 'report.json'), JSON.stringify(report, null, 2))
   return report

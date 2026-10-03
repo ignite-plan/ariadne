@@ -47,7 +47,7 @@ steps:
 ## 4. 실행해 보기
 1. `video_check`를 "이번 작업"의 fromScene 값으로 부른다
 2. 실패하면 그 단계를 고쳐 `video_save_scene` → `video_check`를 반복한다 (세 번 고쳐도 같은 단계가 실패하면 빼고 `notes`에 적는다)
-3. `video_check`는 STG 브라우저를 닫고 실행하므로, 다시 화면을 살펴보려면 `video_open_scene`부터 다시 부른다
+3. `video_check`는 따로 실행하므로 살펴보던 화면은 그 상태로 남는다. 처음 화면부터 다시 보려면 `video_open_scene`을 다시 부른다
 
 ## 5. 마지막 응답
 짧은 한국어 요약 뒤에 아래 JSON 블록 하나로 끝낸다 (앱이 읽는다):

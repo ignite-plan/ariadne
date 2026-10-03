@@ -11,7 +11,7 @@ function csp(): Plugin {
     transformIndexHtml: (html: string) =>
       html.replace(
         '<meta charset="UTF-8" />',
-        `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' ariadne: data: blob: https://avatars.githubusercontent.com; connect-src 'self' ariadne:" />`,
+        `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' ariadne: data: blob: https://avatars.githubusercontent.com; media-src 'self' ariadne:; connect-src 'self' ariadne:" />`,
       ),
   }
 }

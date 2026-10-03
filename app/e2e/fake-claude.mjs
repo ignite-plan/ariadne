@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // E2E용 가짜 Claude Code CLI. LLM 없이 받은 --mcp-config로 Ariadne MCP 도구를 실제로 부르고 stream-json을 낸다
-import { writeFileSync } from 'node:fs'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { setTimeout as sleep } from 'node:timers/promises'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -95,6 +95,12 @@ if (prompt.includes('최신화한다')) {
   await call('manual_outline', {})
   await call('stg_open', { path: '/dealer/company' })
   await call('save_shot', { id: 'dealer-list', path: '/dealer/company', ready: 'text=Total', clip: '#root', replace: true })
+  // E2E: 최신화가 도는 동안(STG 탭을 연 채로) 영상 만들기를 함께 돌려 보려고, 이 파일이 생길 때까지 기다린다
+  const hold = process.env.ARIADNE_FAKE_CLAUDE_HOLD
+  if (hold) {
+    emit({ type: 'assistant', message: { content: [{ type: 'text', text: '기획서를 더 읽는 중입니다.' }] } })
+    while (!existsSync(hold)) await sleep(200)
+  }
   const id = `toolu_${++n}`
   const file = join(root, target)
   emit({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Edit', input: { file_path: file } }] } })

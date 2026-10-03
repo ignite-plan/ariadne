@@ -4,6 +4,7 @@ import { App } from './App.tsx'
 import { ReportHost } from './components/ReportDialog.tsx'
 import { ToastProvider } from './components/Toast.tsx'
 import { api } from './api.ts'
+import { TasksProvider } from './tasks.tsx'
 import './styles.css'
 
 // 화면에서 난 예외도 로그에 남긴다 (문제 신고에 첨부)
@@ -15,7 +16,9 @@ window.addEventListener('unhandledrejection', (e) =>
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
-      <App />
+      <TasksProvider>
+        <App />
+      </TasksProvider>
       <ReportHost />
     </ToastProvider>
   </StrictMode>,

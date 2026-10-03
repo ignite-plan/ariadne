@@ -55,6 +55,7 @@ const api: AriadneApi = {
     session: invoke('capture:session'),
     login: invoke('capture:login'),
     checkSession: invoke('capture:checkSession'),
+    tasks: invoke('capture:tasks'),
     finishLogin: invoke('capture:finishLogin'),
     cancelLogin: invoke('capture:cancelLogin'),
     run: invoke('capture:run'),

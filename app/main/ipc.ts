@@ -53,7 +53,8 @@ import {
   writeSectionDoc,
 } from './lib/sections.ts'
 import { loadShotsBundled, shotSections } from './lib/shots.ts'
-import { acquireProfile, withProfile } from './lib/profile-lock.ts'
+import { acquireShared, onLockChange, profileHolders, withShared } from './lib/profile-lock.ts'
+import { acquireExclusiveProfile, hostTab, leaseEndpoint, withExclusive } from './lib/browser-host.ts'
 import { notifyTask, testNotification } from './notifier.ts'
 import { log } from './report-ipc.ts'
 import { clearToken, getSettings, profileDir, readToken, saveToken, updateSettings } from './settings.ts'
@@ -190,6 +191,13 @@ function handle<T extends unknown[], R>(channel: string, fn: (...args: T) => R |
 export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   windowRef = getWindow
   const send = (channel: string, payload: unknown) => getWindow()?.webContents.send(channel, payload)
+  onLockChange(() => {
+    try {
+      send('stg-tasks', profileHolders(profileDir(ref().manual)))
+    } catch {
+      // 작업 폴더가 없으면 알릴 작업도 없다
+    }
+  })
 
   // settings
   handle('settings:get', () => getSettings())
@@ -483,12 +491,18 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     }))
   })
   handle('capture:session', () => sessionInfo(profileDir(ref().manual)))
-  handle('capture:checkSession', () => withProfile('세션 확인', () => checkSession(profileDir(ref().manual), captureBaseUrl())))
+  // 공유 Chrome의 탭으로 확인한다 (Claude 작업·영상 만들기 중에도 된다)
+  handle('capture:checkSession', () => {
+    const session = profileDir(ref().manual)
+    return withShared(session, '세션 확인', () => checkSession(session, captureBaseUrl(), hostTab(session)))
+  })
+  // 지금 STG 로그인 프로필을 쓰는 작업 이름 (화면이 보이는 Chrome이 필요한 버튼을 끌 때 쓴다)
+  handle('capture:tasks', () => profileHolders(profileDir(ref().manual)))
   handle('capture:login', async () => {
     if (!findChrome()) throw new Error('Google Chrome이 필요합니다')
     pendingLogin?.reject(new Error('새 로그인으로 대체되었습니다'))
     const r = ref()
-    await withProfile('STG 로그인', () =>
+    await withExclusive(profileDir(r.manual), 'STG 로그인', () =>
       login({
         baseUrl: captureBaseUrl(),
         profileDir: profileDir(r.manual),
@@ -506,11 +520,13 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('capture:run', async (ids: string[]) => {
     const r = ref()
     const shots = await loadShotsBundled(r)
-    return withProfile('화면 캡처', () =>
+    const session = profileDir(r.manual)
+    return withShared(session, '화면 캡처', () =>
       capture({
         ...r,
         baseUrl: captureBaseUrl(),
-        profileDir: profileDir(r.manual),
+        profileDir: session,
+        openTab: hostTab(session),
         shots,
         only: ids,
         apply: false,
@@ -536,13 +552,26 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     if (narrate && !modelStatus(videoModelDir()).ready) throw new Error('음성 모델이 없습니다. 먼저 음성 모델을 받으세요')
     // 앱은 사내 TLS 프록시 때문에 worker에서 외부 API를 부를 수 없어 Kokoro(로컬)만 쓴다
     const tts = narrate ? { ...loadManual(r).video?.tts, provider: 'kokoro' as const } : false
-    const release = acquireProfile(options.preview ? '미리보기' : '영상 만들기')
+    // 미리보기는 화면이 보이는 Chrome을 따로 띄운다(단독). 영상 만들기는 공유 Chrome에 탭을 열어 Claude 작업과 동시에 돈다
+    let release: () => void
+    let endpoint: { url: string; release: () => void } | undefined
+    if (options.preview) release = await acquireExclusiveProfile(session, '미리보기')
+    else {
+      release = acquireShared(session, '영상 만들기')
+      try {
+        endpoint = await leaseEndpoint(session)
+      } catch (error) {
+        release()
+        throw error
+      }
+    }
     const result = await runVideo(
       {
         ...r,
         id,
         baseUrl: captureBaseUrl(),
         profileDir: session,
+        cdpEndpoint: endpoint?.url,
         tts,
         modelDir: videoModelDir(),
         localModel: true,
@@ -551,7 +580,10 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         fromScene: options.fromScene,
       },
       (progress) => send('video-progress', progress),
-    ).finally(release)
+    ).finally(() => {
+      endpoint?.release()
+      release()
+    })
     if (!result.ok) return result
     const rel = (path?: string) => (path ? relative(r.root, path) : undefined)
     return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt) }
@@ -572,7 +604,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     const session = profileDir(r.manual)
     if (!sessionInfo(session).exists) throw new Error('STG 로그인이 필요합니다')
     // 기록이 끝날 때('stop')까지 프로필을 잡는다
-    const release = acquireProfile('STG 기록')
+    const release = await acquireExclusiveProfile(session, 'STG 기록')
     await startRecording({
       ...r,
       id,
@@ -599,8 +631,9 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   handle('draft:start', (input: DraftInput) => {
     requireWorkspace()
     const r = ref()
-    // Claude가 STG를 살펴보는 동안 프로필을 잡는다
-    return withProfile('Claude 작업', () =>
+    // Claude 작업 내내 공유 잠금을 잡는다 (언제 STG를 열지 몰라 로그인·미리보기·기록은 막는다). 영상 만들기·캡처는 함께 돈다
+    const session = profileDir(r.manual)
+    return withShared(session, 'Claude 작업', () =>
       startDraft({
         ref: r,
         input,
@@ -608,7 +641,8 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         claudeAuth: getSettings().claudeAuth,
         codeDir: getSettings().dealerhubWebDir || undefined,
         captureBaseUrl: captureBaseUrl(),
-        profileDir: profileDir(r.manual),
+        profileDir: session,
+        openTab: hostTab(session),
         onEvent: (event) => send('draft-event', event),
       }),
     )

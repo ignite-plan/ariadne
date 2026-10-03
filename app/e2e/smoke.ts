@@ -36,6 +36,15 @@ writeFileSync(
 // BO 로그인 세션이 있는 상태로 시작한다 (실제 MFA 대신)
 // 로그인 세션(유지 프로필)의 로그인 표식만 둔다. 가짜 BO는 인증이 없다
 writeFileSync(join(userData, 'profiles', 'bo', 'ariadne-session.json'), JSON.stringify({ baseUrl: boBaseUrl }))
+// 가짜 Claude 최신화는 이 파일이 생길 때까지 기다린다 (그동안 영상 만들기를 함께 돌린다)
+const claudeHold = join(temp, 'claude-hold')
+// 음성 모델 자리만 채운다. 동시 실행 단계는 내레이션을 끄고 만들어서 모델을 읽지 않는다
+const models = join(temp, 'models')
+for (const file of ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'onnx/model_quantized.onnx']) {
+  const path = join(models, 'onnx-community/Kokoro-82M-v1.0-ONNX', file)
+  mkdirSync(join(path, '..'), { recursive: true })
+  writeFileSync(path, '{}')
+}
 const shotsDir = values.shots ? resolve(values.shots) : undefined
 if (shotsDir) mkdirSync(shotsDir, { recursive: true })
 
@@ -51,6 +60,8 @@ const app = await electron.launch({
     ARIADNE_CLAUDE_PATH: resolve('app/e2e/fake-claude.mjs'),
     // STG 기록 브라우저를 이 테스트가 조작한다
     ARIADNE_E2E_RECORD_PORT: '9339',
+    ARIADNE_FAKE_CLAUDE_HOLD: claudeHold,
+    ARIADNE_VIDEO_MODEL_DIR: models,
   },
 })
 const errors: string[] = []
@@ -426,15 +437,47 @@ try {
     await page.getByRole('tab', { name: '목차' }).click()
   })
 
-  await step('Claude로 최신화 (기존 화면) → 변경 보기 → 되돌리기', async () => {
+  await step('Claude로 최신화 (숨기고 그동안 영상 만들기) → 변경 보기 → 되돌리기', async () => {
+    // 동시에 만들 영상 (가짜 BO에서 도는 시나리오)
+    const concurrent = join(workspace, 'manuals/bo/videos/e2e-concurrent.yaml')
+    writeFileSync(
+      concurrent,
+      'title: E2E Concurrent\nscenes:\n  - say: The dealer list opens.\n    steps:\n      - open: /dealer/company\n      - waitFor:\n          text: Total\n      - click:\n          role: button\n          name: Location\n',
+    )
     await page.locator('.toc-section', { hasText: 'Dealer List View' }).click()
     await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
     await page.locator('.doc-header').getByRole('button', { name: /Claude로 최신화/ }).click()
     await page.getByRole('heading', { name: 'Claude로 최신화' }).waitFor()
     await page.locator('.draft-input', { hasText: '02-dealer-management/01-dealer-list-view.md' }).waitFor()
     await page.getByRole('button', { name: '최신화 시작' }).click()
-    await page.locator('.draft-summary', { hasText: '최신화했습니다' }).waitFor({ timeout: 90000 })
-    await page.locator('.log li', { hasText: '캡처 저장: dealer-list' }).waitFor()
+    // Claude가 STG 탭을 연 채로 기다린다. 패널을 숨겨도 작업은 이어지고, 고치는 화면은 편집이 막힌다
+    await page.locator('.log li', { hasText: '캡처 저장: dealer-list' }).waitFor({ timeout: 60000 })
+    await page.locator('.log li', { hasText: '기획서를 더 읽는 중' }).waitFor()
+    await page.locator('.panel-header').getByRole('button', { name: '숨기기' }).click()
+    await page.locator('.task-chip', { hasText: 'Claude 최신화' }).waitFor()
+    await page.locator('.doc-lock').waitFor()
+    assert.ok(await page.locator('.titlebar').getByRole('button', { name: /제출/ }).isDisabled(), 'Claude 작업 중에는 제출하지 않는다')
+
+    // 그동안 영상 만들기 (공유 Chrome의 다른 탭). 미리보기(화면이 보이는 Chrome)는 막힌다
+    await page.getByRole('button', { name: '영상', exact: true }).click()
+    await page.locator('.video-item', { hasText: 'E2E Concurrent' }).click()
+    await page.locator('.video-title h2', { hasText: 'E2E Concurrent' }).waitFor()
+    assert.ok(await page.locator('.video-toolbar').getByRole('button', { name: '미리보기', exact: true }).isDisabled())
+    await page.locator('.video-check input').uncheck()
+    await page.locator('.video-toolbar').getByRole('button', { name: '영상 만들기' }).click()
+    await page.locator('.task-chip', { hasText: '영상 만들기' }).waitFor()
+    await snap('13a-concurrent')
+    await toast(page, /"E2E Concurrent" 영상을 만들었습니다/).waitFor({ timeout: 120000 })
+    assert.ok(existsSync(join(workspace, 'dist/videos/e2e-concurrent.mp4')), '최신화가 도는 동안 영상을 만들었다')
+    assert.ok(await page.locator('.task-chip', { hasText: 'Claude 최신화' }).isVisible(), 'Claude 작업은 아직 돈다')
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    rmSync(concurrent)
+
+    // Claude를 마치게 한다. 숨겨 둔 동안 끝나면 알리고, 칩에서 결과를 연다
+    writeFileSync(claudeHold, '')
+    await toast(page, /Claude 최신화 작업을 마쳤습니다/).waitFor({ timeout: 60000 })
+    await page.locator('.task-chip', { hasText: 'Claude 최신화 완료' }).click()
+    await page.locator('.draft-summary', { hasText: '최신화했습니다' }).waitFor({ timeout: 10000 })
     // 기존 이미지(정의 있음)를 같은 id로 다시 찍었다
     assert.equal((readFileSync(join(workspace, 'manuals/bo/shots.ts'), 'utf8').match(/id: 'dealer-list',/g) ?? []).length, 1)
     await page.locator('.draft-summary').getByRole('button', { name: /변경 보기/ }).click()

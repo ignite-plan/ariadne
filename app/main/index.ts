@@ -7,6 +7,7 @@ import { installErrorHooks, registerReportIpc } from './report-ipc.ts'
 import { isMediaFile, mediaResponse } from './lib/asset.ts'
 import { resolveInside } from './lib/sections.ts'
 import { getSettings } from './settings.ts'
+import { closeAllHosts } from './lib/browser-host.ts'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 
@@ -131,4 +132,12 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   app.on('window-all-closed', () => app.quit())
+  // 공유 STG Chrome(headless)을 남기지 않는다
+  let hostsClosed = false
+  app.on('before-quit', (event) => {
+    if (hostsClosed) return
+    event.preventDefault()
+    hostsClosed = true
+    void closeAllHosts().finally(() => app.quit())
+  })
 }

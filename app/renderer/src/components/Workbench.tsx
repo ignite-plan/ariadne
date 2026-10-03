@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
-  DraftInput,
   FileChange,
   ManualTree,
   SectionDoc,
@@ -12,6 +11,7 @@ import type {
   UpdateInfo,
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
+import { isDraftTarget, useClaudeDone, useTasks } from '../tasks.tsx'
 import { CapturePanel } from './CapturePanel.tsx'
 import { VideoPanel } from './VideoPanel.tsx'
 import { DiffDialog } from './DiffDialog.tsx'
@@ -28,6 +28,7 @@ import { Preview } from './Preview.tsx'
 import { SettingsDialog } from './SettingsDialog.tsx'
 import { Sidebar, type SidebarTab } from './Sidebar.tsx'
 import { SubmitDialog } from './SubmitDialog.tsx'
+import { TaskChips } from './TaskChips.tsx'
 import { useToast } from './Toast.tsx'
 
 type Layout = 'editor' | 'split' | 'preview'
@@ -81,7 +82,9 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [capturing, setCapturing] = useState(false)
   const [videoing, setVideoing] = useState(false)
-  const [drafting, setDrafting] = useState<DraftInput>()
+  // 영상 패널을 열 때 고를 영상 (토스트·작업 표시의 [보기])
+  const [videoInitial, setVideoInitial] = useState<string>()
+  const tasks = useTasks()
   const [building, setBuilding] = useState(false)
   const [buildMenu, setBuildMenu] = useState(false)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
@@ -360,8 +363,27 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     if (!chapter || !(await flush())) return
     const targets = path ? [path] : chapter.sections.map((s) => s.path)
     const hint = path && doc?.path === path ? doc.meta.routes?.[0] : undefined
-    setDrafting({ mode: 'refresh', menu: chapter.title, targets, path: hint })
+    tasks.openDraft({ mode: 'refresh', menu: chapter.title, targets, path: hint })
   }
+
+  // Claude 작업이 끝나면(패널을 숨겨 두었어도) 고친 파일을 다시 읽는다. 열린 화면의 예전 내용이 자동 저장으로 덮어쓰지 않게 한다
+  useClaudeDone((task) => {
+    if (task.input.mode === 'video' || task.input.mode === 'video-scene' || !task.result) return
+    void refreshSide().then(async () => {
+      if (doc) await openSection(doc.path).catch(() => undefined)
+    })
+  })
+
+  const openVideo = useCallback((id?: string) => {
+    setVideoInitial(id)
+    setVideoing(true)
+  }, [])
+
+  useEffect(() => {
+    tasks.setVideoOpener(openVideo)
+    return () => tasks.setVideoOpener(undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openVideo])
 
   // 순서를 바꾸면 폴더/파일 번호가 바뀐다. 지금 연 화면을 번호를 뺀 이름으로 다시 찾는다
   const reopenAfterMove = async () => {
@@ -412,7 +434,11 @@ export function Workbench({ onReset }: { onReset: () => void }) {
 
   const currentChapter = tree?.chapters.find((c) => doc?.path.startsWith(`${c.dir}/`))
   const syncInfo = sync ? SYNC_LABEL[sync.status] : undefined
-  const canSubmit = changes.length > 0 || sync?.status === 'ahead' || sync?.status === 'diverged'
+  const claudeRunning = tasks.claude?.phase === 'running'
+  // Claude가 고치는 중에는 제출하지 않는다 (반쯤 고친 파일이 올라간다)
+  const canSubmit = (changes.length > 0 || sync?.status === 'ahead' || sync?.status === 'diverged') && !claudeRunning
+  // Claude가 지금 이 화면을 고치는 중이면 편집을 막는다 (끝나면 디스크에서 다시 읽는다)
+  const docLocked = Boolean(claudeRunning && doc && tasks.claude && isDraftTarget(tasks.claude.input, doc.path))
 
   return (
     <div className="workbench">
@@ -442,6 +468,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           )}
         </div>
         <div className="titlebar-right">
+          <TaskChips onOpenVideo={openVideo} />
           <button className="button ghost" onClick={() => setCapturing(true)}>
             <Icon name="camera" /> 캡처
           </button>
@@ -472,7 +499,12 @@ export function Workbench({ onReset }: { onReset: () => void }) {
               </>
             )}
           </div>
-          <button className="button primary" onClick={openSubmit} disabled={!canSubmit}>
+          <button
+            className="button primary"
+            onClick={openSubmit}
+            disabled={!canSubmit}
+            title={claudeRunning ? 'Claude 작업이 끝난 뒤 제출할 수 있습니다' : undefined}
+          >
             <Icon name="upload" /> 제출{changes.length > 0 && <span className="count light">{changes.length}</span>}
           </button>
           <button className="icon-button" onClick={() => setDialog({ type: 'settings' })} title="설정">
@@ -548,10 +580,17 @@ export function Workbench({ onReset }: { onReset: () => void }) {
                   </button>
                 </div>
               </div>
-              <MetaPanel meta={doc.meta} onSave={saveMeta} />
+              {docLocked && (
+                <p className="notice doc-lock">
+                  Claude가 이 화면을 고치는 중입니다. 끝나면 고친 내용으로 다시 열리고, 그때부터 편집할 수 있습니다.
+                </p>
+              )}
+              <fieldset className="lock" disabled={docLocked}>
+                <MetaPanel meta={doc.meta} onSave={saveMeta} />
+              </fieldset>
               <div className={`panes ${layout}`}>
                 <div className="pane editor-pane">
-                  <div className="toolbar">
+                  <fieldset className="lock toolbar" disabled={docLocked}>
                     <ToolButton icon="bold" label="굵게 (항목 이름)" onClick={() => editor.current?.wrap('**', '**', 'Label')} />
                     <ToolButton
                       icon="button"
@@ -571,8 +610,9 @@ export function Workbench({ onReset }: { onReset: () => void }) {
                     <span className="spacer" />
                     <ToolButton icon="undo" label="되돌리기 (⌘Z)" onClick={() => editor.current?.undo()} />
                     <ToolButton icon="redo" label="다시 실행 (⇧⌘Z)" onClick={() => editor.current?.redo()} />
-                  </div>
+                  </fieldset>
                   <Editor
+                    readOnly={docLocked}
                     ref={editor}
                     docKey={`${doc.path}#${docVersion}`}
                     value={body}
@@ -617,32 +657,31 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         <div className="overlay">
           <VideoPanel
             currentSection={doc?.path}
+            initial={videoInitial}
             onClose={() => {
               setVideoing(false)
+              setVideoInitial(undefined)
               void refreshSide()
             }}
           />
         </div>
       )}
 
-      {drafting && (
+      {/* 영상 패널 위에도 뜨도록 뒤에 둔다 (영상 초안·장면 채우기) */}
+      {tasks.draftPanel && (
         <div className="overlay">
           <DraftPanel
-            input={drafting}
+            key={tasks.draftPanel.mode + (tasks.draftPanel.video ?? '') + tasks.draftPanel.menu}
+            input={tasks.draftPanel}
             onOpenSection={(path) => {
-              setDrafting(undefined)
+              tasks.clearClaude()
+              setVideoing(false)
               void refreshSide().then(() => openSection(path))
             }}
             onDiff={(path, title) => setDialog({ type: 'diff', path, title })}
-            onClose={(changed) => {
-              const mode = drafting.mode
-              setDrafting(undefined)
-              if (!changed) return
-              // Claude가 열린 화면을 고쳤을 수 있다. 디스크에서 다시 읽어 예전 내용이 자동 저장으로 덮어쓰지 않게 한다
-              void refreshSide().then(async () => {
-                if (doc) await openSection(doc.path).catch(() => undefined)
-                setTab(mode === 'refresh' ? 'changes' : 'toc')
-              })
+            onDone={(input, changed) => {
+              tasks.clearClaude()
+              if (changed && (input.mode === 'refresh' || input.mode === 'create')) setTab(input.mode === 'refresh' ? 'changes' : 'toc')
             }}
           />
         </div>
@@ -673,7 +712,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           }}
           onDraft={async (input) => {
             setDialog(null)
-            if (await flush()) setDrafting(input)
+            if (await flush()) tasks.openDraft(input)
           }}
         />
       )}

@@ -4,8 +4,8 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Page } from 'playwright'
 import { loadManual, type Manual, type ManualRef, type Viewport } from '../manual.ts'
-import { isAllowedRequest, isTelemetryRequest } from '../safety.ts'
-import { clearSession, defaultProfileDir, isSessionExpired, openProfile, requireSession } from '../session.ts'
+import { guardWrites } from '../safety.ts'
+import { clearSession, defaultProfileDir, isSessionExpired, profileTab, requireSession, type OpenTab } from '../session.ts'
 import { compose } from './compose.ts'
 import { Director } from './director.ts'
 import { MASK_ATTR, overlayScript } from './overlay.ts'
@@ -61,6 +61,8 @@ export interface VideoOptions extends ManualRef {
   viewport?: Viewport
   // 로그인 세션(유지되는 Chrome 프로필, session.ts). 기본 <root>/.auth/<manual>-profile
   profileDir?: string
+  // 탭 여는 방법. 기본은 프로필로 Chrome을 단독으로 띄운다. 앱은 공유 Chrome의 탭을 넘긴다
+  openTab?: OpenTab
   // false면 내레이션 없이 자막만. 없으면 manual.yaml video.tts. provider를 직접 넘길 수도 있다 (테스트)
   tts?: false | TtsConfig | TtsProvider
   // Kokoro 모델 위치. 기본 <root>/.video-cache/models. localModel이면 내려받지 않는다 (앱)
@@ -123,6 +125,7 @@ export async function renderVideo({
   baseUrl: baseUrlOption,
   viewport: viewportOption,
   profileDir,
+  openTab,
   tts: ttsOption,
   modelDir,
   localModel,
@@ -183,23 +186,18 @@ export async function renderVideo({
   const blockedRequests: string[] = []
   const video = join(work, 'screen.mp4')
   let durationMs = 0
-  const { context, page } = await openProfile(profile, { headless: !(headed ?? preview), viewport })
-  const closeAll = () => context.close().catch(() => {})
+  const tab = await (openTab ?? profileTab(profile))({ headless: !(headed ?? preview), viewport })
+  const { page } = tab
+  const closeAll = () => tab.close()
   const abort = () => void closeAll()
   signal?.addEventListener('abort', abort, { once: true })
   try {
     signal?.throwIfAborted()
-    await context.addInitScript({
+    // 공유 Chrome의 다른 탭에 자막·커서가 뜨지 않게 이 탭에만 넣는다
+    await page.addInitScript({
       content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask, captionScale: CAPTION_SCALE[style.captionSize] }),
     })
-    if (!scenario.mutates) {
-      await context.route('**/*', (route) => {
-        const request = route.request()
-        if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        if (!isTelemetryRequest(request.url())) blockedRequests.push(`${request.method()} ${request.url()}`)
-        return route.abort('blockedbyclient')
-      })
-    }
+    if (!scenario.mutates) await guardWrites(page, (request) => blockedRequests.push(request))
     page.setDefaultTimeout(stepTimeout)
     const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: stepPace })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다

@@ -64,7 +64,7 @@ export interface RecorderOptions {
   onEvent: (event: RecordEvent) => void
 }
 
-// 이미 열린 페이지에 기록기를 붙인다. 페이지 이동 뒤에도 다시 붙도록 context에 init script를 건다
+// 이미 열린 페이지에 기록기를 붙인다. 페이지 이동 뒤에도 다시 붙도록 이 탭에 init script를 건다
 export async function attachRecorder(page: Page, { mutates = false, onEvent }: RecorderOptions) {
   const label = (target: Target) => target.name ?? target.text ?? ''
   const resolve = async (id: string, candidates: Target[]) => {
@@ -84,7 +84,7 @@ export async function attachRecorder(page: Page, { mutates = false, onEvent }: R
       await page.evaluate(() => ((window as unknown as { __ariadneReplaying: boolean }).__ariadneReplaying = false)).catch(() => {})
     }
   }
-  await page.context().exposeBinding('__ariadneRecord', async (_source, event: PageEvent) => {
+  await page.exposeBinding('__ariadneRecord', async (_source, event: PageEvent) => {
     if (event.kind === 'control') return onEvent({ kind: event.action })
     if (event.kind === 'click') {
       const found = await resolveTarget(page, event.id, event.candidates)
@@ -116,7 +116,7 @@ export async function attachRecorder(page: Page, { mutates = false, onEvent }: R
     if (event.purpose === 'wait') return onEvent({ kind: 'step', step: { waitFor: found.target } })
     return onEvent({ kind: 'step', step: { highlight: { target: found.target, ms: 2000 } } })
   })
-  await page.context().addInitScript({ content: recordScript() })
+  await page.addInitScript({ content: recordScript() })
   await page.evaluate(recordScript())
 }
 

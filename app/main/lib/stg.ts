@@ -2,10 +2,10 @@
 // 안전장치 두 겹: 저장/삭제류 버튼 클릭 거절, 쓰기 요청(PUT/PATCH/DELETE, 조회가 아닌 POST) 차단
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { BrowserContext, Locator, Page } from 'playwright'
+import type { Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
-import { isAllowedRequest, isBlockedLabel, isTelemetryRequest } from '../../../src/core/safety.ts'
-import { clearSession, isSessionExpired, openProfile } from '../../../src/core/session.ts'
+import { guardWrites, isBlockedLabel } from '../../../src/core/safety.ts'
+import { clearSession, isSessionExpired, profileTab, type OpenTab, type StgTab } from '../../../src/core/session.ts'
 import { Director } from '../../../src/core/video/director.ts'
 import type { Scene } from '../../../src/core/video/scenario.ts'
 import { runSteps } from '../../../src/core/video/steps.ts'
@@ -117,10 +117,12 @@ export interface StgOptions extends ManualRef {
   profileDir: string
   viewport?: Viewport
   headless?: boolean
+  // 탭 여는 방법. 앱은 공유 Chrome의 탭을 넘긴다 (영상 만들기와 동시에 돈다). 기본은 프로필로 단독 실행
+  openTab?: OpenTab
 }
 
 export class StgSession {
-  private context?: BrowserContext
+  private tab?: StgTab
   private page?: Page
   private blocked: string[] = []
   private counter = 0
@@ -132,22 +134,31 @@ export class StgSession {
     this.viewport = options.viewport ?? loadManual(options).capture?.viewport ?? DEFAULT_VIEWPORT
   }
 
+  // 같은 브라우저에 탭을 하나 더 연다. 쓰기 차단은 탭마다 건다 (공유 Chrome의 다른 탭에 번지지 않게)
+  private async newPage(page: Page) {
+    const next = await page.context().newPage()
+    await next.setViewportSize(this.viewport)
+    await guardWrites(next, (request) => this.blocked.push(request))
+    return next
+  }
+
   private async ensurePage() {
     if (this.page && !this.page.isClosed()) return this.page
-    if (!this.context) {
-      const { context, page } = await openProfile(this.options.profileDir, { headless: this.options.headless ?? true, viewport: this.viewport })
-      await context.route('**/*', (route) => {
-        const request = route.request()
-        if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        if (!isTelemetryRequest(request.url())) this.blocked.push(`${request.method()} ${request.url()}`)
-        return route.abort('blockedbyclient')
-      })
-      this.context = context
-      this.page = page
-      return page
+    if (this.tab) {
+      this.page = await this.newPage(this.tab.page)
+      return this.page
     }
-    this.page = await this.context.newPage()
-    return this.page
+    const open = this.options.openTab ?? profileTab(this.options.profileDir)
+    const tab = await open({ headless: this.options.headless ?? true, viewport: this.viewport })
+    try {
+      await guardWrites(tab.page, (request) => this.blocked.push(request))
+    } catch (error) {
+      await tab.close()
+      throw error
+    }
+    this.tab = tab
+    this.page = tab.page
+    return tab.page
   }
 
   private url(path: string) {
@@ -237,8 +248,7 @@ export class StgSession {
     }
     const next = appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
 
-    await this.ensurePage()
-    const page = await this.context!.newPage()
+    const page = await this.newPage(await this.ensurePage())
     try {
       await page.goto(this.url(shot.path))
       await page.waitForLoadState('networkidle').catch(() => {})
@@ -266,9 +276,11 @@ export class StgSession {
   }
 
   async close() {
-    await this.context?.close().catch(() => {})
-    this.context = undefined
+    const tab = this.tab
+    this.tab = undefined
+    if (this.page && this.page !== tab?.page) await this.page.close().catch(() => {})
     this.page = undefined
+    await tab?.close()
   }
 }
 

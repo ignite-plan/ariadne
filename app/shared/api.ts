@@ -376,6 +376,8 @@ export interface AriadneApi {
     login(): Promise<void>
     // STG를 화면 없이 열어 세션이 살아 있는지 확인한다. 만료됐으면 로그인 표식을 지운다
     checkSession(): Promise<SessionInfo & { valid: boolean }>
+    // 지금 STG 로그인 프로필을 쓰는 작업 이름 (Claude 작업, 영상 만들기 등)
+    tasks(): Promise<string[]>
     finishLogin(): Promise<void>
     cancelLogin(): Promise<void>
     run(ids: string[]): Promise<CaptureReport>
@@ -424,6 +426,8 @@ export interface AriadneApi {
   on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
   on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
   on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void
+  // 지금 STG 로그인 프로필을 쓰는 작업 이름이 바뀔 때
+  on(event: 'stg-tasks', listener: (names: string[]) => void): () => void
   on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
   on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
   on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void

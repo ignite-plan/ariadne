@@ -33,7 +33,8 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - UI 라벨은 실제 화면 표기 그대로(STG 화면 또는 dealerhub-web `en.json`)
 - 정책·화면 근거는 **Confluence DLRS 기획서 최신 output**(`[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`, 연결된 정책 문서)이 우선. 위키 SPEC은 보조. 기획서와 화면이 다르면 판단하지 말고 TODO, 근거 없으면 TODO 주석, 추측 금지
 - STG 캡처 중 저장/삭제/발송/승인 버튼 클릭 금지. 영상도 기본 금지(`src/core/safety.ts`를 Claude STG 탐색과 같이 씀: 버튼 이름 + 쓰기 요청 차단)이고, `mutates: true` 시나리오만 STG 테스트 데이터(`Video Test` 접두어)로 실제 저장하고 `cleanup`으로 지운다. 외부 연동 버튼(딜러 생성 최종 `Create` 등)은 누르지 않는다
-- STG 로그인 세션은 `src/core/session.ts`의 유지 프로필(`openProfile`)로만 연다. storageState 파일로 새 컨텍스트를 여러 번 열면 BO 토큰 갱신 때문에 로그아웃된다. 프로필은 한 번에 브라우저 하나라 앱은 `main/lib/profile-lock.ts`로 로그인·캡처·영상·STG 기록·Claude 작업을 하나씩만 돌린다
+- STG 로그인 세션은 `src/core/session.ts`의 유지 프로필(`openProfile`)로만 연다. storageState 파일로 새 컨텍스트를 여러 번 열면 BO 토큰 갱신 때문에 로그아웃된다. 프로필은 한 번에 Chrome 하나라, 앱은 `main/lib/browser-host.ts`가 프로필마다 headless Chrome 하나를 띄워 탭을 빌려 준다(영상 worker는 127.0.0.1 디버깅 포트로 `cdpTab`). `main/lib/profile-lock.ts`: 공유(Claude 작업·영상 만들기·캡처·세션 확인, 동시에 돈다) / 단독(로그인·미리보기·STG 기록, 화면이 보이는 Chrome이라 다른 작업이 없을 때 공유 Chrome을 닫고 띄운다)
+- 공유 Chrome에서는 route·init script·binding을 **page 단위로만** 건다(`guardWrites(page)`, `page.addInitScript`, `page.exposeBinding`). `context.route`/`context.addInitScript`는 다른 탭(예: STG 저장 허용 영상, 자막 overlay)에 번진다. core 함수는 `openTab`(`session.ts` `OpenTab`)을 받고, 없으면 `profileTab`으로 단독 실행한다(CLI)
 - 쓰기 요청 차단(`safety.ts` `isAllowedRequest`)은 로그인 세션 유지 POST(sso/auth 경로, token/refresh)를 통과시킨다. 막으면 BO 인증이 실패해 화면이 403
 - 앱 main에서 네트워크는 `net.fetch`만 쓴다 (사내 TLS 프록시 때문에 Node fetch 실패). git은 isomorphic-git
 - Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-refresh`(기존 화면 최신화, 앱의 "Claude로 최신화"), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안"), `manual-video-scene`(영상 장면 하나 채우기, 장면 편집기의 "Claude로 이 장면") — 앱용은 모두 비대화형

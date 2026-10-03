@@ -1,7 +1,7 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab, redo, undo } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { EditorState } from '@codemirror/state'
+import { Compartment, EditorState } from '@codemirror/state'
 import {
   Decoration,
   drawSelection,
@@ -115,12 +115,18 @@ export const Editor = forwardRef<
     onChange: (value: string) => void
     onImageFile: (file: File) => void
     onScrollRatio?: (ratio: number) => void
+    // Claude가 이 화면을 고치는 중
+    readOnly?: boolean
   }
->(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio }, ref) {
+>(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio, readOnly = false }, ref) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | undefined>(undefined)
   const callbacks = useRef({ onChange, onImageFile, onScrollRatio })
   callbacks.current = { onChange, onImageFile, onScrollRatio }
+  const lock = useRef(new Compartment())
+  const locked = useRef(readOnly)
+  locked.current = readOnly
+  const lockExtension = (on: boolean) => [EditorState.readOnly.of(on), EditorView.editable.of(!on)]
 
   const createState = (doc: string) =>
     EditorState.create({
@@ -137,6 +143,7 @@ export const Editor = forwardRef<
         markPlugin(/!\[[^\]]*\]\(images\/[^)]+\)/g, 'cm-image'),
         markPlugin(/\*\*\\\[[^\]]*\\\]\*\*/g, 'cm-ui-label'),
         placeholder('내용을 입력하세요'),
+        lock.current.of(lockExtension(locked.current)),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         theme,
         EditorView.updateListener.of((u) => {
@@ -171,6 +178,10 @@ export const Editor = forwardRef<
     return () => view.current?.destroy()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    view.current?.dispatch({ effects: lock.current.reconfigure(lockExtension(readOnly)) })
+  }, [readOnly])
 
   // 다른 섹션을 열면 undo 기록까지 새로 시작한다
   useEffect(() => {

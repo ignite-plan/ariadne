@@ -1,33 +1,28 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import type { DraftCheck, DraftEvent, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import type { DraftCheck, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
+import { api } from '../api.ts'
+import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
-
-interface LogLine {
-  id: string
-  kind: 'status' | 'warning' | 'tool' | 'text' | 'error'
-  text: string
-  done?: boolean
-  failed?: boolean
-}
 
 type Phase = 'check' | 'ready' | 'running' | 'done'
 
 const minutes = (ms?: number) => (!ms ? '' : ms < 60000 ? `${Math.round(ms / 1000)}초` : `${Math.round(ms / 60000)}분`)
 
-// Claude로 초안 만들기: 사전 점검 → 실행(진행 로그) → 결과 요약
+// Claude로 초안 만들기·최신화·영상 초안·장면 채우기: 사전 점검 → 실행(진행 로그) → 결과 요약.
+// 실행 상태는 tasks.tsx에 있어서, 실행 중에 패널을 숨겨도 작업은 계속되고 상단 칩에서 다시 연다
 export function DraftPanel({
   input,
   onOpenSection,
   onDiff,
-  onClose,
+  onDone,
 }: {
   input: DraftInput
   onOpenSection: (path: string) => void
   onDiff: (path: string, title: string) => void
-  onClose: (changed: boolean) => void
+  // [닫고 결과 보기]
+  onDone: (input: DraftInput, changed: boolean) => void
 }) {
   const refresh = input.mode === 'refresh'
   // 장면 하나 채우기는 영상 초안과 같은 화면에 문구만 다르다
@@ -36,69 +31,62 @@ export function DraftPanel({
   const sceneNo = (input.scene ?? 0) + (input.insert ? 2 : 1)
   const name = sceneMode ? 'Claude로 장면 채우기' : video ? 'Claude로 영상 초안' : refresh ? 'Claude로 최신화' : 'Claude로 초안 만들기'
   const toast = useToast()
-  const [phase, setPhase] = useState<Phase>('check')
+  const tasks = useTasks()
+  // 이 패널이 보여 주는 작업 (시작 전이면 없음)
+  const task = tasks.claude?.input === input ? tasks.claude : undefined
+  const [localPhase, setLocalPhase] = useState<'check' | 'ready'>('check')
+  const phase: Phase = task?.phase ?? localPhase
+  const log = task?.log ?? []
+  const result: DraftResult | undefined = task?.result
+  const error = task?.error ?? ''
   const [check, setCheck] = useState<DraftCheck>()
   const [session, setSession] = useState<SessionInfo>({ exists: false })
-  const [log, setLog] = useState<LogLine[]>([])
-  const [result, setResult] = useState<DraftResult>()
-  const [error, setError] = useState('')
-  const started = useRef(Date.now())
   const logEnd = useRef<HTMLDivElement>(null)
 
   const runCheck = async (refresh = false) => {
-    setPhase('check')
+    setLocalPhase('check')
     const [c, s] = await Promise.all([api.draft.check(refresh), api.capture.session()])
     setCheck(c)
     setSession(s)
-    setPhase('ready')
+    setLocalPhase('ready')
   }
 
+  // 돌고 있는(끝난) 작업을 다시 열 때는 점검하지 않는다 (Confluence 확인에 30초쯤 걸린다)
   useEffect(() => {
-    void runCheck()
-    return api.on('draft-event', (event: DraftEvent) => {
-      setLog((lines) => apply(lines, event))
-    })
+    if (!task) void runCheck()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     logEnd.current?.scrollIntoView({ block: 'end' })
-  }, [log])
+  }, [log.length])
 
   // 세션 표시를 다시 읽게 할 때 올린다
   const [sessionVersion, setSessionVersion] = useState(0)
+  // 작업 중에 세션이 만료됐으면 표시를 갱신한다
+  useEffect(() => {
+    if (task?.phase === 'done') setSessionVersion((v) => v + 1)
+  }, [task?.phase])
 
   const start = async () => {
     // 만료된 세션으로 몇 분씩 돌지 않게 시작 전에 실제로 STG를 열어 본다
     if (session.exists) {
-      setPhase('check')
+      setLocalPhase('check')
       try {
         const checked = await api.capture.checkSession()
         setSession(checked)
         setSessionVersion((v) => v + 1)
         if (!checked.valid) {
-          setPhase('ready')
+          setLocalPhase('ready')
           return toast.show('error', 'STG 로그인 세션이 만료되었습니다. [다시 로그인]을 누른 뒤 시작하세요')
         }
       } catch (e) {
-        setPhase('ready')
+        setLocalPhase('ready')
         return toast.error(e)
       }
+      setLocalPhase('ready')
     }
-    setPhase('running')
-    setLog([])
-    setError('')
-    started.current = Date.now()
-    try {
-      const r = await api.draft.start(input)
-      setResult(r)
-      if (!r.ok) setError(r.text || 'Claude가 오류로 끝났습니다')
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setPhase('done')
-      // 작업 중에 세션이 만료됐으면 표시를 갱신한다
-      setSessionVersion((v) => v + 1)
-    }
+    void tasks.startClaude(input)
   }
 
   // 진행 시간 표시
@@ -109,8 +97,14 @@ export function DraftPanel({
     return () => clearInterval(timer)
   }, [phase])
 
+  const close = () => {
+    if (phase === 'running') return tasks.hideDraft()
+    if (phase === 'done') return onDone(input, Boolean(result))
+    tasks.clearClaude()
+  }
+
   const atlassianOk = check?.atlassian.some((a) => a.connected)
-  const elapsed = Math.round((Date.now() - started.current) / 1000)
+  const elapsed = Math.round((Date.now() - (task?.startedAt ?? Date.now())) / 1000)
 
   return (
     <div className="capture-panel draft-panel">
@@ -128,14 +122,22 @@ export function DraftPanel({
                 : 'Confluence 기획서와 STG 화면을 근거로 영어 초안을 씁니다. 근거가 없는 내용은 TODO로 남깁니다.'}
           </p>
         </div>
-        <button className="icon-button" onClick={() => onClose(Boolean(result))} aria-label="닫기" disabled={phase === 'running'}>
-          <Icon name="x" />
-        </button>
+        {phase === 'running' ? (
+          <button className="button small" onClick={close} title="작업은 계속됩니다. 위쪽 작업 표시를 누르면 다시 열립니다">
+            숨기기
+          </button>
+        ) : (
+          <button className="icon-button" onClick={close} aria-label="닫기">
+            <Icon name="x" />
+          </button>
+        )}
       </header>
 
       <div className="capture-body">
         <aside className="capture-side">
           <div className="draft-checks">
+            {!task && (
+              <>
             <CheckRow
               ok={Boolean(check?.claude) && !(check?.auth.mode === 'apiKey' && !check.auth.keySource)}
               loading={!check}
@@ -166,6 +168,8 @@ export function DraftPanel({
                     : '연결이 없습니다. 기획서 없이 쓰고 정책은 TODO로 남깁니다'
               }
             />
+              </>
+            )}
             <StgSession disabled={phase === 'running' || phase === 'check'} onChange={setSession} version={sessionVersion} />
             {!session.exists && <p className="muted small-note">STG 로그인이 없으면 화면 확인과 캡처를 건너뜁니다</p>}
           </div>
@@ -218,7 +222,7 @@ export function DraftPanel({
               <Icon name="x" /> 중지
             </button>
           ) : phase === 'done' ? (
-            <button className="button primary block" onClick={() => onClose(true)}>
+            <button className="button primary block" onClick={close}>
               <Icon name="check" /> 닫고 결과 보기
             </button>
           ) : (
@@ -300,27 +304,6 @@ export function DraftPanel({
       </div>
     </div>
   )
-}
-
-function apply(lines: LogLine[], event: DraftEvent): LogLine[] {
-  const id = `${Date.now()}-${Math.random()}`
-  if (event.kind === 'status') return [...lines, { id, kind: 'status', text: event.text }]
-  if (event.kind === 'warning') return [...lines, { id, kind: 'warning', text: event.text }]
-  const e = event.event
-  if (e.kind === 'tool') return [...lines, { id: e.id, kind: 'tool', text: e.label }]
-  if (e.kind === 'tool_result') {
-    return lines.map((l) => (l.id === e.id ? { ...l, done: true, failed: e.isError, text: e.isError ? `${l.text} — ${e.text}` : l.text } : l))
-  }
-  if (e.kind === 'text') {
-    // 마지막 요약(JSON)은 결과 카드로 보여 준다
-    const text = e.text.replace(/```json[\s\S]*?```/g, '').trim()
-    return text ? [...lines, { id, kind: 'text', text }] : lines
-  }
-  if (e.kind === 'init' && e.mcp.some((m) => m.status !== 'connected')) {
-    const failed = e.mcp.filter((m) => m.status !== 'connected').map((m) => m.name)
-    return [...lines, { id, kind: 'status', text: `연결 안 된 MCP: ${failed.join(', ')}` }]
-  }
-  return lines
 }
 
 function CheckRow({

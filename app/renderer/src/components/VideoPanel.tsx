@@ -10,11 +10,10 @@ import {
   type VideoModelStatus,
   type VideoProgress,
   type VideoRunResult,
-  type DraftInput,
   type VideoScenario,
 } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
-import { DraftPanel } from './DraftPanel.tsx'
+import { useClaudeDone, useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { StgSession } from './StgSession.tsx'
@@ -36,8 +35,14 @@ function seconds(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
-export function VideoPanel({ currentSection, onClose }: { currentSection?: string; onClose: () => void }) {
+export function VideoPanel({ currentSection, initial, onClose }: { currentSection?: string; initial?: string; onClose: () => void }) {
   const toast = useToast()
+  const tasks = useTasks()
+  // 영상 만들기는 패널을 닫아도 계속된다 (tasks.tsx). 미리보기·기록은 화면이 보이는 Chrome이라 이 패널에서만 한다
+  const rendering = tasks.video
+  const claudeRunning = tasks.claude?.phase === 'running'
+  // Claude 작업·영상 만들기 등이 STG 공유 Chrome을 쓰는 중이면 미리보기·기록(화면이 보이는 Chrome)은 못 한다
+  const stgBusy = tasks.stgBusy.length > 0
   const [videos, setVideos] = useState<VideoInfo[]>()
   const [selected, setSelected] = useState<string>()
   const [scenario, setScenario] = useState<VideoScenario>()
@@ -60,8 +65,6 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   const recordingRef = useRef<{ scene: number }>(undefined)
   const scenarioRef = useRef<VideoScenario>(undefined)
   const [tree, setTree] = useState<ManualTree>()
-  // Claude 작업 (영상 전체 초안 또는 장면 하나)
-  const [drafting, setDrafting] = useState<DraftInput>()
   // 장면 하나를 Claude로 채울 때 요청을 묻는 창
   const [sceneAsk, setSceneAsk] = useState<number>()
   // 고칠 때마다 0.6초 뒤 저장한다. 실행·전환·닫기 전에는 바로 저장한다
@@ -78,7 +81,10 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
 
   useEffect(() => {
     refresh().then(
-      (list) => setSelected((s) => s ?? list.find((v) => currentSection && v.section === currentSection)?.id ?? list[0]?.id),
+      (list) =>
+        setSelected(
+          (s) => s ?? (initial && list.some((v) => v.id === initial) ? initial : undefined) ?? list.find((v) => currentSection && v.section === currentSection)?.id ?? list[0]?.id,
+        ),
       (e) => setLoadError(errorMessage(e)),
     )
     void api.video.model().then(setModel)
@@ -104,6 +110,19 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
   }, [selected])
 
   const info = videos?.find((v) => v.id === selected)
+  // Claude가 이 시나리오를 고치는 중이면 편집을 막는다
+  const claudeOnThis = tasks.claude?.phase === 'running' && tasks.claude.input.video !== undefined && tasks.claude.input.video === selected
+
+  // Claude가 시나리오 파일을 고쳤다. 디스크에서 다시 읽는다 (패널을 숨겨 둔 동안 끝났어도)
+  useClaudeDone((task) => {
+    if (!task.input.video) return
+    void refresh()
+    if (task.input.video !== scenarioRef.current?.id) return
+    void api.video.load(task.input.video).then((next) => {
+      scenarioRef.current = next
+      setScenario(next)
+    })
+  })
 
   const flush = async () => {
     clearTimeout(saveTimer.current)
@@ -209,12 +228,15 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
     if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
     if (scenario.mutates && !confirmed) return setDialog({ type: 'mutates', action: preview ? 'preview' : 'render', scene: fromScene })
     setDialog(undefined)
-    setRunning(preview ? 'preview' : 'render')
+    if (preview) setRunning('preview')
     setProgress(undefined)
     setFailure(undefined)
     setBlocked([])
     try {
-      const result = await api.video.run(selected, { preview, fromScene, tts: narration })
+      // 영상 만들기는 tasks가 맡아 패널을 닫아도 이어진다 (끝나면 tasks가 알린다)
+      const result = preview
+        ? await api.video.run(selected, { preview, fromScene, tts: narration })
+        : await tasks.runVideo(selected, scenario.title, { preview, fromScene, tts: narration })
       if (!result.ok) {
         setFailure(result)
         setTab('scenes')
@@ -225,14 +247,13 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
       else {
         await refresh()
         setTab('video')
-        toast.show('success', `영상을 만들었습니다 (${seconds(result.durationMs)})`)
       }
     } catch (e) {
       const message = errorMessage(e)
       if (message.includes('세션 만료')) toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
       else toast.error(e)
     } finally {
-      setRunning(undefined)
+      if (preview) setRunning(undefined)
     }
   }
 
@@ -250,7 +271,12 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
 
   const narrate = narration && model?.ready
   const empty = Boolean(scenario && !scenario.scenes.some(sceneHasContent))
-  const canRun = Boolean(scenario && session.exists && !running && !recording && !empty)
+  const canRun = Boolean(scenario && session.exists && !running && !recording && !empty && !claudeOnThis)
+  // 미리보기는 화면이 보이는 Chrome을 따로 띄운다 (다른 STG 작업이 없어야 한다)
+  const canPreview = canRun && !stgBusy
+  const canRender = canRun && !rendering
+  // 진행 표시: 미리보기(이 패널) 또는 영상 만들기(tasks)
+  const shownProgress = running ? progress : rendering?.progress
 
   return (
     <div className="capture-panel">
@@ -266,7 +292,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
 
       <div className="capture-body">
         <aside className="capture-side">
-          <StgSession disabled={Boolean(running)} onChange={setSession} />
+          <StgSession disabled={Boolean(running || recording)} onChange={setSession} />
 
           <div className={`session ${model?.ready ? 'ok' : ''}`}>
             <Icon name="speaker" />
@@ -350,26 +376,46 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                       (ok) =>
                         ok &&
                         scenario &&
-                        setDrafting({ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined }),
+                        tasks.openDraft({ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined }),
                     )
                   }
-                  disabled={Boolean(running || recording)}
-                  title="매뉴얼 본문과 STG 화면으로 Claude가 장면과 단계를 씁니다"
+                  disabled={Boolean(running || recording || claudeRunning || rendering?.id === selected)}
+                  title={claudeRunning ? 'Claude 작업이 끝난 뒤 할 수 있습니다' : '매뉴얼 본문과 STG 화면으로 Claude가 장면과 단계를 씁니다'}
                 >
                   <Icon name="sparkle" /> Claude로 초안
                 </button>
-                <button className="button" onClick={() => void run(true)} disabled={!canRun} title="브라우저를 띄워 처음부터 실행해 봅니다 (녹화하지 않음)">
+                <button
+                  className="button"
+                  onClick={() => void run(true)}
+                  disabled={!canPreview}
+                  title={stgBusy ? `${tasks.stgBusy.join(', ')} 중에는 미리보기를 할 수 없습니다` : '브라우저를 띄워 처음부터 실행해 봅니다 (녹화하지 않음)'}
+                >
                   <Icon name="eye" /> {running === 'preview' ? '미리보기 중…' : '미리보기'}
                 </button>
-                <button className="button primary" onClick={() => void run(false)} disabled={!canRun}>
-                  <Icon name="video" /> {running === 'render' ? '만드는 중…' : '영상 만들기'}
+                <button
+                  className="button primary"
+                  onClick={() => void run(false)}
+                  disabled={!canRender}
+                  title={rendering ? `"${rendering.title}" 영상을 만드는 중입니다. 한 번에 하나씩 만듭니다` : 'Claude 작업 중에도 만들 수 있습니다'}
+                >
+                  <Icon name="video" /> {rendering?.id === selected ? '만드는 중…' : '영상 만들기'}
                 </button>
-                <button className="icon-button" onClick={() => setDialog({ type: 'delete' })} disabled={Boolean(running)} title="삭제">
+                <button className="icon-button" onClick={() => setDialog({ type: 'delete' })} disabled={Boolean(running || rendering?.id === selected || claudeOnThis)} title="삭제">
                   <Icon name="trash" />
                 </button>
               </div>
 
               {saveError && <pre className="form-error video-error">{saveError}</pre>}
+              {claudeOnThis && (
+                <p className="notice">
+                  Claude가 이 영상의 장면을 쓰는 중입니다. 끝날 때까지 편집할 수 없습니다. 위쪽 작업 표시를 누르면 진행 상황을 봅니다.
+                </p>
+              )}
+              {stgBusy && !running && !recording && (
+                <p className="muted small-note">
+                  {tasks.stgBusy.join(', ')} 중에는 미리보기와 STG에서 기록을 할 수 없습니다. 영상 만들기는 함께 할 수 있습니다.
+                </p>
+              )}
               {recording && (
                 <div className="recording-bar">
                   <span className="rec-dot" />
@@ -398,13 +444,14 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                 </p>
               )}
               {!session.exists && <p className="notice">STG 로그인 후 미리보기와 영상 만들기를 할 수 있습니다.</p>}
-              {running && (
+              {(running || rendering) && (
                 <div className="video-progress">
                   <div className="progress">
                     <div className="progress-bar" data-indeterminate="true" />
                     <span className="ellipsis">
-                      {progress ? `${STAGE[progress.stage]} · ${progress.message}` : '시작하는 중…'}
-                      {progress?.step !== undefined ? ` · 단계 ${progress.step + 1}` : ''}
+                      {!running && rendering && rendering.id !== selected ? `"${rendering.title}" · ` : ''}
+                      {shownProgress ? `${STAGE[shownProgress.stage]} · ${shownProgress.message}` : '시작하는 중…'}
+                      {shownProgress?.step !== undefined ? ` · 단계 ${shownProgress.step + 1}` : ''}
                     </span>
                   </div>
                   <button className="button small" onClick={() => void api.video.cancel()}>
@@ -445,14 +492,14 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
                   scenario={scenario}
                   onChange={change}
                   tree={tree}
-                  disabled={Boolean(running)}
+                  disabled={Boolean(running || claudeOnThis)}
                   voiceReady={model?.ready}
                   failure={failure}
-                  currentScene={running ? progress?.scene : undefined}
-                  onPreviewFrom={(i) => void run(true, i)}
+                  currentScene={running ? progress?.scene : rendering?.id === selected ? rendering?.progress?.scene : undefined}
+                  onPreviewFrom={canPreview ? (i) => void run(true, i) : undefined}
                   recordingScene={recording?.scene}
-                  onRecord={session.exists && !running && !recording ? (i) => void record(i) : undefined}
-                  onClaudeScene={!running && !recording ? (i) => setSceneAsk(i) : undefined}
+                  onRecord={session.exists && !running && !recording && !stgBusy && !claudeOnThis ? (i) => void record(i) : undefined}
+                  onClaudeScene={!running && !recording && !claudeRunning ? (i) => setSceneAsk(i) : undefined}
                 />
               )}
 
@@ -490,7 +537,7 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
           onStart={async (notes, insert) => {
             setSceneAsk(undefined)
             if (!(await flush())) return toast.show('error', '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요')
-            setDrafting({
+            tasks.openDraft({
               mode: 'video-scene',
               menu: scenario.title,
               video: scenario.id,
@@ -501,26 +548,6 @@ export function VideoPanel({ currentSection, onClose }: { currentSection?: strin
             })
           }}
         />
-      )}
-
-      {drafting && scenario && (
-        <div className="overlay">
-          <DraftPanel
-            input={drafting}
-            onOpenSection={() => undefined}
-            onDiff={() => undefined}
-            onClose={(changed) => {
-              setDrafting(undefined)
-              if (!changed) return
-              // Claude가 시나리오 파일을 고쳤다. 디스크에서 다시 읽는다
-              void refresh()
-              void api.video.load(scenario.id).then((s) => {
-                scenarioRef.current = s
-                setScenario(s)
-              })
-            }}
-          />
-        </div>
       )}
 
       {dialog?.type === 'create' && (

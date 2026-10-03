@@ -2,7 +2,7 @@
 // STG 저장 허용이 아니면 쓰기 요청을 막는다 (Claude STG 탐색과 같은 규칙)
 import type { BrowserContext } from 'playwright'
 import { loadManual, type ManualRef } from '../../../src/core/manual.ts'
-import { isAllowedRequest, isTelemetryRequest } from '../../../src/core/safety.ts'
+import { guardWrites } from '../../../src/core/safety.ts'
 import { openProfile } from '../../../src/core/session.ts'
 import { Director } from '../../../src/core/video/director.ts'
 import { videoViewport } from '../../../src/core/video/index.ts'
@@ -48,13 +48,9 @@ export async function startRecording({ id, scene, baseUrl, profileDir, onEvent, 
   })
   try {
     if (!scenario.mutates) {
-      await context.route('**/*', (route) => {
-        const request = route.request()
-        if (isAllowedRequest(request.method(), request.url())) return route.continue()
-        if (!isTelemetryRequest(request.url())) {
-          onEvent({ kind: 'warning', message: `데이터를 바꾸는 요청을 막았습니다: ${request.method()} ${new URL(request.url()).pathname}` })
-        }
-        return route.abort('blockedbyclient')
+      await guardWrites(page, (request) => {
+        const [method, url] = request.split(' ')
+        onEvent({ kind: 'warning', message: `데이터를 바꾸는 요청을 막았습니다: ${method} ${new URL(url).pathname}` })
       })
     }
     page.setDefaultTimeout(15_000)

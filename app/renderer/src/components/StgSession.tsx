@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { SessionInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
+import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { useToast } from './Toast.tsx'
@@ -27,6 +28,8 @@ export function StgSession({
   const [session, setSession] = useState<SessionInfo>({ exists: false })
   const [loggingIn, setLoggingIn] = useState(false)
   const [checking, setChecking] = useState(false)
+  // 로그인은 화면이 보이는 Chrome을 따로 띄운다. Claude 작업·영상 만들기 등이 공유 Chrome을 쓰는 동안에는 못 한다
+  const busy = useTasks().stgBusy
 
   const update = (next: SessionInfo) => {
     setSession(next)
@@ -82,7 +85,12 @@ export function StgSession({
               {checking ? '확인 중…' : '확인'}
             </button>
           )}
-          <button className="button small" onClick={login} disabled={loggingIn || checking || disabled}>
+          <button
+            className="button small"
+            onClick={login}
+            disabled={loggingIn || checking || disabled || busy.length > 0}
+            title={busy.length && !loggingIn ? `${busy.join(', ')} 중에는 로그인할 수 없습니다` : undefined}
+          >
             {session.exists ? '다시 로그인' : '로그인'}
           </button>
         </div>
