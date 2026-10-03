@@ -54,6 +54,7 @@ import {
 } from './lib/sections.ts'
 import { loadShotsBundled, shotSections } from './lib/shots.ts'
 import { acquireProfile, withProfile } from './lib/profile-lock.ts'
+import { notifyTask, testNotification } from './notifier.ts'
 import { log } from './report-ipc.ts'
 import { clearToken, getSettings, profileDir, readToken, saveToken, updateSettings } from './settings.ts'
 
@@ -166,19 +167,28 @@ function withOptional<K extends 'output' | 'capture' | 'code' | 'video'>(key: K,
 
 let pendingLogin: { resolve: () => void; reject: (error: Error) => void } | undefined
 
+// registerIpc가 정한다. 작업이 끝났을 때 알림을 누르면 이 창을 앞으로
+let windowRef: () => BrowserWindow | undefined = () => undefined
+
 function handle<T extends unknown[], R>(channel: string, fn: (...args: T) => R | Promise<R>) {
   ipcMain.handle(channel, async (_event, ...args) => {
+    const started = Date.now()
     try {
-      return await fn(...(args as T))
+      const result = await fn(...(args as T))
+      // 오래 걸리는 작업(Claude, 영상, 캡처, 가져오기 …)이 끝나면 알린다
+      notifyTask(windowRef, channel, args, { result }, Date.now() - started)
+      return result
     } catch (error) {
       // 화면에 오류로 보이는 실패는 모두 로그에 남긴다 (문제 신고에 첨부)
       log.error(`ipc:${channel}`, error)
+      notifyTask(windowRef, channel, args, { error }, Date.now() - started)
       throw error
     }
   })
 }
 
 export function registerIpc(getWindow: () => BrowserWindow | undefined) {
+  windowRef = getWindow
   const send = (channel: string, payload: unknown) => getWindow()?.webContents.send(channel, payload)
 
   // settings
@@ -614,6 +624,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
 
   // app
   handle('app:version', () => app.getVersion())
+  handle('app:testNotification', () => testNotification(getWindow))
   handle('app:checkUpdate', async () => {
     const token = readToken()
     if (!token) return null

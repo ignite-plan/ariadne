@@ -18,6 +18,7 @@ export function defaultSettings(): Settings {
     submitMode: 'push',
     claudePath: '',
     claudeAuth: 'apiKey',
+    notifyOnDone: 'background',
   }
 }
 

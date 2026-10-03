@@ -129,6 +129,8 @@ export interface Settings {
   claudePath: string
   // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
   claudeAuth: 'apiKey' | 'login'
+  // 오래 걸리는 작업이 끝나면 macOS 알림. background: 다른 앱을 보고 있을 때만
+  notifyOnDone: 'background' | 'always' | 'off'
 }
 
 export interface GithubUser {
@@ -415,6 +417,7 @@ export interface AriadneApi {
     version(): Promise<string>
     checkUpdate(): Promise<UpdateInfo | null>
     openExternal(url: string): Promise<void>
+    testNotification(): Promise<void>
   }
   on(event: 'capture-progress', listener: (progress: CaptureProgress) => void): () => void
   on(event: 'open-report', listener: () => void): () => void
