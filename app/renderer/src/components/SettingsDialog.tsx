@@ -95,6 +95,31 @@ export function SettingsDialog({
                   </div>
                 </label>
               </fieldset>
+              <label className="field">
+                <span>작업이 끝나면 알림 (Claude 초안·최신화, 영상 만들기, 캡처, 가져오기, 제출)</span>
+                <div className="inline-input">
+                  <select
+                    value={settings.notifyOnDone ?? 'background'}
+                    onChange={(e) => update({ notifyOnDone: e.target.value as Settings['notifyOnDone'] })}
+                  >
+                    <option value="background">다른 앱을 보고 있을 때만</option>
+                    <option value="always">항상</option>
+                    <option value="off">끄기</option>
+                  </select>
+                  <button
+                    className="button small"
+                    onClick={() =>
+                      api.app.testNotification().then(
+                        () => toast.show('info', '알림이 안 보이면 시스템 설정 → 알림 → Ariadne에서 허용하세요'),
+                        (e) => toast.error(e),
+                      )
+                    }
+                  >
+                    알림 시험
+                  </button>
+                </div>
+                <em className="hint">5초 넘게 걸린 작업만 알립니다. 알림을 누르면 Ariadne로 돌아옵니다</em>
+              </label>
             </>
           )}
           {tab === 'manual' && <ManualPane />}

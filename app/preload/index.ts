@@ -82,6 +82,7 @@ const api: AriadneApi = {
     version: invoke('app:version'),
     checkUpdate: invoke('app:checkUpdate'),
     openExternal: invoke('app:openExternal'),
+    testNotification: invoke('app:testNotification'),
   },
   on(event: string, listener: (payload: unknown) => void) {
     const wrapped = (_: unknown, payload: unknown) => listener(payload)
