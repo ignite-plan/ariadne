@@ -3,7 +3,7 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
-import { claudeEnv, explainFailure, keySource } from '../claude-auth.ts'
+import { claudeEnv, explainFailure, keySource, longContextModel } from '../claude-auth.ts'
 import { findClaude, runClaude, shellLookup } from '../claude.ts'
 
 const base = {
@@ -131,5 +131,12 @@ echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","permi
   it('자동 요약 반복(thrashing)은 한국어로', () => {
     const raw = 'Autocompact is thrashing: the context refilled to the limit within 3 turns of the previous compact, 3 times in a row.'
     assert.match(explainFailure(raw, 'apiKey', {}), /대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다/)
+  })
+
+  it('1M 문맥 모델: ANTHROPIC_MODEL(없으면 sonnet)에 [1m]', () => {
+    assert.equal(longContextModel({ ANTHROPIC_MODEL: 'claude-sonnet-5' }), 'claude-sonnet-5[1m]')
+    assert.equal(longContextModel({ ANTHROPIC_MODEL: 'claude-sonnet-5[1m]' }), 'claude-sonnet-5[1m]')
+    assert.equal(longContextModel({}), 'sonnet[1m]')
+    assert.match(explainFailure('API Error: 400 invalid model: claude-x[1m]', 'apiKey', {}), /1M 문맥 사용.*끄세요/)
   })
 })

@@ -639,6 +639,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         input,
         claudePath: getSettings().claudePath,
         claudeAuth: getSettings().claudeAuth,
+        longContext: getSettings().claudeLongContext,
         codeDir: getSettings().dealerhubWebDir || undefined,
         captureBaseUrl: captureBaseUrl(),
         profileDir: session,

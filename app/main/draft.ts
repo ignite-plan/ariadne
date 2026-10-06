@@ -24,7 +24,7 @@ import {
   type ClaudeCli,
   type McpStatus,
 } from './lib/claude.ts'
-import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
+import { explainFailure, longContextModel, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, readClaudeMcpServers } from './lib/run-mcp.ts'
@@ -90,6 +90,8 @@ interface DraftOptions {
   input: DraftInput
   claudePath?: string
   claudeAuth?: ClaudeAuth
+  // 1M 문맥 모델로 실행 (큰 기획서·긴 STG 탐색에서 자동 요약을 피한다)
+  longContext?: boolean
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
   codeDir?: string
   captureBaseUrl: string
@@ -114,7 +116,7 @@ export async function startDraft(options: DraftOptions): Promise<DraftResult> {
 type Job = NonNullable<typeof current>
 
 async function draft(
-  { ref, input, claudePath, claudeAuth = 'apiKey', codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
+  { ref, input, claudePath, claudeAuth = 'apiKey', longContext = false, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
   job: Job,
 ): Promise<DraftResult> {
   // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
@@ -139,6 +141,7 @@ async function draft(
   ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
+  const model = longContext ? longContextModel(cli.env) : undefined
   // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
   const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
   let warnedLoose = false
@@ -170,6 +173,7 @@ async function draft(
         extraArgs,
         disallowedTools,
         strictMcp: run.strict,
+        model,
         builtinTools: BUILTIN_TOOLS,
         onEvent: (event) => {
           guard.onEvent(event)

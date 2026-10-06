@@ -12,7 +12,7 @@ description: 가이드 영상 시나리오의 장면 하나를 기획자 요청(
 
 ## 도구
 - `mcp__ariadne__video_get`: 시나리오 전체 (앞뒤 장면의 흐름, 문체 확인용)
-- `mcp__ariadne__video_open_scene`: 대상 장면이 시작되는 화면까지 앞 장면을 재생해 연다. 돌려준 **접근성 트리의 이름이 대상(role, name)의 근거**다
+- `mcp__ariadne__video_open_scene`: 대상 장면이 시작되는 화면까지 앞 장면을 재생해 연다. 돌려준 **접근성 트리의 이름이 대상(role, name)의 근거**다. STG 응답은 짧게 온다: 팝업이 열려 있으면 그 팝업만, 화면 이동 직후엔 앞부분(4000자), 같은 화면에서 누르기·입력한 뒤에는 **앞 응답과 달라진 줄만** 온다(나머지는 앞 응답 그대로). `full: true`는 대화에 크게 쌓이니 잘린 뒤쪽이 꼭 필요할 때만 쓴다. 이름은 role 뒤 따옴표 안의 것을 그대로 쓴다 (안내 문구·선택값·도움말 문장이 아니다)
 - `mcp__ariadne__stg_click` / `stg_fill`: 이어서 화면을 살펴본다
 - `mcp__ariadne__video_save_scene`: **대상 장면 하나만** 저장한다 (`video_save`는 이 작업에서 막혀 있다)
 - `mcp__ariadne__video_check`: 대상 장면부터 실행해 본다 (`fromScene`)

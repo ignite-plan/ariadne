@@ -171,6 +171,18 @@ export function SettingsDialog({
                     : '키 환경변수를 넘기지 않고 Claude Code의 claude.ai 로그인으로 실행합니다. 터미널에서 claude → /login이 되어 있어야 합니다'}
                 </em>
               </label>
+              <label className="check-inline">
+                <input
+                  type="checkbox"
+                  checked={settings.claudeLongContext}
+                  onChange={(e) => update({ claudeLongContext: e.target.checked })}
+                />
+                1M 문맥 사용 (Claude로 초안·최신화·영상)
+              </label>
+              <em className="hint">
+                긴 STG 탐색이나 큰 기획서에서 대화가 요약되며 앞 내용을 잊는 일을 줄입니다. 모델은 ~/.zshrc의 ANTHROPIC_MODEL(없으면
+                sonnet)에 [1m]을 붙입니다. 쓰는 모델이 1M을 지원하지 않으면 끄세요
+              </em>
               <TextSetting
                 label="Claude Code CLI 경로 (비우면 자동으로 찾음)"
                 value={settings.claudePath}

@@ -152,6 +152,8 @@ export interface Settings {
   claudePath: string
   // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
   claudeAuth: 'apiKey' | 'login'
+  // 앱의 Claude 작업을 1M 문맥 모델로 (ANTHROPIC_MODEL 또는 sonnet에 [1m]). 끄면 기본 200K
+  claudeLongContext: boolean
   // 오래 걸리는 작업이 끝나면 macOS 알림. background: 다른 앱을 보고 있을 때만
   notifyOnDone: 'background' | 'always' | 'off'
 }

@@ -51,13 +51,20 @@ function host(url?: string) {
 }
 
 // 실패 결과를 기획자가 할 일로 바꾼다. env는 claude에 실제로 넘긴 환경 (어느 변수로 인증했는지 알려 준다)
+// 1M 문맥 모델: 로그인 셸의 ANTHROPIC_MODEL(없으면 sonnet)에 [1m]을 붙인다
+export function longContextModel(env: NodeJS.ProcessEnv = {}) {
+  const base = env.ANTHROPIC_MODEL?.trim() || 'sonnet'
+  return /\[1m\]$/i.test(base) ? base : `${base}[1m]`
+}
+
 export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.ProcessEnv = {}) {
   const raw = text.trim()
   const model = raw.match(/invalid model[:\s]+([\w.[\]-]+)/i)?.[1]?.replace(/\.+$/, '')
   if (model) {
     const current = env.ANTHROPIC_MODEL ? ` 지금 ANTHROPIC_MODEL은 ${env.ANTHROPIC_MODEL}입니다.` : ' ANTHROPIC_MODEL이 없어 Claude Code 기본 모델로 요청했습니다.'
     const gateway = host(env.ANTHROPIC_BASE_URL)
-    return `${gateway ? `${gateway}가` : 'Claude가'} ${model} 모델을 받지 않습니다 (${raw}).${current} ~/.zshrc에 export ANTHROPIC_MODEL="<쓸 수 있는 모델, 예: claude-sonnet-5>"를 넣고 다시 시도하세요`
+    const longContext = /\[1m\]/i.test(raw) ? ' 1M 문맥을 지원하지 않는 모델이면 설정 → 고급 → "1M 문맥 사용"을 끄세요.' : ''
+    return `${gateway ? `${gateway}가` : 'Claude가'} ${model} 모델을 받지 않습니다 (${raw}).${current}${longContext} ~/.zshrc에 export ANTHROPIC_MODEL="<쓸 수 있는 모델, 예: claude-sonnet-5>"를 넣고 다시 시도하세요`
   }
   if (/expired|invalid api key|fix external api key|authentication_error|failed to authenticate|\b401\b/i.test(raw)) {
     if (auth === 'login') return `claude.ai 로그인으로 인증하지 못했습니다 (${raw}). 터미널에서 \`claude\`를 열어 /login 하세요`

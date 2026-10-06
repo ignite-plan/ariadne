@@ -30,6 +30,11 @@ export interface ShotInput {
   mask?: string[]
 }
 
+function setTimeouts(page: Page) {
+  page.setDefaultTimeout(ACTION_TIMEOUT)
+  page.setDefaultNavigationTimeout(NAVIGATION_TIMEOUT)
+}
+
 const quote = (text: string) => `'${text.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
 
 // 구조화된 단계를 shots.ts 코드로 만든다. Claude가 임의 코드를 쓰지 않게 하려고
@@ -103,6 +108,12 @@ export function appendShot(source: string, shot: ShotInput, replace = false) {
 // 접근성 트리는 Claude 대화에 계속 쌓인다. 평소에는 짧게, 열린 대화상자가 있으면 그것만 준다
 const MAX_SNAPSHOT = 4000
 const MAX_SNAPSHOT_FULL = 12000
+const MAX_CHANGES = 2000
+
+// 앞 응답의 접근성 트리 줄과 비교해 새로 생기거나 바뀐 줄만 (순서 유지)
+export function snapshotChanges(previous: Set<string>, next: string) {
+  return next.split('\n').filter((line) => line.trim() && !previous.has(line))
+}
 
 export interface OpenResult {
   url: string
@@ -112,6 +123,8 @@ export interface OpenResult {
   // 화면 전체인지, 맨 위 대화상자만인지. 잘랐는지
   scope: 'page' | 'dialog'
   truncated: boolean
+  // 누르기·입력 뒤 같은 화면이면 앞 응답과 달라진 줄만 담았다 (snapshot이 비어 있으면 변화 없음)
+  changesOnly: boolean
   screenshot: string
   blockedRequests: string[]
 }
@@ -119,6 +132,21 @@ export interface OpenResult {
 export interface DescribeOptions {
   // 화면 전체를 길게 (대화상자가 열려 있어도 전체)
   full?: boolean
+  // 같은 화면이면 앞 응답과 달라진 줄만 (누르기·입력 뒤)
+  changes?: boolean
+}
+
+// STG 탐색에서 요소 동작(누르기·입력·기다리기)을 기다리는 시간. 없는 요소를 Playwright 기본 30초씩 기다리지 않게 한다.
+// 화면 이동은 따로 길게 둔다 (STG가 느릴 때)
+const ACTION_TIMEOUT = 8000
+const NAVIGATION_TIMEOUT = 30_000
+
+const INPUT_ROLES = ['textbox', 'combobox', 'spinbutton', 'searchbox'] as const
+
+// 접근성 트리에 보이는 입력칸 이름 (입력할 칸을 못 찾았을 때 후보로 알려 준다)
+export function inputNames(snapshot: string, limit = 20) {
+  const names = [...snapshot.matchAll(/^\s*- (textbox|combobox|spinbutton|searchbox) "((?:[^"\\]|\\.)*)"/gm)].map((m) => `${m[1]} "${m[2]}"`)
+  return [...new Set(names)].slice(0, limit)
 }
 
 // 여러 최신화 작업이 동시에 찍어도 스크린샷 파일 이름이 겹치지 않게 프로세스 전체에서 센다
@@ -138,6 +166,8 @@ export class StgSession {
   private tab?: StgTab
   private page?: Page
   private blocked: string[] = []
+  // 마지막으로 Claude에게 준 접근성 트리 (같은 화면이면 다음에 바뀐 줄만 준다)
+  private last?: { url: string; scope: 'page' | 'dialog'; lines: Set<string> }
   readonly baseUrl: string
   readonly viewport: Viewport
 
@@ -149,6 +179,7 @@ export class StgSession {
   // 같은 브라우저에 탭을 하나 더 연다. 쓰기 차단은 탭마다 건다 (공유 Chrome의 다른 탭에 번지지 않게)
   private async newPage(page: Page) {
     const next = await page.context().newPage()
+    setTimeouts(next)
     await next.setViewportSize(this.viewport)
     await guardWrites(next, (request) => this.blocked.push(request))
     return next
@@ -168,6 +199,7 @@ export class StgSession {
       await tab.close()
       throw error
     }
+    setTimeouts(tab.page)
     this.tab = tab
     this.page = tab.page
     return tab.page
@@ -181,7 +213,7 @@ export class StgSession {
     return new URL(path.replace(/^\//, ''), this.baseUrl).href
   }
 
-  private async describe(page: Page, { full = false }: DescribeOptions = {}): Promise<OpenResult> {
+  private async describe(page: Page, { full = false, changes = false }: DescribeOptions = {}): Promise<OpenResult> {
     await page.waitForLoadState('networkidle').catch(() => {})
     const dir = join(captureDir(this.options), 'draft')
     mkdirSync(dir, { recursive: true })
@@ -190,13 +222,25 @@ export class StgSession {
     // 대화상자(팝업)가 열려 있으면 뒤 화면은 Claude가 이미 봤다. 맨 위 대화상자만 준다
     const dialog = full ? undefined : page.locator('[role="dialog"]:visible, [role="alertdialog"]:visible').last()
     const inDialog = dialog ? (await dialog.count().catch(() => 0)) > 0 : false
-    let snapshot = await (inDialog ? dialog! : page.locator('body')).ariaSnapshot().catch(() => '')
-    const max = full ? MAX_SNAPSHOT_FULL : MAX_SNAPSHOT
-    const truncated = snapshot.length > max
-    if (truncated) snapshot = `${snapshot.slice(0, max)}\n… (잘림. 전체는 full: true)`
+    const raw = await (inDialog ? dialog! : page.locator('body')).ariaSnapshot().catch(() => '')
+    const url = page.url()
+    const scope = inDialog ? 'dialog' : 'page'
+    const previous = this.last
+    this.last = { url, scope, lines: new Set(raw.split('\n')) }
     const blockedRequests = this.blocked
     this.blocked = []
-    return { url: page.url(), title: await page.title(), snapshot, scope: inDialog ? 'dialog' : 'page', truncated, screenshot, blockedRequests }
+    const title = await page.title()
+    // 같은 화면에서 누르기·입력했으면 달라진 줄만 (매번 화면 전체가 대화에 쌓이지 않게)
+    if (changes && !full && previous && previous.url === url && previous.scope === scope) {
+      let snapshot = snapshotChanges(previous.lines, raw).join('\n')
+      const truncated = snapshot.length > MAX_CHANGES
+      if (truncated) snapshot = `${snapshot.slice(0, MAX_CHANGES)}\n… (잘림. 전체는 full: true)`
+      return { url, title, snapshot, scope, truncated, changesOnly: true, screenshot, blockedRequests }
+    }
+    const max = full ? MAX_SNAPSHOT_FULL : MAX_SNAPSHOT
+    const truncated = raw.length > max
+    const snapshot = truncated ? `${raw.slice(0, max)}\n… (잘림. 전체는 full: true)` : raw
+    return { url, title, snapshot, scope, truncated, changesOnly: false, screenshot, blockedRequests }
   }
 
   async open(path: string, options?: DescribeOptions) {
@@ -229,6 +273,9 @@ export class StgSession {
     } catch (error) {
       if (isSessionExpired(error)) clearSession(this.options.profileDir)
       throw error
+    } finally {
+      // 재생만 길게 기다렸다. 이어지는 탐색은 다시 짧게
+      setTimeouts(page)
     }
     return this.describe(page)
   }
@@ -240,13 +287,22 @@ export class StgSession {
     const actual = (await locator.getAttribute('aria-label')) ?? (await locator.innerText().catch(() => name))
     if (isBlockedLabel(actual)) throw new Error(`"${actual}"은(는) 데이터를 바꿀 수 있는 버튼이라 누르지 않습니다`)
     await locator.click()
-    return this.describe(await this.ensurePage(), options)
+    return this.describe(await this.ensurePage(), { changes: true, ...options })
   }
 
+  // label은 연결된 label/aria-label, 또는 접근성 트리의 입력칸 이름(textbox "…" 등). 없으면 기다리지 않고 후보를 알려 준다
   async fill(label: string, value: string, options?: DescribeOptions) {
     const page = await this.ensurePage()
-    await page.getByLabel(label).first().fill(value)
-    return this.describe(page, options)
+    const target = INPUT_ROLES.reduce((found, role) => found.or(page.getByRole(role, { name: label })), page.getByLabel(label))
+    if (!(await target.count())) {
+      const snapshot = await page.locator('body').ariaSnapshot().catch(() => '')
+      const names = inputNames(snapshot)
+      throw new Error(
+        `화면에 "${label}" 입력칸이 없습니다. ${names.length ? `지금 화면의 입력칸: ${names.join(', ')}` : '지금 화면에 이름이 있는 입력칸이 없습니다'}`,
+      )
+    }
+    await target.first().fill(value)
+    return this.describe(page, { changes: true, ...options })
   }
 
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
