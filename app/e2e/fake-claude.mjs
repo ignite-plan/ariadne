@@ -6,6 +6,10 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const assert = (ok, message) => {
+  if (!ok) throw new Error(message)
+}
+
 const args = process.argv.slice(2)
 if (args[0] === '--version') {
   console.log('0.0.0-fake (Claude Code)')
@@ -87,9 +91,29 @@ ${mutates ? 'mutates: true\n' : ''}scenes:
   process.exit(0)
 }
 
+if (prompt.includes('화면별 요약 JSON을 쓴다')) {
+  // 최신화 1단계: 기획서 요약 파일을 쓴다 (화면 키는 프롬프트의 대상 화면)
+  const file = prompt.match(/^- 요약 파일: (\S+)$/m)[1]
+  const screens = Object.fromEntries([...prompt.matchAll(/^  - (\S+\.md) \(manuals\//gm)].map((m) => [m[1], 'Dealer list: Total, Location filter']))
+  const digest = {
+    menu: 'Dealer Management',
+    generatedAt: new Date().toISOString(),
+    pages: [{ id: '900001', title: '[202606output][Phase3][BO] 딜러 관리 화면', version: 3, url: 'https://example.invalid/wiki/900001' }],
+    screens,
+  }
+  const id = `toolu_${++n}`
+  emit({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Write', input: { file_path: join(process.cwd(), file) } }] } })
+  writeFileSync(join(process.cwd(), file), JSON.stringify(digest, null, 2))
+  emit({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, is_error: false, content: 'ok' }] } })
+  await client.close()
+  emit({ type: 'result', subtype: 'success', is_error: false, result: '요약했습니다.\n```json\n{"sections":[],"reused":false}\n```', duration_ms: 300, permission_denials: [] })
+  process.exit(0)
+}
+
 if (prompt.includes('최신화한다')) {
-  // 최신화: 대상 화면 한 줄을 고치고, 기존 이미지를 replace로 다시 찍는다
-  const target = prompt.match(/^  - (manuals\/\S+\.md)$/m)[1]
+  // 최신화: 화면 하나씩 따로 실행된다. 대상 화면 한 줄을 고치고, 기존 이미지를 replace로 다시 찍는다
+  const target = (prompt.match(/^- 대상 화면: (manuals\/\S+\.md)$/m) ?? prompt.match(/^  - (manuals\/\S+\.md)$/m))[1]
+  assert(prompt.includes('Dealer list: Total, Location filter'), '화면별 작업은 기획서 요약을 받는다')
   const root = process.cwd()
   emit({ type: 'assistant', message: { content: [{ type: 'text', text: '지금 본문과 기획서를 비교하겠습니다.' }] } })
   await call('manual_outline', {})

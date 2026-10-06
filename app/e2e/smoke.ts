@@ -451,6 +451,8 @@ try {
     await page.locator('.draft-input', { hasText: '02-dealer-management/01-dealer-list-view.md' }).waitFor()
     await page.getByRole('button', { name: '최신화 시작' }).click()
     // Claude가 STG 탭을 연 채로 기다린다. 패널을 숨겨도 작업은 이어지고, 고치는 화면은 편집이 막힌다
+    // 기획서 요약을 먼저 한 번 만들고, 화면마다 따로 돈다
+    await page.locator('.screen-chip.status-running', { hasText: '01-dealer-list-view' }).waitFor({ timeout: 60000 })
     await page.locator('.log li', { hasText: '캡처 저장: dealer-list' }).waitFor({ timeout: 60000 })
     await page.locator('.log li', { hasText: '기획서를 더 읽는 중' }).waitFor()
     await page.locator('.panel-header').getByRole('button', { name: '숨기기' }).click()
@@ -478,6 +480,9 @@ try {
     await toast(page, /Claude 최신화 작업을 마쳤습니다/).waitFor({ timeout: 60000 })
     await page.locator('.task-chip', { hasText: 'Claude 최신화 완료' }).click()
     await page.locator('.draft-summary', { hasText: '최신화했습니다' }).waitFor({ timeout: 10000 })
+    // 근거 기획서 버전을 남겨 다음 최신화에서 건너뛴다
+    assert.match(readFileSync(join(workspace, 'manuals/bo/02-dealer-management/01-dealer-list-view.md'), 'utf8'), /refreshedFrom:\n {2}- page: "?900001"?\n {4}version: 3/)
+    assert.ok(readdirSync(join(workspace, '.capture/bo/spec')).some((f) => f.endsWith('.json')), '기획서 요약 파일')
     // 기존 이미지(정의 있음)를 같은 id로 다시 찍었다
     assert.equal((readFileSync(join(workspace, 'manuals/bo/shots.ts'), 'utf8').match(/id: 'dealer-list',/g) ?? []).length, 1)
     await page.locator('.draft-summary').getByRole('button', { name: /변경 보기/ }).click()
