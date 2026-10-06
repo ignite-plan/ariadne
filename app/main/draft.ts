@@ -33,6 +33,8 @@ import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
+import { createMcpStatusCache, type McpStatusCache } from './lib/mcp-status.ts'
+import { needsConfluence } from '../shared/draft-mode.ts'
 import { errorText } from './lib/logger.ts'
 import { log } from './report-ipc.ts'
 
@@ -43,36 +45,40 @@ const SPEC_MAX_TURNS = 60
 // 화면 하나의 상한. 넘으면 그 화면만 실패로 끝내고 다른 화면은 계속한다
 const SCREEN_LIMITS = { maxTurns: 120, timeoutMs: 20 * 60 * 1000, maxEditFailures: 4 }
 
-let mcpCache: { at: number; servers: McpStatus[] } | undefined
-// 실행 중인 작업. 최신화는 Claude 여러 개
 let current: { handles: Set<{ cancel: () => void }>; cancelled: boolean } | undefined
 
-async function mcpServers(cli: ClaudeCli, refresh = false) {
-  // claude mcp list는 서버마다 연결을 시험해 수십 초 걸린다. Atlassian이 연결됐을 때만 10분 캐시한다.
-  // 실패는 기억하지 않는다 (앱을 막 켠 직후처럼 잠깐 실패한 결과로 계속 "연결 없음"이 되지 않게, 다음 점검·작업 시작 때 다시 확인)
-  if (!refresh && mcpCache && Date.now() - mcpCache.at < 10 * 60 * 1000) return mcpCache.servers
-  const started = Date.now()
-  try {
-    const servers = await listMcpServers(cli)
-    const atlassianOk = servers.some((s) => isAtlassianServer(s.name) && s.connected)
-    mcpCache = atlassianOk ? { at: Date.now(), servers } : undefined
-    const states = servers.map((s) => (s.connected ? `${s.name} ✔` : `${s.name} ✘ ${s.detail ?? ''}`.trim())).join(' · ')
-    log.write(atlassianOk ? 'info' : 'warn', 'mcp', `claude mcp list ${Date.now() - started}ms: ${states || '(서버 없음)'}`)
-    return servers
-  } catch (error) {
-    mcpCache = undefined
-    log.write('warn', 'mcp', `claude mcp list 실패 (${Date.now() - started}ms): ${errorText(error)}`)
-    throw error
-  }
+// claude mcp list 결과. Atlassian 연결이 확인되면 앱을 끌 때까지 기억한다 (매번 30초씩 기다리지 않게)
+let mcpStatus: McpStatusCache | undefined
+let mcpCli: ClaudeCli | undefined
+function mcpServers(cli: ClaudeCli, refresh = false) {
+  // 설정에서 CLI 경로를 바꿀 수 있어 마지막에 받은 것으로 확인한다
+  mcpCli = cli
+  mcpStatus ??= createMcpStatusCache(() => listMcpServers(mcpCli!), (s) => isAtlassianServer(s.name), {
+    onResult: ({ servers, error, ms }) => {
+      if (error) return log.write('warn', 'mcp', `claude mcp list 실패 (${ms}ms): ${errorText(error)}`)
+      const ok = servers!.some((s) => isAtlassianServer(s.name) && s.connected)
+      const states = servers!.map((s) => (s.connected ? `${s.name} ✔` : `${s.name} ✘ ${s.detail ?? ''}`.trim())).join(' · ')
+      log.write(ok ? 'info' : 'warn', 'mcp', `claude mcp list ${ms}ms: ${states || '(서버 없음)'}`)
+    },
+  })
+  return mcpStatus.get(refresh)
 }
 
-export async function checkDraft(claudePath?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<DraftCheck> {
+// 점검 화면. Claude Code 위치·키와 Atlassian 연결은 한 번 확인하면 기억해 둔다 (refresh면 다시 확인).
+// confluence: false면 이 작업은 기획서를 안 쓰므로 Atlassian을 확인하지 않는다
+export async function checkDraft(
+  claudePath?: string,
+  { refresh = false, confluence = true }: { refresh?: boolean; confluence?: boolean } = {},
+  auth: ClaudeAuth = 'apiKey',
+): Promise<DraftCheck> {
   const cli = await findClaude(claudePath || undefined, refresh, auth)
   const authInfo = { mode: auth, keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
+  const claude = { path: cli.path, version: cli.version }
+  if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }
   try {
-    const servers = await mcpServers(cli, refresh)
-    return { claude: { path: cli.path, version: cli.version }, atlassian: servers.filter((s) => isAtlassianServer(s.name)), auth: authInfo }
+    const { servers, checkedAt } = await mcpServers(cli, refresh)
+    return { claude, atlassian: servers.filter((s) => isAtlassianServer(s.name)), atlassianCheckedAt: checkedAt, auth: authInfo }
   } catch (error) {
     return { claude: { path: cli.path, version: cli.version }, atlassian: [], auth: authInfo, error: (error as Error).message }
   }
@@ -129,11 +135,18 @@ async function draft(
     throw new Error('ANTHROPIC_API_KEY를 찾지 못했습니다. ~/.zshrc에 키를 넣거나, 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 바꾸세요')
   }
 
-  onEvent({ kind: 'status', text: 'Confluence 연결 확인 중' })
-  const atlassian = (await mcpServers(cli).catch(() => [] as McpStatus[])).filter((s) => isAtlassianServer(s.name))
-  const confluence = atlassian.filter((s) => s.connected).map((s) => s.name)
-  if (!confluence.length) {
-    onEvent({ kind: 'warning', text: 'Claude Code에 연결된 Atlassian(Confluence) MCP가 없습니다. 기획서 없이 STG 화면만으로 쓰고 정책은 TODO로 남깁니다' })
+  // 기획서를 안 쓰는 작업(장면 채우기 등)은 Atlassian을 확인하지도 싣지도 않는다
+  let confluence: string[] = []
+  if (needsConfluence(input)) {
+    onEvent({ kind: 'status', text: 'Confluence 연결 확인 중' })
+    const servers = await mcpServers(cli).then(
+      (r) => r.servers,
+      () => [] as McpStatus[],
+    )
+    confluence = servers.filter((s) => isAtlassianServer(s.name) && s.connected).map((s) => s.name)
+    if (!confluence.length) {
+      onEvent({ kind: 'warning', text: 'Claude Code에 연결된 Atlassian(Confluence) MCP가 없습니다. 기획서 없이 STG 화면만으로 쓰고 정책은 TODO로 남깁니다' })
+    }
   }
   const code = codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined
   const root = realpathSync(ref.root)

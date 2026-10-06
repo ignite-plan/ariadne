@@ -627,7 +627,9 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   )
 
   // Claude로 초안 만들기
-  handle('draft:check', (refresh?: boolean) => checkDraft(getSettings().claudePath, refresh, getSettings().claudeAuth))
+  handle('draft:check', (options?: { refresh?: boolean; confluence?: boolean }) =>
+    checkDraft(getSettings().claudePath, options, getSettings().claudeAuth),
+  )
   handle('draft:start', (input: DraftInput) => {
     requireWorkspace()
     const r = ref()
