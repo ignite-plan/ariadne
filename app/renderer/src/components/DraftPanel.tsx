@@ -2,11 +2,19 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
 import { api } from '../api.ts'
 import { SCREEN_LABEL, screenName, useTasks } from '../tasks.tsx'
+import { needsConfluence } from '../../../shared/draft-mode.ts'
 import { Icon } from './Icon.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
 
 type Phase = 'check' | 'ready' | 'running' | 'done'
+
+// "· 3분 전 확인" (방금이면 비움)
+const checkedAgo = (at?: number) => {
+  if (!at) return ''
+  const min = Math.floor((Date.now() - at) / 60000)
+  return min < 1 ? '' : ` · ${min < 60 ? `${min}분` : `${Math.floor(min / 60)}시간`} 전 확인`
+}
 
 const minutes = (ms?: number) => (!ms ? '' : ms < 60000 ? `${Math.round(ms / 1000)}초` : `${Math.round(ms / 60000)}분`)
 
@@ -47,14 +55,27 @@ export function DraftPanel({
   const [session, setSession] = useState<SessionInfo>({ exists: false })
   const logEnd = useRef<HTMLDivElement>(null)
 
+  // 장면 채우기처럼 기획서를 안 쓰는 작업은 Confluence를 확인하지 않는다
+  const wantConfluence = needsConfluence(input)
+  // 연결된 결과가 있는 채로 다시 확인하는 중 (시작은 막지 않는다)
+  const [rechecking, setRechecking] = useState(false)
+
   const runCheck = async (refresh = false) => {
-    setLocalPhase('check')
-    // 다시 확인할 때는 지난 결과를 지워 "확인 중"을 보여 준다
-    if (refresh) setCheck(undefined)
-    const [c, s] = await Promise.all([api.draft.check(refresh), api.capture.session()])
-    setCheck(c)
-    setSession(s)
-    setLocalPhase('ready')
+    const keep = refresh && check?.atlassian.some((a) => a.connected)
+    if (keep) setRechecking(true)
+    else {
+      setLocalPhase('check')
+      // 다시 확인할 때는 지난 결과를 지워 "확인 중"을 보여 준다
+      if (refresh) setCheck(undefined)
+    }
+    try {
+      const [c, s] = await Promise.all([api.draft.check({ refresh, confluence: wantConfluence }), api.capture.session()])
+      setCheck(c)
+      setSession(s)
+    } finally {
+      setRechecking(false)
+      setLocalPhase('ready')
+    }
   }
 
   // 돌고 있는(끝난) 작업을 다시 열 때는 점검하지 않는다 (Confluence 확인에 30초쯤 걸린다)
@@ -162,6 +183,7 @@ export function DraftPanel({
               }
               warn={Boolean(check?.claude && check.auth.mode === 'apiKey' && !check.auth.keySource)}
             />
+            {wantConfluence && (
             <CheckRow
               ok={Boolean(atlassianOk)}
               warn={check && !atlassianOk}
@@ -169,9 +191,11 @@ export function DraftPanel({
               label="Confluence (Atlassian MCP)"
               detail={
                 !check
-                  ? '확인 중… (30초쯤 걸립니다)'
+                  ? '확인 중… (30초쯤 걸립니다. 한 번 연결되면 앱을 끌 때까지 기억합니다)'
+                  : rechecking
+                    ? '다시 확인 중… (그동안에도 시작할 수 있습니다)'
                   : atlassianOk
-                    ? check.atlassian.filter((a) => a.connected).map((a) => a.name).join(', ')
+                    ? `${check.atlassian.filter((a) => a.connected).map((a) => a.name).join(', ')}${checkedAgo(check.atlassianCheckedAt)}`
                     : check.error
                       ? `확인하지 못했습니다 — ${check.error}`
                       : check.atlassian.length
@@ -179,13 +203,14 @@ export function DraftPanel({
                         : 'Claude Code에 Atlassian MCP가 없습니다. 기획서 없이 쓰고 정책은 TODO로 남깁니다'
               }
               action={
-                check && !atlassianOk ? (
-                  <button className="button small ghost" onClick={() => void runCheck(true)} disabled={phase !== 'ready'}>
+                check ? (
+                  <button className="button small ghost" onClick={() => void runCheck(true)} disabled={phase !== 'ready' || rechecking}>
                     다시 확인
                   </button>
                 ) : undefined
               }
             />
+            )}
               </>
             )}
             <StgSession disabled={phase === 'running' || phase === 'check'} onChange={setSession} version={sessionVersion} />

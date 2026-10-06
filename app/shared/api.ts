@@ -120,6 +120,10 @@ export interface DraftCheck {
   atlassian: { name: string; connected: boolean; detail?: string }[]
   // claude mcp list 자체가 실패했을 때
   error?: string
+  // Atlassian 연결을 마지막으로 확인한 때 (기억한 결과면 그때)
+  atlassianCheckedAt?: number
+  // 이 작업은 기획서를 안 써서 확인하지 않았다
+  atlassianSkipped?: boolean
 }
 
 export interface ReportInput {
@@ -429,7 +433,8 @@ export interface AriadneApi {
     stopRecord(): Promise<void>
   }
   draft: {
-    check(refresh?: boolean): Promise<DraftCheck>
+    // confluence: 이 작업이 기획서를 쓰는지 (안 쓰면 Atlassian을 확인하지 않는다)
+    check(options?: { refresh?: boolean; confluence?: boolean }): Promise<DraftCheck>
     start(input: DraftInput): Promise<DraftResult>
     cancel(): Promise<void>
   }
