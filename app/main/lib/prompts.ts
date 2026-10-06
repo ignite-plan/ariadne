@@ -16,26 +16,27 @@ export function skillText(root: string, mode: DraftInput['mode'], bundled: Recor
   return namedSkillText(root, SKILL_BY_MODE[mode ?? 'create'], bundled)
 }
 
-export function namedSkillText(root: string, name: string, bundled: Record<string, string>) {
+// bundledFirst: 앱 코드와 응답 형식이 묶인 스킬은 앱에 묶인 것을 쓴다 (오래된 clone의 스킬로 형식이 어긋나지 않게)
+export function namedSkillText(root: string, name: string, bundled: Record<string, string>, { bundledFirst = false } = {}) {
   const file = join(root, '.claude/skills', name, 'SKILL.md')
-  const raw = existsSync(file) ? readFileSync(file, 'utf8') : bundled[name]
+  const raw = (bundledFirst && bundled[name]) || (existsSync(file) ? readFileSync(file, 'utf8') : bundled[name])
   if (!raw) throw new Error(`스킬을 찾지 못했습니다: ${name}`)
   return raw.replace(/^---\n[\s\S]*?\n---\n/, '').trim()
 }
 
-// 최신화 1단계: 기획서 요약 파일을 만든다 (지난 요약과 버전이 같으면 쓰지 않는다)
-export function specTaskText(
-  ref: ManualRef,
-  input: DraftInput,
-  { digestFile, previous = [] }: { digestFile: string; previous?: { id: string; title: string; version: number }[] },
-) {
-  const lines = ['## 이번 작업', `- 매뉴얼 id: ${ref.manual}`, `- 메뉴: ${input.menu}`, '- 할 일: 최신 기획서를 읽어 아래 화면별 요약 JSON을 쓴다']
-  lines.push(`- 요약 파일: ${digestFile}`)
+// 최신화 1단계: 기획서 요약을 마지막 응답 JSON으로 받는다 (파일은 앱이 쓴다). 지난 요약과 버전이 같으면 reused
+export function specTaskText(ref: ManualRef, input: DraftInput, { previous = [] }: { previous?: { id: string; title: string; version: number }[] } = {}) {
+  const lines = [
+    '## 이번 작업',
+    `- 매뉴얼 id: ${ref.manual}`,
+    `- 메뉴: ${input.menu}`,
+    '- 할 일: 최신 기획서를 읽어 화면별 요약을 마지막 응답의 JSON 블록으로 낸다 (파일은 쓰지 않는다)',
+  ]
   lines.push('- 대상 화면 (screens의 키):')
   for (const target of input.targets ?? []) lines.push(`  - ${target} (manuals/${ref.manual}/${target})`)
   lines.push(
     previous.length
-      ? `- 지난 요약의 근거 문서 (id와 버전이 모두 같으면 쓰지 말고 reused):\n${previous.map((p) => `  - ${p.id} v${p.version} ${p.title}`).join('\n')}`
+      ? `- 지난 요약의 근거 문서 (id와 버전이 모두 같으면 요약하지 말고 {"reused": true}):\n${previous.map((p) => `  - ${p.id} v${p.version} ${p.title}`).join('\n')}`
       : '- 지난 요약: 없음',
   )
   if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)

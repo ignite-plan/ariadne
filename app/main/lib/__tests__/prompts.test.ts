@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { buildRows } from '../../../renderer/src/diff-rows.ts'
-import { skillText, specTaskText, taskText } from '../prompts.ts'
+import { namedSkillText, skillText, specTaskText, taskText } from '../prompts.ts'
 
 describe('작업 지시', () => {
   const root = mkdtempSync(join(tmpdir(), 'ariadne-prompts-'))
@@ -47,13 +47,15 @@ describe('작업 지시', () => {
     const text = specTaskText(
       { root, manual: 'bo' },
       { mode: 'refresh', menu: 'Menu Management', targets: ['08-menu-management/01-menu-list-view.md'] },
-      { digestFile: '/w/.capture/bo/spec/menu-management.json', previous: [{ id: '5369', title: 'Menu 화면', version: 12 }] },
+      { previous: [{ id: '5369', title: 'Menu 화면', version: 12 }] },
     )
-    assert.match(text, /요약 파일: \/w\/\.capture\/bo\/spec\/menu-management\.json/)
+    assert.match(text, /마지막 응답의 JSON 블록으로 낸다 \(파일은 쓰지 않는다\)/)
     assert.match(text, /  - 08-menu-management\/01-menu-list-view\.md \(manuals\/bo\//)
     assert.match(text, /  - 5369 v12 Menu 화면/)
-    assert.match(specTaskText({ root, manual: 'bo' }, { menu: 'X', targets: [] }, { digestFile: 'f' }), /지난 요약: 없음/)
+    assert.match(specTaskText({ root, manual: 'bo' }, { menu: 'X', targets: [] }), /지난 요약: 없음/)
     assert.match(skillText(process.cwd(), 'refresh', {}), /대상 화면 하나만 다룬다/)
+    // 응답 형식이 앱 코드와 묶인 스킬은 리포에 있어도 앱에 묶인 것을 쓴다
+    assert.equal(namedSkillText(process.cwd(), 'manual-spec', { 'manual-spec': '---\nname: s\n---\nAPP SPEC' }, { bundledFirst: true }), 'APP SPEC')
   })
 
   it('영상 초안: 시나리오 id, 연결 화면, 리포에 있는 영상 스킬', () => {

@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 import type { SectionMeta } from '../../../../src/core/manual.ts'
 import type { DraftEvent } from '../../../shared/api.ts'
 import { runRefreshBatch, type BatchDeps } from '../refresh-batch.ts'
-import { needsRefresh, readDigest, screenBrief, specSlug, type SpecDigest } from '../spec.ts'
+import { needsRefresh, parseSpecReply, readDigest, screenBrief, specSlug, writeDigest, type SpecDigest } from '../spec.ts'
 
 const digest: SpecDigest = {
   menu: 'Menu Management',
@@ -54,6 +54,34 @@ describe('기획서 요약', () => {
       rmSync(dir, { recursive: true, force: true })
     }
     assert.equal(specSlug('Menu & Role Management'), 'menu-and-role-management')
+  })
+
+  it('요약 응답: 마지막 JSON 블록을 읽고, 재사용·형식 오류를 구분한다', () => {
+    const reply = parseSpecReply(
+      '요약했습니다.\n```json\n{"x":1}\n```\n끝\n```json\n' +
+        JSON.stringify({ pages: [{ id: 100, title: 't', version: '12' }], screens: { 'a.md': 'A' }, common: 'C' }) +
+        '\n```',
+      'Menu',
+    )
+    assert.ok(reply && !reply.reused)
+    assert.equal(reply.digest.menu, 'Menu')
+    assert.deepEqual(reply.digest.pages, [{ id: '100', title: 't', version: 12 }])
+    assert.deepEqual(reply.digest.screens, { 'a.md': 'A' })
+    assert.ok(reply.digest.generatedAt)
+    assert.deepEqual(parseSpecReply('```json\n{"reused": true}\n```', 'M'), { reused: true })
+    assert.equal(parseSpecReply('JSON 없음', 'M'), undefined)
+    assert.equal(parseSpecReply('```json\n{oops\n```', 'M'), undefined)
+    assert.equal(parseSpecReply('```json\n{"pages":[],"screens":{}}\n```', 'M'), undefined, '근거 문서가 없으면 요약이 아니다')
+    assert.equal(parseSpecReply('```json\n{"pages":[{"id":"1","version":1}],"screens":[]}\n```', 'M'), undefined)
+
+    const dir = mkdtempSync(join(tmpdir(), 'spec-'))
+    try {
+      const file = join(dir, 'spec', 'menu.json')
+      writeDigest(file, reply.digest)
+      assert.deepEqual(readDigest(file), reply.digest)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 

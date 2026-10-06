@@ -1,7 +1,7 @@
 // 기획서 요약: 최신화 첫 단계에서 Claude가 Confluence를 한 번 읽어 화면별로 요약한 JSON.
 // 화면별 작업은 이 요약만 받는다 (큰 기획서를 화면마다 다시 뒤지지 않게). 같은 버전이면 다음 실행에도 재사용한다
-import { existsSync, readFileSync } from 'node:fs'
-import { basename, join } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 import { captureDir } from '../../../src/core/capture.ts'
 import type { ManualRef, SectionMeta, SpecRef } from '../../../src/core/manual.ts'
 
@@ -34,18 +34,54 @@ export function digestPath(ref: ManualRef, menu: string) {
   return join(captureDir(ref), 'spec', `${specSlug(menu)}.json`)
 }
 
+// 형식이 맞는 요약만 받는다. 버전은 숫자로, id는 문자열로
+function normalizeDigest(d: unknown): SpecDigest | undefined {
+  if (!d || typeof d !== 'object') return undefined
+  const v = d as Record<string, unknown>
+  if (!Array.isArray(v.pages) || !v.screens || typeof v.screens !== 'object' || Array.isArray(v.screens)) return undefined
+  const pages = (v.pages as SpecPage[])
+    .filter((p) => p && p.id && Number.isFinite(Number(p.version)))
+    .map((p) => ({ ...p, id: String(p.id), title: String(p.title ?? ''), version: Number(p.version) }))
+  const screens = Object.fromEntries(Object.entries(v.screens as Record<string, unknown>).map(([k, s]) => [k, String(s ?? '')]))
+  return {
+    menu: String(v.menu ?? ''),
+    generatedAt: String(v.generatedAt ?? ''),
+    pages,
+    common: typeof v.common === 'string' ? v.common : undefined,
+    screens,
+  }
+}
+
 export function readDigest(file: string): SpecDigest | undefined {
   if (!existsSync(file)) return undefined
   try {
-    const d = JSON.parse(readFileSync(file, 'utf8'))
-    if (!Array.isArray(d.pages) || typeof d.screens !== 'object' || !d.screens) return undefined
-    const pages = d.pages
-      .filter((p: SpecPage) => p && p.id && Number.isFinite(Number(p.version)))
-      .map((p: SpecPage) => ({ ...p, id: String(p.id), version: Number(p.version) }))
-    return { menu: String(d.menu ?? ''), generatedAt: String(d.generatedAt ?? ''), pages, common: d.common, screens: d.screens }
+    return normalizeDigest(JSON.parse(readFileSync(file, 'utf8')))
   } catch {
     return undefined
   }
+}
+
+export function writeDigest(file: string, digest: SpecDigest) {
+  mkdirSync(dirname(file), { recursive: true })
+  writeFileSync(file, `${JSON.stringify(digest, null, 2)}\n`)
+}
+
+// 요약 단계 Claude의 마지막 응답(JSON 블록). 파일은 앱이 쓴다 (Claude에게 쓰기 권한을 주지 않는다)
+export type SpecReply = { reused: true } | { reused: false; digest: SpecDigest }
+
+export function parseSpecReply(text: string, menu: string): SpecReply | undefined {
+  const block = [...text.matchAll(/```json\s*([\s\S]*?)```/g)].at(-1)?.[1]
+  if (!block) return undefined
+  let value: unknown
+  try {
+    value = JSON.parse(block)
+  } catch {
+    return undefined
+  }
+  if (value && typeof value === 'object' && (value as { reused?: unknown }).reused === true) return { reused: true }
+  const digest = normalizeDigest(value)
+  if (!digest || !digest.pages.length) return undefined
+  return { reused: false, digest: { ...digest, menu: digest.menu || menu, generatedAt: digest.generatedAt || new Date().toISOString() } }
 }
 
 export function specRefs(digest: SpecDigest | undefined): SpecRef[] {
