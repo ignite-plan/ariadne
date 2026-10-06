@@ -148,6 +148,9 @@ export function sessionDataDir(cwd: string) {
 }
 
 // readDirs: 작업 폴더 밖에서 읽기만 허용할 폴더 (예: 개발자의 dealerhub-web). 절대 경로 규칙은 //로 시작한다
+// MCP 서버 도구 전체를 가리키는 권한 규칙 이름 (mcp__<서버>)
+export const mcpServerRule = (server: string) => `mcp__${server.replace(/[^A-Za-z0-9_-]/g, '_')}`
+
 export function buildAllowedTools(manual: string, atlassianServers: string[], cwd: string, readDirs: string[] = [], ariadne = 'ariadne') {
   const writable = `./manuals/${manual}/**`
   return [
@@ -163,7 +166,7 @@ export function buildAllowedTools(manual: string, atlassianServers: string[], cw
     `Write(${writable})`,
     `mcp__${ariadne}`,
     ...atlassianServers.flatMap((server) => {
-      const prefix = `mcp__${server.replace(/[^A-Za-z0-9_-]/g, '_')}__`
+      const prefix = `${mcpServerRule(server)}__`
       return CONFLUENCE_READ_TOOLS.map((tool) => prefix + tool)
     }),
   ]
@@ -268,9 +271,11 @@ export interface RunOptions {
   mcpConfigFile: string
   onEvent: (event: ClaudeEvent) => void
   extraArgs?: string[]
+  // 기본 막는 도구에 더해 이번 작업에서 막을 도구 (예: 요약을 받은 화면 작업의 Confluence)
+  disallowedTools?: string[]
 }
 
-export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEvent, extraArgs = [] }: RunOptions) {
+export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEvent, extraArgs = [], disallowedTools = [] }: RunOptions) {
   const child = spawn(
     cli.path,
     [
@@ -285,6 +290,7 @@ export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEve
       mcpConfigFile,
       '--disallowedTools',
       ...DISALLOWED_TOOLS,
+      ...disallowedTools,
       '--allowedTools',
       ...allowedTools,
       ...extraArgs,
