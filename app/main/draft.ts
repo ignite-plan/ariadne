@@ -27,10 +27,13 @@ import {
 import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
+import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, readClaudeMcpServers } from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
+import { errorText } from './lib/logger.ts'
+import { log } from './report-ipc.ts'
 
 // 최신화는 화면마다 Claude를 따로, 이만큼 동시에 돌린다 (공유 Chrome의 탭을 하나씩 쓴다)
 const REFRESH_CONCURRENCY = 3
@@ -44,11 +47,22 @@ let mcpCache: { at: number; servers: McpStatus[] } | undefined
 let current: { handles: Set<{ cancel: () => void }>; cancelled: boolean } | undefined
 
 async function mcpServers(cli: ClaudeCli, refresh = false) {
-  // claude mcp list는 서버마다 연결을 시험해 수십 초 걸린다. 10분 캐시
+  // claude mcp list는 서버마다 연결을 시험해 수십 초 걸린다. Atlassian이 연결됐을 때만 10분 캐시한다.
+  // 실패는 기억하지 않는다 (앱을 막 켠 직후처럼 잠깐 실패한 결과로 계속 "연결 없음"이 되지 않게, 다음 점검·작업 시작 때 다시 확인)
   if (!refresh && mcpCache && Date.now() - mcpCache.at < 10 * 60 * 1000) return mcpCache.servers
-  const servers = await listMcpServers(cli)
-  mcpCache = { at: Date.now(), servers }
-  return servers
+  const started = Date.now()
+  try {
+    const servers = await listMcpServers(cli)
+    const atlassianOk = servers.some((s) => isAtlassianServer(s.name) && s.connected)
+    mcpCache = atlassianOk ? { at: Date.now(), servers } : undefined
+    const states = servers.map((s) => (s.connected ? `${s.name} ✔` : `${s.name} ✘ ${s.detail ?? ''}`.trim())).join(' · ')
+    log.write(atlassianOk ? 'info' : 'warn', 'mcp', `claude mcp list ${Date.now() - started}ms: ${states || '(서버 없음)'}`)
+    return servers
+  } catch (error) {
+    mcpCache = undefined
+    log.write('warn', 'mcp', `claude mcp list 실패 (${Date.now() - started}ms): ${errorText(error)}`)
+    throw error
+  }
 }
 
 export async function checkDraft(claudePath?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<DraftCheck> {
@@ -125,11 +139,21 @@ async function draft(
   ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits }) => {
+  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
+  const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
+  let warnedLoose = false
+
+  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
-    writeFileSync(mcpConfigFile, JSON.stringify(mcp.config))
+    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? confluence : [], registered)
+    if (!run.strict && !warnedLoose) {
+      warnedLoose = true
+      log.write('warn', 'mcp', `Atlassian MCP 설정을 찾지 못해 등록된 MCP를 모두 싣고 실행합니다: ${run.missing.join(', ')}`)
+    }
+    // Atlassian 서버 설정에는 토큰이 들어 있다. 이 작업만 쓰는 임시 폴더(0700)에 나만 읽게 쓰고 끝나면 지운다
+    writeFileSync(mcpConfigFile, JSON.stringify(run.config), { mode: 0o600 })
     try {
       if (job.cancelled) return { ok: false, text: '취소했습니다', denials: [] as string[] }
       let stop = (_reason: string) => {}
@@ -145,6 +169,8 @@ async function draft(
         mcpConfigFile,
         extraArgs,
         disallowedTools,
+        strictMcp: run.strict,
+        builtinTools: BUILTIN_TOOLS,
         onEvent: (event) => {
           guard.onEvent(event)
           onEvent({ kind: 'claude', event, target })
@@ -237,6 +263,8 @@ type RunOne = (args: {
   extraArgs?: string[]
   disallowedTools?: string[]
   limits?: GuardLimits
+  // false면 Atlassian MCP를 싣지 않는다 (기획서 요약을 받은 화면 작업)
+  withConfluence?: boolean
 }) => Promise<{
   ok: boolean
   text: string
@@ -336,6 +364,7 @@ async function refresh({
             prompt: `${skillText(ref.root, 'refresh', BUNDLED)}\n\n${taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })}`,
             tools: allowedTools([], { withConfluence }),
             disallowedTools: withConfluence ? [] : confluenceServers.map(mcpServerRule),
+            withConfluence,
             extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
             limits: SCREEN_LIMITS,
             mcp: { stg: () => (stg ??= stgSession()) },

@@ -26,6 +26,13 @@ await new Promise<void>((done) => bo.listen(0, '127.0.0.1', done))
 const boBaseUrl = `http://127.0.0.1:${(bo.address() as AddressInfo).port}/ca/admin`
 
 const temp = mkdtempSync(join(tmpdir(), 'ariadne-e2e-'))
+// 가짜 Claude Code 설정: 앱이 Atlassian MCP 설정을 여기서 옮겨 strict로 넘긴다 (가짜 claude mcp list의 서버 이름과 같다)
+const claudeConfigDir = join(temp, 'claude-config')
+mkdirSync(claudeConfigDir, { recursive: true })
+writeFileSync(
+  join(claudeConfigDir, '.claude.json'),
+  JSON.stringify({ mcpServers: { 'mcp-atlassian-fake': { type: 'stdio', command: '/bin/true', args: [], env: { CONFLUENCE_URL: 'https://example.invalid' } } } }),
+)
 const userData = join(temp, 'user-data')
 const workspace = join(temp, 'workspace')
 mkdirSync(join(userData, 'profiles', 'bo'), { recursive: true })
@@ -61,6 +68,7 @@ const app = await electron.launch({
     // STG 기록 브라우저를 이 테스트가 조작한다
     ARIADNE_E2E_RECORD_PORT: '9339',
     ARIADNE_FAKE_CLAUDE_HOLD: claudeHold,
+    CLAUDE_CONFIG_DIR: claudeConfigDir,
     ARIADNE_VIDEO_MODEL_DIR: models,
   },
 })

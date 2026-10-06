@@ -69,6 +69,9 @@ export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.Proce
       : `~/.zshrc의 ANTHROPIC_API_KEY를 유효한 값으로 바꾸세요`
     return `${used}(${tail(env[used]) || '값 없음'})로 ${gateway ? `${gateway}에 ` : ''}인증하지 못했습니다 (${raw}). ${fix}. 고친 뒤 다시 시도하거나, 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 바꾸세요`
   }
+  if (/autocompact is thrashing|context refilled to the limit/i.test(raw)) {
+    return 'Claude 작업 대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다. 큰 기획서나 도구 결과가 한꺼번에 들어온 경우입니다. 대상을 줄여(화면 하나씩) 다시 시도하고, 계속되면 [문제 신고]로 알려 주세요'
+  }
   if (/not logged in|please run \/login|login required/i.test(raw)) {
     return 'Claude Code에 로그인되어 있지 않습니다. 터미널에서 `claude`를 실행해 /login 하거나, 설정 → 고급 → Claude 인증을 API 키로 바꾸세요'
   }

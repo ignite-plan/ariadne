@@ -116,7 +116,9 @@ export interface DraftCheck {
   claude: { path: string; version: string } | null
   // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
   auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
-  atlassian: { name: string; connected: boolean }[]
+  // detail: 연결 실패 이유
+  atlassian: { name: string; connected: boolean; detail?: string }[]
+  // claude mcp list 자체가 실패했을 때
   error?: string
 }
 

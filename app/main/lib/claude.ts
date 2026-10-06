@@ -92,6 +92,8 @@ export async function findClaude(override?: string, refresh = false, auth: Claud
 export interface McpStatus {
   name: string
   connected: boolean
+  // 연결되지 않았을 때 claude가 보여 준 이유 (예: Failed to connect — connection timed out after 30000ms)
+  detail?: string
 }
 
 // `claude mcp list` 출력: "name: command - ✔ Connected"
@@ -100,7 +102,11 @@ export function parseMcpList(output: string): McpStatus[] {
     .split('\n')
     .map((line) => line.match(/^(\S+?):\s+.*\s-\s+(✔|✘|✓|✗|!)\s*(.*)$/))
     .filter((m): m is RegExpMatchArray => Boolean(m))
-    .map((m) => ({ name: m[1], connected: m[2] === '✔' || m[2] === '✓' }))
+    .map((m) => {
+      const connected = m[2] === '✔' || m[2] === '✓'
+      const detail = m[3].trim()
+      return connected || !detail ? { name: m[1], connected } : { name: m[1], connected, detail }
+    })
 }
 
 export async function listMcpServers(cli: ClaudeCli) {
@@ -273,9 +279,24 @@ export interface RunOptions {
   extraArgs?: string[]
   // 기본 막는 도구에 더해 이번 작업에서 막을 도구 (예: 요약을 받은 화면 작업의 Confluence)
   disallowedTools?: string[]
+  // --mcp-config의 서버만 쓴다 (PC에 등록된 다른 MCP 서버의 도구 정의를 싣지 않는다)
+  strictMcp?: boolean
+  // 싣는 기본 도구 (없으면 Claude Code 기본 전부). 스킬은 프롬프트에 넣으므로 슬래시 명령·스킬 목록도 끈다
+  builtinTools?: string[]
 }
 
-export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEvent, extraArgs = [], disallowedTools = [] }: RunOptions) {
+export function runClaude({
+  cli,
+  cwd,
+  prompt,
+  allowedTools,
+  mcpConfigFile,
+  onEvent,
+  extraArgs = [],
+  disallowedTools = [],
+  strictMcp = false,
+  builtinTools,
+}: RunOptions) {
   const child = spawn(
     cli.path,
     [
@@ -288,6 +309,8 @@ export function runClaude({ cli, cwd, prompt, allowedTools, mcpConfigFile, onEve
       'default',
       '--mcp-config',
       mcpConfigFile,
+      ...(strictMcp ? ['--strict-mcp-config'] : []),
+      ...(builtinTools ? ['--tools', builtinTools.join(','), '--disable-slash-commands'] : []),
       '--disallowedTools',
       ...DISALLOWED_TOOLS,
       ...disallowedTools,

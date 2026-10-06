@@ -33,7 +33,7 @@ describe('claude mcp list', () => {
   it('이름과 연결 상태', () => {
     assert.deepEqual(parseMcpList(sample), [
       { name: 'plugin:media-pipeline:media-pipeline', connected: true },
-      { name: 'plugin:figma:figma', connected: false },
+      { name: 'plugin:figma:figma', connected: false, detail: 'Failed to connect — timed out' },
       { name: 'mcp-atlassian-hmg', connected: true },
       { name: 'playwright', connected: true },
     ])
@@ -140,6 +140,8 @@ next()
       allowedTools: ['Read', 'mcp__ariadne'],
       mcpConfigFile: '/tmp/mcp.json',
       disallowedTools: [mcpServerRule('mcp-atlassian.hmg')],
+      strictMcp: true,
+      builtinTools: ['Read', 'Edit'],
       onEvent: (e) => events.push(e),
     })
     const result = await done
@@ -152,6 +154,8 @@ next()
     const disallowed = args.slice(args.indexOf('--disallowedTools') + 1, args.indexOf('--allowedTools'))
     assert.ok(disallowed.includes('Bash') && disallowed.includes('WebFetch'))
     assert.ok(disallowed.includes('mcp__mcp-atlassian_hmg'), '이번 작업에서 더 막는 도구')
+    assert.ok(args.includes('--strict-mcp-config'))
+    assert.deepEqual(args.slice(args.indexOf('--tools'), args.indexOf('--tools') + 3), ['--tools', 'Read,Edit', '--disable-slash-commands'])
   })
 
   it('중지하면 거절된다', async () => {

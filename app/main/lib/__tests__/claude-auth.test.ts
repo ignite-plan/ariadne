@@ -127,4 +127,9 @@ echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","permi
       assert.equal(readFileSync(join(dir, 'key.txt'), 'utf8'), expected, auth)
     }
   })
+
+  it('자동 요약 반복(thrashing)은 한국어로', () => {
+    const raw = 'Autocompact is thrashing: the context refilled to the limit within 3 turns of the previous compact, 3 times in a row.'
+    assert.match(explainFailure(raw, 'apiKey', {}), /대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다/)
+  })
 })

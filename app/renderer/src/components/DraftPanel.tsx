@@ -49,6 +49,8 @@ export function DraftPanel({
 
   const runCheck = async (refresh = false) => {
     setLocalPhase('check')
+    // 다시 확인할 때는 지난 결과를 지워 "확인 중"을 보여 준다
+    if (refresh) setCheck(undefined)
     const [c, s] = await Promise.all([api.draft.check(refresh), api.capture.session()])
     setCheck(c)
     setSession(s)
@@ -170,7 +172,18 @@ export function DraftPanel({
                   ? '확인 중… (30초쯤 걸립니다)'
                   : atlassianOk
                     ? check.atlassian.filter((a) => a.connected).map((a) => a.name).join(', ')
-                    : '연결이 없습니다. 기획서 없이 쓰고 정책은 TODO로 남깁니다'
+                    : check.error
+                      ? `확인하지 못했습니다 — ${check.error}`
+                      : check.atlassian.length
+                        ? `연결 실패 — ${check.atlassian.map((a) => `${a.name}: ${a.detail ?? '이유 모름'}`).join(' / ')}`
+                        : 'Claude Code에 Atlassian MCP가 없습니다. 기획서 없이 쓰고 정책은 TODO로 남깁니다'
+              }
+              action={
+                check && !atlassianOk ? (
+                  <button className="button small ghost" onClick={() => void runCheck(true)} disabled={phase !== 'ready'}>
+                    다시 확인
+                  </button>
+                ) : undefined
               }
             />
               </>
