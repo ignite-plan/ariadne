@@ -28,13 +28,13 @@ import { explainFailure, longContextModel, type ClaudeAuth } from './lib/claude-
 import type { ClaudeEffort } from '../shared/api.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
-import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, readClaudeMcpServers } from './lib/run-mcp.ts'
+import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, MCP_ATLASSIAN_JIRA_READ_TOOLS, readClaudeMcpServers } from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
 import { createMcpStatusCache, type McpStatusCache } from './lib/mcp-status.ts'
-import { needsConfluence } from '../shared/draft-mode.ts'
+import { checkScope, needsConfluence, scopeLabel } from '../shared/draft-mode.ts'
 import { errorText } from './lib/logger.ts'
 import { log } from './report-ipc.ts'
 
@@ -113,6 +113,12 @@ interface DraftOptions {
 
 export async function startDraft(options: DraftOptions): Promise<DraftResult> {
   if (current) throw new Error('이미 Claude 작업 중입니다')
+  // 반영 범위는 최신화에만. 형식을 확인하고 빈 값은 범위 없음으로
+  if (options.input.scope) {
+    const checked = options.input.mode === 'refresh' ? checkScope(options.input.scope) : {}
+    if ('error' in checked && checked.error) throw new Error(checked.error)
+    options = { ...options, input: { ...options.input, scope: checked.scope } }
+  }
   const job = { handles: new Set<{ cancel: () => void }>(), cancelled: false }
   current = job
   try {
@@ -162,11 +168,11 @@ async function draft(
   const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
   let warnedLoose = false
 
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true }) => {
+  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true, withJira = false }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
-    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? confluence : [], registered)
+    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? confluence : [], registered, { jira: withJira })
     if (!run.strict && !warnedLoose) {
       warnedLoose = true
       log.write('warn', 'mcp', `Atlassian MCP 설정을 찾지 못해 등록된 MCP를 모두 싣고 실행합니다: ${run.missing.join(', ')}`)
@@ -286,6 +292,8 @@ type RunOne = (args: {
   limits?: GuardLimits
   // false면 Atlassian MCP를 싣지 않는다 (기획서 요약을 받은 화면 작업)
   withConfluence?: boolean
+  // Atlassian MCP에 Jira 읽기 도구도 켠다 (반영 범위에 티켓이 있는 기획서 요약)
+  withJira?: boolean
 }) => Promise<{
   ok: boolean
   text: string
@@ -331,9 +339,13 @@ async function refresh({
   const summaries = new Map<string, DraftSummary>()
   const failures: string[] = []
 
+  const scoped = Boolean(input.scope)
+  const jira = Boolean(input.scope?.tickets?.length)
+  if (scoped) onEvent({ kind: 'status', text: `반영 범위: ${scopeLabel(input.scope)}` })
   const batch = await runRefreshBatch({
       targets,
       force: input.force,
+      scoped,
       // 공유 Chrome이 없으면(단독 실행) 프로필 Chrome을 하나만 열 수 있어 한 화면씩
       concurrency: openTab ? REFRESH_CONCURRENCY : 1,
       isCancelled: () => job.cancelled,
@@ -346,11 +358,16 @@ async function refresh({
       runSpec: async () => {
         // Confluence가 없으면 요약을 만들 수 없다. 지난 요약도 최신인지 알 수 없어 쓰지 않는다
         if (!confluence) return undefined
-        const previous = readDigest(digestFile)
+        // 범위를 정한 요약은 일부만 담으므로 지난 요약을 쓰지도, 저장하지도 않는다
+        const previous = scoped ? undefined : readDigest(digestFile)
         const result = await runOne({
           prompt: composePrompt(namedSkillText(ref.root, 'manual-spec', BUNDLED, { bundledFirst: true }), specTaskText(ref, input, { previous: previous?.pages })),
           // 읽기만. 요약은 마지막 응답으로 받고 파일은 앱이 쓴다
-          tools: allowedTools().filter((tool) => !/^(Edit|Write)\(/.test(tool)),
+          tools: [
+            ...allowedTools().filter((tool) => !/^(Edit|Write)\(/.test(tool)),
+            ...(jira ? confluenceServers.flatMap((s) => MCP_ATLASSIAN_JIRA_READ_TOOLS.map((t) => `${mcpServerRule(s)}__${t}`)) : []),
+          ],
+          withJira: jira,
           // 막힌 도구를 계속 다시 시도하는 일 없이 끝나게
           extraArgs: ['--max-turns', String(SPEC_MAX_TURNS)],
           // 요약 단계는 기획서만 본다
@@ -371,7 +388,8 @@ async function refresh({
           onEvent({ kind: 'status', text: '기획서가 지난 요약 때와 같아 그 요약을 씁니다' })
           return previous
         }
-        writeDigest(digestFile, reply.digest)
+        if (scoped && !reply.digest.changes) throw new Error('반영 범위 요약에 화면별 변경(changes)이 없습니다')
+        if (!scoped) writeDigest(digestFile, reply.digest)
         return reply.digest
       },
       runScreen: async (target, brief) => {
@@ -388,7 +406,12 @@ async function refresh({
             withConfluence,
             extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
             limits: SCREEN_LIMITS,
-            mcp: { stg: () => (stg ??= stgSession()) },
+            mcp: {
+              stg: () => (stg ??= stgSession()),
+              noShots: scoped
+                ? '반영 범위를 정한 최신화에서는 캡처를 다시 찍지 않습니다 (STG에 범위 밖 변경이 있을 수 있음). 이미지가 맞지 않으면 TODO로 남기세요'
+                : undefined,
+            },
             target,
           })
           costUsd += result.costUsd ?? 0

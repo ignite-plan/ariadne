@@ -2654,3 +2654,31 @@ fieldset.lock:disabled {
 .notice.doc-lock {
   margin: 8px 20px 0;
 }
+
+/* 최신화 반영 범위 */
+.scope-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0;
+  font-size: 13px;
+}
+.scope-period {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.scope-period input,
+.scope-fields textarea {
+  min-width: 0;
+  flex: 1;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.scope-fields textarea {
+  resize: vertical;
+}

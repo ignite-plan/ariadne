@@ -2,7 +2,7 @@
 // 실제 Claude·STG 실행은 바깥에서 넣는다 (단위 테스트 대상)
 import type { SectionMeta } from '../../../src/core/manual.ts'
 import type { DraftEvent, ScreenResult } from '../../shared/api.ts'
-import { needsRefresh, screenBrief, specRefs, type SpecDigest } from './spec.ts'
+import { hasScopedChanges, needsRefresh, screenBrief, specRefs, type SpecDigest } from './spec.ts'
 
 export interface ScreenRun {
   ok: boolean
@@ -16,6 +16,8 @@ export interface ScreenRun {
 export interface BatchDeps {
   targets: string[]
   force?: boolean
+  // 반영 범위(기간·티켓)가 있다: 요약에서 반영할 변경이 없는 화면은 건너뛰고, 일부만 반영하므로 근거 버전을 남기지 않는다
+  scoped?: boolean
   concurrency: number
   // 기획서 요약. Confluence를 못 쓰면 undefined (그때는 모든 화면을 STG로만 확인)
   runSpec: () => Promise<SpecDigest | undefined>
@@ -56,7 +58,10 @@ export async function runRefreshBatch(deps: BatchDeps) {
 
   const queue: string[] = []
   for (const target of targets) {
-    if (!deps.force && refs.length && !needsRefresh(safeMeta(deps, target), refs)) {
+    if (deps.scoped) {
+      if (digest && !hasScopedChanges(digest, target)) set(target, { target, status: 'skipped', text: '반영 범위에 해당하는 변경이 없습니다' })
+      else queue.push(target)
+    } else if (!deps.force && refs.length && !needsRefresh(safeMeta(deps, target), refs)) {
       set(target, { target, status: 'skipped', text: '근거 기획서가 지난번 최신화 이후 바뀌지 않았습니다' })
     } else queue.push(target)
   }
@@ -71,7 +76,7 @@ export async function runRefreshBatch(deps: BatchDeps) {
       set(target, { target, status: 'running' })
       try {
         const run = await deps.runScreen(target, screenBrief(digest, target))
-        if (run.ok && digest && refs.length) deps.recordRefresh(target, digest)
+        if (run.ok && digest && refs.length && !deps.scoped) deps.recordRefresh(target, digest)
         set(target, {
           target,
           status: deps.isCancelled() && !run.ok ? 'cancelled' : run.ok ? (run.changed ? 'done' : 'unchanged') : 'failed',
