@@ -100,16 +100,29 @@ export function appendShot(source: string, shot: ShotInput, replace = false) {
   return `${before}${before.endsWith(',') || before.endsWith('[') ? '' : ','}\n${code}\n${source.slice(end)}`
 }
 
-const MAX_SNAPSHOT = 12000
+// 접근성 트리는 Claude 대화에 계속 쌓인다. 평소에는 짧게, 열린 대화상자가 있으면 그것만 준다
+const MAX_SNAPSHOT = 4000
+const MAX_SNAPSHOT_FULL = 12000
 
 export interface OpenResult {
   url: string
   title: string
   // 접근성 트리 (YAML 비슷한 텍스트). UI 라벨을 그대로 옮길 때 쓴다
   snapshot: string
+  // 화면 전체인지, 맨 위 대화상자만인지. 잘랐는지
+  scope: 'page' | 'dialog'
+  truncated: boolean
   screenshot: string
   blockedRequests: string[]
 }
+
+export interface DescribeOptions {
+  // 화면 전체를 길게 (대화상자가 열려 있어도 전체)
+  full?: boolean
+}
+
+// 여러 최신화 작업이 동시에 찍어도 스크린샷 파일 이름이 겹치지 않게 프로세스 전체에서 센다
+let shotCounter = 0
 
 export interface StgOptions extends ManualRef {
   baseUrl: string
@@ -125,7 +138,6 @@ export class StgSession {
   private tab?: StgTab
   private page?: Page
   private blocked: string[] = []
-  private counter = 0
   readonly baseUrl: string
   readonly viewport: Viewport
 
@@ -169,20 +181,25 @@ export class StgSession {
     return new URL(path.replace(/^\//, ''), this.baseUrl).href
   }
 
-  private async describe(page: Page): Promise<OpenResult> {
+  private async describe(page: Page, { full = false }: DescribeOptions = {}): Promise<OpenResult> {
     await page.waitForLoadState('networkidle').catch(() => {})
     const dir = join(captureDir(this.options), 'draft')
     mkdirSync(dir, { recursive: true })
-    const screenshot = join(dir, `view-${++this.counter}.png`)
+    const screenshot = join(dir, `view-${++shotCounter}.png`)
     await page.screenshot({ path: screenshot, animations: 'disabled' })
-    let snapshot = await page.locator('body').ariaSnapshot().catch(() => '')
-    if (snapshot.length > MAX_SNAPSHOT) snapshot = `${snapshot.slice(0, MAX_SNAPSHOT)}\n… (잘림)`
+    // 대화상자(팝업)가 열려 있으면 뒤 화면은 Claude가 이미 봤다. 맨 위 대화상자만 준다
+    const dialog = full ? undefined : page.locator('[role="dialog"]:visible, [role="alertdialog"]:visible').last()
+    const inDialog = dialog ? (await dialog.count().catch(() => 0)) > 0 : false
+    let snapshot = await (inDialog ? dialog! : page.locator('body')).ariaSnapshot().catch(() => '')
+    const max = full ? MAX_SNAPSHOT_FULL : MAX_SNAPSHOT
+    const truncated = snapshot.length > max
+    if (truncated) snapshot = `${snapshot.slice(0, max)}\n… (잘림. 전체는 full: true)`
     const blockedRequests = this.blocked
     this.blocked = []
-    return { url: page.url(), title: await page.title(), snapshot, screenshot, blockedRequests }
+    return { url: page.url(), title: await page.title(), snapshot, scope: inDialog ? 'dialog' : 'page', truncated, screenshot, blockedRequests }
   }
 
-  async open(path: string) {
+  async open(path: string, options?: DescribeOptions) {
     const page = await this.ensurePage()
     await page.goto(this.url(path))
     if (new URL(page.url()).origin !== new URL(this.baseUrl).origin) {
@@ -190,7 +207,7 @@ export class StgSession {
       clearSession(this.options.profileDir)
       throw new Error(`로그인 페이지로 이동했습니다(세션 만료). 앱에서 [다시 로그인]을 눌러 로그인해야 합니다: ${page.url()}`)
     }
-    return this.describe(page)
+    return this.describe(page, options)
   }
 
   private async target(role: Role, name: string, nth?: number): Promise<Locator> {
@@ -216,20 +233,20 @@ export class StgSession {
     return this.describe(page)
   }
 
-  async click(role: Role, name: string, nth?: number) {
+  async click(role: Role, name: string, nth?: number, options?: DescribeOptions) {
     if (isBlockedLabel(name)) throw new Error(`"${name}"은(는) 데이터를 바꿀 수 있는 버튼이라 누르지 않습니다`)
     const locator = await this.target(role, name, nth)
     // 이름이 비슷한 다른 버튼일 수 있어 실제 접근성 이름도 다시 확인한다
     const actual = (await locator.getAttribute('aria-label')) ?? (await locator.innerText().catch(() => name))
     if (isBlockedLabel(actual)) throw new Error(`"${actual}"은(는) 데이터를 바꿀 수 있는 버튼이라 누르지 않습니다`)
     await locator.click()
-    return this.describe(await this.ensurePage())
+    return this.describe(await this.ensurePage(), options)
   }
 
-  async fill(label: string, value: string) {
+  async fill(label: string, value: string, options?: DescribeOptions) {
     const page = await this.ensurePage()
     await page.getByLabel(label).first().fill(value)
-    return this.describe(page)
+    return this.describe(page, options)
   }
 
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
@@ -246,7 +263,8 @@ export class StgSession {
     if (!replace && existsSync(imageFile)) {
       throw new Error(`이미 있는 이미지 id입니다: ${shot.id}. 다른 id를 쓰거나, 그 이미지를 바꾸려면 replace: true`)
     }
-    const next = appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
+    // 형식 오류·중복은 찍기 전에 알린다. 실제 쓰기는 찍은 뒤 다시 읽어서 (여러 화면 작업이 동시에 shots.ts를 고친다)
+    appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
 
     const page = await this.newPage(await this.ensurePage())
     try {
@@ -268,7 +286,7 @@ export class StgSession {
       const mask = shot.mask?.map((m) => page.locator(m))
       if (shot.clip) await page.locator(shot.clip).first().screenshot({ path: file, mask, animations: 'disabled' })
       else await page.screenshot({ path: file, mask, animations: 'disabled' })
-      writeFileSync(shotsFile, next)
+      writeFileSync(shotsFile, appendShot(readFileSync(shotsFile, 'utf8'), shot, replace))
       return { image: `images/${shot.id}.png`, file }
     } finally {
       await page.close()

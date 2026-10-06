@@ -86,6 +86,12 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
     it('팝업 열기, 입력', async () => {
       const opened = await session.click('button', '+ Group Addition')
       assert.match(opened.snapshot, /dialog "Menu Information"/)
+      // 대화상자가 열려 있으면 그것만 준다 (뒤 화면은 생략), full이면 전체
+      assert.equal(opened.scope, 'dialog')
+      assert.doesNotMatch(opened.snapshot, /treeitem "Notice"/)
+      const full = await session.fill('Menu name', '', { full: true })
+      assert.equal(full.scope, 'page')
+      assert.match(full.snapshot, /treeitem "Notice"/)
       const filled = await session.fill('Menu name', 'Sample')
       assert.match(filled.snapshot, /textbox "Menu name": Sample/)
     })

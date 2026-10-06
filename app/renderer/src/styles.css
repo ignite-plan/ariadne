@@ -2072,6 +2072,69 @@ details.advanced summary {
   min-width: 0;
   word-break: break-word;
 }
+.log-target {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text-3);
+  font-size: 11px;
+}
+.screen-progress {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.screen-progress p {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.screen-progress ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.screen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.screen-chip b {
+  font-weight: 600;
+  color: var(--text-3);
+}
+.screen-chip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.screen-chip.status-running b {
+  color: var(--accent);
+}
+.screen-chip.status-done b {
+  color: var(--ok);
+}
+.screen-chip.status-failed {
+  background: var(--danger-soft);
+}
+.screen-chip.status-failed b {
+  color: var(--danger);
+}
+.screen-chip.status-skipped,
+.screen-chip.status-unchanged,
+.screen-chip.status-cancelled {
+  opacity: 0.75;
+}
 .draft-summary {
   margin-top: 18px;
   padding: 16px 18px;

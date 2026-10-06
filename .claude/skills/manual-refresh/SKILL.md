@@ -7,8 +7,11 @@ description: 이미 있는 매뉴얼 화면 섹션을 최신 Confluence 기획�
 
 사람에게 묻지 않고 끝까지 진행한다. **바뀐 곳만 고친다.** 근거 없이 문장을 다듬거나 구성을 바꾸지 않는다. 기획자가 앱의 변경 보기로 검토한다.
 
+앱은 화면마다 이 작업을 따로(여러 개 동시에) 실행한다. **대상 화면 하나만 다룬다.** 같은 장의 다른 화면 파일은 고치지 않는다.
+
 ## 입력 (프롬프트 끝 "이번 작업")
-- 매뉴얼 id, 메뉴(장) 이름, 대상 화면 파일 목록, STG 경로 힌트, dealerhub-web 코드 위치(없을 수 있음)
+- 매뉴얼 id, 메뉴(장) 이름, 대상 화면 파일, STG 경로 힌트, dealerhub-web 코드 위치(없을 수 있음)
+- **기획서 요약**: 앱이 최신 기획서를 미리 읽어 만든 이 화면의 요약과 근거 문서(제목, 버전). 없을 수 있다
 
 ## 도구
 - `mcp__ariadne__*`: `manual_outline`, `stg_open`/`stg_click`/`stg_fill`, `save_shot`(기존 이미지를 바꿀 때 `replace: true`)
@@ -16,19 +19,24 @@ description: 이미 있는 매뉴얼 화면 섹션을 최신 Confluence 기획�
 - Read/Glob/Grep, `manuals/<id>/` 안의 Edit/Write. Bash, 웹, 하위 에이전트는 막혀 있다
 
 ## 1. 지금 매뉴얼 읽기
-1. `manual_outline`과 대상 화면 파일을 Read로 모두 읽는다. 각 화면의 항목(`**Label**`), 버튼(`**\[Label\]**`), 정책 문장, 이미지(`images/<id>.png`), front-matter `routes`를 정리한다
-2. 같은 장의 다른 화면도 훑어 문체를 맞춘다. 기존 TODO 주석도 확인한다 (근거를 찾으면 해결한다)
+1. 대상 화면 파일을 Read로 읽는다. 항목(`**Label**`), 버튼(`**\[Label\]**`), 정책 문장, 이미지(`images/<id>.png`), front-matter `routes`를 정리한다. `manual_outline`은 경로가 필요할 때만
+2. 기존 TODO 주석도 확인한다 (근거를 찾으면 해결한다)
 
-## 2. 근거 수집 (Confluence, 스페이스 DLRS)
-- 화면 기획서는 `[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`. 월별로 여러 개면 **가장 최근 output**. 문서 히스토리 표에서 최근 변경(날짜, 티켓, 변경 내용)을 먼저 본다 — 최신화할 곳의 1차 후보다
+## 2. 근거 (기획서 요약 → 필요할 때만 Confluence)
+- **기획서 요약이 있으면 그것을 근거로 쓴다.** Confluence를 다시 검색하지 않는다
+- 요약에 없거나 모호한 것만 Confluence에서 찾아본다. 큰 문서 결과 파일은 필요한 화면 부분만 Grep으로 본다 (같은 파일을 여러 번 처음부터 읽지 않는다)
+- 요약이 없으면: 화면 기획서는 `[YYYYMMoutput][Phase3][BO|FO] <메뉴> 화면`. 월별로 여러 개면 **가장 최근 output**. 문서 히스토리 표에서 최근 변경(날짜, 티켓, 변경 내용)을 먼저 본다 — 최신화할 곳의 1차 후보다
 - 화면 기획서 머리의 정책 문서도 읽는다
 - 읽은 문서는 제목, URL, 버전을 요약에 넣는다
 
 ## 3. 화면 확인 (STG)
 1. front-matter `routes`(없으면 STG 경로 힌트, 그것도 없으면 `법인 별 BO 메뉴 LIST`)로 `stg_open`. 접근성 트리의 이름이 **UI 라벨의 근거**다
 2. 매뉴얼에 있는 팝업·탭·상세 화면을 `stg_click`으로 열어 본다. 생성/수정 화면은 `stg_fill`로 입력 상태까지만
-3. **저장/삭제/승인/발송/등록 버튼은 누르지 않는다** (앱이 거절하고 쓰기 요청도 막는다)
-4. 세션 만료로 로그인 페이지가 나오면 화면 확인을 멈추고 기획서만으로 진행한다 (이미지는 그대로 두고 요약 notes에 적는다)
+3. STG 응답은 짧다: 팝업이 열려 있으면 그 팝업만, 아니면 화면 앞부분만 준다. 잘린 뒤쪽이 필요하면 같은 도구에 `full: true`
+4. 스크린샷은 **화면 구성(배치)이 바뀌었을지 판단할 때만** Read로 본다. 라벨 확인은 접근성 트리로 충분하다
+5. 같은 화면을 이유 없이 다시 열지 않는다
+6. **저장/삭제/승인/발송/등록 버튼은 누르지 않는다** (앱이 거절하고 쓰기 요청도 막는다)
+7. 세션 만료로 로그인 페이지가 나오면 화면 확인을 멈추고 기획서만으로 진행한다 (이미지는 그대로 두고 요약 notes에 적는다)
 
 ## 4. 비교하고 고치기
 화면마다 지금 본문 ↔ 기획서 ↔ STG를 비교한다.
@@ -55,6 +63,7 @@ description: 이미 있는 매뉴얼 화면 섹션을 최신 Confluence 기획�
 
 ## 6. front-matter
 - `routes`: 비어 있으면 STG path를 넣는다
+- `refreshedFrom`은 앱이 쓴다. 건드리지 않는다
 - dealerhub-web 코드 위치가 주어졌으면: `sources`에 화면 폴더 glob(예: `apps/hyundai-bo/src/pages/Menu/**`), `i18nPrefix`에 화면에서 쓰는 en.json key 접두어를 채운다. 코드가 없으면 비워 둔 채로 둔다
 
 ## 7. 마지막 응답
@@ -63,7 +72,7 @@ description: 이미 있는 매뉴얼 화면 섹션을 최신 Confluence 기획�
 ```json
 {
   "sections": ["08-menu-management/02-menu-creation.md"],
-  "unchanged": ["08-menu-management/03-menu-view.md"],
+  "unchanged": [],
   "images": ["menu-creation"],
   "todos": 2,
   "sources": [{ "title": "[202606output][Phase3][BO] 메뉴 관리 화면", "url": "https://hmg.atlassian.net/wiki/spaces/DLRS/pages/536957869", "version": "v1" }],

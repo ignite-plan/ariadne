@@ -1,0 +1,90 @@
+// 최신화 진행: 기획서 요약 → 건너뛸 화면 고르기 → 화면별 작업을 몇 개씩 동시에 → 근거 버전 기록.
+// 실제 Claude·STG 실행은 바깥에서 넣는다 (단위 테스트 대상)
+import type { SectionMeta } from '../../../src/core/manual.ts'
+import type { DraftEvent, ScreenResult } from '../../shared/api.ts'
+import { needsRefresh, screenBrief, specRefs, type SpecDigest } from './spec.ts'
+
+export interface ScreenRun {
+  ok: boolean
+  // 이 화면 파일을 고쳤는지 (false면 바꿀 곳이 없었음)
+  changed: boolean
+  todos?: number
+  text?: string
+  durationMs?: number
+}
+
+export interface BatchDeps {
+  targets: string[]
+  force?: boolean
+  concurrency: number
+  // 기획서 요약. Confluence를 못 쓰면 undefined (그때는 모든 화면을 STG로만 확인)
+  runSpec: () => Promise<SpecDigest | undefined>
+  readMeta: (target: string) => SectionMeta
+  runScreen: (target: string, brief: string) => Promise<ScreenRun>
+  // 성공한 화면에 근거 기획서 버전을 남긴다 (다음 최신화에서 건너뛰기용)
+  recordRefresh: (target: string, digest: SpecDigest) => void
+  onEvent: (event: DraftEvent) => void
+  isCancelled: () => boolean
+}
+
+// 화면 파일을 못 읽으면 기록이 없는 것으로 (화면 작업에서 오류가 난다)
+function safeMeta(deps: BatchDeps, target: string): SectionMeta {
+  try {
+    return deps.readMeta(target)
+  } catch {
+    return {}
+  }
+}
+
+export async function runRefreshBatch(deps: BatchDeps) {
+  const { targets, onEvent } = deps
+  const results = new Map<string, ScreenResult>()
+  const set = (target: string, result: ScreenResult) => {
+    results.set(target, result)
+    onEvent({ kind: 'screen', target, status: result.status, text: result.text })
+  }
+  for (const target of targets) set(target, { target, status: 'waiting' })
+
+  onEvent({ kind: 'phase', phase: 'spec', text: '기획서 요약 중' })
+  let digest: SpecDigest | undefined
+  try {
+    digest = await deps.runSpec()
+  } catch (error) {
+    onEvent({ kind: 'warning', text: `기획서 요약을 만들지 못했습니다. 화면별로 직접 확인합니다: ${(error as Error).message}` })
+  }
+  const refs = specRefs(digest)
+
+  const queue: string[] = []
+  for (const target of targets) {
+    if (!deps.force && refs.length && !needsRefresh(safeMeta(deps, target), refs)) {
+      set(target, { target, status: 'skipped', text: '근거 기획서가 지난번 최신화 이후 바뀌지 않았습니다' })
+    } else queue.push(target)
+  }
+
+  onEvent({ kind: 'phase', phase: 'screens', text: queue.length ? `화면 ${queue.length}개 최신화 중` : '최신화할 화면이 없습니다' })
+  const worker = async () => {
+    for (let target = queue.shift(); target !== undefined; target = queue.shift()) {
+      if (deps.isCancelled()) {
+        set(target, { target, status: 'cancelled' })
+        continue
+      }
+      set(target, { target, status: 'running' })
+      try {
+        const run = await deps.runScreen(target, screenBrief(digest, target))
+        if (run.ok && digest && refs.length) deps.recordRefresh(target, digest)
+        set(target, {
+          target,
+          status: deps.isCancelled() && !run.ok ? 'cancelled' : run.ok ? (run.changed ? 'done' : 'unchanged') : 'failed',
+          text: run.ok ? undefined : run.text,
+          todos: run.todos,
+          durationMs: run.durationMs,
+        })
+      } catch (error) {
+        set(target, { target, status: deps.isCancelled() ? 'cancelled' : 'failed', text: (error as Error).message })
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(deps.concurrency, queue.length)) }, worker))
+  onEvent({ kind: 'phase', phase: 'done', text: '최신화 끝' })
+  return { digest, screens: targets.map((t) => results.get(t)!) }
+}

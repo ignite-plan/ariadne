@@ -49,11 +49,18 @@ export function localePath(manual: Manual) {
 }
 
 // 섹션 front-matter. dealerhub-web 코드와의 연결 키
+// 최신화할 때 근거로 본 Confluence 기획서와 버전. 버전이 같으면 다음 최신화에서 건너뛴다
+export interface SpecRef {
+  page: string
+  version: number
+}
+
 export interface SectionMeta {
   title?: string
   routes?: string[]
   sources?: string[]
   i18nPrefix?: string[]
+  refreshedFrom?: SpecRef[]
 }
 
 export function manualDir({ root, manual }: ManualRef) {
