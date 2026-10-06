@@ -27,6 +27,7 @@ import {
 import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
+import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, readClaudeMcpServers } from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
@@ -138,11 +139,21 @@ async function draft(
   ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits }) => {
+  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
+  const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
+  let warnedLoose = false
+
+  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
-    writeFileSync(mcpConfigFile, JSON.stringify(mcp.config))
+    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? confluence : [], registered)
+    if (!run.strict && !warnedLoose) {
+      warnedLoose = true
+      log.write('warn', 'mcp', `Atlassian MCP 설정을 찾지 못해 등록된 MCP를 모두 싣고 실행합니다: ${run.missing.join(', ')}`)
+    }
+    // Atlassian 서버 설정에는 토큰이 들어 있다. 이 작업만 쓰는 임시 폴더(0700)에 나만 읽게 쓰고 끝나면 지운다
+    writeFileSync(mcpConfigFile, JSON.stringify(run.config), { mode: 0o600 })
     try {
       if (job.cancelled) return { ok: false, text: '취소했습니다', denials: [] as string[] }
       let stop = (_reason: string) => {}
@@ -158,6 +169,8 @@ async function draft(
         mcpConfigFile,
         extraArgs,
         disallowedTools,
+        strictMcp: run.strict,
+        builtinTools: BUILTIN_TOOLS,
         onEvent: (event) => {
           guard.onEvent(event)
           onEvent({ kind: 'claude', event, target })
@@ -250,6 +263,8 @@ type RunOne = (args: {
   extraArgs?: string[]
   disallowedTools?: string[]
   limits?: GuardLimits
+  // false면 Atlassian MCP를 싣지 않는다 (기획서 요약을 받은 화면 작업)
+  withConfluence?: boolean
 }) => Promise<{
   ok: boolean
   text: string
@@ -349,6 +364,7 @@ async function refresh({
             prompt: `${skillText(ref.root, 'refresh', BUNDLED)}\n\n${taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })}`,
             tools: allowedTools([], { withConfluence }),
             disallowedTools: withConfluence ? [] : confluenceServers.map(mcpServerRule),
+            withConfluence,
             extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
             limits: SCREEN_LIMITS,
             mcp: { stg: () => (stg ??= stgSession()) },

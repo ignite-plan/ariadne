@@ -26,7 +26,13 @@ const { Client } = await import(require.resolve('@modelcontextprotocol/sdk/clien
 const { StreamableHTTPClientTransport } = await import(require.resolve('@modelcontextprotocol/sdk/client/streamableHttp.js'))
 
 const emit = (event) => process.stdout.write(`${JSON.stringify(event)}\n`)
-const config = JSON.parse(readFileSync(args[args.indexOf('--mcp-config') + 1], 'utf8')).mcpServers.ariadne
+const servers = JSON.parse(readFileSync(args[args.indexOf('--mcp-config') + 1], 'utf8')).mcpServers
+const config = servers.ariadne
+// 앱은 등록된 MCP를 모두 싣지 않고(strict) 기본 도구도 쓰는 것만 싣는다. Atlassian은 Confluence 읽기 전용으로
+assert(args.includes('--strict-mcp-config'), 'strict MCP')
+assert(args.includes('--tools') && args.includes('--disable-slash-commands'), '기본 도구 제한')
+const atlassian = servers['mcp-atlassian-fake']
+if (atlassian) assert(atlassian.env?.READ_ONLY_MODE === 'true' && /^confluence_search,/.test(atlassian.env?.ENABLED_TOOLS ?? ''), 'Atlassian 읽기 전용')
 const client = new Client({ name: 'fake-claude', version: '0' })
 await client.connect(new StreamableHTTPClientTransport(new URL(config.url), { requestInit: { headers: config.headers } }))
 
@@ -93,6 +99,7 @@ ${mutates ? 'mutates: true\n' : ''}scenes:
 
 if (prompt.includes('화면별 요약을 마지막 응답의 JSON 블록으로 낸다')) {
   // 최신화 1단계: 기획서 요약을 마지막 응답으로 낸다 (파일은 앱이 쓴다). 쓰기 도구는 허용 목록에 없어야 한다
+  assert(atlassian, '요약 단계에는 Atlassian MCP를 싣는다')
   const allowed = args.slice(args.indexOf('--allowedTools') + 1).filter((a) => !a.startsWith('--'))
   assert(!allowed.some((t) => /^(Edit|Write)\(/.test(t)), '요약 단계에 쓰기 권한을 주지 않는다')
   const screens = Object.fromEntries([...prompt.matchAll(/^  - (\S+\.md) \(manuals\//gm)].map((m) => [m[1], 'Dealer list: Total, Location filter']))
@@ -114,6 +121,7 @@ if (prompt.includes('최신화한다')) {
   const disallowed = args.slice(args.indexOf('--disallowedTools') + 1, args.indexOf('--allowedTools'))
   assert(!allowed.some((t) => t.startsWith('mcp__mcp-atlassian-fake')), '화면 작업에 Confluence 허용 없음')
   assert(disallowed.includes('mcp__mcp-atlassian-fake'), '화면 작업에서 Confluence 막음')
+  assert(!atlassian, '요약을 받은 화면 작업에는 Atlassian MCP를 싣지 않는다')
   assert(args.includes('--max-turns'), '화면 작업 턴 상한')
   const root = process.cwd()
   emit({ type: 'assistant', message: { content: [{ type: 'text', text: '지금 본문과 기획서를 비교하겠습니다.' }] } })
