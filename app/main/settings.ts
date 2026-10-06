@@ -19,6 +19,7 @@ export function defaultSettings(): Settings {
     claudePath: '',
     claudeAuth: 'apiKey',
     claudeLongContext: true,
+    claudeEffort: 'medium',
     notifyOnDone: 'background',
   }
 }

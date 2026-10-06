@@ -154,9 +154,13 @@ export interface Settings {
   claudeAuth: 'apiKey' | 'login'
   // 앱의 Claude 작업을 1M 문맥 모델로 (ANTHROPIC_MODEL 또는 sonnet에 [1m]). 끄면 기본 200K
   claudeLongContext: boolean
+  // 앱 Claude 작업의 생각량. 낮을수록 빠르고 싸다
+  claudeEffort: ClaudeEffort
   // 오래 걸리는 작업이 끝나면 macOS 알림. background: 다른 앱을 보고 있을 때만
   notifyOnDone: 'background' | 'always' | 'off'
 }
+
+export type ClaudeEffort = 'low' | 'medium' | 'high'
 
 export interface GithubUser {
   login: string

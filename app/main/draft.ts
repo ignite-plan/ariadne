@@ -12,7 +12,7 @@ import videoSkill from '../../.claude/skills/manual-video-draft/SKILL.md?raw'
 import videoSceneSkill from '../../.claude/skills/manual-video-scene/SKILL.md?raw'
 import { renderVideo } from '../../src/core/video/index.ts'
 import { StepError } from '../../src/core/video/steps.ts'
-import { namedSkillText, skillText, specTaskText, taskText } from './lib/prompts.ts'
+import { composePrompt, namedSkillText, skillText, specTaskText, taskText } from './lib/prompts.ts'
 import {
   buildAllowedTools,
   findClaude,
@@ -25,6 +25,7 @@ import {
   type McpStatus,
 } from './lib/claude.ts'
 import { explainFailure, longContextModel, type ClaudeAuth } from './lib/claude-auth.ts'
+import type { ClaudeEffort } from '../shared/api.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, readClaudeMcpServers } from './lib/run-mcp.ts'
@@ -92,6 +93,8 @@ interface DraftOptions {
   claudeAuth?: ClaudeAuth
   // 1M 문맥 모델로 실행 (큰 기획서·긴 STG 탐색에서 자동 요약을 피한다)
   longContext?: boolean
+  // 생각량. 매뉴얼 작업은 확인·옮기기가 많아 medium이면 충분하고 훨씬 빠르다
+  effort?: ClaudeEffort
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
   codeDir?: string
   captureBaseUrl: string
@@ -116,7 +119,7 @@ export async function startDraft(options: DraftOptions): Promise<DraftResult> {
 type Job = NonNullable<typeof current>
 
 async function draft(
-  { ref, input, claudePath, claudeAuth = 'apiKey', longContext = false, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
+  { ref, input, claudePath, claudeAuth = 'apiKey', longContext = false, effort, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
   job: Job,
 ): Promise<DraftResult> {
   // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
@@ -174,6 +177,7 @@ async function draft(
         disallowedTools,
         strictMcp: run.strict,
         model,
+        effort,
         builtinTools: BUILTIN_TOOLS,
         onEvent: (event) => {
           guard.onEvent(event)
@@ -222,7 +226,7 @@ async function draft(
   try {
     onEvent({ kind: 'status', text: 'Claude 시작' })
     const result = await runOne({
-      prompt: `${skillText(ref.root, input.mode, BUNDLED)}\n\n${taskText(ref, input, { codeDir: code })}`,
+      prompt: composePrompt(skillText(ref.root, input.mode, BUNDLED), taskText(ref, input, { codeDir: code })),
       tools: allowedTools(),
       mcp: {
         stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab })),
@@ -331,7 +335,7 @@ async function refresh({
         if (!confluence) return undefined
         const previous = readDigest(digestFile)
         const result = await runOne({
-          prompt: `${namedSkillText(ref.root, 'manual-spec', BUNDLED, { bundledFirst: true })}\n\n${specTaskText(ref, input, { previous: previous?.pages })}`,
+          prompt: composePrompt(namedSkillText(ref.root, 'manual-spec', BUNDLED, { bundledFirst: true }), specTaskText(ref, input, { previous: previous?.pages })),
           // 읽기만. 요약은 마지막 응답으로 받고 파일은 앱이 쓴다
           tools: allowedTools().filter((tool) => !/^(Edit|Write)\(/.test(tool)),
           // 막힌 도구를 계속 다시 시도하는 일 없이 끝나게
@@ -365,7 +369,7 @@ async function refresh({
           // 기획서 요약을 받았으면 Confluence를 다시 뒤지지 않게 도구를 빼고 막는다 (요약에 없는 정책은 TODO)
           const withConfluence = !brief
           const result = await runOne({
-            prompt: `${skillText(ref.root, 'refresh', BUNDLED)}\n\n${taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })}`,
+            prompt: composePrompt(skillText(ref.root, 'refresh', BUNDLED), taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })),
             tools: allowedTools([], { withConfluence }),
             disallowedTools: withConfluence ? [] : confluenceServers.map(mcpServerRule),
             withConfluence,

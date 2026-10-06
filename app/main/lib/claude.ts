@@ -285,6 +285,8 @@ export interface RunOptions {
   builtinTools?: string[]
   // 없으면 ANTHROPIC_MODEL 또는 Claude Code 기본
   model?: string
+  // 생각량 (low/medium/high). 없으면 Claude Code 기본
+  effort?: string
 }
 
 export function runClaude({
@@ -299,6 +301,7 @@ export function runClaude({
   strictMcp = false,
   builtinTools,
   model,
+  effort,
 }: RunOptions) {
   const child = spawn(
     cli.path,
@@ -314,6 +317,7 @@ export function runClaude({
       mcpConfigFile,
       ...(strictMcp ? ['--strict-mcp-config'] : []),
       ...(model ? ['--model', model] : []),
+      ...(effort ? ['--effort', effort] : []),
       ...(builtinTools ? ['--tools', builtinTools.join(','), '--disable-slash-commands'] : []),
       '--disallowedTools',
       ...DISALLOWED_TOOLS,
