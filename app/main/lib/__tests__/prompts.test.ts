@@ -40,7 +40,7 @@ describe('작업 지시', () => {
     )
     assert.match(text, /대상 화면: manuals\/bo\/08-menu-management\/02-menu-creation\.md/)
     assert.match(text, /다른 화면 파일은 고치지 않는다/)
-    assert.match(text, /## 기획서 요약\n이 화면:\nMenu Name max 50/)
+    assert.match(text, /## 기획서 요약\n이 화면:\nMenu Name max 50\n\n\(이번 작업에는 Confluence 도구가 없다/)
   })
 
   it('기획서 요약: 파일 경로, 화면 키, 지난 버전', () => {

@@ -7,6 +7,7 @@ import {
   buildAllowedTools,
   findClaude,
   isAtlassianServer,
+  mcpServerRule,
   parseMcpList,
   parseStreamLine,
   parseSummary,
@@ -138,6 +139,7 @@ next()
       prompt: 'draft',
       allowedTools: ['Read', 'mcp__ariadne'],
       mcpConfigFile: '/tmp/mcp.json',
+      disallowedTools: [mcpServerRule('mcp-atlassian.hmg')],
       onEvent: (e) => events.push(e),
     })
     const result = await done
@@ -149,6 +151,7 @@ next()
     assert.deepEqual(args.slice(args.indexOf('--allowedTools') + 1), ['Read', 'mcp__ariadne'])
     const disallowed = args.slice(args.indexOf('--disallowedTools') + 1, args.indexOf('--allowedTools'))
     assert.ok(disallowed.includes('Bash') && disallowed.includes('WebFetch'))
+    assert.ok(disallowed.includes('mcp__mcp-atlassian_hmg'), '이번 작업에서 더 막는 도구')
   })
 
   it('중지하면 거절된다', async () => {

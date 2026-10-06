@@ -96,7 +96,13 @@ export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?:
   )
   if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
   if (input.mode === 'refresh') {
-    lines.push('', '## 기획서 요약', options.brief?.trim() || '(없음 — Confluence에서 직접 찾는다)')
+    lines.push(
+      '',
+      '## 기획서 요약',
+      options.brief?.trim()
+        ? `${options.brief.trim()}\n\n(이번 작업에는 Confluence 도구가 없다. 위 요약에 없는 정책은 TODO로 남긴다)`
+        : '(없음 — Confluence에서 직접 찾는다)',
+    )
   }
   return lines.join('\n')
 }

@@ -18,6 +18,7 @@ import {
   findClaude,
   isAtlassianServer,
   listMcpServers,
+  mcpServerRule,
   parseSummary,
   runClaude,
   type ClaudeCli,
@@ -25,6 +26,7 @@ import {
 } from './lib/claude.ts'
 import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
+import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
@@ -34,6 +36,8 @@ import { StgSession } from './lib/stg.ts'
 const REFRESH_CONCURRENCY = 3
 // 기획서 요약 단계의 최대 턴. 넘으면 요약 없이 화면별로 진행한다
 const SPEC_MAX_TURNS = 60
+// 화면 하나의 상한. 넘으면 그 화면만 실패로 끝내고 다른 화면은 계속한다
+const SCREEN_LIMITS = { maxTurns: 120, timeoutMs: 20 * 60 * 1000, maxEditFailures: 4 }
 
 let mcpCache: { at: number; servers: McpStatus[] } | undefined
 // 실행 중인 작업. 최신화는 Claude 여러 개
@@ -114,22 +118,51 @@ async function draft(
   }
   const code = codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined
   const root = realpathSync(ref.root)
-  const allowedTools = (extra: string[] = []) => [...buildAllowedTools(ref.manual, confluence, root, code ? [code] : []), ...extra]
+  // withConfluence: false면 Confluence 도구를 주지 않는다 (기획서 요약을 받은 화면 작업)
+  const allowedTools = (extra: string[] = [], { withConfluence = true } = {}) => [
+    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : []),
+    ...extra,
+  ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs }) => {
+  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
     writeFileSync(mcpConfigFile, JSON.stringify(mcp.config))
     try {
       if (job.cancelled) return { ok: false, text: '취소했습니다', denials: [] as string[] }
-      const handle = runClaude({ cli, cwd: ref.root, prompt, allowedTools: tools, mcpConfigFile, extraArgs, onEvent: (event) => onEvent({ kind: 'claude', event, target }) })
+      let stop = (_reason: string) => {}
+      const guard = createRunGuard(limits ?? {}, (reason) => {
+        onEvent({ kind: 'warning', text: reason, target })
+        stop(reason)
+      })
+      const handle = runClaude({
+        cli,
+        cwd: ref.root,
+        prompt,
+        allowedTools: tools,
+        mcpConfigFile,
+        extraArgs,
+        disallowedTools,
+        onEvent: (event) => {
+          guard.onEvent(event)
+          onEvent({ kind: 'claude', event, target })
+        },
+      })
+      stop = () => handle.cancel()
       job.handles.add(handle)
       try {
         const result = await handle.done
+        if (guard.stopped) return { ...result, ok: false, text: guard.stopped }
+        // 턴 상한에 걸리면 결과 문구가 비어 있다
+        if (!result.ok && !result.text.trim() && result.turns) return { ...result, text: `턴 상한(${result.turns}턴)에 걸려 멈췄습니다` }
         return { ...result, text: result.ok ? result.text : explainFailure(result.text, claudeAuth, cli.env) }
+      } catch (error) {
+        if (guard.stopped) return { ok: false, text: guard.stopped, denials: [] as string[] }
+        throw error
       } finally {
+        guard.dispose()
         job.handles.delete(handle)
       }
     } finally {
@@ -139,7 +172,20 @@ async function draft(
   }
 
   if (input.mode === 'refresh' && input.targets?.length) {
-    return refresh({ ref, input, captureBaseUrl, profileDir, openTab, onEvent, job, runOne, allowedTools, code, confluence: confluence.length > 0 })
+    return refresh({
+      ref,
+      input,
+      captureBaseUrl,
+      profileDir,
+      openTab,
+      onEvent,
+      job,
+      runOne,
+      allowedTools,
+      code,
+      confluence: confluence.length > 0,
+      confluenceServers: confluence,
+    })
   }
 
   let stg: StgSession | undefined
@@ -189,6 +235,8 @@ type RunOne = (args: {
   mcp: Omit<AriadneMcpDeps, 'ref'>
   target?: string
   extraArgs?: string[]
+  disallowedTools?: string[]
+  limits?: GuardLimits
 }) => Promise<{
   ok: boolean
   text: string
@@ -210,6 +258,7 @@ async function refresh({
   allowedTools,
   code,
   confluence,
+  confluenceServers,
 }: {
   ref: ManualRef
   input: DraftInput
@@ -219,9 +268,10 @@ async function refresh({
   onEvent: (event: DraftEvent) => void
   job: Job
   runOne: RunOne
-  allowedTools: (extra?: string[]) => string[]
+  allowedTools: (extra?: string[], options?: { withConfluence?: boolean }) => string[]
   code?: string
   confluence: boolean
+  confluenceServers: string[]
 }): Promise<DraftResult> {
   const started = Date.now()
   const targets = input.targets ?? []
@@ -280,9 +330,14 @@ async function refresh({
         const before = readFileSync(file, 'utf8')
         let stg: StgSession | undefined
         try {
+          // 기획서 요약을 받았으면 Confluence를 다시 뒤지지 않게 도구를 빼고 막는다 (요약에 없는 정책은 TODO)
+          const withConfluence = !brief
           const result = await runOne({
             prompt: `${skillText(ref.root, 'refresh', BUNDLED)}\n\n${taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })}`,
-            tools: allowedTools(),
+            tools: allowedTools([], { withConfluence }),
+            disallowedTools: withConfluence ? [] : confluenceServers.map(mcpServerRule),
+            extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
+            limits: SCREEN_LIMITS,
             mcp: { stg: () => (stg ??= stgSession()) },
             target,
           })

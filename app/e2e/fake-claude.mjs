@@ -109,6 +109,12 @@ if (prompt.includes('최신화한다')) {
   // 최신화: 화면 하나씩 따로 실행된다. 대상 화면 한 줄을 고치고, 기존 이미지를 replace로 다시 찍는다
   const target = (prompt.match(/^- 대상 화면: (manuals\/\S+\.md)$/m) ?? prompt.match(/^  - (manuals\/\S+\.md)$/m))[1]
   assert(prompt.includes('Dealer list: Total, Location filter'), '화면별 작업은 기획서 요약을 받는다')
+  // 요약을 받은 화면 작업에는 Confluence 도구를 주지 않고 막는다, 턴 상한이 있다
+  const allowed = args.slice(args.indexOf('--allowedTools') + 1)
+  const disallowed = args.slice(args.indexOf('--disallowedTools') + 1, args.indexOf('--allowedTools'))
+  assert(!allowed.some((t) => t.startsWith('mcp__mcp-atlassian-fake')), '화면 작업에 Confluence 허용 없음')
+  assert(disallowed.includes('mcp__mcp-atlassian-fake'), '화면 작업에서 Confluence 막음')
+  assert(args.includes('--max-turns'), '화면 작업 턴 상한')
   const root = process.cwd()
   emit({ type: 'assistant', message: { content: [{ type: 'text', text: '지금 본문과 기획서를 비교하겠습니다.' }] } })
   await call('manual_outline', {})
