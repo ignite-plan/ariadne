@@ -30,6 +30,9 @@ export const MCP_ATLASSIAN_READ_TOOLS = [
   'confluence_get_space_page_tree',
 ]
 
+// 반영 범위에 Jira 티켓이 있을 때만 켜는 Jira 읽기 도구
+export const MCP_ATLASSIAN_JIRA_READ_TOOLS = ['jira_get_issue', 'jira_search']
+
 // 앱 작업에 쓰는 기본 도구. 나머지(Bash, 웹, 하위 에이전트 등)는 정의도 싣지 않는다
 export const BUILTIN_TOOLS = ['Read', 'Glob', 'Grep', 'Edit', 'Write', 'TodoWrite', 'ToolSearch']
 
@@ -56,9 +59,10 @@ const isMcpAtlassian = (server: McpServerConfig) =>
   (/mcp-atlassian/.test(server.command ?? '') || (server.args ?? []).some((a) => /mcp-atlassian/.test(a)) || Boolean(server.env?.CONFLUENCE_URL))
 
 // 로컬 mcp-atlassian이면 Confluence 읽기 도구만, 읽기 전용으로 띄운다. 원격 Atlassian MCP는 그대로
-export function confluenceReadOnly(server: McpServerConfig): McpServerConfig {
+export function confluenceReadOnly(server: McpServerConfig, { jira = false } = {}): McpServerConfig {
   if (!isMcpAtlassian(server)) return server
-  return { ...server, env: { ...server.env, ENABLED_TOOLS: MCP_ATLASSIAN_READ_TOOLS.join(','), READ_ONLY_MODE: 'true' } }
+  const tools = [...MCP_ATLASSIAN_READ_TOOLS, ...(jira ? MCP_ATLASSIAN_JIRA_READ_TOOLS : [])]
+  return { ...server, env: { ...server.env, ENABLED_TOOLS: tools.join(','), READ_ONLY_MODE: 'true' } }
 }
 
 // Ariadne + 이번 작업에 줄 Atlassian 서버. 설정을 못 찾은 서버(플러그인·claude.ai 커넥터 등)가 있으면 strict로 실행할 수 없다
@@ -66,9 +70,10 @@ export function buildRunMcpConfig(
   ariadne: Record<string, unknown>,
   atlassian: string[],
   registered: Record<string, McpServerConfig>,
+  { jira = false } = {},
 ): { config: { mcpServers: Record<string, unknown> }; strict: boolean; missing: string[] } {
   const missing = atlassian.filter((name) => !registered[name])
   if (missing.length) return { config: { mcpServers: ariadne }, strict: false, missing }
-  const servers = Object.fromEntries(atlassian.map((name) => [name, confluenceReadOnly(registered[name])]))
+  const servers = Object.fromEntries(atlassian.map((name) => [name, confluenceReadOnly(registered[name], { jira })]))
   return { config: { mcpServers: { ...servers, ...ariadne } }, strict: true, missing }
 }

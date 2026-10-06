@@ -37,6 +37,18 @@ export function namedSkillText(root: string, name: string, bundled: Record<strin
 }
 
 // 최신화 1단계: 기획서 요약을 마지막 응답 JSON으로 받는다 (파일은 앱이 쓴다). 지난 요약과 버전이 같으면 reused
+// 반영 범위가 있을 때 공통으로 붙이는 줄
+function scopeLines(scope: NonNullable<DraftInput['scope']>) {
+  const lines = ['- 반영 범위 (이 범위의 변경만 반영한다. 범위 밖 변경은 반영하지 않는다):']
+  if (scope.from || scope.to) lines.push(`  - 기간: ${scope.from ?? '처음'} ~ ${scope.to ?? '최신'} (기획서 문서 히스토리의 변경 날짜 기준)`)
+  if (scope.to) {
+    const [y, m] = scope.to.split('-')
+    lines.push(`  - 근거 화면 기획서: \`[${y}${m}output]\` 또는 그보다 이전 output 중 가장 최근 것 (그 뒤 output은 보지 않는다)`)
+  }
+  if (scope.tickets?.length) lines.push(`  - Jira 티켓: ${scope.tickets.join(', ')} (이 티켓에 해당하는 변경만)`)
+  return lines
+}
+
 export function specTaskText(ref: ManualRef, input: DraftInput, { previous = [] }: { previous?: { id: string; title: string; version: number }[] } = {}) {
   const lines = [
     '## 이번 작업',
@@ -46,11 +58,17 @@ export function specTaskText(ref: ManualRef, input: DraftInput, { previous = [] 
   ]
   lines.push('- 대상 화면 (screens의 키):')
   for (const target of input.targets ?? []) lines.push(`  - ${target} (manuals/${ref.manual}/${target})`)
-  lines.push(
-    previous.length
-      ? `- 지난 요약의 근거 문서 (id와 버전이 모두 같으면 요약하지 말고 {"reused": true}):\n${previous.map((p) => `  - ${p.id} v${p.version} ${p.title}`).join('\n')}`
-      : '- 지난 요약: 없음',
-  )
+  if (input.scope) {
+    lines.push(...scopeLines(input.scope))
+    if (input.scope.tickets?.length) lines.push('  - 티켓 내용은 Jira 읽기 도구(jira_get_issue)로 확인한다')
+    lines.push('- 반영 범위가 있으므로 JSON에 `changes`(화면 → 이번에 반영할 변경, 티켓 번호 포함)를 꼭 넣는다. 반영할 변경이 없는 화면은 changes에서 뺀다. 재사용(reused)은 하지 않는다')
+  } else {
+    lines.push(
+      previous.length
+        ? `- 지난 요약의 근거 문서 (id와 버전이 모두 같으면 요약하지 말고 {"reused": true}):\n${previous.map((p) => `  - ${p.id} v${p.version} ${p.title}`).join('\n')}`
+        : '- 지난 요약: 없음',
+    )
+  }
   if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
   return lines.join('\n')
 }
@@ -93,6 +111,12 @@ export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?:
       lines.push('- 할 일: 아래 기존 화면을 최신 기획서와 STG 화면에 맞춰 최신화한다')
       lines.push('- 대상 화면:')
       for (const target of targets) lines.push(`  - manuals/${ref.manual}/${target}`)
+    }
+    if (input.scope) {
+      lines.push(...scopeLines(input.scope))
+      lines.push('  - 기획서 요약의 "이번에 반영할 변경"에 있는 것만 고친다. 나머지 문장은 기획서·화면과 달라도 그대로 둔다')
+      lines.push('  - STG에는 범위 뒤의 변경이 이미 배포돼 있을 수 있다. 화면이 반영할 변경과 다르거나 범위 밖 변경이 보이면 고치지 말고 `<!-- TODO: STG에 반영 범위 밖 변경 보임 - <무엇> -->`')
+      lines.push('  - 캡처 이미지는 다시 찍지 않는다 (save_shot 금지). 화면 구성이 바뀌어 이미지가 맞지 않으면 그 이미지 아래에 `<!-- TODO: 이미지 갱신 필요 - <티켓> <무엇> -->`')
     }
   } else {
     const place = input.chapterDir

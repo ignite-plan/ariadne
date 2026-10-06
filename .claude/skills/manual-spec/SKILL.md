@@ -37,6 +37,13 @@ description: 매뉴얼 최신화 전에 메뉴 하나의 최신 Confluence 기�
 
 여러 화면에 걸친 정책(권한 체계, 공통 메시지 등)은 `common`에 한 번만 적는다.
 
+## 반영 범위가 있을 때 (이번 작업에 "반영 범위"가 있으면)
+- 기간의 끝 달이 있으면 그 달 또는 그 전 output 중 가장 최근 것만 근거로 쓴다. 그 뒤 output은 보지 않는다
+- Jira 티켓이 있으면 `jira_get_issue`로 제목·설명을 읽고, 기획서 문서 히스토리에서 그 티켓 번호가 붙은 변경을 찾는다
+- 문서 히스토리에서 **기간 안 날짜이거나 입력한 티켓에 해당하는 변경만** 골라 화면별로 나눈다. 범위 밖 변경은 적지 않는다
+- `screens`는 평소처럼 그 output 기준 화면 요약, 그리고 `changes`에 화면 → 이번에 반영할 변경을 적는다 (무엇이 어떻게 바뀌었는지, 날짜, 티켓 번호). 반영할 변경이 없는 화면은 `changes`에서 뺀다
+- 지난 요약 재사용(`reused`)은 하지 않는다
+
 ## 4. 마지막 응답
 한두 줄 한국어 요약 뒤에 **JSON 블록 하나로** 끝낸다. 앱이 이 블록을 그대로 저장한다. `screens`의 키는 대상 화면 파일 경로 그대로:
 
@@ -45,9 +52,11 @@ description: 매뉴얼 최신화 전에 메뉴 하나의 최신 Confluence 기�
   "menu": "Menu Management",
   "pages": [{ "id": "536957869", "title": "[202606output][Phase3][BO] 메뉴 관리 화면", "version": 12, "url": "https://hmg.atlassian.net/wiki/spaces/DLRS/pages/536957869" }],
   "common": "…",
-  "screens": { "08-menu-management/01-menu-list-view.md": "…" }
+  "screens": { "08-menu-management/01-menu-list-view.md": "…" },
+  "changes": { "08-menu-management/04-menu-editing.md": "2026-07-14 GIDPDVO-2067: 메뉴 권한에 General(Directory) 타입 추가 — 권한 팝업에 체크박스 …" }
 }
 ```
+- `changes`는 반영 범위가 있을 때만 넣는다
 - `pages`는 근거로 읽은 문서 전부. `version`은 Confluence 페이지 버전 숫자. 비어 있으면 앱이 요약으로 받지 않는다
 - 기획서에서 대상 화면을 못 찾았으면 그 화면은 `"(기획서에 없음)"`
 - JSON 안 문자열의 줄바꿈은 `\n`으로 쓴다 (JSON이 깨지면 앱이 요약 없이 진행한다)

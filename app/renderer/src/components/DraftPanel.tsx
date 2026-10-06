@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
 import { api } from '../api.ts'
 import { SCREEN_LABEL, screenName, useTasks } from '../tasks.tsx'
-import { needsConfluence } from '../../../shared/draft-mode.ts'
+import { checkScope, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { Icon } from './Icon.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
@@ -51,6 +51,13 @@ export function DraftPanel({
   const screens = task?.screens ?? {}
   const [filter, setFilter] = useState<string>()
   const [force, setForce] = useState(false)
+  // 최신화 반영 범위: 기간(YYYY-MM)과 Jira 티켓. 비우면 최신 기획서 전체
+  const [scopeFrom, setScopeFrom] = useState('')
+  const [scopeTo, setScopeTo] = useState('')
+  const [ticketText, setTicketText] = useState('')
+  const parsedTickets = parseTickets(ticketText)
+  const scopeCheck = checkScope({ from: scopeFrom, to: scopeTo, tickets: parsedTickets.tickets })
+  const scopeError = parsedTickets.invalid.length ? `Jira 티켓 형식이 틀립니다: ${parsedTickets.invalid.join(', ')} (예: GIDPGRO-973)` : scopeCheck.error
   const [check, setCheck] = useState<DraftCheck>()
   const [session, setSession] = useState<SessionInfo>({ exists: false })
   const logEnd = useRef<HTMLDivElement>(null)
@@ -114,7 +121,8 @@ export function DraftPanel({
       setLocalPhase('ready')
     }
     setFilter(undefined)
-    void tasks.startClaude(input, { force: refresh && force })
+    if (refresh && scopeError) return toast.show('error', scopeError)
+    void tasks.startClaude(input, refresh ? { force: force && !scopeCheck.scope, scope: scopeCheck.scope } : {})
   }
 
   // 진행 시간 표시
@@ -238,6 +246,12 @@ export function DraftPanel({
                 <dd>
                   {input.targets?.length === 1 ? input.targets[0] : `화면 ${input.targets?.length ?? 0}개`}
                 </dd>
+                {task?.scope && (
+                  <>
+                    <dt>반영 범위</dt>
+                    <dd>{scopeLabel(task.scope)}</dd>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -260,6 +274,32 @@ export function DraftPanel({
           </dl>
 
           {refresh && !task && (
+            <div className="scope-fields">
+              <b>반영 범위 (선택)</b>
+              <div className="scope-period">
+                <input type="month" aria-label="시작 월" value={scopeFrom} onChange={(e) => setScopeFrom(e.target.value)} />
+                <span>~</span>
+                <input type="month" aria-label="끝 월" value={scopeTo} onChange={(e) => setScopeTo(e.target.value)} />
+              </div>
+              <textarea
+                aria-label="Jira 티켓"
+                rows={2}
+                placeholder="Jira 티켓 (예: GIDPGRO-973, GIDPDVO-2067)"
+                value={ticketText}
+                onChange={(e) => setTicketText(e.target.value)}
+              />
+              {scopeError ? (
+                <p className="form-error">{scopeError}</p>
+              ) : (
+                <em className="hint">
+                  {scopeCheck.scope
+                    ? '이 범위의 변경만 반영합니다. 해당 변경이 없는 화면은 건너뛰고, 캡처 이미지는 다시 찍지 않습니다'
+                    : '비우면 최신 기획서 전체를 반영합니다'}
+                </em>
+              )}
+            </div>
+          )}
+          {refresh && !task && !scopeCheck.scope && (
             <label className="check-inline">
               <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
               기획서가 안 바뀐 화면도 다시 확인

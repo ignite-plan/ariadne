@@ -21,6 +21,21 @@ export interface SpecDigest {
   common?: string
   // 화면 파일 이름(01-menu-list-view.md) → 그 화면의 항목·버튼·정책·최근 변경 요약
   screens: Record<string, string>
+  // 반영 범위가 있을 때: 화면 → 이번에 반영할 변경(티켓 포함). 없는 화면은 반영할 변경이 없다
+  changes?: Record<string, string>
+}
+
+// 화면 경로나 파일 이름 어느 쪽으로 적혀 있어도 찾는다
+function lookup(record: Record<string, string> | undefined, target: string) {
+  if (!record) return undefined
+  const file = basename(target)
+  return record[target] ?? record[file] ?? Object.entries(record).find(([k]) => k.endsWith(file))?.[1]
+}
+
+// 반영 범위 요약에서 이 화면에 반영할 변경이 있는지
+export function hasScopedChanges(digest: SpecDigest, target: string) {
+  const text = lookup(digest.changes, target)?.trim()
+  return Boolean(text && !/^\(?(없음|변경 없음|none)\)?$/i.test(text))
 }
 
 export const specSlug = (menu: string) =>
@@ -42,13 +57,15 @@ function normalizeDigest(d: unknown): SpecDigest | undefined {
   const pages = (v.pages as SpecPage[])
     .filter((p) => p && p.id && Number.isFinite(Number(p.version)))
     .map((p) => ({ ...p, id: String(p.id), title: String(p.title ?? ''), version: Number(p.version) }))
-  const screens = Object.fromEntries(Object.entries(v.screens as Record<string, unknown>).map(([k, s]) => [k, String(s ?? '')]))
+  const strings = (r: unknown) => Object.fromEntries(Object.entries(r as Record<string, unknown>).map(([k, s]) => [k, String(s ?? '')]))
+  const changes = v.changes && typeof v.changes === 'object' && !Array.isArray(v.changes) ? strings(v.changes) : undefined
   return {
     menu: String(v.menu ?? ''),
     generatedAt: String(v.generatedAt ?? ''),
     pages,
     common: typeof v.common === 'string' ? v.common : undefined,
-    screens,
+    screens: strings(v.screens),
+    ...(changes ? { changes } : {}),
   }
 }
 
@@ -103,10 +120,15 @@ export function needsRefresh(meta: SectionMeta, refs: SpecRef[]) {
 // 화면별 작업에 줄 요약. 파일 이름이나 경로 어느 쪽으로 적혀 있어도 찾는다
 export function screenBrief(digest: SpecDigest | undefined, target: string) {
   if (!digest) return ''
-  const file = basename(target)
-  const own = digest.screens[file] ?? digest.screens[target] ?? Object.entries(digest.screens).find(([k]) => k.endsWith(file))?.[1] ?? ''
+  const own = lookup(digest.screens, target) ?? ''
+  const changes = lookup(digest.changes, target)
   const pages = digest.pages.map((p) => `- ${p.title} (v${p.version})${p.url ? ` ${p.url}` : ''}`).join('\n')
-  return [`근거 기획서:\n${pages}`, digest.common ? `공통 정책:\n${digest.common}` : '', own ? `이 화면:\n${own}` : '이 화면: (요약에 없음 — 필요하면 Confluence에서 직접 확인)']
+  return [
+    `근거 기획서:\n${pages}`,
+    digest.common ? `공통 정책:\n${digest.common}` : '',
+    own ? `이 화면:\n${own}` : '이 화면: (요약에 없음 — 필요하면 Confluence에서 직접 확인)',
+    changes ? `이번에 반영할 변경 (이것만 반영한다):\n${changes}` : '',
+  ]
     .filter(Boolean)
     .join('\n\n')
 }

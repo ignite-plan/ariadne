@@ -77,6 +77,15 @@ export interface DraftInput {
   insert?: boolean
   // 최신화: 기획서 버전이 같아도 다시 확인한다 (기본은 건너뜀)
   force?: boolean
+  // 최신화: 반영 범위. 없으면 최신 기획서 전체
+  scope?: RefreshScope
+}
+
+// 최신화 반영 범위: 기간(YYYY-MM)과 Jira 티켓. 둘 중 하나만 있어도 된다
+export interface RefreshScope {
+  from?: string
+  to?: string
+  tickets?: string[]
 }
 
 // 최신화는 화면마다 따로 돈다. target이 있으면 그 화면의 이벤트

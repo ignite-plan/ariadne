@@ -29,6 +29,8 @@ export interface AriadneMcpDeps {
   videoCheck?: (id: string, fromScene?: number) => Promise<VideoCheck>
   // 장면 하나만 채우는 작업이면 그 장면. insert면 index 다음에 새 장면을 넣는다 (처음 저장한 뒤로는 그 장면을 고친다)
   videoScene?: { id: string; index: number; insert: boolean }
+  // 캡처 저장을 막는 이유 (반영 범위를 정한 최신화: 지금 STG엔 범위 밖 변경이 들어 있을 수 있다)
+  noShots?: string
   onEvent?: (event: ToolEvent) => void
 }
 
@@ -219,6 +221,7 @@ function buildServer(deps: AriadneMcpDeps) {
     },
     async ({ replace, ...args }) => {
       try {
+        if (deps.noShots) throw new Error(deps.noShots)
         return await run('save_shot', `캡처 저장: ${args.id}`, async () => {
           const saved = await deps.stg().saveShot(args as ShotInput, replace)
           return text(JSON.stringify({ image: saved.image, file: saved.file }))

@@ -1,7 +1,7 @@
 // 패널을 닫아도 이어지는 작업 상태. Claude 작업과 영상 만들기는 STG 공유 Chrome의 탭을 나눠 써서 동시에 돈다.
 // 패널은 이 상태를 보여 주기만 하고, 상단 칩(TaskChips)에서 다시 연다
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import type { DraftEvent, DraftInput, DraftResult, ScreenStatus, VideoProgress, VideoRunOptions, VideoRunResult } from '../../shared/api.ts'
+import type { DraftEvent, DraftInput, DraftResult, RefreshScope, ScreenStatus, VideoProgress, VideoRunOptions, VideoRunResult } from '../../shared/api.ts'
 import { api, errorMessage } from './api.ts'
 import { useToast } from './components/Toast.tsx'
 
@@ -92,6 +92,8 @@ export interface ClaudeTask {
   input: DraftInput
   phase: 'running' | 'done'
   log: LogLine[]
+  // 최신화: 반영 범위 (기간·티켓)
+  scope?: RefreshScope
   // 최신화: 화면별 진행과 지금 단계(기획서 요약 / 화면 확인)
   screens: Record<string, ScreenRow>
   stage?: string
@@ -118,7 +120,7 @@ interface Tasks {
   showDraft(): void
   hideDraft(): void
   // force: 최신화에서 기획서가 안 바뀐 화면도 다시 확인
-  startClaude(input: DraftInput, options?: { force?: boolean }): Promise<void>
+  startClaude(input: DraftInput, options?: { force?: boolean; scope?: RefreshScope }): Promise<void>
   // 끝난 작업을 지우고 패널을 닫는다
   clearClaude(): void
   // 영상 만들기 (미리보기는 패널에서 직접 한다)
@@ -182,14 +184,27 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   )
 
   const startClaude = useCallback(
-    async (input: DraftInput, options: { force?: boolean } = {}) => {
-      const task: ClaudeTask = { input, phase: 'running', log: [], screens: {}, error: '', startedAt: Date.now(), seq: ++seq.current }
+    async (input: DraftInput, options: { force?: boolean; scope?: RefreshScope } = {}) => {
+      const task: ClaudeTask = {
+        input,
+        scope: options.scope,
+        phase: 'running',
+        log: [],
+        screens: {},
+        error: '',
+        startedAt: Date.now(),
+        seq: ++seq.current,
+      }
       setClaude(task)
       let result: DraftResult | undefined
       let error = ''
       try {
         // 패널은 input 객체로 작업을 찾으므로 task.input은 그대로 두고 옵션만 붙여 보낸다
-        result = await api.draft.start(options.force ? { ...input, force: true } : input)
+        result = await api.draft.start({
+          ...input,
+          ...(options.force ? { force: true } : {}),
+          ...(options.scope ? { scope: options.scope } : {}),
+        })
         if (!result.ok) error = result.text || 'Claude가 오류로 끝났습니다'
       } catch (e) {
         error = errorMessage(e)
