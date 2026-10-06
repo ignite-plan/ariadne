@@ -31,6 +31,8 @@ import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
+import { errorText } from './lib/logger.ts'
+import { log } from './report-ipc.ts'
 
 // 최신화는 화면마다 Claude를 따로, 이만큼 동시에 돌린다 (공유 Chrome의 탭을 하나씩 쓴다)
 const REFRESH_CONCURRENCY = 3
@@ -44,11 +46,22 @@ let mcpCache: { at: number; servers: McpStatus[] } | undefined
 let current: { handles: Set<{ cancel: () => void }>; cancelled: boolean } | undefined
 
 async function mcpServers(cli: ClaudeCli, refresh = false) {
-  // claude mcp list는 서버마다 연결을 시험해 수십 초 걸린다. 10분 캐시
+  // claude mcp list는 서버마다 연결을 시험해 수십 초 걸린다. Atlassian이 연결됐을 때만 10분 캐시한다.
+  // 실패는 기억하지 않는다 (앱을 막 켠 직후처럼 잠깐 실패한 결과로 계속 "연결 없음"이 되지 않게, 다음 점검·작업 시작 때 다시 확인)
   if (!refresh && mcpCache && Date.now() - mcpCache.at < 10 * 60 * 1000) return mcpCache.servers
-  const servers = await listMcpServers(cli)
-  mcpCache = { at: Date.now(), servers }
-  return servers
+  const started = Date.now()
+  try {
+    const servers = await listMcpServers(cli)
+    const atlassianOk = servers.some((s) => isAtlassianServer(s.name) && s.connected)
+    mcpCache = atlassianOk ? { at: Date.now(), servers } : undefined
+    const states = servers.map((s) => (s.connected ? `${s.name} ✔` : `${s.name} ✘ ${s.detail ?? ''}`.trim())).join(' · ')
+    log.write(atlassianOk ? 'info' : 'warn', 'mcp', `claude mcp list ${Date.now() - started}ms: ${states || '(서버 없음)'}`)
+    return servers
+  } catch (error) {
+    mcpCache = undefined
+    log.write('warn', 'mcp', `claude mcp list 실패 (${Date.now() - started}ms): ${errorText(error)}`)
+    throw error
+  }
 }
 
 export async function checkDraft(claudePath?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<DraftCheck> {

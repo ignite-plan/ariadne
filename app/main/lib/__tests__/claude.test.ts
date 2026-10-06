@@ -33,7 +33,7 @@ describe('claude mcp list', () => {
   it('이름과 연결 상태', () => {
     assert.deepEqual(parseMcpList(sample), [
       { name: 'plugin:media-pipeline:media-pipeline', connected: true },
-      { name: 'plugin:figma:figma', connected: false },
+      { name: 'plugin:figma:figma', connected: false, detail: 'Failed to connect — timed out' },
       { name: 'mcp-atlassian-hmg', connected: true },
       { name: 'playwright', connected: true },
     ])

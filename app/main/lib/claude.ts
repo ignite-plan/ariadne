@@ -92,6 +92,8 @@ export async function findClaude(override?: string, refresh = false, auth: Claud
 export interface McpStatus {
   name: string
   connected: boolean
+  // 연결되지 않았을 때 claude가 보여 준 이유 (예: Failed to connect — connection timed out after 30000ms)
+  detail?: string
 }
 
 // `claude mcp list` 출력: "name: command - ✔ Connected"
@@ -100,7 +102,11 @@ export function parseMcpList(output: string): McpStatus[] {
     .split('\n')
     .map((line) => line.match(/^(\S+?):\s+.*\s-\s+(✔|✘|✓|✗|!)\s*(.*)$/))
     .filter((m): m is RegExpMatchArray => Boolean(m))
-    .map((m) => ({ name: m[1], connected: m[2] === '✔' || m[2] === '✓' }))
+    .map((m) => {
+      const connected = m[2] === '✔' || m[2] === '✓'
+      const detail = m[3].trim()
+      return connected || !detail ? { name: m[1], connected } : { name: m[1], connected, detail }
+    })
 }
 
 export async function listMcpServers(cli: ClaudeCli) {
