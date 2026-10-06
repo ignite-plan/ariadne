@@ -1,7 +1,7 @@
 // "Claude로 초안 만들기" 한 번 실행을 관리한다: Ariadne MCP 시작 → claude -p → 이벤트 전달 → 정리
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, relative, sep } from 'node:path'
+import { join } from 'node:path'
 import { manualDir, type ManualRef } from '../../src/core/manual.ts'
 import type { OpenTab } from '../../src/core/session.ts'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult, DraftSummary, ScreenResult } from '../shared/api.ts'
@@ -27,11 +27,13 @@ import { explainFailure, type ClaudeAuth } from './lib/claude-auth.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
-import { digestPath, readDigest, specRefs, type SpecDigest } from './lib/spec.ts'
+import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
 
 // 최신화는 화면마다 Claude를 따로, 이만큼 동시에 돌린다 (공유 Chrome의 탭을 하나씩 쓴다)
 const REFRESH_CONCURRENCY = 3
+// 기획서 요약 단계의 최대 턴. 넘으면 요약 없이 화면별로 진행한다
+const SPEC_MAX_TURNS = 60
 
 let mcpCache: { at: number; servers: McpStatus[] } | undefined
 // 실행 중인 작업. 최신화는 Claude 여러 개
@@ -115,14 +117,14 @@ async function draft(
   const allowedTools = (extra: string[] = []) => [...buildAllowedTools(ref.manual, confluence, root, code ? [code] : []), ...extra]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target }) => {
+  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
     writeFileSync(mcpConfigFile, JSON.stringify(mcp.config))
     try {
       if (job.cancelled) return { ok: false, text: '취소했습니다', denials: [] as string[] }
-      const handle = runClaude({ cli, cwd: ref.root, prompt, allowedTools: tools, mcpConfigFile, onEvent: (event) => onEvent({ kind: 'claude', event, target }) })
+      const handle = runClaude({ cli, cwd: ref.root, prompt, allowedTools: tools, mcpConfigFile, extraArgs, onEvent: (event) => onEvent({ kind: 'claude', event, target }) })
       job.handles.add(handle)
       try {
         const result = await handle.done
@@ -181,7 +183,13 @@ async function draft(
   }
 }
 
-type RunOne = (args: { prompt: string; tools: string[]; mcp: Omit<AriadneMcpDeps, 'ref'>; target?: string }) => Promise<{
+type RunOne = (args: {
+  prompt: string
+  tools: string[]
+  mcp: Omit<AriadneMcpDeps, 'ref'>
+  target?: string
+  extraArgs?: string[]
+}) => Promise<{
   ok: boolean
   text: string
   costUsd?: number
@@ -219,7 +227,6 @@ async function refresh({
   const targets = input.targets ?? []
   const stgSession = () => new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab })
   const digestFile = digestPath(ref, input.menu)
-  const relDigest = relative(ref.root, digestFile).split(sep).join('/')
   let costUsd = 0
   const denials: string[] = []
   const summaries = new Map<string, DraftSummary>()
@@ -241,10 +248,12 @@ async function refresh({
         // Confluence가 없으면 요약을 만들 수 없다. 지난 요약도 최신인지 알 수 없어 쓰지 않는다
         if (!confluence) return undefined
         const previous = readDigest(digestFile)
-        mkdirSync(dirname(digestFile), { recursive: true })
         const result = await runOne({
-          prompt: `${namedSkillText(ref.root, 'manual-spec', BUNDLED)}\n\n${specTaskText(ref, input, { digestFile: relDigest, previous: previous?.pages })}`,
-          tools: allowedTools([`Write(./${relDigest})`]),
+          prompt: `${namedSkillText(ref.root, 'manual-spec', BUNDLED, { bundledFirst: true })}\n\n${specTaskText(ref, input, { previous: previous?.pages })}`,
+          // 읽기만. 요약은 마지막 응답으로 받고 파일은 앱이 쓴다
+          tools: allowedTools().filter((tool) => !/^(Edit|Write)\(/.test(tool)),
+          // 막힌 도구를 계속 다시 시도하는 일 없이 끝나게
+          extraArgs: ['--max-turns', String(SPEC_MAX_TURNS)],
           // 요약 단계는 기획서만 본다
           mcp: {
             stg: () => {
@@ -256,9 +265,15 @@ async function refresh({
         costUsd += result.costUsd ?? 0
         denials.push(...result.denials)
         if (!result.ok) throw new Error(result.text)
-        const digest = readDigest(digestFile)
-        if (!digest) throw new Error(`요약 파일을 만들지 못했습니다: ${relDigest}`)
-        return digest
+        const reply = parseSpecReply(result.text, input.menu)
+        if (!reply) throw new Error('기획서 요약 응답에서 JSON을 읽지 못했습니다')
+        if (reply.reused) {
+          if (!previous) throw new Error('지난 요약이 없는데 재사용한다고 답했습니다')
+          onEvent({ kind: 'status', text: '기획서가 지난 요약 때와 같아 그 요약을 씁니다' })
+          return previous
+        }
+        writeDigest(digestFile, reply.digest)
+        return reply.digest
       },
       runScreen: async (target, brief) => {
         const file = join(manualDir(ref), target)

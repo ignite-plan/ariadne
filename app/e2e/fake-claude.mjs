@@ -91,22 +91,17 @@ ${mutates ? 'mutates: true\n' : ''}scenes:
   process.exit(0)
 }
 
-if (prompt.includes('화면별 요약 JSON을 쓴다')) {
-  // 최신화 1단계: 기획서 요약 파일을 쓴다 (화면 키는 프롬프트의 대상 화면)
-  const file = prompt.match(/^- 요약 파일: (\S+)$/m)[1]
+if (prompt.includes('화면별 요약을 마지막 응답의 JSON 블록으로 낸다')) {
+  // 최신화 1단계: 기획서 요약을 마지막 응답으로 낸다 (파일은 앱이 쓴다). 쓰기 도구는 허용 목록에 없어야 한다
+  const allowed = args.slice(args.indexOf('--allowedTools') + 1).filter((a) => !a.startsWith('--'))
+  assert(!allowed.some((t) => /^(Edit|Write)\(/.test(t)), '요약 단계에 쓰기 권한을 주지 않는다')
   const screens = Object.fromEntries([...prompt.matchAll(/^  - (\S+\.md) \(manuals\//gm)].map((m) => [m[1], 'Dealer list: Total, Location filter']))
   const digest = {
-    menu: 'Dealer Management',
-    generatedAt: new Date().toISOString(),
     pages: [{ id: '900001', title: '[202606output][Phase3][BO] 딜러 관리 화면', version: 3, url: 'https://example.invalid/wiki/900001' }],
     screens,
   }
-  const id = `toolu_${++n}`
-  emit({ type: 'assistant', message: { content: [{ type: 'tool_use', id, name: 'Write', input: { file_path: join(process.cwd(), file) } }] } })
-  writeFileSync(join(process.cwd(), file), JSON.stringify(digest, null, 2))
-  emit({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, is_error: false, content: 'ok' }] } })
   await client.close()
-  emit({ type: 'result', subtype: 'success', is_error: false, result: '요약했습니다.\n```json\n{"sections":[],"reused":false}\n```', duration_ms: 300, permission_denials: [] })
+  emit({ type: 'result', subtype: 'success', is_error: false, result: `요약했습니다.\n\`\`\`json\n${JSON.stringify(digest)}\n\`\`\``, duration_ms: 300, permission_denials: [] })
   process.exit(0)
 }
 
