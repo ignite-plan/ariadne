@@ -18,6 +18,8 @@ export function defaultSettings(): Settings {
     submitMode: 'push',
     claudePath: '',
     claudeAuth: 'apiKey',
+    claudeLongContext: true,
+    claudeEffort: 'medium',
     notifyOnDone: 'background',
   }
 }

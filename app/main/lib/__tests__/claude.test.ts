@@ -142,6 +142,8 @@ next()
       disallowedTools: [mcpServerRule('mcp-atlassian.hmg')],
       strictMcp: true,
       builtinTools: ['Read', 'Edit'],
+      model: 'claude-sonnet-5[1m]',
+      effort: 'medium',
       onEvent: (e) => events.push(e),
     })
     const result = await done
@@ -155,6 +157,8 @@ next()
     assert.ok(disallowed.includes('Bash') && disallowed.includes('WebFetch'))
     assert.ok(disallowed.includes('mcp__mcp-atlassian_hmg'), '이번 작업에서 더 막는 도구')
     assert.ok(args.includes('--strict-mcp-config'))
+    assert.equal(args[args.indexOf('--model') + 1], 'claude-sonnet-5[1m]')
+    assert.equal(args[args.indexOf('--effort') + 1], 'medium')
     assert.deepEqual(args.slice(args.indexOf('--tools'), args.indexOf('--tools') + 3), ['--tools', 'Read,Edit', '--disable-slash-commands'])
   })
 

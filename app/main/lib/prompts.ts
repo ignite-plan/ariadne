@@ -4,6 +4,18 @@ import { join } from 'node:path'
 import type { ManualRef } from '../../../src/core/manual.ts'
 import type { DraftInput } from '../../shared/api.ts'
 
+// 앱이 실행하는 모든 Claude 작업에 붙이는 작업 방식. 시간의 대부분이 Claude 출력과 턴 수라서 둘을 줄인다
+export const APP_RULES = `## 작업 방식 (앱 실행 공통)
+- 도구 호출 사이에 설명 문장을 쓰지 않는다. 사람에게 보여 줄 글은 마지막 응답 하나뿐이다
+- 서로 상관없는 조회(Read, Grep, Glob, Confluence 검색·페이지 읽기)는 한 턴에 함께 부른다
+- STG 누르기(stg_click)는 매뉴얼 화면(섹션) 하나에 15번 안쪽으로 끝낸다. 이미 본 화면·팝업은 다시 열지 않는다
+- 확인이 끝나면 더 둘러보지 말고 바로 쓴다. 근거가 모자란 곳은 TODO로 남긴다`
+
+// 스킬 본문 + 작업 방식 + 이번 작업
+export function composePrompt(skill: string, task: string) {
+  return `${skill}\n\n${APP_RULES}\n\n${task}`
+}
+
 export const SKILL_BY_MODE = {
   create: 'manual-draft',
   refresh: 'manual-refresh',

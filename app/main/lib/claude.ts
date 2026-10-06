@@ -283,6 +283,10 @@ export interface RunOptions {
   strictMcp?: boolean
   // 싣는 기본 도구 (없으면 Claude Code 기본 전부). 스킬은 프롬프트에 넣으므로 슬래시 명령·스킬 목록도 끈다
   builtinTools?: string[]
+  // 없으면 ANTHROPIC_MODEL 또는 Claude Code 기본
+  model?: string
+  // 생각량 (low/medium/high). 없으면 Claude Code 기본
+  effort?: string
 }
 
 export function runClaude({
@@ -296,6 +300,8 @@ export function runClaude({
   disallowedTools = [],
   strictMcp = false,
   builtinTools,
+  model,
+  effort,
 }: RunOptions) {
   const child = spawn(
     cli.path,
@@ -310,6 +316,8 @@ export function runClaude({
       '--mcp-config',
       mcpConfigFile,
       ...(strictMcp ? ['--strict-mcp-config'] : []),
+      ...(model ? ['--model', model] : []),
+      ...(effort ? ['--effort', effort] : []),
       ...(builtinTools ? ['--tools', builtinTools.join(','), '--disable-slash-commands'] : []),
       '--disallowedTools',
       ...DISALLOWED_TOOLS,

@@ -5,7 +5,7 @@ import { after, describe, it } from 'node:test'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { loadShotsBundled } from '../shots.ts'
 import { isTelemetryRequest } from '../../../../src/core/safety.ts'
-import { appendShot, isAllowedRequest, isBlockedLabel, removeShot, shotToCode } from '../stg.ts'
+import { appendShot, inputNames, snapshotChanges, isAllowedRequest, isBlockedLabel, removeShot, shotToCode } from '../stg.ts'
 
 describe('STG 안전장치', () => {
   it('데이터를 바꾸는 버튼 이름을 막는다', () => {
@@ -98,5 +98,31 @@ describe('캡처 정의 코드 생성', () => {
     const shots = await loadShotsBundled(fx.ref)
     assert.deepEqual(shots.map((s) => s.id), ['menu-list', 'menu-popup'])
     assert.equal(typeof shots[1].steps, 'function')
+  })
+})
+
+describe('입력칸 후보', () => {
+  it('접근성 트리의 입력칸 이름을 중복 없이', () => {
+    const snapshot = [
+      '- dialog "Menu Information":',
+      '  - textbox "Menu name": Sample',
+      '  - combobox "Menu Type"',
+      '  - textbox "Say \\"hi\\""',
+      '  - button "Cancel"',
+      '  - textbox "Menu name"',
+      '  - spinbutton "Order"',
+      '  - textbox',
+    ].join('\n')
+    assert.deepEqual(inputNames(snapshot), ['textbox "Menu name"', 'combobox "Menu Type"', 'textbox "Say \\"hi\\""', 'spinbutton "Order"'])
+    assert.deepEqual(inputNames('- button "Save"'), [])
+  })
+})
+
+describe('달라진 줄만', () => {
+  it('앞 응답에 없던 줄만 순서대로, 빈 줄은 빼고', () => {
+    const before = new Set(['- heading "Menu"', '  - textbox "Menu name"', '  - text: Total 3'])
+    const next = ['- heading "Menu"', '  - textbox "Menu name": Sample', '  - text: Total 3', '', '  - text: searched 200'].join('\n')
+    assert.deepEqual(snapshotChanges(before, next), ['  - textbox "Menu name": Sample', '  - text: searched 200'])
+    assert.deepEqual(snapshotChanges(before, [...before].join('\n')), [])
   })
 })

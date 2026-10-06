@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { buildRows } from '../../../renderer/src/diff-rows.ts'
-import { namedSkillText, skillText, specTaskText, taskText } from '../prompts.ts'
+import { APP_RULES, composePrompt, namedSkillText, skillText, specTaskText, taskText } from '../prompts.ts'
 
 describe('작업 지시', () => {
   const root = mkdtempSync(join(tmpdir(), 'ariadne-prompts-'))
@@ -103,5 +103,14 @@ describe('변경 보기 줄 비교', () => {
   it('새 파일은 전부 추가, 같으면 비어 있다', () => {
     assert.deepEqual(buildRows('', 'a\nb\n').map((r) => r.kind), ['add', 'add'])
     assert.deepEqual(buildRows('a\n', 'a\n'), [{ kind: 'gap', text: '' }])
+  })
+
+  it('모든 앱 작업에 작업 방식(설명 문장 없이, 조회는 묶어서, STG 누르기 상한)을 붙인다', () => {
+    const prompt = composePrompt('SKILL', '## 이번 작업')
+    assert.ok(prompt.startsWith('SKILL\n\n## 작업 방식'))
+    assert.ok(prompt.endsWith('## 이번 작업'))
+    assert.match(APP_RULES, /설명 문장을 쓰지 않는다/)
+    assert.match(APP_RULES, /한 턴에 함께 부른다/)
+    assert.match(APP_RULES, /15번 안쪽/)
   })
 })

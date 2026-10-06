@@ -24,6 +24,7 @@ const PAGE = `<!doctype html><html><head><title>Menu Management</title></head><b
   <button id="add">+ Group Addition</button>
   <button id="del" onclick="fetch('/api/v1/menus/1',{method:'DELETE'})">Delete</button>
   <button id="search" onclick="fetch('/api/v1/menus/search',{method:'POST'}).then(r=>document.getElementById('st').textContent='searched '+r.status)">Search</button>
+  <input id="kw" placeholder="Search keyword">
   <span id="st"></span>
   <div id="dlg" role="dialog" aria-label="Menu Information" hidden style="padding:20px;background:#fde68a">
     <h2>Menu Information</h2>
@@ -96,9 +97,30 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
       assert.match(filled.snapshot, /textbox "Menu name": Sample/)
     })
 
+    it('입력칸이 없으면 기다리지 않고 지금 화면의 입력칸을 알려 준다. 접근성 트리 이름(placeholder)으로도 입력', async () => {
+      await session.open('/menu')
+      const started = Date.now()
+      await assert.rejects(session.fill('Menu name (max 50)', 'x'), /"Menu name \(max 50\)" 입력칸이 없습니다\. 지금 화면의 입력칸: textbox "Search keyword"/)
+      assert.ok(Date.now() - started < 3000, `바로 실패한다 (${Date.now() - started}ms)`)
+      const filled = await session.fill('Search keyword', 'notice', { full: true })
+      assert.match(filled.snapshot, /textbox "Search keyword": notice/)
+    })
+
     it('저장/삭제 버튼은 누르지 않는다', async () => {
       await assert.rejects(session.click('button', 'Save'), /데이터를 바꿀 수 있는 버튼/)
       await assert.rejects(session.click('button', 'Delete'), /데이터를 바꿀 수 있는 버튼/)
+    })
+
+    it('같은 화면에서 누르면 달라진 줄만, 화면을 다시 열면 전체', async () => {
+      const opened = await session.open('/menu')
+      assert.equal(opened.changesOnly, false)
+      const searched = await session.click('button', 'Search')
+      assert.equal(searched.changesOnly, true)
+      assert.match(searched.snapshot, /searched 200/)
+      assert.doesNotMatch(searched.snapshot, /treeitem "Notice"/, '그대로인 줄은 다시 주지 않는다')
+      const again = await session.click('button', 'Search', undefined, { full: true })
+      assert.equal(again.changesOnly, false)
+      assert.match(again.snapshot, /treeitem "Notice"/)
     })
 
     it('조회 POST는 통과, 쓰기 요청은 브라우저에서 막는다', async () => {

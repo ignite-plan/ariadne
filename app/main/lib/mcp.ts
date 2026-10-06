@@ -39,7 +39,9 @@ const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combob
 const FULL = z
   .boolean()
   .optional()
-  .describe('true면 화면 전체 접근성 트리를 길게 돌려준다. 기본은 짧게 (대화상자가 열려 있으면 대화상자만)')
+  .describe(
+    'true면 화면 전체 접근성 트리를 길게(최대 12000자) 돌려준다. 대화에 계속 쌓이므로 잘린 뒤쪽이 꼭 필요할 때만. 기본은 짧게 (대화상자가 열려 있으면 대화상자만, 누르기·입력 뒤 같은 화면이면 달라진 줄만)',
+  )
 
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }] })
 const fail = (error: unknown) => ({
@@ -51,12 +53,16 @@ function describe(result: OpenResult) {
   return [
     `URL: ${result.url}`,
     `제목: ${result.title}`,
-    `스크린샷: ${result.screenshot} (레이아웃 확인이 필요할 때만 Read)`,
+    `스크린샷: ${result.screenshot} (보통은 읽지 않는다. 캡처 저장 직전 구성 확인에만 Read)`,
     result.blockedRequests.length ? `차단한 쓰기 요청: ${result.blockedRequests.join(', ')}` : '',
     '',
-    result.scope === 'dialog'
-      ? '열린 대화상자의 접근성 트리 (뒤 화면은 생략. 전체는 full: true. UI 라벨은 여기 표기 그대로 쓴다):'
-      : '화면 접근성 트리 (UI 라벨은 여기 표기 그대로 쓴다):',
+    result.changesOnly
+      ? result.snapshot
+        ? '같은 화면이라 앞 응답과 달라진 줄만 (나머지는 앞 응답 그대로. 전체가 필요하면 full: true):'
+        : '같은 화면이고 접근성 트리에 달라진 곳이 없습니다'
+      : result.scope === 'dialog'
+        ? '열린 대화상자의 접근성 트리 (뒤 화면은 생략. 전체는 full: true. UI 라벨은 여기 표기 그대로 쓴다):'
+        : '화면 접근성 트리 (UI 라벨은 여기 표기 그대로 쓴다):',
     result.snapshot,
   ]
     .filter((l) => l !== '')
@@ -156,7 +162,7 @@ function buildServer(deps: AriadneMcpDeps) {
       description: '지금 화면에서 버튼/탭/링크 등을 누른다 (팝업, 탭, 상세 보기 열기). 저장/삭제/승인/발송류는 거절된다',
       inputSchema: {
         role: z.enum(ROLES),
-        name: z.string().describe('접근성 트리에 보이는 이름'),
+        name: z.string().describe('접근성 트리에 보이는 그 요소의 이름 (role 뒤 따옴표 안). 도움말 문장이나 드롭다운의 선택값이 아니다'),
         nth: z.number().int().min(0).optional(),
         full: FULL,
       },
@@ -175,7 +181,7 @@ function buildServer(deps: AriadneMcpDeps) {
   server.registerTool(
     'stg_fill',
     {
-      description: '입력칸에 값을 넣는다 (생성/수정 화면을 입력 상태로 보여 줄 때). 저장 버튼은 누르지 않는다',
+      description: '입력칸에 값을 넣는다 (생성/수정 화면을 입력 상태로 보여 줄 때). label은 접근성 트리의 입력칸 이름(textbox "…", combobox "…" 등) 그대로 쓴다. 안내 문구나 선택값이 아니다. 없으면 지금 화면의 입력칸 목록을 돌려준다. 저장 버튼은 누르지 않는다',
       inputSchema: { label: z.string(), value: z.string(), full: FULL },
     },
     async ({ label, value, full }) => {
