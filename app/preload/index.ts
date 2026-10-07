@@ -75,7 +75,7 @@ const api: AriadneApi = {
     record: invoke('video:record'),
     stopRecord: invoke('video:stopRecord'),
   },
-  draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel') },
+  draft: { check: invoke('draft:check'), start: invoke('draft:start'), cancel: invoke('draft:cancel'), decide: invoke('draft:decide') },
   affected: { run: invoke('affected:run') },
   log: { write: invoke('log:write'), reveal: invoke('log:reveal') },
   report: { preview: invoke('report:preview'), submit: invoke('report:submit') },

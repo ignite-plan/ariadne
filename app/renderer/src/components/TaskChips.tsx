@@ -37,6 +37,7 @@ export function TaskChips({ onOpenVideo }: { onOpenVideo: (id: string) => void }
           />
           Claude {draftLabel(claude.input)}
           {claude.phase === 'running' && progress?.total ? ` ${progress.finished}/${progress.total}` : ''}
+          {claude.phase === 'running' && claude.ask ? ' · 확인 필요' : ''}
           {claude.phase === 'running' ? ` · ${clock(claude.startedAt)}` : claude.error ? ' 실패' : ' 완료'}
         </button>
       )}

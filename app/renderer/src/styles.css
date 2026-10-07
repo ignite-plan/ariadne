@@ -2682,3 +2682,22 @@ fieldset.lock:disabled {
 .scope-fields textarea {
   resize: vertical;
 }
+
+/* Claude 작업이 기획자 답을 기다릴 때 */
+.draft-ask {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+.draft-ask p {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+.draft-ask .row {
+  display: flex;
+  gap: 8px;
+}

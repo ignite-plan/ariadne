@@ -43,4 +43,31 @@ describe('작업 감시', () => {
     await new Promise((r) => setTimeout(r, 50))
     assert.deepEqual(reasons, [])
   })
+
+  it('같은 조회를 되풀이하면 멈춘다 (STG 조작·다른 입력은 세지 않는다)', () => {
+    const reasons: string[] = []
+    const guard = createRunGuard({ maxRepeats: 3 }, (r) => reasons.push(r))
+    const grep = (id: string, pattern: string) => ({ kind: 'tool' as const, id, name: 'Grep', label: `찾기: ${pattern}`, key: JSON.stringify({ pattern }) })
+    guard.onEvent(grep('1', 'Date'))
+    guard.onEvent(grep('2', 'Date'))
+    guard.onEvent(grep('3', 'History'))
+    for (const id of ['4', '5', '6']) guard.onEvent({ kind: 'tool', id, name: 'mcp__ariadne__stg_click', label: '누르기', key: '{"name":"Add"}' })
+    assert.deepEqual(reasons, [])
+    guard.onEvent(grep('7', 'Date'))
+    assert.deepEqual(reasons, ['같은 조회를 3번 되풀이해 멈췄습니다: 찾기: Date'])
+    const searched: string[] = []
+    const confluence = createRunGuard({ maxRepeats: 2 }, (r) => searched.push(r))
+    for (const id of ['a', 'b']) confluence.onEvent({ kind: 'tool', id, name: 'mcp__mcp-atlassian-hmg__confluence_search', label: '검색', key: '{"query":"x"}' })
+    assert.equal(searched.length, 1)
+  })
+
+  it('도구 오류가 연달아 나면 멈춘다. 성공하면 다시 센다', () => {
+    const reasons: string[] = []
+    const guard = createRunGuard({ maxConsecutiveErrors: 3 }, (r) => reasons.push(r))
+    const r = (id: string, isError: boolean) => ({ kind: 'tool_result' as const, id, isError, text: '' })
+    for (const e of [r('1', true), r('2', true), r('3', false), r('4', true), r('5', true)]) guard.onEvent(e)
+    assert.deepEqual(reasons, [])
+    guard.onEvent(r('6', true))
+    assert.deepEqual(reasons, ['도구 오류가 3번 연달아 나서 멈췄습니다'])
+  })
 })

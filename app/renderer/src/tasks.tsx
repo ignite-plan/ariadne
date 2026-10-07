@@ -39,6 +39,8 @@ export function applyDraftEvent(lines: LogLine[], event: DraftEvent): LogLine[] 
   if (event.kind === 'status') return [...lines, { id, kind: 'status', text: event.text, target: event.target }]
   if (event.kind === 'warning') return [...lines, { id, kind: 'warning', text: event.text, target: event.target }]
   if (event.kind === 'phase') return [...lines, { id, kind: 'status', text: event.text }]
+  if (event.kind === 'ask') return [...lines, { id, kind: 'warning', text: event.text }]
+  if (event.kind === 'answered') return [...lines, { id, kind: 'status', text: event.proceed ? '요약 없이 계속합니다' : '중지합니다' }]
   if (event.kind === 'screen') {
     // 대기는 줄을 남기지 않는다 (화면 목록에 보인다)
     if (event.status === 'waiting') return lines
@@ -67,6 +69,8 @@ function applyTaskEvent(task: ClaudeTask, event: DraftEvent): ClaudeTask {
   const next = { ...task, log: applyDraftEvent(task.log, event) }
   if (event.kind === 'screen') next.screens = { ...task.screens, [event.target]: { status: event.status, text: event.text } }
   if (event.kind === 'phase') next.stage = event.text
+  if (event.kind === 'ask') next.ask = { id: event.id, text: event.text }
+  if (event.kind === 'answered') next.ask = undefined
   return next
 }
 
@@ -94,6 +98,8 @@ export interface ClaudeTask {
   log: LogLine[]
   // 최신화: 반영 범위 (기간·티켓)
   scope?: RefreshScope
+  // 기획자 답을 기다리는 질문 (요약 실패 시 계속할지)
+  ask?: { id: string; text: string }
   // 최신화: 화면별 진행과 지금 단계(기획서 요약 / 화면 확인)
   screens: Record<string, ScreenRow>
   stage?: string
@@ -158,9 +164,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void api.capture.tasks().then(setStgBusy, () => undefined)
     const offTasks = api.on('stg-tasks', (names: string[]) => setStgBusy(names))
-    const offDraft = api.on('draft-event', (event: DraftEvent) =>
-      setClaude((c) => (c && c.phase === 'running' ? applyTaskEvent(c, event) : c)),
-    )
+    const offDraft = api.on('draft-event', (event: DraftEvent) => {
+      setClaude((c) => (c && c.phase === 'running' ? applyTaskEvent(c, event) : c))
+      // 패널을 숨겨 두었으면 답이 필요하다고 알린다
+      const current = claudeRef.current
+      if (event.kind === 'ask' && current && panelRef.current !== current.input) {
+        toast.show('error', 'Claude 작업이 확인을 기다립니다', { label: '보기', run: () => setDraftPanel(current.input) })
+      }
+    })
     const offVideo = api.on('video-progress', (progress: VideoProgress) => setVideo((v) => v && { ...v, progress }))
     return () => {
       offTasks()

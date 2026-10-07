@@ -35,7 +35,8 @@ export interface ImportInput {
 export type ClaudeEvent =
   | { kind: 'init'; model?: string; mcp: { name: string; status: string }[] }
   | { kind: 'text'; text: string }
-  | { kind: 'tool'; id: string; name: string; label: string }
+  // key: 도구 입력을 줄인 것 (같은 조회 반복을 알아보려고)
+  | { kind: 'tool'; id: string; name: string; label: string; key?: string }
   | { kind: 'tool_result'; id: string; isError: boolean; text: string }
   | { kind: 'result'; ok: boolean; text: string; costUsd?: number; durationMs?: number; turns?: number; denials: string[] }
 
@@ -98,6 +99,9 @@ export type DraftEvent =
   // 최신화: 기획서 요약 단계와 화면별 진행
   | { kind: 'phase'; phase: 'spec' | 'screens' | 'done'; text: string }
   | { kind: 'screen'; target: string; status: ScreenStatus; text?: string }
+  // 기획자에게 묻기 (예: 기획서 요약 실패 → 요약 없이 계속할지). answered는 답을 받은 뒤
+  | { kind: 'ask'; id: string; text: string }
+  | { kind: 'answered'; id: string; proceed: boolean }
 
 export interface ScreenResult {
   target: string
@@ -446,6 +450,8 @@ export interface AriadneApi {
     check(options?: { refresh?: boolean; confluence?: boolean }): Promise<DraftCheck>
     start(input: DraftInput): Promise<DraftResult>
     cancel(): Promise<void>
+    // ask 이벤트에 답한다 (proceed: 계속 / 중지)
+    decide(id: string, proceed: boolean): Promise<void>
   }
   affected: {
     run(base: string, head: string): Promise<{ range: string; affected: AffectedSection[] }>

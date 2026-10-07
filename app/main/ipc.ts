@@ -32,7 +32,7 @@ import { isRecording, startRecording, stopRecording } from './lib/video-record.t
 import { createVideo, videoInfos } from './lib/videos.ts'
 import { cancelVideo, runVideo, speak } from './video.ts'
 import * as gitOps from './lib/git.ts'
-import { cancelDraft, checkDraft, startDraft } from './draft.ts'
+import { cancelDraft, checkDraft, decideDraft, startDraft } from './draft.ts'
 import { analyzeInWorker, importInWorker } from './importer.ts'
 import { findClaude } from './lib/claude.ts'
 import { checkRepoAccess, commitAuthor, createPullRequest, getUser, latestAppRelease } from './lib/github.ts'
@@ -652,6 +652,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     )
   })
   handle('draft:cancel', () => cancelDraft())
+  handle('draft:decide', (id: string, proceed: boolean) => decideDraft(id, proceed))
 
   // affected (개발자용)
   handle('affected:run', (base: string, head: string) => {

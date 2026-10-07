@@ -532,7 +532,7 @@ try {
     // 반영할 변경이 있는 화면만 돌고 나머지는 건너뛴다. 캡처는 거절된다
     await page.locator('.screen-chip.status-done', { hasText: '01-dealer-list-view' }).waitFor()
     assert.ok((await page.locator('.screen-chip.status-skipped').count()) >= 1)
-    assert.equal(await page.locator('.screen-chip.status-done').count(), 1)
+    await page.waitForFunction(() => document.querySelectorAll('.screen-chip.status-done').length === 1, undefined, { timeout: 10000 })
     await page.locator('.log li.failed', { hasText: '캡처 저장: dealer-list' }).waitFor()
     await snap('13b-refresh-scope')
     assert.equal(readFileSync(join(workspace, 'manuals/bo/shots.ts'), 'utf8'), shotsBefore, '캡처 정의는 그대로')
@@ -542,10 +542,32 @@ try {
     await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
     // 바뀐 파일은 딜러 목록 화면 하나 (캡처·shots.ts는 그대로)
     await page.getByRole('tab', { name: /변경/ }).click()
-    assert.equal(await page.locator('.change-item').count(), 1)
+    // 변경 목록이 갱신될 때까지 기다린 뒤 센다
+    await page.locator('.change-item', { hasText: 'Dealer List View' }).waitFor()
+    await page.waitForFunction(() => document.querySelectorAll('.change-item').length === 1, undefined, { timeout: 10000 })
     await page.locator('.change-item', { hasText: 'Dealer List View' }).getByTitle('변경 되돌리기').click()
     await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    await page.getByRole('tab', { name: '목차' }).click()
+  })
+
+  await step('Claude로 최신화: 기획서 요약 실패 → 계속할지 묻기 → 중지', async () => {
+    const chapter = page.locator('.toc-chapter', { hasText: 'Dealer Management' })
+    await chapter.locator('.toc-chapter-row').hover()
+    await chapter.getByTitle('이 장 전체를 Claude로 최신화').click()
+    await page.getByRole('heading', { name: 'Claude로 최신화' }).waitFor()
+    await page.getByLabel('Jira 티켓').fill('FAIL-999')
+    await page.getByRole('button', { name: '최신화 시작' }).click()
+    // 화면별로 퍼지기 전에 묻는다
+    await page.locator('.draft-ask', { hasText: '기획서 요약을 만들지 못했습니다' }).waitFor({ timeout: 60000 })
+    assert.equal(await page.locator('.screen-chip.status-running').count(), 0, '묻는 동안 화면 작업은 시작하지 않는다')
+    await snap('13c-spec-ask')
+    await page.locator('.draft-ask').getByRole('button', { name: '중지' }).click()
+    await page.locator('.draft-summary', { hasText: '최신화를 끝까지 하지 못했습니다' }).waitFor({ timeout: 30000 })
+    assert.ok((await page.locator('.screen-chip.status-cancelled').count()) >= 1)
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    await page.getByRole('tab', { name: /변경/ }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 10000 })
     await page.getByRole('tab', { name: '목차' }).click()
   })
 
