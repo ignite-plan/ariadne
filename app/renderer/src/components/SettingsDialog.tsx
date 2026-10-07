@@ -162,11 +162,14 @@ export function SettingsDialog({
                   value={settings.claudeAuth}
                   onChange={(e) => update({ claudeAuth: e.target.value as Settings['claudeAuth'] })}
                 >
+                  <option value="auto">자동 — 키가 있으면 API 키, 없으면 claude.ai 로그인</option>
                   <option value="apiKey">ANTHROPIC_API_KEY 환경변수 (~/.zshrc)</option>
                   <option value="login">claude.ai 로그인</option>
                 </select>
                 <em className="hint">
-                  {settings.claudeAuth === 'apiKey'
+                  {settings.claudeAuth === 'auto'
+                    ? '~/.zshrc나 앱 환경에 ANTHROPIC_API_KEY가 있으면 그것을, 없으면 Claude Code의 claude.ai 로그인을 씁니다'
+                    : settings.claudeAuth === 'apiKey'
                     ? '로그인 셸(~/.zshrc)의 ANTHROPIC_API_KEY를 씁니다. 키를 바꾼 뒤 앱을 다시 열 필요는 없습니다'
                     : '키 환경변수를 넘기지 않고 Claude Code의 claude.ai 로그인으로 실행합니다. 터미널에서 claude → /login이 되어 있어야 합니다'}
                 </em>
@@ -180,18 +183,12 @@ export function SettingsDialog({
                 </select>
                 <em className="hint">작업 시간의 대부분이 Claude가 생각하고 쓰는 시간입니다. 결과가 엉성하면 높음으로 바꿔 보세요</em>
               </label>
-              <label className="check-inline">
-                <input
-                  type="checkbox"
-                  checked={settings.claudeLongContext}
-                  onChange={(e) => update({ claudeLongContext: e.target.checked })}
-                />
-                1M 문맥 사용 (Claude로 초안·최신화·영상)
-              </label>
-              <em className="hint">
-                긴 STG 탐색이나 큰 기획서에서 대화가 요약되며 앞 내용을 잊는 일을 줄입니다. 모델은 ~/.zshrc의 ANTHROPIC_MODEL(없으면
-                sonnet)에 [1m]을 붙입니다. 쓰는 모델이 1M을 지원하지 않으면 끄세요
-              </em>
+              <TextSetting
+                label="Claude 모델 (Claude로 초안·최신화·영상, 비우면 ~/.zshrc의 ANTHROPIC_MODEL)"
+                value={settings.claudeModel}
+                placeholder="claude-sonnet-5[1m]"
+                onSave={(claudeModel) => update({ claudeModel: claudeModel.trim() })}
+              />
               <TextSetting
                 label="Claude Code CLI 경로 (비우면 자동으로 찾음)"
                 value={settings.claudePath}
@@ -405,7 +402,7 @@ function EnvPane() {
   }, [])
   return (
     <>
-      <EnvList checks={checks} />
+      <EnvList checks={checks} onChanged={() => void run()} />
       <button className="button small" onClick={run}>
         <Icon name="sync" size={14} /> 다시 점검
       </button>

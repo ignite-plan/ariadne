@@ -2,6 +2,11 @@
 //   apiKey: ANTHROPIC_API_KEY 환경변수 (기본). Finder에서 띄운 앱은 ~/.zshrc를 못 읽어 로그인 셸에서 가져온다
 //   login: claude.ai 로그인. 키 환경변수를 넘기지 않는다 (claude -p는 키가 있으면 로그인보다 먼저 쓴다)
 export type ClaudeAuth = 'apiKey' | 'login'
+// 설정 값. auto: 로그인 셸·앱 환경에 키가 있으면 apiKey, 없으면 claude.ai 로그인
+export type ClaudeAuthSetting = 'auto' | ClaudeAuth
+
+// 앱 Claude 작업의 기본 모델 (설정 → 고급 → Claude 모델을 비우면 ANTHROPIC_MODEL 또는 Claude Code 기본)
+export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5[1m]'
 
 export const KEY_VARS = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'] as const
 // 인증과 상관없이 로그인 셸 값을 넘기는 변수. 게이트웨이(H-Chat 등)가 받는 모델을 ~/.zshrc에서 정한다
@@ -51,10 +56,9 @@ function host(url?: string) {
 }
 
 // 실패 결과를 기획자가 할 일로 바꾼다. env는 claude에 실제로 넘긴 환경 (어느 변수로 인증했는지 알려 준다)
-// 1M 문맥 모델: 로그인 셸의 ANTHROPIC_MODEL(없으면 sonnet)에 [1m]을 붙인다
-export function longContextModel(env: NodeJS.ProcessEnv = {}) {
-  const base = env.ANTHROPIC_MODEL?.trim() || 'sonnet'
-  return /\[1m\]$/i.test(base) ? base : `${base}[1m]`
+export function resolveAuth(setting: ClaudeAuthSetting, base: NodeJS.ProcessEnv, shellVars: ShellVars = {}): ClaudeAuth {
+  if (setting !== 'auto') return setting
+  return keySource(base, shellVars) ? 'apiKey' : 'login'
 }
 
 export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.ProcessEnv = {}) {
@@ -63,7 +67,7 @@ export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.Proce
   if (model) {
     const current = env.ANTHROPIC_MODEL ? ` 지금 ANTHROPIC_MODEL은 ${env.ANTHROPIC_MODEL}입니다.` : ' ANTHROPIC_MODEL이 없어 Claude Code 기본 모델로 요청했습니다.'
     const gateway = host(env.ANTHROPIC_BASE_URL)
-    const longContext = /\[1m\]/i.test(raw) ? ' 1M 문맥을 지원하지 않는 모델이면 설정 → 고급 → "1M 문맥 사용"을 끄세요.' : ''
+    const longContext = /\[1m\]/i.test(raw) ? ' 설정 → 고급 → Claude 모델을 쓸 수 있는 모델로 바꾸거나 비우세요.' : ''
     return `${gateway ? `${gateway}가` : 'Claude가'} ${model} 모델을 받지 않습니다 (${raw}).${current}${longContext} ~/.zshrc에 export ANTHROPIC_MODEL="<쓸 수 있는 모델, 예: claude-sonnet-5>"를 넣고 다시 시도하세요`
   }
   if (/expired|invalid api key|fix external api key|authentication_error|failed to authenticate|\b401\b/i.test(raw)) {

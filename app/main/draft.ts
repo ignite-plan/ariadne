@@ -24,7 +24,7 @@ import {
   type ClaudeCli,
   type McpStatus,
 } from './lib/claude.ts'
-import { explainFailure, longContextModel, type ClaudeAuth } from './lib/claude-auth.ts'
+import { explainFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
 import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
@@ -71,10 +71,10 @@ function mcpServers(cli: ClaudeCli, refresh = false) {
 export async function checkDraft(
   claudePath?: string,
   { refresh = false, confluence = true }: { refresh?: boolean; confluence?: boolean } = {},
-  auth: ClaudeAuth = 'apiKey',
+  auth: ClaudeAuthSetting = 'auto',
 ): Promise<DraftCheck> {
   const cli = await findClaude(claudePath || undefined, refresh, auth)
-  const authInfo = { mode: auth, keySource: cli?.keySource ?? null }
+  const authInfo = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
   const claude = { path: cli.path, version: cli.version }
   if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }
@@ -98,9 +98,9 @@ interface DraftOptions {
   ref: ManualRef
   input: DraftInput
   claudePath?: string
-  claudeAuth?: ClaudeAuth
-  // 1M 문맥 모델로 실행 (큰 기획서·긴 STG 탐색에서 자동 요약을 피한다)
-  longContext?: boolean
+  claudeAuth?: ClaudeAuthSetting
+  // --model 값 (기본 claude-sonnet-5[1m]: 큰 기획서·긴 STG 탐색에서 자동 요약을 피한다). 비우면 ANTHROPIC_MODEL
+  model?: string
   // 생각량. 매뉴얼 작업은 확인·옮기기가 많아 medium이면 충분하고 훨씬 빠르다
   effort?: ClaudeEffort
   // 개발자 PC의 dealerhub-web. 있으면 읽기만 허용한다
@@ -133,13 +133,13 @@ export async function startDraft(options: DraftOptions): Promise<DraftResult> {
 type Job = NonNullable<typeof current>
 
 async function draft(
-  { ref, input, claudePath, claudeAuth = 'apiKey', longContext = false, effort, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
+  { ref, input, claudePath, claudeAuth = 'auto', model: modelSetting, effort, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
   job: Job,
 ): Promise<DraftResult> {
   // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
   const cli = await findClaude(claudePath || undefined, true, claudeAuth)
   if (!cli) throw new Error('Claude Code CLI(claude)를 찾지 못했습니다. 설정 → 환경 점검을 확인하세요')
-  if (claudeAuth === 'apiKey' && !cli.keySource) {
+  if (cli.auth === 'apiKey' && !cli.keySource) {
     throw new Error('ANTHROPIC_API_KEY를 찾지 못했습니다. ~/.zshrc에 키를 넣거나, 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 바꾸세요')
   }
 
@@ -165,7 +165,7 @@ async function draft(
   ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const model = longContext ? longContextModel(cli.env) : undefined
+  const model = modelSetting?.trim() || undefined
   // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
   const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
   let warnedLoose = false
@@ -212,7 +212,7 @@ async function draft(
         if (guard.stopped) return { ...result, ok: false, text: guard.stopped }
         // 턴 상한에 걸리면 결과 문구가 비어 있다
         if (!result.ok && !result.text.trim() && result.turns) return { ...result, text: `턴 상한(${result.turns}턴)에 걸려 멈췄습니다` }
-        return { ...result, text: result.ok ? result.text : explainFailure(result.text, claudeAuth, cli.env) }
+        return { ...result, text: result.ok ? result.text : explainFailure(result.text, cli.auth, cli.env) }
       } catch (error) {
         if (guard.stopped) return { ok: false, text: guard.stopped, denials: [] as string[] }
         throw error
