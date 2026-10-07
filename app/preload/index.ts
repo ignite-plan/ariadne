@@ -17,7 +17,7 @@ const api: AriadneApi = {
     setToken: invoke('auth:setToken'),
     clearToken: invoke('auth:clearToken'),
   },
-  env: { check: invoke('env:check') },
+  env: { check: invoke('env:check'), installPandoc: invoke('env:installPandoc') },
   workspace: {
     state: invoke('workspace:state'),
     clone: invoke('workspace:clone'),

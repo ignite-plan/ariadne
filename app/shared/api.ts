@@ -168,9 +168,10 @@ export interface Settings {
   // 비어 있으면 로그인 셸과 흔한 설치 위치에서 찾는다
   claudePath: string
   // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
-  claudeAuth: 'apiKey' | 'login'
-  // 앱의 Claude 작업을 1M 문맥 모델로 (ANTHROPIC_MODEL 또는 sonnet에 [1m]). 끄면 기본 200K
-  claudeLongContext: boolean
+  // auto: 키가 있으면 apiKey, 없으면 claude.ai 로그인 (기본)
+  claudeAuth: 'auto' | 'apiKey' | 'login'
+  // 앱의 Claude 작업 모델 (--model). 기본 claude-sonnet-5[1m], 비우면 ~/.zshrc의 ANTHROPIC_MODEL
+  claudeModel: string
   // 앱 Claude 작업의 생각량. 낮을수록 빠르고 싸다
   claudeEffort: ClaudeEffort
   // 오래 걸리는 작업이 끝나면 macOS 알림. background: 다른 앱을 보고 있을 때만
@@ -202,6 +203,14 @@ export interface EnvCheck {
   label: string
   detail: string
   link?: { label: string; url: string }
+  // 앱이 대신 설치할 수 있는 도구
+  install?: 'pandoc'
+}
+
+export interface PandocProgress {
+  phase: 'release' | 'download' | 'extract'
+  loaded?: number
+  total?: number
 }
 
 export interface WorkspaceState {
@@ -376,6 +385,8 @@ export interface AriadneApi {
   }
   env: {
     check(): Promise<EnvCheck[]>
+    // pandoc을 받아 앱 폴더에 설치한다 (진행은 pandoc-progress)
+    installPandoc(): Promise<{ path: string; version: string }>
   }
   workspace: {
     state(): Promise<WorkspaceState>
@@ -478,6 +489,7 @@ export interface AriadneApi {
   // 지금 STG 로그인 프로필을 쓰는 작업 이름이 바뀔 때
   on(event: 'stg-tasks', listener: (names: string[]) => void): () => void
   on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
+  on(event: 'pandoc-progress', listener: (progress: PandocProgress) => void): () => void
   on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
   on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void
 }

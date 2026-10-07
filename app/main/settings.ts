@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { join } from 'node:path'
 import { app, safeStorage } from 'electron'
 import type { Settings } from '../shared/api.ts'
+import { DEFAULT_CLAUDE_MODEL } from './lib/claude-auth.ts'
 
 const file = () => join(app.getPath('userData'), 'settings.json')
 const tokenFile = () => join(app.getPath('userData'), 'token.bin')
@@ -17,8 +18,8 @@ export function defaultSettings(): Settings {
     dealerhubWebDir: '',
     submitMode: 'push',
     claudePath: '',
-    claudeAuth: 'apiKey',
-    claudeLongContext: true,
+    claudeAuth: 'auto',
+    claudeModel: DEFAULT_CLAUDE_MODEL,
     claudeEffort: 'medium',
     notifyOnDone: 'background',
   }

@@ -6,7 +6,7 @@ import { homedir } from 'node:os'
 import { basename, delimiter, dirname, join, relative } from 'node:path'
 import { promisify } from 'node:util'
 import type { ClaudeEvent, DraftSummary } from '../../shared/api.ts'
-import { claudeEnv, keySource, SHELL_VARS, type ClaudeAuth, type ShellVars } from './claude-auth.ts'
+import { claudeEnv, keySource, resolveAuth, SHELL_VARS, type ClaudeAuth, type ClaudeAuthSetting, type ShellVars } from './claude-auth.ts'
 
 export type { ClaudeEvent, DraftSummary }
 
@@ -49,13 +49,15 @@ export interface ClaudeCli {
   keySource: 'shell' | 'env' | null
 }
 
-const cache = new Map<ClaudeAuth, ClaudeCli | null>()
+const cache = new Map<ClaudeAuthSetting, ClaudeCli | null>()
 
-export async function findClaude(override?: string, refresh = false, auth: ClaudeAuth = 'apiKey'): Promise<ClaudeCli | null> {
-  if (cache.has(auth) && !refresh && !override) return cache.get(auth)!
-  const cached = { set: (value: ClaudeCli | null) => cache.set(auth, value) }
+// setting이 auto면 키가 있는지 보고 인증 방식을 정한다 (돌려준 cli.auth가 실제 방식)
+export async function findClaude(override?: string, refresh = false, setting: ClaudeAuthSetting = 'auto'): Promise<ClaudeCli | null> {
+  if (cache.has(setting) && !refresh && !override) return cache.get(setting)!
+  const cached = { set: (value: ClaudeCli | null) => cache.set(setting, value) }
   const home = homedir()
   const shell = await shellLookup()
+  const auth = resolveAuth(setting, process.env, shell.vars)
   const candidates = [
     override,
     process.env.ARIADNE_CLAUDE_PATH,

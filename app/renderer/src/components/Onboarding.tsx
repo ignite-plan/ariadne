@@ -238,8 +238,9 @@ function EnvStep({ onDone }: { onDone: () => void }) {
   return (
     <section className="onboarding-card">
       <h1>환경 점검</h1>
-      <p>미리보기와 Word 만들기에는 pandoc이, 화면 캡처에는 Chrome이 필요합니다.</p>
-      <EnvList checks={checks} />
+      <p>미리보기와 Word 만들기에는 pandoc이, 화면 캡처에는 Chrome이 필요합니다. pandoc은 없으면 앱이 받아 설치합니다.</p>
+      {/* pandoc이 없으면 바로 받아 설치한다 */}
+      <EnvList checks={checks} autoInstall onChanged={() => void run()} />
       <div className="actions">
         <button className="button" onClick={run}>
           <Icon name="sync" /> 다시 점검

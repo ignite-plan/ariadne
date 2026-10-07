@@ -3,7 +3,7 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
-import { claudeEnv, explainFailure, keySource, longContextModel } from '../claude-auth.ts'
+import { claudeEnv, DEFAULT_CLAUDE_MODEL, explainFailure, keySource, resolveAuth } from '../claude-auth.ts'
 import { findClaude, runClaude, shellLookup } from '../claude.ts'
 
 const base = {
@@ -133,10 +133,13 @@ echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","permi
     assert.match(explainFailure(raw, 'apiKey', {}), /대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다/)
   })
 
-  it('1M 문맥 모델: ANTHROPIC_MODEL(없으면 sonnet)에 [1m]', () => {
-    assert.equal(longContextModel({ ANTHROPIC_MODEL: 'claude-sonnet-5' }), 'claude-sonnet-5[1m]')
-    assert.equal(longContextModel({ ANTHROPIC_MODEL: 'claude-sonnet-5[1m]' }), 'claude-sonnet-5[1m]')
-    assert.equal(longContextModel({}), 'sonnet[1m]')
-    assert.match(explainFailure('API Error: 400 invalid model: claude-x[1m]', 'apiKey', {}), /1M 문맥 사용.*끄세요/)
+  it('인증 자동: 키가 있으면 API 키, 없으면 claude.ai 로그인. 기본 모델은 Sonnet 1M', () => {
+    assert.equal(resolveAuth('auto', {}, { ANTHROPIC_API_KEY: 'k' }), 'apiKey')
+    assert.equal(resolveAuth('auto', { ANTHROPIC_AUTH_TOKEN: 't' }, {}), 'apiKey')
+    assert.equal(resolveAuth('auto', {}, {}), 'login')
+    assert.equal(resolveAuth('login', {}, { ANTHROPIC_API_KEY: 'k' }), 'login')
+    assert.equal(resolveAuth('apiKey', {}, {}), 'apiKey')
+    assert.equal(DEFAULT_CLAUDE_MODEL, 'claude-sonnet-5[1m]')
+    assert.match(explainFailure('API Error: 400 invalid model: claude-x[1m]', 'apiKey', {}), /Claude 모델을 쓸 수 있는 모델로 바꾸거나 비우세요/)
   })
 })

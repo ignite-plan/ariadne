@@ -26,7 +26,8 @@ import type {
   VideoRunResult,
   WorkspaceState,
 } from '../shared/api.ts'
-import { findChrome, findFfmpeg, findPandoc, formatAge } from './lib/environment.ts'
+import { findChrome, findFfmpeg, findPandoc, formatAge, PANDOC_CANDIDATES } from './lib/environment.ts'
+import { installedPandocPath, installPandoc } from './lib/pandoc-install.ts'
 import { downloadModel, modelStatus } from './lib/video-model.ts'
 import { isRecording, startRecording, stopRecording } from './lib/video-record.ts'
 import { createVideo, videoInfos } from './lib/videos.ts'
@@ -101,12 +102,17 @@ async function currentUser() {
 }
 
 function requirePandoc() {
-  const found = findPandoc(getSettings().pandocPath || undefined)
+  const found = pandoc()
   if (!found) throw new Error('pandoc을 찾지 못했습니다. 환경 점검에서 설치 안내를 확인하세요')
   return found.path
 }
 
 // 내레이션 음성 모델. 작업 폴더가 바뀌어도 다시 받지 않게 userData에 둔다
+// 앱이 받아 두는 도구(pandoc). 작업 폴더와 상관없이 userData에 둔다
+const toolsDir = () => join(app.getPath('userData'), 'tools')
+// pandoc: 설정 경로 → 앱이 설치한 것 → Homebrew 등
+const pandoc = () => findPandoc(getSettings().pandocPath || undefined, [installedPandocPath(toolsDir()), ...PANDOC_CANDIDATES])
+
 const videoModelDir = () => process.env.ARIADNE_VIDEO_MODEL_DIR || join(app.getPath('userData'), 'models')
 
 function requireFfmpeg() {
@@ -237,6 +243,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   })
 
   // env
+  handle('env:installPandoc', () => installPandoc(toolsDir(), netFetch, (progress) => send('pandoc-progress', progress)))
   handle('env:check', async (): Promise<EnvCheck[]> => {
     const settings = getSettings()
     const checks: EnvCheck[] = []
@@ -261,14 +268,16 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       label: '매뉴얼 리포',
       detail: ws.cloned ? ws.dir : '아직 내려받지 않았습니다',
     })
-    const pandoc = findPandoc(settings.pandocPath || undefined)
+    const foundPandoc = pandoc()
     checks.push({
       id: 'pandoc',
-      ok: Boolean(pandoc),
+      ok: Boolean(foundPandoc),
       required: true,
       label: 'pandoc (미리보기, Word 만들기)',
-      detail: pandoc ? `${pandoc.version} · ${pandoc.path}` : '설치되어 있지 않습니다',
-      link: pandoc ? undefined : { label: '설치 파일 받기 (arm64 .pkg)', url: 'https://github.com/jgm/pandoc/releases/latest' },
+      detail: foundPandoc
+        ? `${foundPandoc.version} · ${foundPandoc.path.startsWith(toolsDir()) ? '앱이 설치함' : foundPandoc.path}`
+        : '설치되어 있지 않습니다. 앱이 받아 설치할 수 있습니다 (약 40MB)',
+      install: foundPandoc ? undefined : 'pandoc',
     })
     const chrome = findChrome()
     checks.push({
@@ -641,7 +650,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         input,
         claudePath: getSettings().claudePath,
         claudeAuth: getSettings().claudeAuth,
-        longContext: getSettings().claudeLongContext,
+        model: getSettings().claudeModel,
         effort: getSettings().claudeEffort,
         codeDir: getSettings().dealerhubWebDir || undefined,
         captureBaseUrl: captureBaseUrl(),
