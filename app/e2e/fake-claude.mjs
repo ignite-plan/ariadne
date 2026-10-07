@@ -107,6 +107,15 @@ if (prompt.includes('화면별 요약을 마지막 응답의 JSON 블록으로 �
     pages: [{ id: '900001', title: '[202606output][Phase3][BO] 딜러 관리 화면', version: 3, url: 'https://example.invalid/wiki/900001' }],
     screens,
   }
+  if (prompt.includes('- 반영 범위')) {
+    // 반영 범위: 티켓이 있으면 Jira 읽기 도구만 더 켠다. 범위에 해당하는 변경은 딜러 목록 화면 하나
+    assert(prompt.includes('Jira 티켓: E2E-101') && prompt.includes('기간: 2026-05 ~ 2026-08') && prompt.includes('[202608output]'), '요약 지시에 반영 범위')
+    assert(allowed.includes('mcp__mcp-atlassian-fake__jira_get_issue'), 'Jira 읽기 허용')
+    assert(/jira_get_issue/.test(atlassian.env?.ENABLED_TOOLS ?? '') && !/jira_create|jira_update/.test(atlassian.env?.ENABLED_TOOLS ?? ''), 'Jira는 읽기 도구만')
+    digest.pages[0].title = '[202608output][Phase3][BO] 딜러 관리 화면'
+    const list = Object.keys(screens).find((k) => k.endsWith('01-dealer-list-view.md'))
+    digest.changes = { [list]: '2026-07-14 E2E-101: 딜러 목록 소개 문구에 상태 표시 추가' }
+  }
   await client.close()
   emit({ type: 'result', subtype: 'success', is_error: false, result: `요약했습니다.\n\`\`\`json\n${JSON.stringify(digest)}\n\`\`\``, duration_ms: 300, permission_denials: [] })
   process.exit(0)
@@ -124,10 +133,16 @@ if (prompt.includes('최신화한다')) {
   assert(!atlassian, '요약을 받은 화면 작업에는 Atlassian MCP를 싣지 않는다')
   assert(args.includes('--max-turns'), '화면 작업 턴 상한')
   const root = process.cwd()
+  const scoped = prompt.includes('- 반영 범위')
+  if (scoped) {
+    assert(prompt.includes('E2E-101: 딜러 목록 소개 문구') && prompt.includes('이것만 반영한다'), '반영할 변경만 받는다')
+    assert(target.endsWith('01-dealer-list-view.md'), '반영할 변경이 있는 화면만 돈다')
+  }
   emit({ type: 'assistant', message: { content: [{ type: 'text', text: '지금 본문과 기획서를 비교하겠습니다.' }] } })
   await call('manual_outline', {})
   await call('stg_open', { path: '/dealer/company' })
-  await call('save_shot', { id: 'dealer-list', path: '/dealer/company', ready: 'text=Total', clip: '#root', replace: true })
+  const shot = await call('save_shot', { id: 'dealer-list', path: '/dealer/company', ready: 'text=Total', clip: '#root', replace: true })
+  if (scoped) assert(shot.isError && /다시 찍지 않습니다/.test(shot.text), '반영 범위 최신화는 캡처를 거절한다')
   // E2E: 최신화가 도는 동안(STG 탭을 연 채로) 영상 만들기를 함께 돌려 보려고, 이 파일이 생길 때까지 기다린다
   const hold = process.env.ARIADNE_FAKE_CLAUDE_HOLD
   if (hold) {
@@ -142,7 +157,7 @@ if (prompt.includes('최신화한다')) {
   emit({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: id, is_error: false, content: 'ok' }] } })
   await client.close()
   const section = target.split('/').slice(2).join('/')
-  const summary = { sections: [section], unchanged: [], images: ['dealer-list'], todos: 0, sources: [{ title: '[202606output][Phase3][BO] 딜러 관리 화면' }] }
+  const summary = { sections: [section], unchanged: [], images: scoped ? [] : ['dealer-list'], todos: 0, sources: [{ title: '[202606output][Phase3][BO] 딜러 관리 화면' }] }
   emit({ type: 'result', subtype: 'success', is_error: false, result: `최신화했습니다.\n\`\`\`json\n${JSON.stringify(summary)}\n\`\`\``, duration_ms: 900, permission_denials: [] })
   process.exit(0)
 }
