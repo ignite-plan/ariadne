@@ -40,10 +40,12 @@ import { log } from './report-ipc.ts'
 
 // 최신화는 화면마다 Claude를 따로, 이만큼 동시에 돌린다 (공유 Chrome의 탭을 하나씩 쓴다)
 const REFRESH_CONCURRENCY = 3
-// 기획서 요약 단계의 최대 턴. 넘으면 요약 없이 화면별로 진행한다
-const SPEC_MAX_TURNS = 60
+// 기획서 요약 단계의 최대 턴. 넘으면 실패로 보고 요약 없이 계속할지 묻는다
+const SPEC_MAX_TURNS = 150
+// 요약 단계가 헛돌면 상한 전에 끊는다 (같은 조회 반복, 도구 오류 연속)
+const SPEC_LIMITS = { maxRepeats: 3, maxConsecutiveErrors: 6 }
 // 화면 하나의 상한. 넘으면 그 화면만 실패로 끝내고 다른 화면은 계속한다
-const SCREEN_LIMITS = { maxTurns: 120, timeoutMs: 20 * 60 * 1000, maxEditFailures: 4 }
+const SCREEN_LIMITS = { maxTurns: 120, timeoutMs: 20 * 60 * 1000, maxEditFailures: 4, maxRepeats: 4, maxConsecutiveErrors: 8 }
 
 let current: { handles: Set<{ cancel: () => void }>; cancelled: boolean } | undefined
 
@@ -355,6 +357,15 @@ async function refresh({
         const doc = readSectionDoc(ref, target)
         writeSectionDoc(ref, target, doc.body, { ...doc.meta, refreshedFrom: specRefs(digest) })
       },
+      // 요약이 실패하면 화면별로 퍼지기 전에 묻는다. 중지하면 작업 전체를 취소로 끝낸다
+      onSpecFailed: async (message) => {
+        const proceed = await ask(
+          `기획서 요약을 만들지 못했습니다 (${message.slice(0, 300)}). 요약 없이 계속하면 화면마다 Claude가 Confluence를 직접 찾아 느리고${scoped ? ', 반영 범위를 정확히 지키기 어렵습니다' : ' 시간이 더 걸립니다'}.`,
+          onEvent,
+        )
+        if (!proceed) job.cancelled = true
+        return proceed
+      },
       runSpec: async () => {
         // Confluence가 없으면 요약을 만들 수 없다. 지난 요약도 최신인지 알 수 없어 쓰지 않는다
         if (!confluence) return undefined
@@ -370,6 +381,7 @@ async function refresh({
           withJira: jira,
           // 막힌 도구를 계속 다시 시도하는 일 없이 끝나게
           extraArgs: ['--max-turns', String(SPEC_MAX_TURNS)],
+          limits: SPEC_LIMITS,
           // 요약 단계는 기획서만 본다
           mcp: {
             stg: () => {
@@ -480,4 +492,26 @@ export function cancelDraft() {
   if (!current) return
   current.cancelled = true
   for (const handle of current.handles) handle.cancel()
+  // 묻는 중이면 중지로 답한다
+  for (const [id, answer] of asks) answer(false, id)
+}
+
+// 기획자 답을 기다리는 질문 (ask 이벤트 id → 답)
+const asks = new Map<string, (proceed: boolean, id: string) => void>()
+let askSeq = 0
+
+export function decideDraft(id: string, proceed: boolean) {
+  asks.get(id)?.(proceed, id)
+}
+
+function ask(text: string, onEvent: (event: DraftEvent) => void) {
+  const id = `ask-${++askSeq}`
+  return new Promise<boolean>((resolve) => {
+    asks.set(id, (proceed) => {
+      asks.delete(id)
+      onEvent({ kind: 'answered', id, proceed })
+      resolve(proceed)
+    })
+    onEvent({ kind: 'ask', id, text })
+  })
 }

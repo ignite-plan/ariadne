@@ -350,6 +350,19 @@ export function DraftPanel({
           )}
           {(phase === 'running' || phase === 'done') && (
             <>
+              {task?.ask && (
+                <div className="draft-ask">
+                  <p>{task.ask.text}</p>
+                  <div className="row">
+                    <button className="button primary small" onClick={() => void api.draft.decide(task.ask!.id, true)}>
+                      요약 없이 계속
+                    </button>
+                    <button className="button small" onClick={() => void api.draft.decide(task.ask!.id, false)}>
+                      중지
+                    </button>
+                  </div>
+                </div>
+              )}
               {Object.keys(screens).length > 0 && (
                 <div className="screen-progress">
                   {task?.stage && <p className="muted">{task.stage}</p>}

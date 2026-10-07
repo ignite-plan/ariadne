@@ -107,6 +107,12 @@ if (prompt.includes('화면별 요약을 마지막 응답의 JSON 블록으로 �
     pages: [{ id: '900001', title: '[202606output][Phase3][BO] 딜러 관리 화면', version: 3, url: 'https://example.invalid/wiki/900001' }],
     screens,
   }
+  if (prompt.includes('FAIL-999')) {
+    // 요약 실패: JSON 없이 끝난다 (턴 상한에 걸린 것처럼)
+    await client.close()
+    emit({ type: 'result', subtype: 'success', is_error: false, result: '히스토리 표를 더 찾아보겠습니다.', duration_ms: 300, permission_denials: [] })
+    process.exit(0)
+  }
   if (prompt.includes('- 반영 범위')) {
     // 반영 범위: 티켓이 있으면 Jira 읽기 도구만 더 켠다. 범위에 해당하는 변경은 딜러 목록 화면 하나
     assert(prompt.includes('Jira 티켓: E2E-101') && prompt.includes('기간: 2026-05 ~ 2026-08') && prompt.includes('[202608output]'), '요약 지시에 반영 범위')

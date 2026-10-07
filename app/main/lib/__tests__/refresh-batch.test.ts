@@ -192,4 +192,35 @@ describe('최신화 진행', () => {
     assert.deepEqual(started, ['08-menu/01-list.md'])
     assert.ok(screens.every((s) => s.status === 'cancelled'))
   })
+
+  it('요약이 실패하면 묻고, 중지하면 화면을 돌리지 않는다', async () => {
+    const asked: string[] = []
+    const ran: string[] = []
+    const { base } = deps({
+      runSpec: async () => {
+        throw new Error('턴 상한')
+      },
+      runScreen: async (t) => (ran.push(t), { ok: true, changed: true }),
+      onSpecFailed: async (m) => (asked.push(m), false),
+    })
+    const { screens } = await runRefreshBatch(base)
+    assert.deepEqual(asked, ['턴 상한'])
+    assert.deepEqual(ran, [])
+    assert.ok(screens.every((s) => s.status === 'cancelled'))
+  })
+
+  it('요약 실패 뒤 계속을 고르면 요약 없이 모든 화면을 돌린다', async () => {
+    const ran: string[] = []
+    const { base, events } = deps({
+      runSpec: async () => {
+        throw new Error('턴 상한')
+      },
+      runScreen: async (t, brief) => (ran.push(t + (brief ? ' +brief' : '')), { ok: true, changed: true }),
+      onSpecFailed: async () => true,
+    })
+    await runRefreshBatch(base)
+    assert.equal(ran.length, 4)
+    assert.ok(ran.every((r) => !r.endsWith('+brief')))
+    assert.ok(events.some((e) => e.kind === 'warning' && /요약 없이/.test(e.text)))
+  })
 })

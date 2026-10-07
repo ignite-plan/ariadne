@@ -232,7 +232,9 @@ export function parseStreamLine(line: string, cwd = ''): ClaudeEvent[] {
   if (event.type === 'assistant') {
     return (event.message?.content ?? []).flatMap((c: any): ClaudeEvent[] => {
       if (c.type === 'text' && c.text?.trim()) return [{ kind: 'text', text: c.text.trim() }]
-      if (c.type === 'tool_use') return [{ kind: 'tool', id: c.id, name: c.name, label: toolLabel(c.name, c.input ?? {}, cwd) }]
+      if (c.type === 'tool_use') {
+        return [{ kind: 'tool', id: c.id, name: c.name, label: toolLabel(c.name, c.input ?? {}, cwd), key: JSON.stringify(c.input ?? {}).slice(0, 400) }]
+      }
       return []
     })
   }

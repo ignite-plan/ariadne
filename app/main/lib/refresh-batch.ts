@@ -27,6 +27,8 @@ export interface BatchDeps {
   recordRefresh: (target: string, digest: SpecDigest) => void
   onEvent: (event: DraftEvent) => void
   isCancelled: () => boolean
+  // 기획서 요약이 실패했을 때 요약 없이 계속할지 (없으면 경고만 하고 계속)
+  onSpecFailed?: (message: string) => Promise<boolean>
 }
 
 // 화면 파일을 못 읽으면 기록이 없는 것으로 (화면 작업에서 오류가 난다)
@@ -52,7 +54,13 @@ export async function runRefreshBatch(deps: BatchDeps) {
   try {
     digest = await deps.runSpec()
   } catch (error) {
-    onEvent({ kind: 'warning', text: `기획서 요약을 만들지 못했습니다. 화면별로 직접 확인합니다: ${(error as Error).message}` })
+    const message = (error as Error).message
+    if (deps.onSpecFailed && !(await deps.onSpecFailed(message))) {
+      for (const target of targets) set(target, { target, status: 'cancelled' })
+      onEvent({ kind: 'phase', phase: 'done', text: '기획서 요약 실패로 중지했습니다' })
+      return { digest: undefined, screens: targets.map((t) => results.get(t)!) }
+    }
+    onEvent({ kind: 'warning', text: `기획서 요약 없이 화면별로 직접 확인합니다: ${message}` })
   }
   const refs = specRefs(digest)
 
