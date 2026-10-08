@@ -11,7 +11,7 @@ import specSkill from '../../.claude/skills/manual-spec/SKILL.md?raw'
 import videoSkill from '../../.claude/skills/manual-video-draft/SKILL.md?raw'
 import videoSceneSkill from '../../.claude/skills/manual-video-scene/SKILL.md?raw'
 import { renderVideo } from '../../src/core/video/index.ts'
-import { StepError } from '../../src/core/video/steps.ts'
+import { stepFailure } from '../../src/core/video/steps.ts'
 import { composePrompt, namedSkillText, skillText, specTaskText, taskText } from './lib/prompts.ts'
 import {
   buildAllowedTools,
@@ -271,10 +271,7 @@ async function draft(
           if (!openTab) await stg?.close()
           return renderVideo({ ...ref, id, baseUrl: captureBaseUrl, profileDir, openTab, preview: true, headed: false, fromScene, pace: 0.2, stepTimeout: 8000 }).then(
             (r) => ({ ok: true as const, durationMs: r.durationMs, blockedRequests: r.blockedRequests }),
-            (error: Error) =>
-              error instanceof StepError
-                ? { ok: false as const, error: error.message, scene: error.scene, step: error.step }
-                : { ok: false as const, error: error.message },
+            (error) => ({ ok: false as const, ...stepFailure(error) }),
           )
         },
       },

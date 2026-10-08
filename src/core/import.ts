@@ -1,13 +1,17 @@
 // 매뉴얼 Word를 장/절 Markdown, 이미지, manual.yaml, reference.docx로 나눈다.
 // analyzeDocx는 아무것도 쓰지 않고 구조와 경고만 돌려준다 (앱의 가져오기 미리보기)
-import { execFileSync, spawn } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
-import { PNG } from 'pngjs'
+import { createBodyWriter } from './import/body.ts'
+import { matchDrawings, readDrawings, runPandoc } from './import/docx.ts'
+import { guessTitle, guessVersion, structureFromHeadings, structureFromToc, titleCase } from './import/structure.ts'
 import { loadManual, manualDir, mergeManual, saveManual, serializeFrontMatter, type Manual, type ManualRef } from './manual.ts'
-import { ID_PATTERN, ID_RULE, isPngBytes, slugify, uniqueName } from './naming.ts'
+import { ID_PATTERN, ID_RULE, slugify } from './naming.ts'
 import { makeReference } from './reference.ts'
+
+export { matchDrawings, type Drawing } from './import/docx.ts'
+export { guessVersion } from './import/structure.ts'
 
 export interface ImportedSection {
   title: string
@@ -61,181 +65,12 @@ export interface ImportResult extends DocxAnalysis {
   files: number
 }
 
-export interface Drawing {
-  crop: { l: number; t: number; r: number; b: number }
-  widthIn: number
-  ratio: number
-  // 그림이 쓰는 Word 안 이미지 파일 이름 (media/image3.png → image3.png). 도형·텍스트 상자처럼 그림이 아니면 없음
-  media?: string
-}
-
-// pandoc이 꺼낸 이미지(본문 순서)마다 Word 그림 정보를 찾는다. 순서가 아니라 이미지 파일 이름으로 짝을 맞춘다:
-// Word에는 도형·텍스트 상자도 그림 요소로 들어 있어 순서로 맞추면 그 뒤 이미지들이 한 칸씩 밀린다.
-// 같은 이미지 파일을 여러 번 쓰면 문서 순서대로 하나씩 쓴다
-export function matchDrawings(imageSrcs: string[], drawings: Drawing[]) {
-  const queues = new Map<string, Drawing[]>()
-  for (const d of drawings) if (d.media) queues.set(d.media, [...(queues.get(d.media) ?? []), d])
-  const last = new Map<string, Drawing>()
-  return imageSrcs.map((src) => {
-    const name = basename(src)
-    const next = queues.get(name)?.shift() ?? last.get(name)
-    if (next) last.set(name, next)
-    return next
-  })
-}
-
-interface TocEntry {
-  level: 1 | 2
-  title: string
-}
-
 interface ParsedChapter {
   no: number
   title: string
   slug: string
   intro: string[]
   sections: { title: string; slug: string; lines: string[] }[]
-}
-
-const EMU_PER_INCH = 914400
-
-function runPandoc(pandoc: string, args: string[]) {
-  return new Promise<void>((done, fail) => {
-    const child = spawn(pandoc, args)
-    let err = ''
-    child.stderr.setEncoding('utf8').on('data', (d) => (err += d))
-    child.on('error', (e) => fail(new Error(`pandoc 실행 실패 (${pandoc}): ${e.message}`)))
-    child.on('close', (code) => (code === 0 ? done() : fail(new Error(`pandoc 변환 실패: ${err}`))))
-  })
-}
-
-// pandoc은 Word의 자르기(srcRect)와 비율 변경을 버린다. 문서 순서대로 drawing 정보를 읽어 이미지에 다시 적용한다
-function readDrawings(docx: string): Drawing[] {
-  const documentXml = execFileSync('unzip', ['-p', docx, 'word/document.xml'], {
-    encoding: 'utf8',
-    maxBuffer: 256 * 1024 * 1024,
-  })
-  // r:embed="rId5" → media/image3.png
-  const relsXml = execFileSync('unzip', ['-p', docx, 'word/_rels/document.xml.rels'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
-  const targets = new Map([...relsXml.matchAll(/<Relationship\b[^>]*>/g)].map(([tag]) => [tag.match(/\bId="([^"]+)"/)?.[1], tag.match(/\bTarget="([^"]+)"/)?.[1]]))
-  return [...documentXml.matchAll(/<w:drawing>[\s\S]*?<\/w:drawing>/g)].map(([xml]) => {
-    const embed = xml.match(/<a:blip\b[^>]*\br:embed="([^"]+)"/)?.[1]
-    const target = embed ? targets.get(embed) : undefined
-    const extent = xml.match(/<wp:extent cx="(\d+)" cy="(\d+)"/)
-    const cx = Number(extent?.[1] ?? 0)
-    const cy = Number(extent?.[2] ?? 0)
-    const rect = xml.match(/<a:srcRect([^>]*)\/>/)?.[1] ?? ''
-    const edge = (k: string) => Math.max(0, Number(rect.match(new RegExp(`\\b${k}="(-?\\d+)"`))?.[1] ?? 0)) / 100000
-    return {
-      crop: { l: edge('l'), t: edge('t'), r: edge('r'), b: edge('b') },
-      widthIn: cx / EMU_PER_INCH,
-      ratio: cx ? cy / cx : 0,
-      ...(target ? { media: basename(target) } : {}),
-    }
-  })
-}
-
-// 자르기를 반영해 저장하고, 원본 표시 비율과 다르면(늘이기) 높이를 함께 돌려준다
-function writeImage(src: string, dest: string, drawing: Drawing | undefined, pandocSize: string | undefined) {
-  if (!drawing || !drawing.widthIn) {
-    copyFileSync(src, dest)
-    return pandocSize ?? ''
-  }
-  const { crop, widthIn, ratio } = drawing
-  const png = PNG.sync.read(readFileSync(src))
-  const x = Math.round(png.width * crop.l)
-  const y = Math.round(png.height * crop.t)
-  const width = Math.round(png.width * (1 - crop.l - crop.r))
-  const height = Math.round(png.height * (1 - crop.t - crop.b))
-  if (width === png.width && height === png.height) copyFileSync(src, dest)
-  else {
-    const out = new PNG({ width, height })
-    PNG.bitblt(png, out, x, y, width, height, 0, 0)
-    writeFileSync(dest, PNG.sync.write(out))
-  }
-  const stretched = Math.abs(height / width - ratio) / ratio > 0.03
-  const size = `width=${widthIn.toFixed(2)}in`
-  return stretched ? `{${size} height=${(widthIn * ratio).toFixed(2)}in}` : `{${size}}`
-}
-
-// PNG가 아닌 이미지(EMF, JPEG 등)는 자르기를 적용하지 못한다. 확장자를 지키고 그대로 복사한다
-function isPng(path: string) {
-  return isPngBytes(readFileSync(path).subarray(0, 4))
-}
-
-function plain(text: string) {
-  return text
-    .replace(/\[\]\{[^}]*\}/g, '')
-    .replace(/\{\.mark\}/g, '')
-    .replace(/\]\(#[^)]*\)/g, '')
-    .replace(/[*\\[\]#>•]/g, '')
-    .replace(/^\s*-\s+/, '')
-    .replace(/\s+\d+\s*$/, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-}
-
-// 원문 대소문자를 살린 제목
-function titleCase(line: string) {
-  return line
-    .replace(/\[\]\{[^}]*\}/g, '')
-    .replace(/\{\.mark\}/g, '')
-    .replace(/[*\\[\]#>•]/g, '')
-    .replace(/^\s*-\s+/, '')
-    .trim()
-    .replace(/^\d+\.\s*/, '')
-    .replace(/\s+/g, ' ')
-}
-
-// 목차(TOC) 링크 줄로 장/절을 찾는다. 원본은 제목에 Heading 스타일을 쓰지 않은 곳이 많다
-function structureFromToc(lines: string[], warnings: string[]) {
-  const firstChapterLine = lines.findIndex((l) => /^# 1\./.test(l))
-  if (firstChapterLine < 0) return undefined
-  const toc: TocEntry[] = lines
-    .slice(0, firstChapterLine)
-    .filter((l) => l.startsWith('['))
-    .map((l) => {
-      const title = plain(l)
-      return { level: /^\d+\./.test(title) ? 1 : 2, title }
-    })
-  if (!toc.some((e) => e.level === 1)) return undefined
-
-  const starts: { entry: TocEntry; line: number }[] = []
-  let cursor = firstChapterLine
-  for (const entry of toc) {
-    const found = lines.findIndex((l, i) => i >= cursor && plain(l) === entry.title)
-    if (found < 0) {
-      warnings.push(`목차의 "${entry.title}"를 본문에서 찾지 못해 앞 항목에 합쳤습니다`)
-      continue
-    }
-    starts.push({ entry, line: found })
-    cursor = found + 1
-  }
-  return { starts, firstChapterLine }
-}
-
-// 목차가 없으면 Word 제목 스타일(제목 1 → #, 제목 2 → ##)로 나눈다
-function structureFromHeadings(lines: string[]) {
-  const starts: { entry: TocEntry; line: number }[] = []
-  lines.forEach((l, line) => {
-    if (/^# \S/.test(l)) starts.push({ entry: { level: 1, title: plain(l) }, line })
-    else if (/^## \S/.test(l) && starts.length) starts.push({ entry: { level: 2, title: plain(l) }, line })
-  })
-  return { starts, firstChapterLine: starts[0]?.line ?? lines.length }
-}
-
-function guessTitle(lines: string[], end: number) {
-  const cover = lines
-    .slice(0, end)
-    .filter((l) => l.trim() && !l.startsWith('[') && !l.startsWith('!['))
-    .map((l) => l.replace(/[*\\#>]/g, '').replace(/\{[^}]*\}/g, '').trim())
-    .filter((l) => l && !/^table of contents?$/i.test(l) && !/^목차$/.test(l))
-  return cover.at(-1) ?? 'User Manual'
-}
-
-export function guessVersion(docx: string) {
-  return basename(docx).match(/v(\d+(?:\.\d+){1,3})/i)?.[1] ?? '1.0.0'
 }
 
 async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOptions['onProgress']) {
@@ -377,42 +212,14 @@ export async function importDocx({
     const manual = mergeManual(existing, Object.fromEntries(given))
 
     mkdirSync(join(dir, 'images'), { recursive: true })
-    const usedImages = new Set<string>()
-    const totalImages = parsed.images
     let written = 0
     let files = 0
-
-    const clean = (body: string[], sectionSlug: string) => {
-      let unnamed = 0
-      return body
-        .map((l) => l.replace(/^(> ?)+/, ''))
-        .map((l) => l.replace(/\[\]\{#[^}]*\}/g, ''))
-        .map((l) => l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1'))
-        .map((l) =>
-          l.replace(
-            /!\[([^\]]*)\]\(([^)#]+)#(\d+)\)(\{[^}]*\})?/g,
-            (_, alt: string, src: string, index: string, pandocSize?: string) => {
-              // Word가 자동 생성한 한글 대체 텍스트는 caption이 아니다
-              const caption = /[가-힣]/.test(alt) ? '' : alt
-              const base = caption ? slugify(caption) || `${sectionSlug}-img` : `${sectionSlug}-img-${++unnamed}`
-              const png = isPng(src)
-              const ext = png ? 'png' : src.split('.').pop()!.toLowerCase()
-              const name = uniqueName(base, (n) => usedImages.has(n) || existsSync(join(dir, 'images', `${n}.${ext}`)))
-              usedImages.add(name)
-              const dest = join(dir, 'images', `${name}.${ext}`)
-              const size = png
-                ? writeImage(src, dest, parsed.drawings[Number(index)], pandocSize)
-                : (copyFileSync(src, dest), pandocSize ?? '')
-              if (!png) parsed.warnings.push(`PNG가 아닌 이미지(${ext})는 그대로 넣었습니다: images/${name}.${ext}`)
-              onProgress?.({ phase: 'images', done: ++written, total: totalImages })
-              return `![${caption}](images/${name}.${ext})${size}`
-            },
-          ),
-        )
-        .join('\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim()
-    }
+    const clean = createBodyWriter({
+      imagesDir: join(dir, 'images'),
+      drawings: parsed.drawings,
+      warnings: parsed.warnings,
+      onImage: () => onProgress?.({ phase: 'images', done: ++written, total: parsed.images }),
+    })
 
     const frontMatter = (sectionTitle: string) => `${serializeFrontMatter({ title: sectionTitle })}\n`
 

@@ -31,6 +31,12 @@ export class StepError extends Error {
   }
 }
 
+// 실패를 화면에 보일 값으로 (IPC·worker는 Error의 필드를 전달하지 않는다). StepError면 장면·단계 번호를 담는다
+export function stepFailure(error: unknown): { error: string; scene?: number | 'cleanup'; step?: number } {
+  const message = error instanceof Error ? error.message : String(error)
+  return error instanceof StepError ? { error: message, scene: error.scene, step: error.step } : { error: message }
+}
+
 export async function runStep(v: Director, step: Step) {
   const page = v.page
   if ('open' in step) return v.goto(step.open)

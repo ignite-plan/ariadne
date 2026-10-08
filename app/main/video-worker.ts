@@ -1,7 +1,7 @@
 // 가이드 영상 만들기·음성 미리듣기. TTS 추론과 녹화가 main을 멈추지 않게 utilityProcess에서 돌린다
 import { join } from 'node:path'
 import { cdpTab } from '../../src/core/session.ts'
-import { createProvider, narrate, renderVideo, StepError, videoCacheDir, type TtsConfig, type VideoOptions } from '../../src/core/video/index.ts'
+import { createProvider, narrate, renderVideo, stepFailure, videoCacheDir, type TtsConfig, type VideoOptions } from '../../src/core/video/index.ts'
 import type { WorkerReply } from './worker.ts'
 
 export type WorkerRenderOptions = Omit<VideoOptions, 'signal' | 'onProgress' | 'tts' | 'openTab'> & {
@@ -39,7 +39,6 @@ process.parentPort.on('message', ({ data }: { data: WorkerRequest }) => {
   if (data.op === 'cancel') return controller.abort(new Error('취소했습니다'))
   handle(data).then(
     (result) => post({ result }),
-    (error: Error) =>
-      post(error instanceof StepError ? { error: error.message, scene: error.scene, step: error.step } : { error: error.message }),
+    (error) => post(stepFailure(error)),
   )
 })

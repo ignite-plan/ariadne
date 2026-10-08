@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
 import { analyzeDocx, guessVersion, importDocx, matchDrawings } from '../import.ts'
+import { plain, titleCase } from '../import/structure.ts'
 import { loadManual, localePath, outputName, saveManual, stripFrontMatter } from '../manual.ts'
 import { referenceStyles, styleIdByName } from '../reference.ts'
 
@@ -30,6 +31,13 @@ describe('manual 설정', () => {
     assert.equal(localePath({ title: '', version: '', code: { app: 'apps/hyundai-fo' }, chapters: [] }), 'apps/hyundai-fo/src/locales/en.json')
     assert.equal(localePath({ title: '', version: '', code: { app: 'a', locale: 'x.json' }, chapters: [] }), 'x.json')
     assert.equal(localePath({ title: '', version: '', chapters: [] }), undefined)
+  })
+
+  it('목차 비교용 문자열과 제목: pandoc 표시·쪽 번호·장 번호를 걷어낸다', () => {
+    assert.equal(plain('[**2.1 Dealer List View** 12](#_Toc1)'), '2.1 dealer list view')
+    assert.equal(plain('# []{#_Toc2 .anchor}2. Dealer [Management]{.mark}'), '2. dealer management')
+    assert.equal(titleCase('# []{#_Toc2 .anchor}2. Dealer  **Management**'), 'Dealer Management')
+    assert.equal(titleCase('- > Login Screen'), 'Login Screen')
   })
 
   it('파일 이름에서 버전 추정', () => {
