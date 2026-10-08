@@ -1,5 +1,6 @@
 // 가이드 영상: 시나리오 목록, 미리보기 실행, 영상 만들기, 결과 재생
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isSessionExpired } from '../../../../src/core/stg-url.ts'
 import { appendRecorded, sceneHasContent } from '../../../../src/core/video/edit.ts'
 import {
   assetUrl,
@@ -250,7 +251,7 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
       }
     } catch (e) {
       const message = errorMessage(e)
-      if (message.includes('세션 만료')) toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
+      if (isSessionExpired(message)) toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
       else toast.error(e)
     } finally {
       if (preview) setRunning(undefined)

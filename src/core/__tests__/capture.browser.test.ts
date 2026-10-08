@@ -104,7 +104,7 @@ describe('capture (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, (
       ],
     })
     assert.equal(report.failed.length, 1)
-    assert.match(report.failed[0].error, /^세션 만료로 보임/)
+    assert.match(report.failed[0].error, /^세션 만료: 로그인 페이지로 이동했습니다/)
     assert.deepEqual(report.changed.concat(report.unchanged), [])
     // 로그인 표식을 지워 다음에는 로그인부터 하게 한다
     assert.equal(sessionInfo(profileDir).exists, false)

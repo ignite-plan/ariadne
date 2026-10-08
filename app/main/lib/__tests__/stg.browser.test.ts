@@ -8,7 +8,7 @@ import { after, before, describe, it } from 'node:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
-import { markSession } from '../../../../src/core/session.ts'
+import { markSession, sessionInfo } from '../../../../src/core/session.ts'
 import { loadManual } from '../../../../src/core/manual.ts'
 import { loadVideo, saveVideo } from '../../../../src/core/video/scenario.ts'
 import { startAriadneMcp } from '../mcp.ts'
@@ -141,6 +141,14 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
     it('STG 밖 주소와 세션 만료를 알려 준다', async () => {
       await assert.rejects(session.open('https://example.com/'), /STG 밖 주소/)
       await assert.rejects(session.open('/expired'), /세션 만료/)
+      assert.equal(sessionInfo(profileDir).exists, false, '로그인 표식을 지운다')
+      markSession(profileDir, baseUrl)
+      // 캡처 저장도 로그인 페이지를 찍지 않고 멈춘다
+      await assert.rejects(session.saveShot({ id: 'expired-shot', path: '/expired' }), /세션 만료/)
+      assert.equal(existsSync(join(fx.dir, 'images', 'expired-shot.png')), false)
+      assert.doesNotMatch(readFileSync(join(fx.dir, 'shots.ts'), 'utf8'), /expired-shot/)
+      assert.equal(sessionInfo(profileDir).exists, false)
+      markSession(profileDir, baseUrl)
     })
 
     it('캡처 저장: 단계를 새 페이지에서 재생해 찍고 shots.ts에 추가', async () => {

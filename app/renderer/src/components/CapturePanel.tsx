@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { isSessionExpired } from '../../../../src/core/stg-url.ts'
 import { assetUrl, type CaptureProgress, type CaptureReport, type SessionInfo, type ShotInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { Icon } from './Icon.tsx'
@@ -52,7 +53,7 @@ export function CapturePanel({
       setReport(result)
       setAdopt(new Set(result.changed))
       setStamp(Date.now())
-      if (result.failed.some((f) => f.error.startsWith('세션 만료'))) {
+      if (result.failed.some((f) => isSessionExpired(f.error))) {
         toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
       }
     } catch (e) {

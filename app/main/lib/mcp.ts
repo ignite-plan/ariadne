@@ -14,7 +14,7 @@ import { applyVars, listVideos, loadVideo, parseScene, parseVideo, saveVideo, vi
 import type { ZodRawShapeCompat } from '@modelcontextprotocol/sdk/server/zod-compat.js'
 import { ariadneToolLabel, MCP_NAME } from './ariadne-tools.ts'
 import { createSection, readTree } from './sections.ts'
-import { ROLES, type OpenResult, type ShotInput, type StgSession } from './stg.ts'
+import { ROLES, SHOT_STEP, type OpenResult, type StgSession } from './stg.ts'
 
 export { MCP_NAME }
 
@@ -172,12 +172,6 @@ function buildServer(deps: AriadneMcpDeps) {
     async ({ label, value, full }) => text(describe(await deps.stg().fill(label, value, { full }))),
   )
 
-  const step = z.union([
-    z.object({ click: z.object({ role: z.enum(ROLES), name: z.string(), nth: z.number().int().min(0).optional() }) }),
-    z.object({ fill: z.object({ label: z.string(), value: z.string() }) }),
-    z.object({ waitFor: z.string().describe('CSS/텍스트 locator. 예: text=Menu Information') }),
-  ])
-
   tool(
     'save_shot',
     {
@@ -187,7 +181,7 @@ function buildServer(deps: AriadneMcpDeps) {
         id: z.string().describe('caption slug. 예: menu-list'),
         path: z.string(),
         ready: z.string().optional().describe('화면 준비 완료 locator. 예: text=Total'),
-        steps: z.array(step).optional(),
+        steps: z.array(SHOT_STEP).optional(),
         clip: z.string().optional().describe('찍을 영역 locator. 팝업은 [role="dialog"], 전체 화면은 생략 또는 #root'),
         mask: z.array(z.string()).optional(),
         replace: z
@@ -198,7 +192,7 @@ function buildServer(deps: AriadneMcpDeps) {
     },
     async ({ replace, ...args }) => {
       if (deps.noShots) throw new Error(deps.noShots)
-      const saved = await deps.stg().saveShot(args as ShotInput, replace)
+      const saved = await deps.stg().saveShot(args, replace)
       return text(JSON.stringify({ image: saved.image, file: saved.file }))
     },
   )
