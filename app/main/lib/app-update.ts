@@ -100,7 +100,12 @@ export async function bundleVersion(app: string) {
 export async function stageFromDmg(dmg: string, stagedApp: string, expectVersion: string, { verify = codesignVerify }: StageOptions = {}) {
   mkdirSync(dirname(stagedApp), { recursive: true })
   const mount = mkdtempSync(join(dirname(stagedApp), 'mount-'))
-  await run('/usr/bin/hdiutil', ['attach', dmg, '-nobrowse', '-noverify', '-readonly', '-mountpoint', mount])
+  // 디스크가 바쁘면 가끔 실패한다. 한 번 더 시도한다
+  const attach = () => run('/usr/bin/hdiutil', ['attach', dmg, '-nobrowse', '-noverify', '-readonly', '-mountpoint', mount])
+  await attach().catch(async () => {
+    await new Promise((r) => setTimeout(r, 1500))
+    await attach()
+  })
   try {
     const source = join(mount, 'Ariadne.app')
     if (!existsSync(source)) throw new Error('받은 dmg에 Ariadne.app이 없습니다')
