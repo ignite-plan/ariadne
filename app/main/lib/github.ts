@@ -1,5 +1,6 @@
 // GitHub REST. fetch를 주입한다 (앱은 net.fetch)
 import type { GithubUser, UpdateInfo } from '../../shared/api.ts'
+import { pickDmgAsset } from './app-update.ts'
 
 export type Fetch = (url: string, init?: RequestInit) => Promise<Response>
 
@@ -78,7 +79,9 @@ export function compareVersions(a: string, b: string) {
 // 앱 릴리즈 태그는 app-v<version>
 export async function latestAppRelease(fetchImpl: Fetch, token: string, repoUrl: string, current: string): Promise<UpdateInfo | null> {
   const { owner, repo } = parseRepoUrl(repoUrl)
-  const releases = await call<{ tag_name: string; html_url: string; draft: boolean; prerelease: boolean }[]>(
+  const releases = await call<
+    { tag_name: string; html_url: string; draft: boolean; prerelease: boolean; assets?: { url: string; name: string; size: number }[] }[]
+  >(
     fetchImpl,
     token,
     `/repos/${owner}/${repo}/releases?per_page=20`,
@@ -87,5 +90,6 @@ export async function latestAppRelease(fetchImpl: Fetch, token: string, repoUrl:
     .filter((r) => !r.draft && !r.prerelease && r.tag_name.startsWith('app-v'))
     .sort((a, b) => compareVersions(b.tag_name, a.tag_name))[0]
   if (!latest || compareVersions(latest.tag_name, current) <= 0) return null
-  return { current, latest: latest.tag_name.replace(/^app-v/, ''), url: latest.html_url }
+  const asset = pickDmgAsset(latest.assets)
+  return { current, latest: latest.tag_name.replace(/^app-v/, ''), url: latest.html_url, ...(asset ? { asset } : {}) }
 }

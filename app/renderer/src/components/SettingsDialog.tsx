@@ -7,6 +7,7 @@ import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { openReport } from './ReportDialog.tsx'
 import { useToast } from './Toast.tsx'
+import { UpdateAction } from './UpdateAction.tsx'
 
 type Tab = 'general' | 'manual' | 'account' | 'env' | 'advanced' | 'affected' | 'about'
 
@@ -524,9 +525,9 @@ function AboutPane() {
       {update === undefined && <p className="muted">새 버전 확인 중…</p>}
       {update === null && <p className="muted">최신 버전입니다.</p>}
       {update && (
-        <button className="button primary small" onClick={() => api.app.openExternal(update.url)}>
-          새 버전 {update.latest} 받기 <Icon name="external" size={13} />
-        </button>
+        <p>
+          새 버전 {update.latest}이 있습니다. <UpdateAction update={update} />
+        </p>
       )}
       <div className="about-actions">
         <button className="button small" onClick={() => openReport()}>

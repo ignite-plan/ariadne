@@ -82,6 +82,9 @@ const api: AriadneApi = {
   app: {
     version: invoke('app:version'),
     checkUpdate: invoke('app:checkUpdate'),
+    downloadUpdate: invoke('app:downloadUpdate'),
+    installUpdate: invoke('app:installUpdate'),
+    updateState: invoke('app:updateState'),
     openExternal: invoke('app:openExternal'),
     testNotification: invoke('app:testNotification'),
   },

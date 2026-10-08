@@ -349,7 +349,17 @@ export interface UpdateInfo {
   current: string
   latest: string
   url: string
+  // 앱 안에서 받을 dmg (없으면 릴리스 페이지에서 직접 받는다)
+  asset?: { url: string; name: string; size: number }
 }
+
+// 앱 안 업데이트 진행: 받기 → 준비(dmg에서 꺼내 확인) → ready(다시 시작하면 바뀜)
+export type UpdateState =
+  | { phase: 'idle' }
+  | { phase: 'download'; loaded?: number; total?: number }
+  | { phase: 'prepare' }
+  | { phase: 'ready'; version: string }
+  | { phase: 'error'; message: string }
 
 export interface BuildResult {
   docx: string
@@ -478,6 +488,11 @@ export interface AriadneApi {
   app: {
     version(): Promise<string>
     checkUpdate(): Promise<UpdateInfo | null>
+    // 새 버전을 받아 꺼내 둔다 (진행은 update-state). 끝나면 ready
+    downloadUpdate(): Promise<UpdateState>
+    // 앱을 끝내고 새 버전으로 바꿔 끼운 뒤 다시 연다. 돌고 있는 작업이 있으면 거절
+    installUpdate(): Promise<void>
+    updateState(): Promise<UpdateState>
     openExternal(url: string): Promise<void>
     testNotification(): Promise<void>
   }
@@ -489,6 +504,7 @@ export interface AriadneApi {
   // 지금 STG 로그인 프로필을 쓰는 작업 이름이 바뀔 때
   on(event: 'stg-tasks', listener: (names: string[]) => void): () => void
   on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
+  on(event: 'update-state', listener: (state: UpdateState) => void): () => void
   on(event: 'pandoc-progress', listener: (progress: PandocProgress) => void): () => void
   on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
   on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void
