@@ -105,7 +105,9 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     for (const chapter of repo.chapters) {
       if (HAND_EDITED.has(chapter.dir)) continue
       for (const file of chapter.sections) {
-        const read = (r: string) => stripFrontMatter(readFileSync(join(r, 'manuals/bo', chapter.dir, file), 'utf8'))
+        // 리포의 BO는 형광펜을 유지하기 전에 가져온 것이라 형광펜 표기를 빼고 비교한다
+        const read = (r: string) =>
+          stripFrontMatter(readFileSync(join(r, 'manuals/bo', chapter.dir, file), 'utf8')).replace(/\[([^\]\n]+)\]\{\.mark\}/g, '$1')
         assert.equal(read(root), read(repoRoot), `${chapter.dir}/${file}`)
       }
     }
@@ -116,6 +118,10 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     }
     assert.ok(existsSync(join(root, 'manuals/bo/reference.docx')))
     assert.ok(existsSync(join(root, 'manuals/bo/shots.ts')))
+    // Word 노란 형광펜이 본문에 남는다 (제목 줄에는 없음)
+    const all = repo.chapters.flatMap((c) => c.sections.map((f) => readFileSync(join(root, 'manuals/bo', c.dir, f), 'utf8'))).join('\n')
+    assert.ok((all.match(/\]\{\.mark\}/g) ?? []).length > 100)
+    assert.ok(!/^#.*\{\.mark\}/m.test(all))
   })
 })
 

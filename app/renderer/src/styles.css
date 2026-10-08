@@ -1207,6 +1207,12 @@ details.advanced summary {
 .cm-comment {
   color: var(--text-3);
 }
+/* 노란 형광펜 [글자]{.mark} — Word 형광펜과 같은 노랑 */
+.cm-hl {
+  background: #fff200;
+  color: #1a1a1a;
+  border-radius: 2px;
+}
 .cm-todo,
 .cm-todo .cm-comment {
   background: var(--todo-soft);
@@ -1290,6 +1296,15 @@ details.advanced summary {
 }
 .page p > img {
   vertical-align: -3px;
+}
+/* 가운데 정렬 이미지 {align=center} (Word의 가운데 정렬 그림 스타일과 같게) */
+.page img[data-align='center'] {
+  display: block;
+  margin: 8px auto;
+}
+.page mark {
+  background: #ffff00;
+  color: inherit;
 }
 .page .todo {
   display: inline-block;

@@ -596,11 +596,19 @@ export function Workbench({ onReset }: { onReset: () => void }) {
                       label="버튼 이름 [Save]"
                       onClick={() => editor.current?.wrap('**\\[', '\\]**', 'Button')}
                     />
+                    <ToolButton icon="highlight" label="노란 형광펜 (선택한 글자, 다시 누르면 해제)" onClick={() => editor.current?.toggleMark()} />
                     <span className="divider" />
                     <ToolButton icon="list" label="목록" onClick={() => editor.current?.prefixLines('- ')} />
                     <ToolButton icon="indent" label="하위 목록" onClick={() => editor.current?.prefixLines('  ')} />
                     <span className="divider" />
                     <ToolButton icon="image" label="이미지 넣기" onClick={() => setDialog({ type: 'image' })} />
+                    <ToolButton
+                      icon="center"
+                      label="이미지 가운데 정렬 (커서가 있는 줄의 이미지, 다시 누르면 해제)"
+                      onClick={() => {
+                        if (editor.current && !editor.current.toggleCenter()) toast.show('info', '이미지가 있는 줄에 커서를 두고 누르세요')
+                      }}
+                    />
                     <ToolButton
                       icon="flag"
                       label="TODO 남기기 (확인 필요한 내용)"

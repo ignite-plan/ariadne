@@ -40,6 +40,7 @@ export function ImageDialog({
   const [id, setId] = useState('')
   const [idTouched, setIdTouched] = useState(false)
   const [size, setSize] = useState<(typeof SIZES)[number]['id']>('full')
+  const [center, setCenter] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -75,7 +76,8 @@ export function ImageDialog({
       }
       if (!imageId) throw new Error('이미지를 고르세요')
       const preset = SIZES.find((s) => s.id === size)!
-      const md = `![${preset.inline ? '' : caption}](images/${imageId}.png){width=${preset.width}}`
+      const align = center && !preset.inline ? ' align=center' : ''
+      const md = `![${preset.inline ? '' : caption}](images/${imageId}.png){width=${preset.width}${align}}`
       onInsert(preset.inline ? md : `\n\n${md}\n\n`)
     } catch (e) {
       setError(errorMessage(e))
@@ -174,6 +176,15 @@ export function ImageDialog({
           </label>
         ))}
       </fieldset>
+      <label className="check-inline">
+        <input
+          type="checkbox"
+          checked={center && !SIZES.find((s) => s.id === size)?.inline}
+          disabled={SIZES.find((s) => s.id === size)?.inline}
+          onChange={(e) => setCenter(e.target.checked)}
+        />
+        가운데 정렬 (Word에서 이미지를 가운데에)
+      </label>
     </Modal>
   )
 }
