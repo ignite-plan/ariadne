@@ -28,7 +28,16 @@ import { explainFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
 import { MCP_NAME, startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
-import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, MCP_ATLASSIAN_JIRA_READ_TOOLS, readClaudeMcpServers } from './lib/run-mcp.ts'
+import {
+  bareFlags,
+  BUILTIN_TOOLS,
+  buildRunMcpConfig,
+  canRunBare,
+  claudeConfigFile,
+  MCP_ATLASSIAN_JIRA_READ_TOOLS,
+  readClaudeMcpServers,
+  type McpServerConfig,
+} from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
@@ -82,7 +91,7 @@ export async function checkDraft(
     const { servers, checkedAt } = await mcpServers(cli, refresh)
     return { claude, atlassian: servers.filter((s) => isAtlassianServer(s.name)), atlassianCheckedAt: checkedAt, auth: authInfo }
   } catch (error) {
-    return { claude: { path: cli.path, version: cli.version }, atlassian: [], auth: authInfo, error: (error as Error).message }
+    return { claude, atlassian: [], auth: authInfo, error: (error as Error).message }
   }
 }
 
@@ -134,10 +143,31 @@ export async function startDraft(options: DraftOptions): Promise<DraftResult> {
 
 type Job = NonNullable<typeof current>
 
-async function draft(
-  { ref, input, claudePath, claudeAuth = 'auto', model: modelSetting, effort, codeDir, captureBaseUrl, profileDir, openTab, claudeDataDir, onEvent }: DraftOptions,
-  job: Job,
-): Promise<DraftResult> {
+// 이 작업의 모든 Claude 실행이 같이 쓰는 것
+interface RunContext {
+  ref: ManualRef
+  cli: ClaudeCli
+  root: string
+  // 연결된 Atlassian MCP 서버 이름 (기획서를 쓰지 않는 작업이면 비어 있다)
+  confluence: string[]
+  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
+  registered: Record<string, McpServerConfig>
+  // 개발자 PC의 dealerhub-web (읽기만)
+  code?: string
+  bare: boolean
+  configDir?: string
+  model?: string
+  effort?: ClaudeEffort
+  // STG 탐색 브라우저 (Claude 실행마다 하나, 처음 STG 도구를 부를 때 연다)
+  newStg: () => StgSession
+  // 공유 Chrome의 탭을 빌려 쓰는지 (아니면 프로필로 Chrome을 하나만 띄울 수 있다)
+  sharedBrowser: boolean
+}
+
+// Claude Code·Atlassian 연결을 확인하고 실행 방식을 정한다
+async function prepareRun(
+  { ref, input, claudePath, claudeAuth = 'auto', model, effort, codeDir, captureBaseUrl, profileDir, openTab, claudeDataDir, onEvent }: DraftOptions,
+): Promise<RunContext> {
   // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
   const cli = await findClaude(claudePath || undefined, true, claudeAuth)
   if (!cli) throw new Error('Claude Code CLI(claude)를 찾지 못했습니다. 설정 → 환경 점검을 확인하세요')
@@ -158,30 +188,40 @@ async function draft(
       onEvent({ kind: 'warning', text: 'Claude Code에 연결된 Atlassian(Confluence) MCP가 없습니다. 기획서 없이 STG 화면만으로 쓰고 정책은 TODO로 남깁니다' })
     }
   }
-  const code = codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined
   const root = realpathSync(ref.root)
-  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
   const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
-  // 개인 Claude 설정(CLAUDE.md, hooks, 플러그인, 자동 메모리)이 앱 작업에 섞이지 않게 --bare로 실행한다.
-  // --bare는 ANTHROPIC_API_KEY로만 인증하고 MCP는 넘긴 것만 쓰므로, 키가 있고 Atlassian 설정을 모두 옮길 수 있을 때만
-  const bare = Boolean(claudeDataDir) && cli.auth === 'apiKey' && Boolean(cli.env.ANTHROPIC_API_KEY) && confluence.every((name) => registered[name])
-  const configDir = bare ? claudeDataDir : undefined
+  const bare = canRunBare({ dataDir: claudeDataDir, auth: cli.auth, hasKey: Boolean(cli.env.ANTHROPIC_API_KEY), atlassian: confluence, registered })
   if (bare) mkdirSync(claudeDataDir!, { recursive: true })
-  // withConfluence: false면 Confluence 도구를 주지 않는다 (기획서 요약을 받은 화면 작업)
-  const allowedTools = (extra: string[] = [], { withConfluence = true } = {}) => [
-    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : [], MCP_NAME, configDir),
-    ...extra,
-  ]
+  return {
+    ref,
+    cli,
+    root,
+    confluence,
+    registered,
+    code: codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined,
+    bare,
+    configDir: bare ? claudeDataDir : undefined,
+    model: model?.trim() || undefined,
+    effort,
+    newStg: () => new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab }),
+    sharedBrowser: Boolean(openTab),
+  }
+}
 
-  // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
-  const model = modelSetting?.trim() || undefined
+// 허용 도구. withConfluence: false면 Confluence 도구를 주지 않는다 (기획서 요약을 받은 화면 작업)
+function allowedTools(ctx: RunContext, { withConfluence = true } = {}) {
+  return buildAllowedTools(ctx.ref.manual, withConfluence ? ctx.confluence : [], ctx.root, ctx.code ? [ctx.code] : [], MCP_NAME, ctx.configDir)
+}
+
+// Claude 하나 실행: 그 실행 전용 Ariadne MCP → claude -p → 정리
+function createRunOne(ctx: RunContext, job: Job, onEvent: (event: DraftEvent) => void): RunOne {
+  const { ref, cli } = ctx
   let warnedLoose = false
-
-  const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true, withJira = false }) => {
+  return async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true, withJira = false }) => {
     const mcp = await startAriadneMcp({ ref, ...mcpDeps })
     const work = mkdtempSync(join(tmpdir(), 'ariadne-draft-'))
     const mcpConfigFile = join(work, 'mcp.json')
-    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? confluence : [], registered, { jira: withJira })
+    const run = buildRunMcpConfig(mcp.config.mcpServers, withConfluence ? ctx.confluence : [], ctx.registered, { jira: withJira })
     if (!run.strict && !warnedLoose) {
       warnedLoose = true
       log.write('warn', 'mcp', `Atlassian MCP 설정을 찾지 못해 등록된 MCP를 모두 싣고 실행합니다: ${run.missing.join(', ')}`)
@@ -204,10 +244,9 @@ async function draft(
         extraArgs,
         disallowedTools,
         strictMcp: run.strict,
-        bare: bare && run.strict,
-        extraEnv: configDir && run.strict ? { CLAUDE_CONFIG_DIR: configDir } : undefined,
-        model,
-        effort,
+        ...bareFlags(ctx.bare, run.strict, ctx.configDir),
+        model: ctx.model,
+        effort: ctx.effort,
         builtinTools: BUILTIN_TOOLS,
         onEvent: (event) => {
           guard.onEvent(event)
@@ -234,32 +273,23 @@ async function draft(
       rmSync(work, { recursive: true, force: true })
     }
   }
+}
 
-  if (input.mode === 'refresh' && input.targets?.length) {
-    return refresh({
-      ref,
-      input,
-      captureBaseUrl,
-      profileDir,
-      openTab,
-      onEvent,
-      job,
-      runOne,
-      allowedTools,
-      code,
-      confluence: confluence.length > 0,
-      confluenceServers: confluence,
-    })
-  }
+async function draft(options: DraftOptions, job: Job): Promise<DraftResult> {
+  const { ref, input, captureBaseUrl, profileDir, openTab, onEvent } = options
+  const ctx = await prepareRun(options)
+  const runOne = createRunOne(ctx, job, onEvent)
+
+  if (input.mode === 'refresh' && input.targets?.length) return refresh({ ctx, input, onEvent, job, runOne })
 
   let stg: StgSession | undefined
   try {
     onEvent({ kind: 'status', text: 'Claude 시작' })
     const result = await runOne({
-      prompt: composePrompt(skillText(ref.root, input.mode, BUNDLED), taskText(ref, input, { codeDir: code })),
-      tools: allowedTools(),
+      prompt: composePrompt(skillText(ref.root, input.mode, BUNDLED), taskText(ref, input, { codeDir: ctx.code })),
+      tools: allowedTools(ctx),
       mcp: {
-        stg: () => (stg ??= new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab })),
+        stg: () => (stg ??= ctx.newStg()),
         // 장면 하나만 채우는 작업이면 그 장면만 저장할 수 있다
         videoScene:
           input.mode === 'video-scene' && input.video
@@ -310,40 +340,37 @@ type RunOne = (args: {
   denials: string[]
 }>
 
+// 여러 Claude 실행의 비용·막은 요청 합계
+function totals() {
+  const sum = { costUsd: 0, denials: [] as string[] }
+  return {
+    sum,
+    add: (result: Awaited<ReturnType<RunOne>>) => {
+      sum.costUsd += result.costUsd ?? 0
+      sum.denials.push(...result.denials)
+    },
+  }
+}
+
 // 최신화: 기획서 요약 한 번 → 화면마다 Claude를 따로 (동시에 몇 개), STG 브라우저 하나를 탭으로 나눠 쓴다
 async function refresh({
-  ref,
+  ctx,
   input,
-  captureBaseUrl,
-  profileDir,
-  openTab,
   onEvent,
   job,
   runOne,
-  allowedTools,
-  code,
-  confluence,
-  confluenceServers,
 }: {
-  ref: ManualRef
+  ctx: RunContext
   input: DraftInput
-  captureBaseUrl: string
-  profileDir: string
-  openTab?: OpenTab
   onEvent: (event: DraftEvent) => void
   job: Job
   runOne: RunOne
-  allowedTools: (extra?: string[], options?: { withConfluence?: boolean }) => string[]
-  code?: string
-  confluence: boolean
-  confluenceServers: string[]
 }): Promise<DraftResult> {
+  const { ref } = ctx
   const started = Date.now()
   const targets = input.targets ?? []
-  const stgSession = () => new StgSession({ ...ref, baseUrl: captureBaseUrl, profileDir, openTab })
   const digestFile = digestPath(ref, input.menu)
-  let costUsd = 0
-  const denials: string[] = []
+  const cost = totals()
   const summaries = new Map<string, DraftSummary>()
   const failures: string[] = []
 
@@ -355,7 +382,7 @@ async function refresh({
       force: input.force,
       scoped,
       // 공유 Chrome이 없으면(단독 실행) 프로필 Chrome을 하나만 열 수 있어 한 화면씩
-      concurrency: openTab ? REFRESH_CONCURRENCY : 1,
+      concurrency: ctx.sharedBrowser ? REFRESH_CONCURRENCY : 1,
       isCancelled: () => job.cancelled,
       onEvent,
       readMeta: (target) => readSectionDoc(ref, target).meta,
@@ -374,15 +401,15 @@ async function refresh({
       },
       runSpec: async () => {
         // Confluence가 없으면 요약을 만들 수 없다. 지난 요약도 최신인지 알 수 없어 쓰지 않는다
-        if (!confluence) return undefined
+        if (!ctx.confluence.length) return undefined
         // 범위를 정한 요약은 일부만 담으므로 지난 요약을 쓰지도, 저장하지도 않는다
         const previous = scoped ? undefined : readDigest(digestFile)
         const result = await runOne({
           prompt: composePrompt(namedSkillText(ref.root, 'manual-spec', BUNDLED, { bundledFirst: true }), specTaskText(ref, input, { previous: previous?.pages })),
           // 읽기만. 요약은 마지막 응답으로 받고 파일은 앱이 쓴다
           tools: [
-            ...allowedTools().filter((tool) => !/^(Edit|Write)\(/.test(tool)),
-            ...(jira ? confluenceServers.flatMap((s) => MCP_ATLASSIAN_JIRA_READ_TOOLS.map((t) => `${mcpServerRule(s)}__${t}`)) : []),
+            ...allowedTools(ctx).filter((tool) => !/^(Edit|Write)\(/.test(tool)),
+            ...(jira ? ctx.confluence.flatMap((s) => MCP_ATLASSIAN_JIRA_READ_TOOLS.map((t) => `${mcpServerRule(s)}__${t}`)) : []),
           ],
           withJira: jira,
           // 막힌 도구를 계속 다시 시도하는 일 없이 끝나게
@@ -396,8 +423,7 @@ async function refresh({
           },
           target: '기획서 요약',
         })
-        costUsd += result.costUsd ?? 0
-        denials.push(...result.denials)
+        cost.add(result)
         if (!result.ok) throw new Error(result.text)
         const reply = parseSpecReply(result.text, input.menu)
         if (!reply) throw new Error('기획서 요약 응답에서 JSON을 읽지 못했습니다')
@@ -418,22 +444,21 @@ async function refresh({
           // 기획서 요약을 받았으면 Confluence를 다시 뒤지지 않게 도구를 빼고 막는다 (요약에 없는 정책은 TODO)
           const withConfluence = !brief
           const result = await runOne({
-            prompt: composePrompt(skillText(ref.root, 'refresh', BUNDLED), taskText(ref, { ...input, targets: [target] }, { codeDir: code, brief })),
-            tools: allowedTools([], { withConfluence }),
-            disallowedTools: withConfluence ? [] : confluenceServers.map(mcpServerRule),
+            prompt: composePrompt(skillText(ref.root, 'refresh', BUNDLED), taskText(ref, { ...input, targets: [target] }, { codeDir: ctx.code, brief })),
+            tools: allowedTools(ctx, { withConfluence }),
+            disallowedTools: withConfluence ? [] : ctx.confluence.map(mcpServerRule),
             withConfluence,
             extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
             limits: SCREEN_LIMITS,
             mcp: {
-              stg: () => (stg ??= stgSession()),
+              stg: () => (stg ??= ctx.newStg()),
               noShots: scoped
                 ? '반영 범위를 정한 최신화에서는 캡처를 다시 찍지 않습니다 (STG에 범위 밖 변경이 있을 수 있음). 이미지가 맞지 않으면 TODO로 남기세요'
                 : undefined,
             },
             target,
           })
-          costUsd += result.costUsd ?? 0
-          denials.push(...result.denials)
+          cost.add(result)
           const summary = parseSummary(result.text)
           if (summary) summaries.set(target, summary)
           if (!result.ok) failures.push(`${target}: ${result.text}`)
@@ -445,8 +470,7 @@ async function refresh({
       },
     })
   return refreshResult(ref.manual, batch.screens, batch.digest, summaries, {
-    costUsd,
-    denials,
+    ...cost.sum,
     failures,
     durationMs: Date.now() - started,
     cancelled: job.cancelled,

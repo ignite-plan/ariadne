@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, it } from 'node:test'
-import { buildRunMcpConfig, claudeConfigFile, confluenceReadOnly, readClaudeMcpServers } from '../run-mcp.ts'
+import { bareFlags, buildRunMcpConfig, canRunBare, claudeConfigFile, confluenceReadOnly, readClaudeMcpServers } from '../run-mcp.ts'
 
 const atlassian = { type: 'stdio', command: '/Users/u/.mcp-atlassian-venv/bin/mcp-atlassian', args: [], env: { CONFLUENCE_URL: 'https://x', CONFLUENCE_API_TOKEN: 't' } }
 const ariadne = { ariadne: { type: 'http', url: 'http://127.0.0.1:1/mcp' } }
@@ -59,5 +59,25 @@ describe('앱 작업의 MCP 설정', () => {
     const loose = buildRunMcpConfig(ariadne, ['claude.ai Atlassian'], registered)
     assert.equal(loose.strict, false)
     assert.deepEqual(loose.missing, ['claude.ai Atlassian'])
+  })
+})
+
+describe('--bare 실행 판단', () => {
+  const registered = { 'mcp-atlassian-hmg': { command: 'uvx', args: ['mcp-atlassian'] } }
+  const base = { dataDir: '/data/claude', auth: 'apiKey' as const, hasKey: true, atlassian: ['mcp-atlassian-hmg'], registered }
+
+  it('API 키가 있고 Atlassian 설정을 모두 옮길 수 있을 때만 --bare', () => {
+    assert.equal(canRunBare(base), true)
+    assert.equal(canRunBare({ ...base, dataDir: undefined }), false)
+    assert.equal(canRunBare({ ...base, auth: 'login' }), false)
+    assert.equal(canRunBare({ ...base, hasKey: false }), false)
+    assert.equal(canRunBare({ ...base, atlassian: ['claude.ai Atlassian'] }), false)
+    assert.equal(canRunBare({ ...base, atlassian: [] }), true)
+  })
+
+  it('이번 실행을 strict로 못 하면 --bare·CLAUDE_CONFIG_DIR을 쓰지 않는다', () => {
+    assert.deepEqual(bareFlags(true, true, '/data/claude'), { bare: true, extraEnv: { CLAUDE_CONFIG_DIR: '/data/claude' } })
+    assert.deepEqual(bareFlags(true, false, '/data/claude'), { bare: false, extraEnv: undefined })
+    assert.deepEqual(bareFlags(false, true, undefined), { bare: false, extraEnv: undefined })
   })
 })
