@@ -58,6 +58,8 @@ describe('허용 도구', () => {
     // 실제 Claude Code 폴더 이름 규칙: /private/tmp/claude-501/-Users-x → -private-tmp-claude-501--Users-x
     assert.ok(tools.includes('Read(~/.claude/projects/-Users-kim-Documents-Ariadne/**)'))
     assert.equal(sessionDataDir('/private/tmp/claude-501/-Users-x'), '~/.claude/projects/-private-tmp-claude-501--Users-x')
+    // 앱 전용 설정 폴더(--bare)면 그 아래, 절대 경로 규칙(//)
+    assert.equal(sessionDataDir('/w/x', '/Users/u/Library/Application Support/Ariadne/claude'), '//Users/u/Library/Application Support/Ariadne/claude/projects/-w-x')
     assert.ok(!tools.some((t) => t.startsWith('Web')))
   })
 })
@@ -144,6 +146,7 @@ next()
       builtinTools: ['Read', 'Edit'],
       model: 'claude-sonnet-5[1m]',
       effort: 'medium',
+      bare: true,
       onEvent: (e) => events.push(e),
     })
     const result = await done
@@ -159,6 +162,7 @@ next()
     assert.ok(args.includes('--strict-mcp-config'))
     assert.equal(args[args.indexOf('--model') + 1], 'claude-sonnet-5[1m]')
     assert.equal(args[args.indexOf('--effort') + 1], 'medium')
+    assert.ok(args.includes('--bare'))
     assert.deepEqual(args.slice(args.indexOf('--tools'), args.indexOf('--tools') + 3), ['--tools', 'Read,Edit', '--disable-slash-commands'])
   })
 

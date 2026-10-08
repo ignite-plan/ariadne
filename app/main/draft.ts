@@ -1,5 +1,5 @@
 // "Claude로 초안 만들기" 한 번 실행을 관리한다: Ariadne MCP 시작 → claude -p → 이벤트 전달 → 정리
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { manualDir, type ManualRef } from '../../src/core/manual.ts'
@@ -76,7 +76,7 @@ export async function checkDraft(
   const cli = await findClaude(claudePath || undefined, refresh, auth)
   const authInfo = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
-  const claude = { path: cli.path, version: cli.version }
+  const claude = { path: cli.path, version: cli.version, managed: cli.managed }
   if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }
   try {
     const { servers, checkedAt } = await mcpServers(cli, refresh)
@@ -110,6 +110,8 @@ interface DraftOptions {
   profileDir: string
   // 탭 여는 방법. 앱은 공유 Chrome의 탭을 넘긴다 (STG 탐색·영상 실행해 보기가 각자 탭을 쓰고, 영상 만들기와 동시에 돈다)
   openTab?: OpenTab
+  // 앱 전용 Claude 설정 폴더 (--bare로 실행할 때 CLAUDE_CONFIG_DIR. 대화 기록도 여기에 쌓인다)
+  claudeDataDir?: string
   onEvent: (event: DraftEvent) => void
 }
 
@@ -133,7 +135,7 @@ export async function startDraft(options: DraftOptions): Promise<DraftResult> {
 type Job = NonNullable<typeof current>
 
 async function draft(
-  { ref, input, claudePath, claudeAuth = 'auto', model: modelSetting, effort, codeDir, captureBaseUrl, profileDir, openTab, onEvent }: DraftOptions,
+  { ref, input, claudePath, claudeAuth = 'auto', model: modelSetting, effort, codeDir, captureBaseUrl, profileDir, openTab, claudeDataDir, onEvent }: DraftOptions,
   job: Job,
 ): Promise<DraftResult> {
   // ~/.zshrc를 고친 뒤 앱을 다시 열지 않아도 최신 키·모델로 실행하도록 매번 로그인 셸을 다시 읽는다
@@ -158,16 +160,21 @@ async function draft(
   }
   const code = codeDir && existsSync(codeDir) ? realpathSync(codeDir) : undefined
   const root = realpathSync(ref.root)
+  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
+  const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
+  // 개인 Claude 설정(CLAUDE.md, hooks, 플러그인, 자동 메모리)이 앱 작업에 섞이지 않게 --bare로 실행한다.
+  // --bare는 ANTHROPIC_API_KEY로만 인증하고 MCP는 넘긴 것만 쓰므로, 키가 있고 Atlassian 설정을 모두 옮길 수 있을 때만
+  const bare = Boolean(claudeDataDir) && cli.auth === 'apiKey' && Boolean(cli.env.ANTHROPIC_API_KEY) && confluence.every((name) => registered[name])
+  const configDir = bare ? claudeDataDir : undefined
+  if (bare) mkdirSync(claudeDataDir!, { recursive: true })
   // withConfluence: false면 Confluence 도구를 주지 않는다 (기획서 요약을 받은 화면 작업)
   const allowedTools = (extra: string[] = [], { withConfluence = true } = {}) => [
-    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : []),
+    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : [], 'ariadne', configDir),
     ...extra,
   ]
 
   // Claude 하나 실행: 그 작업 전용 Ariadne MCP → claude -p → 정리
   const model = modelSetting?.trim() || undefined
-  // PC에 등록된 MCP 서버 설정 (Atlassian 설정을 그대로 옮겨 strict로 실행하려고)
-  const registered = readClaudeMcpServers(claudeConfigFile(cli.env), [...new Set([ref.root, root])])
   let warnedLoose = false
 
   const runOne: RunOne = async ({ prompt, tools, mcp: mcpDeps, target, extraArgs, disallowedTools, limits, withConfluence = true, withJira = false }) => {
@@ -197,6 +204,8 @@ async function draft(
         extraArgs,
         disallowedTools,
         strictMcp: run.strict,
+        bare: bare && run.strict,
+        extraEnv: configDir && run.strict ? { CLAUDE_CONFIG_DIR: configDir } : undefined,
         model,
         effort,
         builtinTools: BUILTIN_TOOLS,

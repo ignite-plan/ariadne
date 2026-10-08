@@ -47,6 +47,15 @@ export interface ClaudeCli {
   auth: ClaudeAuth
   // apiKey일 때 키를 어디서 찾았는지 (값은 담지 않는다)
   keySource: 'shell' | 'env' | null
+  // 앱이 설치한 고정 버전 Claude Code인지 (아니면 내 PC에 설치된 claude)
+  managed: boolean
+}
+
+// 앱이 설치한 Claude Code 위치 (ipc가 시작할 때 정한다). 있으면 내 PC의 claude보다 먼저 쓴다
+let managedClaude: string | undefined
+export function setManagedClaude(path: string | undefined) {
+  managedClaude = path
+  cache.clear()
 }
 
 const cache = new Map<ClaudeAuthSetting, ClaudeCli | null>()
@@ -61,6 +70,7 @@ export async function findClaude(override?: string, refresh = false, setting: Cl
   const candidates = [
     override,
     process.env.ARIADNE_CLAUDE_PATH,
+    managedClaude,
     shell.claude,
     join(home, '.local/bin/claude'),
     join(home, '.claude/local/claude'),
@@ -80,6 +90,7 @@ export async function findClaude(override?: string, refresh = false, setting: Cl
         env,
         auth,
         keySource: auth === 'apiKey' ? keySource(process.env, shell.vars) : null,
+        managed: Boolean(managedClaude) && path === managedClaude,
       }
       if (!override) cached.set(found)
       return found
@@ -151,20 +162,29 @@ export const DISALLOWED_TOOLS = ['Bash', 'WebFetch', 'WebSearch', 'Task', 'Agent
 
 // Claude Code는 큰 도구 결과(예: 긴 Confluence 페이지)를 ~/.claude/projects/<작업 폴더 이름>/ 아래 파일로 저장하고 Read로 읽는다.
 // 폴더 이름은 작업 폴더 경로의 영문·숫자 외 문자를 -로 바꾼 것이다. 다른 작업의 기록은 읽지 못하게 이 폴더만 연다
-export function sessionDataDir(cwd: string) {
-  return `~/.claude/projects/${cwd.replace(/[^A-Za-z0-9]/g, '-')}`
+// configDir: 앱 전용 Claude 설정 폴더(CLAUDE_CONFIG_DIR)를 쓰면 그 아래 projects. 절대 경로 규칙은 //로 시작한다
+export function sessionDataDir(cwd: string, configDir?: string) {
+  const slug = cwd.replace(/[^A-Za-z0-9]/g, '-')
+  return configDir ? `/${configDir.replace(/\/+$/, '')}/projects/${slug}` : `~/.claude/projects/${slug}`
 }
 
 // readDirs: 작업 폴더 밖에서 읽기만 허용할 폴더 (예: 개발자의 dealerhub-web). 절대 경로 규칙은 //로 시작한다
 // MCP 서버 도구 전체를 가리키는 권한 규칙 이름 (mcp__<서버>)
 export const mcpServerRule = (server: string) => `mcp__${server.replace(/[^A-Za-z0-9_-]/g, '_')}`
 
-export function buildAllowedTools(manual: string, atlassianServers: string[], cwd: string, readDirs: string[] = [], ariadne = 'ariadne') {
+export function buildAllowedTools(
+  manual: string,
+  atlassianServers: string[],
+  cwd: string,
+  readDirs: string[] = [],
+  ariadne = 'ariadne',
+  configDir?: string,
+) {
   const writable = `./manuals/${manual}/**`
   return [
     // 작업 폴더와 이번 작업의 큰 결과 폴더만 읽는다 (Glob/Grep도 Read 규칙을 따른다)
     'Read(./**)',
-    `Read(${sessionDataDir(cwd)}/**)`,
+    `Read(${sessionDataDir(cwd, configDir)}/**)`,
     ...readDirs.map((dir) => `Read(/${dir.replace(/\/+$/, '')}/**)`),
     'Glob',
     'Grep',
@@ -289,6 +309,10 @@ export interface RunOptions {
   builtinTools?: string[]
   // 없으면 ANTHROPIC_MODEL 또는 Claude Code 기본
   model?: string
+  // 개인 설정(CLAUDE.md, hooks, 플러그인, 자동 메모리)을 읽지 않는다. 인증은 ANTHROPIC_API_KEY만, MCP는 --mcp-config만
+  bare?: boolean
+  // 이번 실행에만 더할 환경변수 (예: CLAUDE_CONFIG_DIR로 대화 기록을 앱 폴더에)
+  extraEnv?: Record<string, string>
   // 생각량 (low/medium/high). 없으면 Claude Code 기본
   effort?: string
 }
@@ -306,6 +330,8 @@ export function runClaude({
   builtinTools,
   model,
   effort,
+  bare = false,
+  extraEnv,
 }: RunOptions) {
   const child = spawn(
     cli.path,
@@ -319,6 +345,7 @@ export function runClaude({
       'default',
       '--mcp-config',
       mcpConfigFile,
+      ...(bare ? ['--bare'] : []),
       ...(strictMcp ? ['--strict-mcp-config'] : []),
       ...(model ? ['--model', model] : []),
       ...(effort ? ['--effort', effort] : []),
@@ -330,7 +357,7 @@ export function runClaude({
       ...allowedTools,
       ...extraArgs,
     ],
-    { cwd, env: cli.env, stdio: ['ignore', 'pipe', 'pipe'] },
+    { cwd, env: extraEnv ? { ...cli.env, ...extraEnv } : cli.env, stdio: ['ignore', 'pipe', 'pipe'] },
   )
   let buffer = ''
   let stderr = ''

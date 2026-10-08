@@ -181,7 +181,7 @@ export function DraftPanel({
               detail={
                 !check?.claude
                   ? '설치되어 있지 않습니다 (설정 → 환경 점검)'
-                  : `${check.claude.version} · ${
+                  : `${check.claude.version}${check.claude.managed ? ' (앱 전용)' : ' (내 PC — 설정 → 환경 점검에서 앱 전용 설치 권장)'} · ${
                       check.auth.mode === 'login'
                         ? 'claude.ai 로그인'
                         : check.auth.keySource
