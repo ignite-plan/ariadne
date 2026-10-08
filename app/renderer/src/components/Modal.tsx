@@ -48,6 +48,7 @@ export function Confirm({
   message,
   confirmLabel,
   danger,
+  width = 420,
   onConfirm,
   onCancel,
 }: {
@@ -55,6 +56,7 @@ export function Confirm({
   message: ReactNode
   confirmLabel: string
   danger?: boolean
+  width?: number
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -62,7 +64,7 @@ export function Confirm({
     <Modal
       title={title}
       onClose={onCancel}
-      width={420}
+      width={width}
       footer={
         <>
           <button className="button" onClick={onCancel}>

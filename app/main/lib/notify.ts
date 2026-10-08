@@ -1,6 +1,7 @@
 // 오래 걸리는 작업이 끝났을 때 띄울 알림 문구와, 띄울지 여부. Electron에 의존하지 않는다 (단위 테스트 대상)
 import { basename } from 'node:path'
 import type { Channel } from '../../shared/api.ts'
+import { DRAFT_MODES, draftMode } from '../../shared/draft-mode.ts'
 
 // background: 다른 앱을 보고 있을 때만 (기본), always: 항상, off: 끄기
 export type NotifyMode = 'background' | 'always' | 'off'
@@ -24,13 +25,6 @@ const firstLine = (text: string, max = 120) => {
   return line.length > max ? `${line.slice(0, max - 1)}…` : line
 }
 
-const DRAFT_LABEL: Record<string, string> = {
-  create: 'Claude 초안 만들기',
-  refresh: 'Claude 최신화',
-  video: 'Claude 영상 시나리오 초안',
-  'video-scene': 'Claude 영상 장면 채우기',
-}
-
 // 채널별 작업 이름. 여기에 없는 채널은 알리지 않는다
 const TASK_LABEL: Partial<Record<Channel, string>> = {
   'workspace:clone': '매뉴얼 내려받기',
@@ -44,7 +38,7 @@ const TASK_LABEL: Partial<Record<Channel, string>> = {
 type AnyRecord = Record<string, any>
 
 export function taskLabel(channel: string, args: unknown[]) {
-  if (channel === 'draft:start') return DRAFT_LABEL[(args[0] as AnyRecord)?.mode ?? 'create'] ?? DRAFT_LABEL.create
+  if (channel === 'draft:start') return (DRAFT_MODES[draftMode((args[0] ?? {}) as AnyRecord)] ?? DRAFT_MODES.create).notify
   if (channel === 'video:run') return (args[1] as AnyRecord)?.preview ? '영상 실행해 보기' : '가이드 영상 만들기'
   return TASK_LABEL[channel as Channel]
 }

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isSessionExpired } from '../../../../src/core/stg-url.ts'
-import { assetUrl, type CaptureProgress, type CaptureReport, type SessionInfo, type ShotInfo } from '../../../shared/api.ts'
+import { assetUrl, type CaptureProgress, type CaptureReport, type ShotInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
+import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Progress } from './Progress.tsx'
 import { StgSession } from './StgSession.tsx'
@@ -21,7 +22,7 @@ export function CapturePanel({
   const toast = useToast()
   const [shots, setShots] = useState<ShotInfo[]>()
   const [loadError, setLoadError] = useState('')
-  const [session, setSession] = useState<SessionInfo>({ exists: false })
+  const { session, reloadSession } = useTasks()
   const [scope, setScope] = useState<'section' | 'all'>(currentSection ? 'section' : 'all')
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [running, setRunning] = useState(false)
@@ -56,6 +57,7 @@ export function CapturePanel({
       setStamp(Date.now())
       if (result.failed.some((f) => isSessionExpired(f.error))) {
         toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
+        void reloadSession()
       }
     } catch (e) {
       toast.error(e)
@@ -97,7 +99,7 @@ export function CapturePanel({
 
       <div className="capture-body">
         <aside className="capture-side">
-          <StgSession disabled={running} onChange={setSession} />
+          <StgSession disabled={running} />
 
           <div className="segmented small">
             <button

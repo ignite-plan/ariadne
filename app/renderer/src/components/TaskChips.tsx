@@ -1,17 +1,19 @@
 // 상단 바의 작업 표시. 숨겨 둔 Claude 작업과 영상 만들기를 보여 주고, 누르면 그 패널을 연다
 import { formatClock } from '../../../shared/format.ts'
 import { useNow } from '../hooks.ts'
-import { draftLabel, screenProgress, useTasks } from '../tasks.tsx'
+import { screenProgress } from '../../../shared/draft-log.ts'
+import { draftLabel } from '../../../shared/draft-mode.ts'
+import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 
-export function TaskChips({ onOpenVideo }: { onOpenVideo: (id: string) => void }) {
+export function TaskChips() {
   const tasks = useTasks()
   const { claude, video } = tasks
   const running = claude?.phase === 'running' || Boolean(video)
   const now = useNow(running)
 
   // 패널을 보고 있으면 표시하지 않는다
-  const showClaude = claude && tasks.draftPanel !== claude.input
+  const showClaude = claude && tasks.draftPanel?.id !== claude.panel
   const progress = claude && screenProgress(claude)
   return (
     <>
@@ -33,7 +35,7 @@ export function TaskChips({ onOpenVideo }: { onOpenVideo: (id: string) => void }
         </button>
       )}
       {video && (
-        <button className="task-chip" onClick={() => onOpenVideo(video.id)} title={`"${video.title}" 영상을 만드는 중입니다`}>
+        <button className="task-chip" onClick={() => tasks.openVideo(video.id)} title={`"${video.title}" 영상을 만드는 중입니다`}>
           <Icon name="video" size={13} />
           영상 만들기 · {video.progress?.message ?? '시작하는 중'}
         </button>
