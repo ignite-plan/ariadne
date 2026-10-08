@@ -1,5 +1,6 @@
 // 오래 걸리는 작업이 끝났을 때 띄울 알림 문구와, 띄울지 여부. Electron에 의존하지 않는다 (단위 테스트 대상)
 import { basename } from 'node:path'
+import type { Channel } from '../../shared/api.ts'
 
 // background: 다른 앱을 보고 있을 때만 (기본), always: 항상, off: 끄기
 export type NotifyMode = 'background' | 'always' | 'off'
@@ -31,7 +32,7 @@ const DRAFT_LABEL: Record<string, string> = {
 }
 
 // 채널별 작업 이름. 여기에 없는 채널은 알리지 않는다
-const TASK_LABEL: Record<string, string> = {
+const TASK_LABEL: Partial<Record<Channel, string>> = {
   'workspace:clone': '매뉴얼 내려받기',
   'workspace:submit': '제출',
   'manual:importDocx': '새 매뉴얼 가져오기',
@@ -45,7 +46,7 @@ type AnyRecord = Record<string, any>
 export function taskLabel(channel: string, args: unknown[]) {
   if (channel === 'draft:start') return DRAFT_LABEL[(args[0] as AnyRecord)?.mode ?? 'create'] ?? DRAFT_LABEL.create
   if (channel === 'video:run') return (args[1] as AnyRecord)?.preview ? '영상 실행해 보기' : '가이드 영상 만들기'
-  return TASK_LABEL[channel]
+  return TASK_LABEL[channel as Channel]
 }
 
 // 끝난 작업 → 알림 문구. 알릴 작업이 아니면 undefined

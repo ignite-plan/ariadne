@@ -36,7 +36,7 @@ import { StgSession } from './lib/stg.ts'
 import { createMcpStatusCache, type McpStatusCache } from './lib/mcp-status.ts'
 import { checkScope, needsConfluence, scopeLabel } from '../shared/draft-mode.ts'
 import { errorText } from './lib/logger.ts'
-import { log } from './report-ipc.ts'
+import { log } from './log.ts'
 
 // 최신화는 화면마다 Claude를 따로, 이만큼 동시에 돌린다 (공유 Chrome의 탭을 하나씩 쓴다)
 const REFRESH_CONCURRENCY = 3

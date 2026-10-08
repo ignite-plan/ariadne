@@ -2,6 +2,7 @@
 import { join } from 'node:path'
 import { cdpTab } from '../../src/core/session.ts'
 import { createProvider, narrate, renderVideo, StepError, videoCacheDir, type TtsConfig, type VideoOptions } from '../../src/core/video/index.ts'
+import type { WorkerReply } from './worker.ts'
 
 export type WorkerRenderOptions = Omit<VideoOptions, 'signal' | 'onProgress' | 'tts' | 'openTab'> & {
   tts?: false | TtsConfig
@@ -14,10 +15,7 @@ export type WorkerRequest =
   | { op: 'speak'; root: string; text: string; tts: TtsConfig; modelDir: string }
   | { op: 'cancel' }
 
-export type WorkerMessage =
-  | { progress: unknown }
-  | { result: unknown }
-  | { error: string; scene?: number | 'cleanup'; step?: number }
+export type WorkerMessage = WorkerReply<unknown>
 
 const post = (message: WorkerMessage) => process.parentPort.postMessage(message)
 const controller = new AbortController()

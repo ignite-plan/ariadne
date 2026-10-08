@@ -12,7 +12,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - `.env`: `DEALERHUB_WEB_DIR`, `BO_BASE_URL`(bo 캡처 주소 덮어쓰기, 선택)
 - `src/core/`: 빌드·캡처·로그인·affected 함수. `root`/`manual`을 인자로 받고 `process.cwd()`·`.env`에 기대지 않는다 (CLI와 데스크톱 앱 공용)
 - `src/cli/`: `pnpm` 명령 진입점. `.env`·인자를 읽어 core를 호출하는 얇은 래퍼
-- `app/`: Ariadne 앱. `main/`(IPC, `lib/`는 Electron 무관 로직), `preload/`, `renderer/`(React), `shared/api.ts`(IPC 계약). 기획자 안내는 `app/INSTALL.md`
+- `app/`: Ariadne 앱. `main/`(`ipc/<namespace>.ts`가 도메인별 IPC 핸들러, `ipc/context.ts`가 공용 상태·전제 조건 확인, `lib/`는 Electron 무관 로직), `preload/`, `renderer/`(React), `shared/api.ts`(IPC 계약. 채널은 `API_METHODS` 목록에서 만들고 main `handle()`·preload가 같이 쓴다. 메서드를 추가하면 목록에도 넣는다). 기획자 안내는 `app/INSTALL.md`
 - 앱 가이드 영상: `renderer/.../VideoPanel.tsx`(목록·실행·재생) + `VideoEditor.tsx`(장면 편집). 영상 만들기·음성 듣기는 `main/video-worker.ts`(utilityProcess), STG 기록은 `main/lib/video-record.ts`(+`src/core/video/record.ts`), 음성 모델은 `main/lib/video-model.ts`(net.fetch → userData/models), ffmpeg는 번들된 `ffmpeg-static`(asar.unpacked)
 
 ## 명령
