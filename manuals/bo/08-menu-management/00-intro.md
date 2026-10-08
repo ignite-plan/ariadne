@@ -11,6 +11,6 @@ i18nPrefix: []
 
 - Menus can be configured according to their publishing purpose by selecting a menu type.
 
-- There are 3 menu types: General, Bulletin board, and Outlink, and each type can be used to create menus that direct to Link pages, Bulletin board menus, or External links.
+- There are 3 menu types: [Same Tab, Bulletin board, and New Tab]{.mark}, and each type can be used to create menus that direct to Link pages, Bulletin board menus, or External links.
 
 - Menu access permissions allow you to manage who can access the menu.
