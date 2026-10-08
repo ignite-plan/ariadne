@@ -7,7 +7,7 @@ import { findAffected } from '../../src/core/affected.ts'
 import { buildDocx } from '../../src/core/build.ts'
 import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
-import { loadManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
+import { loadManual, mergeManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
 import { deleteVideo, loadVideo, saveVideo, type VideoScenario } from '../../src/core/video/scenario.ts'
 import { checkSession, sessionInfo } from '../../src/core/session.ts'
 import type {
@@ -191,12 +191,6 @@ async function fileChanges(): Promise<FileChange[]> {
     if (path.startsWith(prefix) && path.endsWith('.md')) return { path, status, label: path.slice(prefix.length), kind: 'section' }
     return { path, status, label: path, kind: 'other' }
   })
-}
-
-function withOptional<K extends 'output' | 'capture' | 'code' | 'video'>(key: K, patch: Partial<ManualConfig>, current: ManualConfig) {
-  const value = key in patch ? patch[key] : current[key]
-  const empty = value === undefined || value === '' || (typeof value === 'object' && !Object.keys(value as object).length)
-  return empty ? {} : { [key]: value }
 }
 
 let pendingLogin: { resolve: () => void; reject: (error: Error) => void } | undefined
@@ -427,18 +421,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   })
   handle('manual:updateConfig', (patch: Partial<ManualConfig>): ManualConfig => {
     const r = ref()
-    const current = loadManual(r)
-    // 키 순서를 지켜 불필요한 diff를 줄인다
-    const next = {
-      title: patch.title ?? current.title,
-      version: patch.version ?? current.version,
-      ...withOptional('output', patch, current),
-      ...withOptional('capture', patch, current),
-      ...withOptional('code', patch, current),
-      // 설정 화면에 없는 가이드 영상 설정도 지우지 않는다
-      ...withOptional('video', patch, current),
-      chapters: current.chapters,
-    }
+    const next = mergeManual(loadManual(r), patch)
     saveManual(r, next)
     const { chapters: _chapters, ...config } = next
     return config

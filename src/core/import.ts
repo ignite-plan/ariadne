@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { PNG } from 'pngjs'
 import YAML from 'yaml'
-import { loadManual, manualDir, saveManual, type Manual, type ManualRef } from './manual.ts'
+import { loadManual, manualDir, mergeManual, saveManual, type Manual, type ManualRef } from './manual.ts'
 import { makeReference } from './reference.ts'
 
 export interface ImportedSection {
@@ -251,6 +251,16 @@ async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOption
   const source = resolve(docx)
   if (!existsSync(source)) throw new Error(`Word 파일이 없습니다: ${docx}`)
   const workDir = mkdtempSync(join(tmpdir(), 'manual-import-'))
+  try {
+    return await parseInto(workDir, source, pandoc, onProgress)
+  } catch (error) {
+    rmSync(workDir, { recursive: true, force: true })
+    throw error
+  }
+}
+
+// workDir는 parseDocx가 정리한다. 성공하면 호출한 쪽(analyzeDocx/importDocx)이 지운다
+async function parseInto(workDir: string, source: string, pandoc: string, onProgress?: ImportOptions['onProgress']) {
   onProgress?.({ phase: 'convert' })
   await runPandoc(pandoc, [
     source,
@@ -275,7 +285,6 @@ async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOption
   const fromToc = structureFromToc(lines, warnings)
   const { starts, firstChapterLine } = fromToc ?? structureFromHeadings(lines)
   if (!starts.some((s) => s.entry.level === 1)) {
-    rmSync(workDir, { recursive: true, force: true })
     throw new Error('장을 찾지 못했습니다. 목차(1. 제목 형식)나 Word 제목 1 스타일이 필요합니다')
   }
 
@@ -318,7 +327,7 @@ async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOption
 const countImages = (lines: string[]) => lines.join('\n').match(/!\[[^\]]*\]\([^)]+#\d+\)/g)?.length ?? 0
 const hasContent = (lines: string[]) => lines.some((l) => l.trim())
 
-function summarize(parsed: Awaited<ReturnType<typeof parseDocx>>): DocxAnalysis {
+function summarize(parsed: Awaited<ReturnType<typeof parseInto>>): DocxAnalysis {
   return {
     title: parsed.title,
     version: parsed.version,
@@ -371,16 +380,10 @@ export async function importDocx({
   const dir = manualDir(ref)
   try {
     const manualFile = join(dir, 'manual.yaml')
-    const existing: Manual | undefined = existsSync(manualFile) ? loadManual(ref) : undefined
-    // 키 순서가 manual.yaml 순서가 된다
-    const manual: Manual = {
-      title: title ?? existing?.title ?? parsed.title,
-      version: version ?? existing?.version ?? parsed.version,
-      ...((output ?? existing?.output) ? { output: output ?? existing?.output } : {}),
-      ...((capture ?? existing?.capture) ? { capture: capture ?? existing?.capture } : {}),
-      ...((code ?? existing?.code) ? { code: code ?? existing?.code } : {}),
-      chapters: existing?.chapters ?? [],
-    }
+    const existing: Manual = existsSync(manualFile) ? loadManual(ref) : { title: parsed.title, version: parsed.version, chapters: [] }
+    // 넘긴 값만 바꾸고 나머지(video 등)는 기존 manual.yaml 그대로
+    const given = Object.entries({ title, version, output, capture, code }).filter(([, v]) => v !== undefined)
+    const manual = mergeManual(existing, Object.fromEntries(given))
 
     mkdirSync(join(dir, 'images'), { recursive: true })
     const usedImages = new Set<string>()

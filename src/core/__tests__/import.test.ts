@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
 import { analyzeDocx, guessVersion, importDocx, matchDrawings } from '../import.ts'
-import { loadManual, localePath, outputName, stripFrontMatter } from '../manual.ts'
+import { loadManual, localePath, outputName, saveManual, stripFrontMatter } from '../manual.ts'
 import { referenceStyles, styleIdByName } from '../reference.ts'
 
 const hasPandoc = (() => {
@@ -196,6 +196,30 @@ describe('목차 없는 Word 가져오기 (제목 스타일)', { skip: !hasPando
     assert.ok(existsSync(join(root, 'manuals/fo/source', 'Hyundai-Dealers FO User Manual_v2.1.0_EN.docx')))
     assert.match(readFileSync(join(root, 'manuals/fo/shots.ts'), 'utf8'), /defineShots\(\[\]\)/)
     assert.ok(existsSync(join(root, 'manuals/fo/reference.docx')))
+  })
+
+  it('기존 매뉴얼에 일부 장만 다시 가져와도 가이드 영상 설정(video)은 남는다', async () => {
+    const ref = { root, manual: 'fo' }
+    const before = loadManual(ref)
+    saveManual(ref, { ...before, video: { captionSize: 'large' } })
+    await importDocx({ ...ref, docx, chapters: [2], reference: false })
+    const after = loadManual(ref)
+    assert.deepEqual(after.video, { captionSize: 'large' })
+    assert.equal(after.output, before.output)
+    assert.deepEqual(Object.keys(after), ['title', 'version', 'output', 'capture', 'code', 'video', 'chapters'])
+  })
+
+  it('pandoc이 실패해도 임시 폴더를 남기지 않는다', async () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'ariadne-import-tmp-'))
+    const saved = process.env.TMPDIR
+    process.env.TMPDIR = tmp
+    try {
+      await assert.rejects(analyzeDocx(docx, join(root, 'no-pandoc')), /pandoc 실행 실패/)
+      assert.deepEqual(readdirSync(tmp), [])
+    } finally {
+      process.env.TMPDIR = saved
+      rmSync(tmp, { recursive: true, force: true })
+    }
   })
 
   it('잘못된 id와 없는 파일은 거절', async () => {

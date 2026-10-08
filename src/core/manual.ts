@@ -76,6 +76,27 @@ export function saveManual(ref: ManualRef, manual: Manual) {
   writeFileSync(join(manualDir(ref), 'manual.yaml'), YAML.stringify(manual))
 }
 
+export type ManualSettings = Omit<Manual, 'chapters'>
+
+const OPTIONAL_KEYS = ['output', 'capture', 'code', 'video'] as const
+
+// 설정을 바꾼 manual.yaml. 키 순서를 지켜 불필요한 diff를 줄인다.
+// patch에 있는 키는 바꾸고(빈 값이면 지운다), 없는 키(설정 화면에 없는 video 등)는 그대로 둔다
+export function mergeManual(current: Manual, patch: Partial<ManualSettings>): Manual {
+  const optional: Partial<ManualSettings> = {}
+  for (const key of OPTIONAL_KEYS) {
+    const value = key in patch ? patch[key] : current[key]
+    const empty = value === undefined || value === '' || (typeof value === 'object' && !Object.keys(value).length)
+    if (!empty) Object.assign(optional, { [key]: value })
+  }
+  return {
+    title: patch.title ?? current.title,
+    version: patch.version ?? current.version,
+    ...optional,
+    chapters: current.chapters,
+  }
+}
+
 export function readSection(ref: ManualRef, chapter: Chapter, file: string) {
   return readFileSync(join(manualDir(ref), chapter.dir, file), 'utf8')
 }
