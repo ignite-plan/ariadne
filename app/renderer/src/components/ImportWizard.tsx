@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DocxAnalysis, ImportProgress, ManualInfo } from '../../../shared/api.ts'
+import { ID_PATTERN, ID_RULE } from '../../../../src/core/naming.ts'
 import { CODE_PRESETS, suggestManualId, VIEWPORTS, type ViewportKey } from '../../../shared/presets.ts'
 import { api, errorMessage } from '../api.ts'
 import { Icon } from './Icon.tsx'
@@ -74,8 +75,8 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
     if (preset) setBaseUrl(preset.baseUrl)
   }
 
-  const idError = !/^[a-z0-9][a-z0-9-]*$/.test(id)
-    ? '영문 소문자, 숫자, -만 쓸 수 있습니다'
+  const idError = !ID_PATTERN.test(id)
+    ? ID_RULE
     : taken.includes(id)
       ? '이미 있는 id입니다'
       : ''

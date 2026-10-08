@@ -9,8 +9,7 @@ import { videoViewport } from '../../../src/core/video/index.ts'
 import { attachRecorder, type RecordEvent } from '../../../src/core/video/record.ts'
 import { applyVars, loadVideo, videoVars } from '../../../src/core/video/scenario.ts'
 import { runSteps } from '../../../src/core/video/steps.ts'
-
-export type RecordSessionEvent = RecordEvent | { kind: 'ready' }
+import type { VideoRecordEvent } from '../../shared/api.ts'
 
 export interface RecordOptions extends ManualRef {
   id: string
@@ -19,7 +18,7 @@ export interface RecordOptions extends ManualRef {
   baseUrl: string
   // 로그인 세션(유지되는 Chrome 프로필)
   profileDir: string
-  onEvent: (event: RecordSessionEvent) => void
+  onEvent: (event: VideoRecordEvent) => void
 }
 
 let current: BrowserContext | undefined

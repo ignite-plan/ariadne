@@ -1,7 +1,7 @@
 // Claude에게 줄 작업 지시. 스킬 본문 + "이번 작업". Electron에 의존하지 않는다 (단위 테스트 대상)
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { ManualRef } from '../../../src/core/manual.ts'
+import { stripFrontMatter, type ManualRef } from '../../../src/core/manual.ts'
 import type { DraftInput } from '../../shared/api.ts'
 
 // 앱이 실행하는 모든 Claude 작업에 붙이는 작업 방식. 시간의 대부분이 Claude 출력과 턴 수라서 둘을 줄인다
@@ -33,7 +33,7 @@ export function namedSkillText(root: string, name: string, bundled: Record<strin
   const file = join(root, '.claude/skills', name, 'SKILL.md')
   const raw = (bundledFirst && bundled[name]) || (existsSync(file) ? readFileSync(file, 'utf8') : bundled[name])
   if (!raw) throw new Error(`스킬을 찾지 못했습니다: ${name}`)
-  return raw.replace(/^---\n[\s\S]*?\n---\n/, '').trim()
+  return stripFrontMatter(raw).trim()
 }
 
 // 최신화 1단계: 기획서 요약을 마지막 응답 JSON으로 받는다 (파일은 앱이 쓴다). 지난 요약과 버전이 같으면 reused

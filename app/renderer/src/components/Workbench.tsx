@@ -40,7 +40,7 @@ type Dialog =
   | { type: 'submit' }
   | { type: 'import' }
   | { type: 'diff'; path: string; title: string }
-  | { type: 'settings'; tab?: 'general' | 'env' | 'affected' }
+  | { type: 'settings' }
   | { type: 'confirm'; title: string; message: string; confirmLabel: string; danger?: boolean; run: () => Promise<void> }
 
 const LAST_PATH = 'ariadne.lastPath'
@@ -740,7 +740,6 @@ export function Workbench({ onReset }: { onReset: () => void }) {
       )}
       {dialog?.type === 'settings' && (
         <SettingsDialog
-          initialTab={dialog.tab}
           onClose={() => {
             setDialog(null)
             // 매뉴얼 설정(제목, 버전)이 바뀌었을 수 있다

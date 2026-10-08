@@ -402,7 +402,7 @@ export function DraftPanel({
                         ) : (
                           <Icon name="sync" size={13} className="spin" />
                         )
-                      ) : line.kind === 'warning' || line.kind === 'error' ? (
+                      ) : line.kind === 'warning' ? (
                         <Icon name="alert" size={13} />
                       ) : line.kind === 'text' ? (
                         <Icon name="info" size={13} />

@@ -14,7 +14,7 @@ import { CAPTION_SCALE, PACE_FACTOR, sceneHasContent, videoStyle } from './edit.
 import { applyVars, loadVideo, videoVars, type Target, type VideoScenario } from './scenario.ts'
 import { locate, runSteps } from './steps.ts'
 import { readingTime, toSrt, toVtt, type Cue } from './subtitles.ts'
-import { createProvider, narrate, type Clip, type TtsConfig, type TtsProvider } from './tts/index.ts'
+import { createProvider, narrate, type Clip, type OpenAiOptions, type TtsConfig, type TtsProvider } from './tts/index.ts'
 
 export * from './compose.ts'
 export * from './describe.ts'
@@ -68,6 +68,8 @@ export interface VideoOptions extends ManualRef {
   // Kokoro 모델 위치. 기본 <root>/.video-cache/models. localModel이면 내려받지 않는다 (앱)
   modelDir?: string
   localModel?: boolean
+  // tts.provider가 openai일 때 키와 모델 (CLI가 .env에서 읽어 넘긴다)
+  openai?: OpenAiOptions
   // 기본 PATH의 ffmpeg
   ffmpegPath?: string
   // <root> 기준. 기본 dist/videos
@@ -129,6 +131,7 @@ export async function renderVideo({
   tts: ttsOption,
   modelDir,
   localModel,
+  openai,
   ffmpegPath,
   outDir,
   headed,
@@ -173,7 +176,7 @@ export async function renderVideo({
     const provider =
       'synthesize' in tts
         ? tts
-        : await createProvider({ ...tts, speed: style.speed }, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel })
+        : await createProvider({ ...tts, speed: style.speed }, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel, openai })
     clips = await narrate(lines, provider, join(cache, 'tts'), ({ index, total, cached }) => {
       signal?.throwIfAborted()
       onProgress?.({ stage: 'tts', message: `음성 ${index + 1}/${total}${cached ? ' (캐시)' : ''}` })

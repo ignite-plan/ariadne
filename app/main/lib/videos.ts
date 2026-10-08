@@ -5,7 +5,7 @@ import type { ManualRef } from '../../../src/core/manual.ts'
 import { videoOutputs } from '../../../src/core/video/index.ts'
 import { listVideos, loadVideo, saveVideo, type VideoScenario } from '../../../src/core/video/scenario.ts'
 import type { VideoInfo } from '../../shared/api.ts'
-import { slugify } from './sections.ts'
+import { slugify, uniqueName } from '../../../src/core/naming.ts'
 
 export function videoOutput(ref: ManualRef, id: string): VideoInfo['output'] {
   const { mp4, vtt } = videoOutputs(ref, id)
@@ -27,10 +27,8 @@ export function videoInfos(ref: ManualRef): VideoInfo[] {
 
 // 제목으로 id를 만든다. 이미 있으면 -2, -3 …
 export function newVideoId(ref: ManualRef, title: string) {
-  const base = slugify(title) || 'video'
   const taken = new Set(listVideos(ref))
-  if (!taken.has(base)) return base
-  for (let n = 2; ; n++) if (!taken.has(`${base}-${n}`)) return `${base}-${n}`
+  return uniqueName(slugify(title) || 'video', (id) => taken.has(id))
 }
 
 export function createVideo(ref: ManualRef, { title, section }: { title: string; section?: string }): VideoScenario {

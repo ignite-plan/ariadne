@@ -7,6 +7,7 @@ import { findAffected } from '../../src/core/affected.ts'
 import { buildDocx } from '../../src/core/build.ts'
 import { adoptShots, capture } from '../../src/core/capture.ts'
 import { login } from '../../src/core/login.ts'
+import { isPngBytes } from '../../src/core/naming.ts'
 import { loadManual, mergeManual, saveManual, type ManualRef, type SectionMeta } from '../../src/core/manual.ts'
 import { deleteVideo, loadVideo, saveVideo, type VideoScenario } from '../../src/core/video/scenario.ts'
 import { checkSession, sessionInfo } from '../../src/core/session.ts'
@@ -492,11 +493,10 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
     // PNG가 아니면 macOS 이미지 디코더로 PNG로 바꾼다 (스크린샷 붙여넣기는 대부분 PNG)
     const raw = data ? Buffer.from(data) : sourcePath ? readFileSync(sourcePath) : undefined
     if (!raw) throw new Error('이미지가 없습니다')
-    const isPng = raw[0] === 0x89 && raw[1] === 0x50 && raw[2] === 0x4e && raw[3] === 0x47
-    if (isPng) return importImage(ref(), id, { data: raw })
+    if (isPngBytes(raw)) return importImage(ref(), id, raw)
     const image = nativeImage.createFromBuffer(raw)
     if (image.isEmpty()) throw new Error('이미지를 읽지 못했습니다')
-    return importImage(ref(), id, { data: image.toPNG() })
+    return importImage(ref(), id, image.toPNG())
   })
 
   // preview

@@ -6,7 +6,9 @@ import { homedir } from 'node:os'
 import { basename, delimiter, dirname, join, relative } from 'node:path'
 import { promisify } from 'node:util'
 import type { ClaudeEvent, DraftSummary } from '../../shared/api.ts'
+import { ariadneToolLabel, MCP_NAME } from './ariadne-tools.ts'
 import { claudeEnv, keySource, resolveAuth, SHELL_VARS, type ClaudeAuth, type ClaudeAuthSetting, type ShellVars } from './claude-auth.ts'
+import { MCP_ATLASSIAN_READ_TOOLS } from './run-mcp.ts'
 
 export type { ClaudeEvent, DraftSummary }
 
@@ -131,18 +133,8 @@ export const isAtlassianServer = (name: string) => /atlassian|confluence/i.test(
 
 // 공식 Atlassian 원격 MCP와 로컬 mcp-atlassian(sooperset)의 읽기 도구. 쓰기(create/update/delete/comment)는 넣지 않는다
 const CONFLUENCE_READ_TOOLS = [
-  // mcp-atlassian
-  'confluence_search',
-  'confluence_get_page',
-  'confluence_get_page_children',
-  'confluence_get_page_ancestors',
-  'confluence_get_page_history',
-  'confluence_get_page_diff',
-  'confluence_get_comments',
-  'confluence_get_labels',
-  'confluence_get_attachments',
-  'confluence_get_page_images',
-  'confluence_get_space_page_tree',
+  // mcp-atlassian (앱이 띄울 때 ENABLED_TOOLS로 켜는 목록과 같다)
+  ...MCP_ATLASSIAN_READ_TOOLS,
   // Atlassian Remote MCP
   'search',
   'fetch',
@@ -177,7 +169,7 @@ export function buildAllowedTools(
   atlassianServers: string[],
   cwd: string,
   readDirs: string[] = [],
-  ariadne = 'ariadne',
+  ariadne = MCP_NAME,
   configDir?: string,
 ) {
   const writable = `./manuals/${manual}/**`
@@ -213,20 +205,7 @@ export function toolLabel(name: string, input: Record<string, unknown>, cwd = ''
   if (name === 'Glob' || name === 'Grep') return `찾기: ${short(String(input.pattern ?? ''), 50)}`
   if (name === 'TodoWrite') return '작업 계획 정리'
   if (name === 'ToolSearch') return '도구 준비'
-  if (name.startsWith('mcp__ariadne__')) {
-    const labels: Record<string, string> = {
-      manual_outline: '매뉴얼 목차 확인',
-      create_section: `화면 만들기: ${input.title ?? ''}`,
-      stg_open: `STG 화면 열기: ${input.path ?? ''}`,
-      stg_click: `STG 누르기: ${input.name ?? ''}`,
-      stg_fill: `STG 입력: ${input.label ?? ''}`,
-      save_shot: `캡처 저장: ${input.id ?? ''}`,
-      video_get: `영상 시나리오 읽기: ${input.id ?? ''}`,
-      video_save: `영상 시나리오 저장: ${input.id ?? ''}`,
-      video_check: `영상 시나리오 실행해 보기${input.fromScene === undefined ? '' : ` (장면 ${Number(input.fromScene) + 1}부터)`}`,
-    }
-    return labels[tool] ?? tool
-  }
+  if (name.startsWith(`${mcpServerRule(MCP_NAME)}__`)) return ariadneToolLabel(tool, input)
   if (/search|cql/i.test(tool)) return `기획서 검색: ${short(String(input.query ?? input.cql ?? ''), 60)}`
   if (/page|fetch/i.test(tool)) return `기획서 읽기: ${input.title ?? input.page_id ?? input.pageId ?? input.id ?? ''}`
   return short(tool, 40)

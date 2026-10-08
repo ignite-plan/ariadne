@@ -26,7 +26,7 @@ import {
 } from './lib/claude.ts'
 import { explainFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
-import { startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
+import { MCP_NAME, startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import { BUILTIN_TOOLS, buildRunMcpConfig, claudeConfigFile, MCP_ATLASSIAN_JIRA_READ_TOOLS, readClaudeMcpServers } from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
@@ -169,7 +169,7 @@ async function draft(
   if (bare) mkdirSync(claudeDataDir!, { recursive: true })
   // withConfluence: false면 Confluence 도구를 주지 않는다 (기획서 요약을 받은 화면 작업)
   const allowedTools = (extra: string[] = [], { withConfluence = true } = {}) => [
-    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : [], 'ariadne', configDir),
+    ...buildAllowedTools(ref.manual, withConfluence ? confluence : [], root, code ? [code] : [], MCP_NAME, configDir),
     ...extra,
   ]
 

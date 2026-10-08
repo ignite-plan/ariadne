@@ -1,21 +1,22 @@
 // 섹션 Markdown, manual.yaml, 이미지 파일 조작. Electron에 의존하지 않는다 (단위 테스트 대상)
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, resolve, sep } from 'node:path'
 import { PNG } from 'pngjs'
-import YAML from 'yaml'
 import {
   chapterNo,
+  joinSection,
   loadManual,
   manualDir,
   parseFrontMatter,
   saveManual,
+  serializeFrontMatter,
+  splitSection,
   type Manual,
   type ManualRef,
   type SectionMeta,
 } from '../../../src/core/manual.ts'
+import { ID_PATTERN, ID_RULE, slugify, uniqueName } from '../../../src/core/naming.ts'
 import type { ImageInfo, ManualTree, NewSectionInput, SectionDoc, Todo } from '../../shared/api.ts'
-
-const FRONT_MATTER = /^---\n[\s\S]*?\n---\n/
 
 // root 밖으로 나가는 경로(../)를 막는다
 export function resolveInside(root: string, relPath: string) {
@@ -39,29 +40,6 @@ function sectionFile(ref: ManualRef, path: string, manual = loadManual(ref)) {
   const chapter = manual.chapters.find((c) => c.dir === dir)
   if (rest.length || !chapter?.sections.includes(file)) throw new Error(`manual.yaml에 없는 섹션: ${path}`)
   return join(manualDir(ref), dir, file)
-}
-
-export function splitSection(raw: string) {
-  const frontMatter = raw.match(FRONT_MATTER)?.[0] ?? ''
-  // front-matter 뒤 빈 줄 하나는 형식이라 본문에서 뺀다
-  const body = raw.slice(frontMatter.length).replace(/^\n/, '')
-  return { frontMatter, body }
-}
-
-export function serializeFrontMatter(meta: SectionMeta) {
-  const ordered: SectionMeta = {
-    title: meta.title ?? '',
-    routes: meta.routes ?? [],
-    sources: meta.sources ?? [],
-    i18nPrefix: meta.i18nPrefix ?? [],
-    ...(meta.refreshedFrom?.length ? { refreshedFrom: meta.refreshedFrom } : {}),
-  }
-  return `---\n${YAML.stringify(ordered).trim()}\n---\n`
-}
-
-export function joinSection(frontMatter: string, body: string) {
-  const text = body.replace(/\s+$/, '')
-  return `${frontMatter}${frontMatter ? '\n' : ''}${text}\n`
 }
 
 // 첫 H2를 화면 제목으로 본다. 없으면 front-matter title
@@ -129,14 +107,6 @@ export function collectTodos(ref: ManualRef): Todo[] {
       return extractTodos(splitSection(raw).body).map((t) => ({ path, sectionTitle: sectionTitleText, ...t }))
     }),
   )
-}
-
-export function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 }
 
 const writeManual = (ref: ManualRef, manual: Manual) => saveManual(ref, manual)
@@ -263,27 +233,20 @@ export function listImages(ref: ManualRef): ImageInfo[] {
 
 // 겹치지 않는 이미지 id. caption slug, 겹치면 -2, -3 ...
 export function suggestImageId(ref: ManualRef, caption: string) {
-  const base = slugify(caption) || 'image'
   const taken = new Set(listImages(ref).map((i) => i.id))
-  let id = base
-  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`
-  return id
+  return uniqueName(slugify(caption) || 'image', (id) => taken.has(id))
 }
 
 // PNG만 받는다. Word 빌드와 캡처 비교가 PNG 기준이라서
-export function importImage(ref: ManualRef, id: string, source: { path?: string; data?: Uint8Array }) {
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) throw new Error('이미지 id는 영문 소문자, 숫자, -만 쓸 수 있습니다')
-  const bytes = source.data ? Buffer.from(source.data) : source.path ? readFileSync(source.path) : undefined
-  if (!bytes) throw new Error('이미지가 없습니다')
+export function importImage(ref: ManualRef, id: string, bytes: Uint8Array) {
+  if (!ID_PATTERN.test(id)) throw new Error(`이미지 id는 ${ID_RULE}`)
   try {
-    PNG.sync.read(bytes)
+    PNG.sync.read(Buffer.from(bytes))
   } catch {
     throw new Error('PNG 이미지만 넣을 수 있습니다')
   }
   const dir = join(manualDir(ref), 'images')
   mkdirSync(dir, { recursive: true })
-  const dest = join(dir, `${id}.png`)
-  if (source.path && !source.data) copyFileSync(source.path, dest)
-  else writeFileSync(dest, bytes)
+  writeFileSync(join(dir, `${id}.png`), bytes)
   return id
 }

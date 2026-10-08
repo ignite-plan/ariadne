@@ -106,12 +106,38 @@ export function chapterNo(chapter: Chapter) {
   return Number.parseInt(chapter.dir, 10)
 }
 
+const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/
+
 export function parseFrontMatter(md: string): SectionMeta {
   return YAML.parse(md.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '{}') ?? {}
 }
 
 export function stripFrontMatter(md: string) {
-  return md.replace(/^---\n[\s\S]*?\n---\n/, '')
+  return md.replace(FRONT_MATTER, '')
+}
+
+export function splitSection(raw: string) {
+  const frontMatter = raw.match(FRONT_MATTER)?.[0] ?? ''
+  // front-matter 뒤 빈 줄 하나는 형식이라 본문에서 뺀다
+  const body = raw.slice(frontMatter.length).replace(/^\n/, '')
+  return { frontMatter, body }
+}
+
+// 키 순서를 정해 쓴다 (앱과 CLI가 같은 diff를 내도록)
+export function serializeFrontMatter(meta: SectionMeta) {
+  const ordered: SectionMeta = {
+    title: meta.title ?? '',
+    routes: meta.routes ?? [],
+    sources: meta.sources ?? [],
+    i18nPrefix: meta.i18nPrefix ?? [],
+    ...(meta.refreshedFrom?.length ? { refreshedFrom: meta.refreshedFrom } : {}),
+  }
+  return `---\n${YAML.stringify(ordered).trim()}\n---\n`
+}
+
+export function joinSection(frontMatter: string, body: string) {
+  const text = body.replace(/\s+$/, '')
+  return `${frontMatter}${frontMatter ? '\n' : ''}${text}\n`
 }
 
 // 본문이 참조하는 shot id (images/<id>.png)

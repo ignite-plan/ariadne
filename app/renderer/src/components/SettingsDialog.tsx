@@ -22,20 +22,18 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export function SettingsDialog({
-  initialTab = 'general',
   onSettings,
   onOpenSection,
   onReset,
   onClose,
 }: {
-  initialTab?: Tab
   onSettings: (settings: Settings) => void
   onOpenSection: (path: string) => void
   onReset: () => void
   onClose: () => void
 }) {
   const toast = useToast()
-  const [tab, setTab] = useState<Tab>(initialTab)
+  const [tab, setTab] = useState<Tab>('general')
   const [settings, setSettings] = useState<Settings>()
   const [manuals, setManuals] = useState<ManualInfo[]>([])
 

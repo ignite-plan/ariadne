@@ -7,7 +7,7 @@ import { useToast } from './components/Toast.tsx'
 
 export interface LogLine {
   id: string
-  kind: 'status' | 'warning' | 'tool' | 'text' | 'error'
+  kind: 'status' | 'warning' | 'tool' | 'text'
   text: string
   done?: boolean
   failed?: boolean

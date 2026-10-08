@@ -5,8 +5,8 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { PNG } from 'pngjs'
-import YAML from 'yaml'
-import { loadManual, manualDir, mergeManual, saveManual, type Manual, type ManualRef } from './manual.ts'
+import { loadManual, manualDir, mergeManual, saveManual, serializeFrontMatter, type Manual, type ManualRef } from './manual.ts'
+import { ID_PATTERN, ID_RULE, isPngBytes, slugify, uniqueName } from './naming.ts'
 import { makeReference } from './reference.ts'
 
 export interface ImportedSection {
@@ -160,8 +160,7 @@ function writeImage(src: string, dest: string, drawing: Drawing | undefined, pan
 
 // PNG가 아닌 이미지(EMF, JPEG 등)는 자르기를 적용하지 못한다. 확장자를 지키고 그대로 복사한다
 function isPng(path: string) {
-  const head = readFileSync(path).subarray(0, 4)
-  return head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47
+  return isPngBytes(readFileSync(path).subarray(0, 4))
 }
 
 function plain(text: string) {
@@ -175,14 +174,6 @@ function plain(text: string) {
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase()
-}
-
-export function slugify(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 }
 
 // 원문 대소문자를 살린 제목
@@ -375,7 +366,7 @@ export async function importDocx({
   onProgress,
   ...ref
 }: ImportOptions): Promise<ImportResult> {
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(ref.manual)) throw new Error('매뉴얼 id는 영문 소문자, 숫자, -만 쓸 수 있습니다')
+  if (!ID_PATTERN.test(ref.manual)) throw new Error(`매뉴얼 id는 ${ID_RULE}`)
   const parsed = await parseDocx(docx, pandoc, onProgress)
   const dir = manualDir(ref)
   try {
@@ -406,9 +397,7 @@ export async function importDocx({
               const base = caption ? slugify(caption) || `${sectionSlug}-img` : `${sectionSlug}-img-${++unnamed}`
               const png = isPng(src)
               const ext = png ? 'png' : src.split('.').pop()!.toLowerCase()
-              let name = base
-              const taken = (n: string) => usedImages.has(n) || existsSync(join(dir, 'images', `${n}.${ext}`))
-              for (let n = 2; taken(name); n++) name = `${base}-${n}`
+              const name = uniqueName(base, (n) => usedImages.has(n) || existsSync(join(dir, 'images', `${n}.${ext}`)))
               usedImages.add(name)
               const dest = join(dir, 'images', `${name}.${ext}`)
               const size = png
@@ -425,8 +414,7 @@ export async function importDocx({
         .trim()
     }
 
-    const frontMatter = (sectionTitle: string) =>
-      `---\n${YAML.stringify({ title: sectionTitle, routes: [], sources: [], i18nPrefix: [] }).trim()}\n---\n\n`
+    const frontMatter = (sectionTitle: string) => `${serializeFrontMatter({ title: sectionTitle })}\n`
 
     onProgress?.({ phase: 'write' })
     for (const chapter of parsed.chapters) {

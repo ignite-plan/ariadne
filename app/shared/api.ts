@@ -2,7 +2,8 @@
 import type { AffectedSection } from '../../src/core/affected.ts'
 import type { CaptureReport } from '../../src/core/capture.ts'
 import type { DocxAnalysis, ImportProgress } from '../../src/core/import.ts'
-import type { Manual, SectionMeta, Viewport } from '../../src/core/manual.ts'
+import type { ManualSettings, SectionMeta, Viewport } from '../../src/core/manual.ts'
+import type { StgSessionInfo } from '../../src/core/session.ts'
 import type { VideoProgress, VideoResult } from '../../src/core/video/index.ts'
 import type { RecordEvent } from '../../src/core/video/record.ts'
 import type { Scene, Step, Target, VideoScenario } from '../../src/core/video/scenario.ts'
@@ -11,7 +12,9 @@ export type { AffectedSection, CaptureReport, DocxAnalysis, ImportProgress, Sect
 export type { Scene as VideoScene, Step as VideoStep, Target as VideoTarget, VideoProgress, VideoScenario }
 
 // manual.yaml에서 chapters를 뺀 매뉴얼 설정
-export type ManualConfig = Omit<Manual, 'chapters'>
+export type ManualConfig = ManualSettings
+
+export type SessionInfo = StgSessionInfo
 
 export interface ManualInfo {
   id: string
@@ -194,7 +197,7 @@ export interface AuthStatus {
   error?: string
 }
 
-export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'atlassian' | 'ffmpeg' | 'voice'
+export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'ffmpeg' | 'voice'
 
 export interface EnvCheck {
   id: EnvCheckId
@@ -297,11 +300,6 @@ export interface CaptureProgress {
   id: string
   index: number
   total: number
-}
-
-export interface SessionInfo {
-  exists: boolean
-  savedAt?: number
 }
 
 // 가이드 영상 목록 한 줄. 경로는 작업 폴더 기준

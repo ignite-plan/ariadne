@@ -4,17 +4,18 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Locator, Page } from 'playwright'
 import { captureDir } from '../../../src/core/capture.ts'
+// 저장/삭제류 버튼, 쓰기 요청 판단은 가이드 영상과 같은 규칙을 쓴다
 import { guardWrites, isBlockedLabel } from '../../../src/core/safety.ts'
 import { clearSession, isSessionExpired, profileTab, type OpenTab, type StgTab } from '../../../src/core/session.ts'
 import { Director } from '../../../src/core/video/director.ts'
 import type { Scene } from '../../../src/core/video/scenario.ts'
 import { runSteps } from '../../../src/core/video/steps.ts'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
+import { ID_PATTERN, ID_RULE } from '../../../src/core/naming.ts'
 
-export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
-
-// 저장/삭제류 버튼, 쓰기 요청 판단은 가이드 영상과 같은 규칙을 쓴다
-export { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
+// Claude가 누를 수 있는 요소 (MCP 도구 스키마도 이 목록을 쓴다)
+export const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combobox', 'option', 'treeitem', 'row'] as const
+export type Role = (typeof ROLES)[number]
 
 export type ShotStep =
   | { click: { role: Role; name: string; nth?: number } }
@@ -308,7 +309,7 @@ export class StgSession {
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
   // replace: 이미 있는 이미지/캡처 정의를 바꾼다 (최신화). 아니면 기존 이미지 id는 거절한다
   async saveShot(shot: ShotInput, replace = false) {
-    if (!/^[a-z0-9][a-z0-9-]*$/.test(shot.id)) throw new Error('shot id는 영문 소문자, 숫자, -만 쓸 수 있습니다')
+    if (!ID_PATTERN.test(shot.id)) throw new Error(`shot id는 ${ID_RULE}`)
     for (const step of shot.steps ?? []) {
       if ('click' in step && isBlockedLabel(step.click.name)) {
         throw new Error(`"${step.click.name}"은(는) 데이터를 바꿀 수 있는 버튼이라 캡처 단계에 넣을 수 없습니다`)
