@@ -61,7 +61,13 @@ describe('github', () => {
     const releases = [
       { tag_name: 'app-v1.1.0', html_url: 'u110', draft: false, prerelease: false },
       { tag_name: 'app-v1.3.0', html_url: 'u130', draft: true, prerelease: false },
-      { tag_name: 'app-v1.2.0', html_url: 'u120', draft: false, prerelease: false },
+      {
+        tag_name: 'app-v1.2.0',
+        html_url: 'u120',
+        draft: false,
+        prerelease: false,
+        assets: [{ url: 'api/1', name: 'Ariadne-1.2.0-arm64.dmg', size: 10 }],
+      },
       { tag_name: 'v9.0.0', html_url: 'other', draft: false, prerelease: false },
     ]
     const { fetchImpl } = fakeFetch({ 'GET /repos/a/b/releases?per_page=20': { body: releases } })
@@ -69,6 +75,7 @@ describe('github', () => {
       current: '1.0.0',
       latest: '1.2.0',
       url: 'u120',
+      asset: { url: 'api/1', name: 'Ariadne-1.2.0-arm64.dmg', size: 10 },
     })
     assert.equal(await latestAppRelease(fetchImpl, 't', 'https://github.com/a/b', '1.2.0'), null)
   })

@@ -2701,3 +2701,11 @@ fieldset.lock:disabled {
   display: flex;
   gap: 8px;
 }
+
+/* 앱 안 업데이트 */
+.update-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+}

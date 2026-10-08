@@ -30,6 +30,7 @@ import { Sidebar, type SidebarTab } from './Sidebar.tsx'
 import { SubmitDialog } from './SubmitDialog.tsx'
 import { TaskChips } from './TaskChips.tsx'
 import { useToast } from './Toast.tsx'
+import { UpdateAction } from './UpdateAction.tsx'
 
 type Layout = 'editor' | 'split' | 'preview'
 type SaveState = 'saved' | 'pending' | 'saving' | 'error'
@@ -516,9 +517,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
       {update && (
         <div className="banner">
           새 버전 {update.latest}이 있습니다.
-          <button className="link" onClick={() => api.app.openExternal(update.url)}>
-            받기 <Icon name="external" size={12} />
-          </button>
+          <UpdateAction update={update} />
           <button className="icon-button small" onClick={() => setUpdate(null)} aria-label="닫기">
             <Icon name="x" size={13} />
           </button>
