@@ -61,10 +61,27 @@ export interface ImportResult extends DocxAnalysis {
   files: number
 }
 
-interface Drawing {
+export interface Drawing {
   crop: { l: number; t: number; r: number; b: number }
   widthIn: number
   ratio: number
+  // 그림이 쓰는 Word 안 이미지 파일 이름 (media/image3.png → image3.png). 도형·텍스트 상자처럼 그림이 아니면 없음
+  media?: string
+}
+
+// pandoc이 꺼낸 이미지(본문 순서)마다 Word 그림 정보를 찾는다. 순서가 아니라 이미지 파일 이름으로 짝을 맞춘다:
+// Word에는 도형·텍스트 상자도 그림 요소로 들어 있어 순서로 맞추면 그 뒤 이미지들이 한 칸씩 밀린다.
+// 같은 이미지 파일을 여러 번 쓰면 문서 순서대로 하나씩 쓴다
+export function matchDrawings(imageSrcs: string[], drawings: Drawing[]) {
+  const queues = new Map<string, Drawing[]>()
+  for (const d of drawings) if (d.media) queues.set(d.media, [...(queues.get(d.media) ?? []), d])
+  const last = new Map<string, Drawing>()
+  return imageSrcs.map((src) => {
+    const name = basename(src)
+    const next = queues.get(name)?.shift() ?? last.get(name)
+    if (next) last.set(name, next)
+    return next
+  })
 }
 
 interface TocEntry {
@@ -98,7 +115,12 @@ function readDrawings(docx: string): Drawing[] {
     encoding: 'utf8',
     maxBuffer: 256 * 1024 * 1024,
   })
+  // r:embed="rId5" → media/image3.png
+  const relsXml = execFileSync('unzip', ['-p', docx, 'word/_rels/document.xml.rels'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 })
+  const targets = new Map([...relsXml.matchAll(/<Relationship\b[^>]*>/g)].map(([tag]) => [tag.match(/\bId="([^"]+)"/)?.[1], tag.match(/\bTarget="([^"]+)"/)?.[1]]))
   return [...documentXml.matchAll(/<w:drawing>[\s\S]*?<\/w:drawing>/g)].map(([xml]) => {
+    const embed = xml.match(/<a:blip\b[^>]*\br:embed="([^"]+)"/)?.[1]
+    const target = embed ? targets.get(embed) : undefined
     const extent = xml.match(/<wp:extent cx="(\d+)" cy="(\d+)"/)
     const cx = Number(extent?.[1] ?? 0)
     const cy = Number(extent?.[2] ?? 0)
@@ -108,6 +130,7 @@ function readDrawings(docx: string): Drawing[] {
       crop: { l: edge('l'), t: edge('t'), r: edge('r'), b: edge('b') },
       widthIn: cx / EMU_PER_INCH,
       ratio: cx ? cy / cx : 0,
+      ...(target ? { media: basename(target) } : {}),
     }
   })
 }
@@ -237,14 +260,16 @@ async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOption
     '-o', join(workDir, 'full.md'),
   ])
   const warnings: string[] = []
-  const drawings = readDrawings(source)
+  const allDrawings = readDrawings(source)
 
-  let imageIndex = 0
+  const imageSrcs: string[] = []
   const lines = readFileSync(join(workDir, 'full.md'), 'utf8')
     .split('\n')
-    .map((l) => l.replace(/\]\(([^)\s]+\/media\/[^)\s]+)\)/g, (_, src: string) => `](${src}#${imageIndex++})`))
-  if (imageIndex !== drawings.length) {
-    warnings.push(`이미지 수가 다릅니다 (본문 ${imageIndex}, Word 도형 ${drawings.length}). 일부 이미지는 자르기를 적용하지 못합니다`)
+    .map((l) => l.replace(/\]\(([^)\s]+\/media\/[^)\s]+)\)/g, (_, src: string) => `](${src}#${imageSrcs.push(src) - 1})`))
+  const drawings = matchDrawings(imageSrcs, allDrawings)
+  const unmatched = drawings.filter((d) => !d).length
+  if (unmatched) {
+    warnings.push(`Word에서 자르기·크기 정보를 찾지 못한 이미지 ${unmatched}장은 원본 그대로 넣었습니다. 미리보기로 확인하세요`)
   }
 
   const fromToc = structureFromToc(lines, warnings)
@@ -286,7 +311,7 @@ async function parseDocx(docx: string, pandoc: string, onProgress?: ImportOption
     structure: (fromToc ? 'toc' : 'headings') as DocxAnalysis['structure'],
     title: guessTitle(lines, firstChapterLine),
     version: guessVersion(source),
-    images: imageIndex,
+    images: imageSrcs.length,
   }
 }
 

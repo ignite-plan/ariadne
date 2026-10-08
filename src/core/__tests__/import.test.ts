@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
-import { analyzeDocx, guessVersion, importDocx } from '../import.ts'
+import { analyzeDocx, guessVersion, importDocx, matchDrawings } from '../import.ts'
 import { loadManual, localePath, outputName, stripFrontMatter } from '../manual.ts'
 import { referenceStyles, styleIdByName } from '../reference.ts'
 
@@ -208,5 +208,23 @@ describe('목차 없는 Word 가져오기 (제목 스타일)', { skip: !hasPando
     writeFileSync(join(root, 'flat.md'), 'just text\n')
     execFileSync('pandoc', ['flat.md', '-o', flat], { cwd: root })
     await assert.rejects(analyzeDocx(flat), /장을 찾지 못했습니다/)
+  })
+})
+
+describe('Word 그림과 이미지 짝 맞추기', () => {
+  const d = (media: string | undefined, l = 0) => ({ crop: { l, t: 0, r: 0, b: 0 }, widthIn: 6, ratio: 0.5, ...(media ? { media } : {}) })
+  it('도형(그림 아님)이 끼어 있어도 이름으로 맞춘다. 같은 이미지를 여러 번 쓰면 순서대로', () => {
+    const drawings = [d('image1.png', 0.1), d(undefined), d('image2.png', 0.2), d('image2.png', 0.3), d(undefined), d('image3.png', 0.4)]
+    const matched = matchDrawings(['/w/media/image1.png', '/w/media/image2.png', '/w/media/image2.png', '/w/media/image3.png'], drawings)
+    assert.deepEqual(
+      matched.map((m) => m?.crop.l),
+      [0.1, 0.2, 0.3, 0.4],
+    )
+  })
+  it('Word에 없는 이미지는 짝 없음, 그림 수보다 더 쓰이면 마지막 것을 다시 쓴다', () => {
+    const matched = matchDrawings(['/w/media/x.png', '/w/media/image1.png', '/w/media/image1.png'], [d('image1.png', 0.1)])
+    assert.equal(matched[0], undefined)
+    assert.equal(matched[1]?.crop.l, 0.1)
+    assert.equal(matched[2]?.crop.l, 0.1)
   })
 })
