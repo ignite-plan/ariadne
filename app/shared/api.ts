@@ -126,7 +126,8 @@ export interface DraftResult {
 }
 
 export interface DraftCheck {
-  claude: { path: string; version: string } | null
+  // managed: 앱 전용으로 설치한 고정 버전
+  claude: { path: string; version: string; managed?: boolean } | null
   // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
   auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
   // detail: 연결 실패 이유
@@ -204,10 +205,11 @@ export interface EnvCheck {
   detail: string
   link?: { label: string; url: string }
   // 앱이 대신 설치할 수 있는 도구
-  install?: 'pandoc'
+  install?: 'pandoc' | 'claude'
 }
 
-export interface PandocProgress {
+export interface InstallProgress {
+  tool: 'pandoc' | 'claude'
   phase: 'release' | 'download' | 'extract'
   loaded?: number
   total?: number
@@ -395,8 +397,8 @@ export interface AriadneApi {
   }
   env: {
     check(): Promise<EnvCheck[]>
-    // pandoc을 받아 앱 폴더에 설치한다 (진행은 pandoc-progress)
-    installPandoc(): Promise<{ path: string; version: string }>
+    // pandoc 또는 앱 전용 Claude Code를 받아 앱 폴더에 설치한다 (진행은 install-progress)
+    install(tool: 'pandoc' | 'claude'): Promise<{ path: string; version: string }>
   }
   workspace: {
     state(): Promise<WorkspaceState>
@@ -505,7 +507,7 @@ export interface AriadneApi {
   on(event: 'stg-tasks', listener: (names: string[]) => void): () => void
   on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
   on(event: 'update-state', listener: (state: UpdateState) => void): () => void
-  on(event: 'pandoc-progress', listener: (progress: PandocProgress) => void): () => void
+  on(event: 'install-progress', listener: (progress: InstallProgress) => void): () => void
   on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
   on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void
 }

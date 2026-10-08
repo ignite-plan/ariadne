@@ -24,12 +24,16 @@ Dealers 사용자 매뉴얼을 고치고, BO 화면을 캡처하고, Word로 만
 2. **매뉴얼 내려받기**: 기본 폴더는 `~/Documents/Ariadne`입니다.
 3. **환경 점검**
    - **pandoc**(미리보기·Word 만들기): 없으면 앱이 자동으로 받아 설치합니다 (약 40MB). 설치할 일이 없습니다.
+   - **Claude Code**(Claude 기능): 앱 전용 고정 버전을 자동으로 받아 설치합니다 (약 220MB).
    - **Google Chrome**(선택, 화면 캡처)
 4. **STG 로그인**: 화면 캡처·Claude 기능을 쓰려면 앱에서 STG에 한 번 로그인합니다 (MFA).
 
 ## Claude 기능 (초안·최신화·가이드 영상)
 
-이미 터미널에서 Claude Code를 쓰고 있다면(**`~/.zshrc`의 `ANTHROPIC_API_KEY`** 또는 claude.ai 로그인, **Atlassian MCP 연결**) 따로 할 일이 없습니다. 앱이 그 설정을 그대로 씁니다.
+이미 터미널에서 Claude Code를 쓰고 있다면(**`~/.zshrc`의 `ANTHROPIC_API_KEY`** 또는 claude.ai 로그인, **Atlassian MCP 연결**) 따로 할 일이 없습니다.
+
+- 앱은 모두 같은 환경에서 돌도록 **앱 전용 Claude Code(고정 버전)**를 첫 실행 때 받아 씁니다(약 220MB). 내 PC에 설치된 claude 버전과 상관없습니다.
+- API 키 방식이면 개인 Claude 설정(내 CLAUDE.md, hooks, 플러그인)은 앱 작업에 섞이지 않습니다. Atlassian MCP 설정만 내 Claude Code에서 가져옵니다.
 
 - 인증은 자동으로 고릅니다: 키가 있으면 API 키, 없으면 claude.ai 로그인
 - 모델은 기본 `claude-sonnet-5[1m]`입니다 (설정 → 고급 → Claude 모델)

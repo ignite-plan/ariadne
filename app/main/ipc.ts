@@ -30,6 +30,7 @@ import type {
 } from '../shared/api.ts'
 import { findChrome, findFfmpeg, findPandoc, formatAge, PANDOC_CANDIDATES } from './lib/environment.ts'
 import { installedPandocPath, installPandoc } from './lib/pandoc-install.ts'
+import { CLAUDE_CODE_VERSION, installClaude, installedClaudePath, type ToolProgress } from './lib/claude-install.ts'
 import { downloadModel, modelStatus } from './lib/video-model.ts'
 import { isRecording, startRecording, stopRecording } from './lib/video-record.ts'
 import { createVideo, videoInfos } from './lib/videos.ts'
@@ -37,7 +38,7 @@ import { cancelVideo, runVideo, speak } from './video.ts'
 import * as gitOps from './lib/git.ts'
 import { cancelDraft, checkDraft, decideDraft, startDraft } from './draft.ts'
 import { analyzeInWorker, importInWorker } from './importer.ts'
-import { findClaude } from './lib/claude.ts'
+import { findClaude, setManagedClaude } from './lib/claude.ts'
 import { checkRepoAccess, commitAuthor, createPullRequest, getUser, latestAppRelease } from './lib/github.ts'
 import { renderSection } from './lib/preview.ts'
 import {
@@ -134,6 +135,8 @@ let updateState: UpdateState = { phase: 'idle' }
 
 // 앱이 받아 두는 도구(pandoc). 작업 폴더와 상관없이 userData에 둔다
 const toolsDir = () => join(app.getPath('userData'), 'tools')
+// 앱 전용 Claude 설정 폴더 (--bare 실행의 CLAUDE_CONFIG_DIR, 대화 기록)
+const claudeDataDir = () => join(app.getPath('userData'), 'claude')
 // pandoc: 설정 경로 → 앱이 설치한 것 → Homebrew 등
 const pandoc = () => findPandoc(getSettings().pandocPath || undefined, [installedPandocPath(toolsDir()), ...PANDOC_CANDIDATES])
 
@@ -219,6 +222,9 @@ function handle<T extends unknown[], R>(channel: string, fn: (...args: T) => R |
 }
 
 export function registerIpc(getWindow: () => BrowserWindow | undefined) {
+  // 앱 전용 Claude Code가 설치돼 있으면 내 PC의 claude보다 먼저 쓴다
+  const managedClaude = installedClaudePath(toolsDir())
+  setManagedClaude(existsSync(managedClaude) ? managedClaude : undefined)
   windowRef = getWindow
   const send = (channel: string, payload: unknown) => getWindow()?.webContents.send(channel, payload)
   const setUpdateState = (state: UpdateState) => {
@@ -272,7 +278,14 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   })
 
   // env
-  handle('env:installPandoc', () => installPandoc(toolsDir(), netFetch, (progress) => send('pandoc-progress', progress)))
+  // 앱이 대신 설치하는 도구: pandoc, 앱 전용 Claude Code
+  handle('env:install', async (tool: 'pandoc' | 'claude') => {
+    const progress = (p: ToolProgress) => send('install-progress', { tool, ...p })
+    if (tool === 'pandoc') return installPandoc(toolsDir(), netFetch, progress)
+    const installed = await installClaude(toolsDir(), netFetch, progress)
+    setManagedClaude(installed.path)
+    return installed
+  })
   handle('env:check', async (): Promise<EnvCheck[]> => {
     const settings = getSettings()
     const checks: EnvCheck[] = []
@@ -318,13 +331,19 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
       link: chrome ? undefined : { label: 'Chrome 받기', url: 'https://www.google.com/chrome/' },
     })
     const claude = await findClaude(settings.claudePath || undefined, false, settings.claudeAuth)
+    const managed = claude?.managed
     checks.push({
       id: 'claude',
-      ok: Boolean(claude),
+      // E2E(가짜 claude)나 직접 지정한 경로는 앱 전용 설치를 권하지 않는다
+      ok: Boolean(managed || (claude && (settings.claudePath || process.env.ARIADNE_CLAUDE_PATH))),
       required: false,
-      label: 'Claude Code CLI (Claude로 초안 만들기)',
-      detail: claude ? `${claude.version} · ${claude.path}` : '찾지 못했습니다. 초안 만들기를 쓰지 않으면 없어도 됩니다',
-      link: claude ? undefined : { label: '설치 안내', url: 'https://docs.claude.com/en/docs/claude-code/setup' },
+      label: `Claude Code ${CLAUDE_CODE_VERSION} (Claude로 초안·최신화·영상)`,
+      detail: managed
+        ? `${claude!.version} · 앱 전용`
+        : claude
+          ? `내 PC의 ${claude.version}을 쓰는 중입니다. 사람마다 같은 버전으로 돌리려면 앱 전용으로 설치하세요 (약 220MB)`
+          : '없습니다. 앱 전용으로 설치할 수 있습니다 (약 220MB). Claude 기능을 쓰지 않으면 없어도 됩니다',
+      install: managed || settings.claudePath || process.env.ARIADNE_CLAUDE_PATH ? undefined : 'claude',
     })
     const ffmpeg = findFfmpeg()
     checks.push({
@@ -685,6 +704,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
         captureBaseUrl: captureBaseUrl(),
         profileDir: session,
         openTab: hostTab(session),
+        claudeDataDir: claudeDataDir(),
         onEvent: (event) => send('draft-event', event),
       }),
     )
