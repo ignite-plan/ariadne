@@ -1,18 +1,12 @@
 // STG 로그인 세션 표시와 MFA 로그인. 캡처와 가이드 영상이 같은 세션을 쓴다
 import { useEffect, useState } from 'react'
 import type { SessionInfo } from '../../../shared/api.ts'
+import { formatAge } from '../../../shared/format.ts'
 import { api, errorMessage } from '../api.ts'
 import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { useToast } from './Toast.tsx'
-
-function age(ms: number) {
-  const minutes = Math.round((Date.now() - ms) / 60000)
-  if (minutes < 60) return `${minutes}분 전`
-  const hours = Math.round(minutes / 60)
-  return hours < 48 ? `${hours}시간 전` : `${Math.round(hours / 24)}일 전`
-}
 
 export function StgSession({
   disabled,
@@ -76,7 +70,7 @@ export function StgSession({
         <div>
           <b>{session.exists ? 'STG 로그인됨' : 'STG 로그인 필요'}</b>
           <span className="muted">
-            {session.exists && session.savedAt ? `${age(session.savedAt)} 확인됨` : 'MFA 로그인이 필요합니다'}
+            {session.exists && session.savedAt ? `${formatAge(Date.now() - session.savedAt)} 확인됨` : 'MFA 로그인이 필요합니다'}
           </span>
         </div>
         <div className="session-actions">

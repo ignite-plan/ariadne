@@ -3,8 +3,10 @@ import type { DocxAnalysis, ImportProgress, ManualInfo } from '../../../shared/a
 import { ID_PATTERN, ID_RULE } from '../../../../src/core/naming.ts'
 import { CODE_PRESETS, suggestManualId, VIEWPORTS, type ViewportKey } from '../../../shared/presets.ts'
 import { api, errorMessage } from '../api.ts'
+import { useAsyncAction } from '../hooks.ts'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
+import { Progress } from './Progress.tsx'
 
 type Step = 'pick' | 'review' | 'importing'
 
@@ -21,16 +23,14 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
   const [docx, setDocx] = useState('')
   const [analysis, setAnalysis] = useState<DocxAnalysis>()
   const [manuals, setManuals] = useState<ManualInfo[]>([])
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const { run: runAction, busy, error, setError } = useAsyncAction()
   const [progress, setProgress] = useState<ImportProgress>()
 
   const [title, setTitle] = useState('')
-  const [id, setId] = useState('')
-  const [idTouched, setIdTouched] = useState(false)
+  // 직접 고치기 전까지 id와 Word 파일 이름은 제목에서 만든다
+  const [idInput, setIdInput] = useState<string>()
   const [version, setVersion] = useState('')
-  const [output, setOutput] = useState('')
-  const [outputTouched, setOutputTouched] = useState(false)
+  const [outputInput, setOutputInput] = useState<string>()
   const [app, setApp] = useState(CODE_PRESETS[0].app)
   const [baseUrl, setBaseUrl] = useState(CODE_PRESETS[0].baseUrl)
   const [viewport, setViewport] = useState<ViewportKey>('desktop')
@@ -42,31 +42,20 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
   }, [])
 
   const taken = useMemo(() => manuals.map((m) => m.id), [manuals])
-
-  useEffect(() => {
-    if (!idTouched && title) setId(suggestManualId(title, taken))
-  }, [title, idTouched, taken])
-  useEffect(() => {
-    if (!outputTouched && title) setOutput(`${title}_v{version}`)
-  }, [title, outputTouched])
+  const id = idInput ?? (title ? suggestManualId(title, taken) : '')
+  const output = outputInput ?? (title ? `${title}_v{version}` : '')
 
   const pick = async () => {
     const path = await api.manual.pickDocx()
     if (!path) return
     setDocx(path)
-    setBusy(true)
-    setError('')
-    try {
+    await runAction(async () => {
       const result = await api.manual.analyzeDocx(path)
       setAnalysis(result)
       setTitle(result.title)
       setVersion(result.version)
       setStep('review')
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setBusy(false)
-    }
+    })
   }
 
   const choosePreset = (next: string) => {
@@ -194,10 +183,7 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
                 <span>id (폴더 이름)</span>
                 <input
                   value={id}
-                  onChange={(e) => {
-                    setIdTouched(true)
-                    setId(e.target.value)
-                  }}
+                  onChange={(e) => setIdInput(e.target.value)}
                   disabled={step === 'importing'}
                 />
                 {idError && <em className="field-error">{idError}</em>}
@@ -211,10 +197,7 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
               <span>Word 파일 이름 ({'{version}'}은 버전으로 바뀜)</span>
               <input
                 value={output}
-                onChange={(e) => {
-                  setOutputTouched(true)
-                  setOutput(e.target.value)
-                }}
+                onChange={(e) => setOutputInput(e.target.value)}
                 disabled={step === 'importing'}
               />
             </label>
@@ -254,16 +237,11 @@ export function ImportWizard({ onDone, onClose }: { onDone: (id: string) => void
             </label>
 
             {step === 'importing' && (
-              <div className="progress">
-                <div
-                  className="progress-bar"
-                  style={{ width: `${percent ?? 20}%` }}
-                  data-indeterminate={percent === undefined}
-                />
+              <Progress percent={percent} fallback={20}>
                 <span>
                   {progress ? PHASE_LABEL[progress.phase] : '준비 중'} {percent !== undefined ? `${progress?.done}/${progress?.total}` : ''}
                 </span>
-              </div>
+              </Progress>
             )}
           </section>
         </div>

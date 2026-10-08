@@ -1,10 +1,9 @@
 import { useMemo, useState, type DragEvent } from 'react'
 import type { FileChange, ManualTree, Todo } from '../../../shared/api.ts'
+import { CHANGE_STATUS_LABEL as STATUS_LABEL } from '../../../shared/format.ts'
 import { Icon } from './Icon.tsx'
 
 export type SidebarTab = 'toc' | 'todo' | 'changes'
-
-const STATUS_LABEL = { added: '추가', modified: '수정', deleted: '삭제' } as const
 
 export function Sidebar({
   tab,

@@ -39,11 +39,3 @@ export function findChrome() {
   const app = 'Google Chrome.app/Contents/MacOS/Google Chrome'
   return [join('/Applications', app), join(homedir(), 'Applications', app)].find((p) => existsSync(p)) ?? null
 }
-
-export function formatAge(ms: number) {
-  const minutes = Math.round(ms / 60000)
-  if (minutes < 60) return `${minutes}분 전`
-  const hours = Math.round(minutes / 60)
-  if (hours < 48) return `${hours}시간 전`
-  return `${Math.round(hours / 24)}일 전`
-}

@@ -2,6 +2,7 @@
 // 패널은 이 상태를 보여 주기만 하고, 상단 칩(TaskChips)에서 다시 연다
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { DraftEvent, DraftInput, DraftResult, RefreshScope, ScreenStatus, VideoProgress, VideoRunOptions, VideoRunResult } from '../../shared/api.ts'
+import { formatDuration } from '../../shared/format.ts'
 import { api, errorMessage } from './api.ts'
 import { useToast } from './components/Toast.tsx'
 
@@ -146,8 +147,6 @@ export function useTasks() {
   return tasks
 }
 
-const elapsedText = (ms: number) => (ms < 60000 ? `${Math.round(ms / 1000)}초` : `${Math.round(ms / 60000)}분`)
-
 export function TasksProvider({ children }: { children: ReactNode }) {
   const toast = useToast()
   const [claude, setClaude] = useState<ClaudeTask>()
@@ -226,7 +225,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         const name = `Claude ${draftLabel(input)}`
         const action = { label: '결과 보기', run: () => setDraftPanel(input) }
         if (error) toast.show('error', `${name} 작업이 끝나지 못했습니다`, action)
-        else toast.show('success', `${name} 작업을 마쳤습니다 (${elapsedText(Date.now() - task.startedAt)})`, action)
+        else toast.show('success', `${name} 작업을 마쳤습니다 (${formatDuration(Date.now() - task.startedAt)})`, action)
       }
     },
     [toast],
@@ -239,7 +238,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         const result = await api.video.run(id, options)
         const open = videoOpener.current
         const action = open ? { label: '보기', run: () => open(id) } : undefined
-        if (result.ok) toast.show('success', `"${title}" 영상을 만들었습니다 (${elapsedText(result.durationMs)})`, action)
+        if (result.ok) toast.show('success', `"${title}" 영상을 만들었습니다 (${formatDuration(result.durationMs)})`, action)
         else {
           const where = result.scene === undefined ? '' : result.scene === 'cleanup' ? ' (정리 단계)' : ` (장면 ${result.scene + 1})`
           toast.show('error', `"${title}" 영상을 만들지 못했습니다${where}: ${result.error}`, action)

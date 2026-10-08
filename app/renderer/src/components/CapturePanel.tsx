@@ -3,6 +3,7 @@ import { isSessionExpired } from '../../../../src/core/stg-url.ts'
 import { assetUrl, type CaptureProgress, type CaptureReport, type SessionInfo, type ShotInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
 import { Icon } from './Icon.tsx'
+import { Progress } from './Progress.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
 
@@ -139,12 +140,11 @@ export function CapturePanel({
             <Icon name="camera" /> {running ? '캡처 중…' : `${checked.size}장 캡처`}
           </button>
           {running && progress && (
-            <div className="progress">
-              <div className="progress-bar" style={{ width: `${Math.round(((progress.index + 1) / progress.total) * 100)}%` }} />
+            <Progress percent={Math.round(((progress.index + 1) / progress.total) * 100)}>
               <span className="ellipsis">
                 {progress.index + 1}/{progress.total} · {progress.id}
               </span>
-            </div>
+            </Progress>
           )}
         </aside>
 

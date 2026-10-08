@@ -1,6 +1,6 @@
 // 환경 점검 화면의 항목과 문구. 찾은 결과를 받아 판정만 한다. Electron에 의존하지 않는다 (단위 테스트 대상)
 import type { AuthStatus, EnvCheck, WorkspaceState } from '../../shared/api.ts'
-import { formatAge } from './environment.ts'
+import { formatAge } from '../../shared/format.ts'
 
 export interface EnvFacts {
   auth: AuthStatus

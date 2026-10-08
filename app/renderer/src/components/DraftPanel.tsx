@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, DraftResult, SessionInfo } from '../../../shared/api.ts'
+import { formatAge, formatDuration } from '../../../shared/format.ts'
 import { api } from '../api.ts'
+import { useNow } from '../hooks.ts'
 import { SCREEN_LABEL, screenName, useTasks } from '../tasks.tsx'
 import { checkScope, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { Icon } from './Icon.tsx'
@@ -10,13 +12,7 @@ import { useToast } from './Toast.tsx'
 type Phase = 'check' | 'ready' | 'running' | 'done'
 
 // "· 3분 전 확인" (방금이면 비움)
-const checkedAgo = (at?: number) => {
-  if (!at) return ''
-  const min = Math.floor((Date.now() - at) / 60000)
-  return min < 1 ? '' : ` · ${min < 60 ? `${min}분` : `${Math.floor(min / 60)}시간`} 전 확인`
-}
-
-const minutes = (ms?: number) => (!ms ? '' : ms < 60000 ? `${Math.round(ms / 1000)}초` : `${Math.round(ms / 60000)}분`)
+const checkedAgo = (at?: number) => (at && Date.now() - at >= 60000 ? ` · ${formatAge(Date.now() - at)} 확인` : '')
 
 // Claude로 초안 만들기·최신화·영상 초안·장면 채우기: 사전 점검 → 실행(진행 로그) → 결과 요약.
 // 실행 상태는 tasks.tsx에 있어서, 실행 중에 패널을 숨겨도 작업은 계속되고 상단 칩에서 다시 연다
@@ -126,12 +122,7 @@ export function DraftPanel({
   }
 
   // 진행 시간 표시
-  const [, tick] = useState(0)
-  useEffect(() => {
-    if (phase !== 'running') return
-    const timer = setInterval(() => tick((n) => n + 1), 1000)
-    return () => clearInterval(timer)
-  }, [phase])
+  const now = useNow(phase === 'running')
 
   const close = () => {
     if (phase === 'running') return tasks.hideDraft()
@@ -140,7 +131,7 @@ export function DraftPanel({
   }
 
   const atlassianOk = check?.atlassian.some((a) => a.connected)
-  const elapsed = Math.round((Date.now() - (task?.startedAt ?? Date.now())) / 1000)
+  const elapsed = Math.max(0, Math.round((now - (task?.startedAt ?? now)) / 1000))
 
   return (
     <div className="capture-panel draft-panel">
@@ -525,7 +516,7 @@ function DraftSummaryCard({
               </>
             )}
             <span className={`pill ${summary.todos ? 'todo' : ''}`}>TODO {summary.todos ?? 0}</span>
-            {result?.durationMs && <span className="pill">{minutes(result.durationMs)}</span>}
+            {result?.durationMs ? <span className="pill">{formatDuration(result.durationMs)}</span> : null}
           </div>
           {summary.sections.length > 0 && <h3>{refresh ? '고친 화면' : '만든 화면'}</h3>}
           <ul>

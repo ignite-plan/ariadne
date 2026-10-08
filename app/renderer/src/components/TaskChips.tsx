@@ -1,23 +1,14 @@
 // 상단 바의 작업 표시. 숨겨 둔 Claude 작업과 영상 만들기를 보여 주고, 누르면 그 패널을 연다
-import { useEffect, useState } from 'react'
+import { formatClock } from '../../../shared/format.ts'
+import { useNow } from '../hooks.ts'
 import { draftLabel, screenProgress, useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
-
-const clock = (since: number) => {
-  const s = Math.max(0, Math.round((Date.now() - since) / 1000))
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
-}
 
 export function TaskChips({ onOpenVideo }: { onOpenVideo: (id: string) => void }) {
   const tasks = useTasks()
   const { claude, video } = tasks
   const running = claude?.phase === 'running' || Boolean(video)
-  const [, tick] = useState(0)
-  useEffect(() => {
-    if (!running) return
-    const timer = setInterval(() => tick((n) => n + 1), 1000)
-    return () => clearInterval(timer)
-  }, [running])
+  const now = useNow(running)
 
   // 패널을 보고 있으면 표시하지 않는다
   const showClaude = claude && tasks.draftPanel !== claude.input
@@ -38,7 +29,7 @@ export function TaskChips({ onOpenVideo }: { onOpenVideo: (id: string) => void }
           Claude {draftLabel(claude.input)}
           {claude.phase === 'running' && progress?.total ? ` ${progress.finished}/${progress.total}` : ''}
           {claude.phase === 'running' && claude.ask ? ' · 확인 필요' : ''}
-          {claude.phase === 'running' ? ` · ${clock(claude.startedAt)}` : claude.error ? ' 실패' : ' 완료'}
+          {claude.phase === 'running' ? ` · ${formatClock(now - claude.startedAt)}` : claude.error ? ' 실패' : ' 완료'}
         </button>
       )}
       {video && (
