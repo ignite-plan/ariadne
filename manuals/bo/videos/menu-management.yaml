@@ -1,70 +1,59 @@
 title: Menu Management
-intro: This video shows how to view, search, and check menus in Menu Management.
-section: 08-menu-management/01-menu-list-view.md
+intro: This video shows how to manage menus, including creating, viewing,
+  editing, and deleting menus in Hyundai Dealers_BO.
+section: 08-menu-management/00-intro.md
+mutates: true
 maskPersonal: true
 scenes:
-  - say: Menu Management lets you manage the menus of Hyundai Dealers, and create, edit, and delete menus.
+  - say: Menu Management lets you manage menus within Hyundai Dealers_BO by
+      creating, editing, and deleting menus. Menus can be created up to a
+      maximum of 4 depths.
     steps:
       - open: /menu
       - waitFor:
           text: Dealers Menu
-  - say: Menus can be created up to a maximum of 4 depths. Users with permission see the Group Addition button and can create menus.
-    steps:
-      - highlight:
-          target:
-            role: button
-            name: Group Addition
-          ms: 2500
-  - say: You can view the registered menus in the menu list.
-    steps:
-      - highlight:
-          target:
-            role: tree
-            nth: 1
-          ms: 2500
-  - say: When you type words in the search box, matching menus are found in real time, and the keywords are highlighted.
-    steps:
-      - type:
-          target:
-            placeholder: Please enter the menu name
-          text: GDSI
-      - pause: 1500
-  - say: Clear the search box to return to the full menu list.
-    steps:
-      - type:
-          target:
-            placeholder: Please enter the menu name
-          text: ""
-      - waitFor:
-          role: treeitem
-          name: Bulletins
-  - say: Click a menu name in the menu list to see the menu details on the right.
+  - say: You can select a menu type to configure it according to its publishing
+      purpose. There are 3 menu types, General, Bulletin board, and Outlink,
+      used to create menus that direct to Link pages, Bulletin board menus, or
+      External links.
     steps:
       - click:
           role: treeitem
-          name: GDSI Image Guide
+          name: eComposite
       - waitFor:
-          text: Menu Display Status
-  - say: The Menu Details tab shows the saved menu properties, such as the display setting, the menu type, and the menu URL.
-    steps:
-      - highlight:
-          target:
-            role: tabpanel
-            name: Menu Details
-          ms: 3000
-  - say: For bulletin board menus, use Go to Manage Boards and Go to Manage Posts to move to the linked bulletin board.
-    steps:
-      - highlight:
-          target:
-            role: button
-            name: Go to Manage Boards
-          ms: 2000
-  - say: The Menu Access Permission tab shows the job titles and users who can access the menu.
+          text: Menu Details
+  - say: Menu access permissions allow you to manage who can access the menu.
     steps:
       - click:
           role: tab
           name: Menu Access Permission
       - waitFor:
-          role: columnheader
+          text: Menu Access Permission
+      - highlight:
+          target:
+            text: Job title
+          ms: 2000
+  - say: Click Edit on the Job title tab to set Access and Read permissions for a
+      job title.
+    steps:
+      - click:
+          role: tab
           name: Job title
+      - click:
+          role: button
+          name: Edit
+      - waitFor:
+          role: dialog
+      - click:
+          role: checkbox
+          name: checkbox
+          nth: 14
       - pause: 1500
+      - click:
+          role: button
+          name: Save
+      - waitFor:
+          role: dialog
+      - click:
+          role: button
+          name: Confirm
