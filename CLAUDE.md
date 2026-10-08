@@ -25,7 +25,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - `pnpm typecheck`
 - `pnpm test`: core + app 테스트 (`src/core/__tests__`, `app/main/lib/__tests__`). git 테스트는 로컬 `git http-backend`, 캡처 테스트는 설치된 Chrome 사용
 - `pnpm app:dev` / `pnpm app:dist`(arm64 dmg, 사내망은 `NODE_USE_SYSTEM_CA=1`) / `pnpm app:e2e`(`ARIADNE_E2E_TOKEN` 필요, 제출은 안 함) / `pnpm app:e2e:video [--app <.app>]`(영상: 모델 받기, 내레이션 영상, 패키징 앱 검증)
-- 앱 릴리즈: `app-v<version>` 태그를 `origin`에 push → Actions가 dmg를 Release에 올림
+- 앱 릴리즈: `app-v<version>` 태그를 `origin`에 push → Actions가 dmg를 Release에 올림. 사내 자체 서명 인증서(Secrets `MAC_CERT_P12`/`MAC_CERT_PASSWORD`)로 서명해 업데이트해도 macOS 권한이 유지된다. 시크릿이 없으면 릴리스가 멈춘다
 - 리모트: `origin` = ignite-plan/ariadne(기준, 기획자 제출이 들어옴), `zi-gae` = zi-gae/ariadne(미러). PR 없이 main에 커밋하고 둘 다 push
 
 ## 규칙

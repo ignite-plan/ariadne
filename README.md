@@ -449,6 +449,11 @@ git tag app-v1.1.0 && git push origin app-v1.1.0
 
 `.github/workflows/release-app.yml`이 테스트 후 dmg를 만들어 Release에 올립니다. 버전은 태그에서 정하고, Release 본문은 `app/INSTALL.md`입니다.
 
+**서명**: 릴리스는 사내 자체 서명 인증서(`Ariadne Code Signing (Ignite)`, 2036-10까지)로 서명합니다. macOS가 앱을 "이 인증서로 서명한 `kr.co.ignite.ariadne`"로 알아봐서, 앱 안 업데이트를 해도 키체인(GitHub 토큰)·폴더 권한을 다시 묻지 않습니다.
+- 인증서는 리포 Secrets `MAC_CERT_P12`(p12, base64)와 `MAC_CERT_PASSWORD`에 있습니다. 없으면 릴리스가 멈춥니다(ad-hoc 빌드가 나가면 모두 권한을 다시 허용해야 하므로).
+- 원본 p12와 비밀번호는 Secrets 밖에도 안전한 곳에 보관합니다. 잃어버려 새 인증서를 만들면 다음 업데이트에서 모두 권한을 한 번 다시 허용해야 합니다.
+- 로컬 `pnpm app:dist`는 인증서가 없으면 ad-hoc으로 서명합니다(`app/build/after-pack.cjs`).
+
 ### 구조
 
 ```
