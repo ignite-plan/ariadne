@@ -32,7 +32,19 @@ export function createBodyWriter({ imagesDir, drawings, warnings, onImage }: Bod
     return body
       .map((l) => l.replace(/^(> ?)+/, ''))
       .map((l) => l.replace(/\[\]\{#[^}]*\}/g, ''))
-      .map((l) => l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1'))
+      // Word 노란 형광펜은 본문에 [글자]{.mark}로 남긴다 (Word 빌드에서 다시 형광펜이 된다).
+      // 제목 줄, 이미지 캡션 안, 이미지만 감싼·빈 형광펜은 뺀다
+      .map((l) => {
+        let prev
+        do {
+          prev = l
+          l = l.replace(/(!\[[^\]]*?)\[([^\]]*)\]\{\.mark\}/g, '$1$2')
+        } while (l !== prev)
+        return l
+      })
+      .map((l) => l.replace(/\[(!\[[^\]]*\]\([^)]*\)(\{[^}]*\})?)\]\{\.mark\}/g, '$1'))
+      .map((l) => l.replace(/\[(\s*)\]\{\.mark\}/g, '$1'))
+      .map((l) => (/^#/.test(l) ? l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1') : l))
       .map((l) =>
         l.replace(/!\[([^\]]*)\]\(([^)#]+)#(\d+)\)(\{[^}]*\})?/g, (_, alt: string, src: string, index: string, pandocSize?: string) => {
           // Word가 자동 생성한 한글 대체 텍스트는 caption이 아니다

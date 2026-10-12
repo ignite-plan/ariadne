@@ -2,6 +2,7 @@
 import type { RefObject } from 'react'
 import type { ManualTree, SectionDoc, SectionMeta } from '../../../shared/api.ts'
 import type { SaveState } from '../workbench-state.ts'
+import { useToast } from './Toast.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
 import { Icon, type IconName } from './Icon.tsx'
 import { MetaPanel } from './MetaPanel.tsx'
@@ -49,6 +50,7 @@ export function DocumentPane({
   onInsertImage: () => void
   onImageFile: (file: File) => void
 }) {
+  const toast = useToast()
   // 나란히 볼 때 편집기 스크롤에 미리보기를 맞춘다
   const syncScroll = (ratio: number) => {
     const el = previewRef.current
@@ -96,11 +98,19 @@ export function DocumentPane({
           <fieldset className="lock toolbar" disabled={locked}>
             <ToolButton icon="bold" label="굵게 (항목 이름)" onClick={() => editor.current?.wrap('**', '**', 'Label')} />
             <ToolButton icon="button" label="버튼 이름 [Save]" onClick={() => editor.current?.wrap('**\\[', '\\]**', 'Button')} />
+            <ToolButton icon="highlight" label="노란 형광펜 (선택한 글자, 다시 누르면 해제)" onClick={() => editor.current?.toggleMark()} />
             <span className="divider" />
             <ToolButton icon="list" label="목록" onClick={() => editor.current?.prefixLines('- ')} />
             <ToolButton icon="indent" label="하위 목록" onClick={() => editor.current?.prefixLines('  ')} />
             <span className="divider" />
             <ToolButton icon="image" label="이미지 넣기" onClick={onInsertImage} />
+            <ToolButton
+              icon="center"
+              label="이미지 가운데 정렬 (커서가 있는 줄의 이미지, 다시 누르면 해제)"
+              onClick={() => {
+                if (editor.current && !editor.current.toggleCenter()) toast.show('info', '이미지가 있는 줄에 커서를 두고 누르세요')
+              }}
+            />
             <ToolButton icon="flag" label="TODO 남기기 (확인 필요한 내용)" onClick={() => editor.current?.wrap('<!-- TODO: ', ' -->', '확인 필요')} />
             <span className="spacer" />
             <ToolButton icon="undo" label="되돌리기 (⌘Z)" onClick={() => editor.current?.undo()} />
