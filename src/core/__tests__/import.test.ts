@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -7,7 +8,7 @@ import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
 import { analyzeDocx, guessVersion, importDocx, matchDrawings } from '../import.ts'
 import { plain, titleCase } from '../import/structure.ts'
-import { loadManual, localePath, outputName, saveManual, stripFrontMatter } from '../manual.ts'
+import { loadManual, localePath, outputName, saveManual, stripFrontMatter, type Manual } from '../manual.ts'
 import { referenceStyles, styleIdByName } from '../reference.ts'
 
 const hasPandoc = (() => {
@@ -19,7 +20,6 @@ const hasPandoc = (() => {
   }
 })()
 const BO_SOURCE = resolve('manuals/bo/source/Hyundai.docx')
-const repoRoot = process.cwd()
 
 describe('manual 설정', () => {
   it('Word 파일 이름: output 템플릿, 없으면 제목_v버전', () => {
@@ -92,10 +92,16 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     ])
   })
 
-  // 2장은 파일럿 때 본문을 손으로 다듬어(하위 목록 들여쓰기, 코드 연결 키) 원본과 다르다
-  const HAND_EDITED = new Set(['02-dealer-management'])
+  // 가져오기 결과 스냅샷 (fixtures/bo-import.json). 리포의 manuals/bo는 기획자가 계속 고치므로 직접 비교하지 않는다.
+  // 가져오기를 일부러 바꿨으면 스냅샷도 다시 만든다. 2장은 파일럿 때 손으로 다듬어 스냅샷에서 뺐다
+  const snapshot = JSON.parse(readFileSync(resolve('src/core/__tests__/fixtures/bo-import.json'), 'utf8')) as {
+    chapters: Manual['chapters']
+    sections: Record<string, string>
+    images: Record<string, string>
+  }
+  const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex')
 
-  it('가져오기 결과가 리포의 BO 매뉴얼과 같다 (손으로 다듬은 2장 본문 제외)', async () => {
+  it('가져오기 결과가 스냅샷과 같다 (장·절, 본문, 이미지)', async () => {
     const phases = new Set<string>()
     const result = await importDocx({
       root,
@@ -107,21 +113,14 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     })
     assert.deepEqual([...phases], ['convert', 'write', 'images', 'reference'])
     const imported = loadManual({ root, manual: 'bo' })
-    const repo = loadManual({ root: repoRoot, manual: 'bo' })
-    assert.equal(result.files, repo.chapters.reduce((n, c) => n + c.sections.length, 0))
-    assert.deepEqual(imported.chapters, repo.chapters)
-    for (const chapter of repo.chapters) {
-      if (HAND_EDITED.has(chapter.dir)) continue
-      for (const file of chapter.sections) {
-        const read = (r: string) => stripFrontMatter(readFileSync(join(r, 'manuals/bo', chapter.dir, file), 'utf8'))
-        assert.equal(read(root), read(repoRoot), `${chapter.dir}/${file}`)
-      }
+    assert.equal(result.files, snapshot.chapters.reduce((n, c) => n + c.sections.length, 0))
+    assert.deepEqual(imported.chapters, snapshot.chapters)
+    for (const [path, hash] of Object.entries(snapshot.sections)) {
+      assert.equal(sha(stripFrontMatter(readFileSync(join(root, 'manuals/bo', path), 'utf8'))), hash, path)
     }
-    const images = readdirSync(join(repoRoot, 'manuals/bo/images'))
-    assert.deepEqual(readdirSync(join(root, 'manuals/bo/images')).sort(), images.sort())
-    for (const image of images) {
-      assert.ok(readFileSync(join(root, 'manuals/bo/images', image)).equals(readFileSync(join(repoRoot, 'manuals/bo/images', image))), image)
-    }
+    const images = readdirSync(join(root, 'manuals/bo/images')).sort()
+    assert.deepEqual(images, Object.keys(snapshot.images).sort())
+    for (const image of images) assert.equal(sha(readFileSync(join(root, 'manuals/bo/images', image))), snapshot.images[image], image)
     assert.ok(existsSync(join(root, 'manuals/bo/reference.docx')))
     assert.ok(existsSync(join(root, 'manuals/bo/shots.ts')))
   })
