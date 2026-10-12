@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { assetUrl, type ImageInfo } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import { api } from '../api.ts'
+import { useAsyncAction } from '../hooks.ts'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 
@@ -41,8 +42,7 @@ export function ImageDialog({
   const [idTouched, setIdTouched] = useState(false)
   const [size, setSize] = useState<(typeof SIZES)[number]['id']>('full')
   const [center, setCenter] = useState(false)
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const { run, busy, error } = useAsyncAction()
 
   useEffect(() => {
     void api.manual.images().then(setImages)
@@ -65,10 +65,8 @@ export function ImageDialog({
     if (path) setSource({ path, previewUrl: undefined, name: path.split('/').pop()!.replace(/\.[^.]+$/, '') })
   }
 
-  const insert = async (existingId?: string) => {
-    setBusy(true)
-    setError('')
-    try {
+  const insert = (existingId?: string) =>
+    run(async () => {
       let imageId = existingId ?? selected
       if (mode === 'new') {
         if (!source) throw new Error('이미지를 고르세요')
@@ -79,11 +77,7 @@ export function ImageDialog({
       const align = center && !preset.inline ? ' align=center' : ''
       const md = `![${preset.inline ? '' : caption}](images/${imageId}.png){width=${preset.width}${align}}`
       onInsert(preset.inline ? md : `\n\n${md}\n\n`)
-    } catch (e) {
-      setError(errorMessage(e))
-      setBusy(false)
-    }
-  }
+    })
 
   const canInsert = mode === 'existing' ? Boolean(selected) : Boolean(source && id)
 

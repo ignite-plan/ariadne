@@ -5,16 +5,17 @@ import { join, resolve } from 'node:path'
 import type { Page } from 'playwright'
 import { loadManual, type Manual, type ManualRef, type Viewport } from '../manual.ts'
 import { guardWrites } from '../safety.ts'
-import { clearSession, defaultProfileDir, isSessionExpired, profileTab, requireSession, type OpenTab } from '../session.ts'
+import { clearSession, defaultProfileDir, profileTab, requireSession, type OpenTab } from '../session.ts'
+import { isSessionExpired } from '../stg-url.ts'
 import { compose } from './compose.ts'
 import { Director } from './director.ts'
 import { MASK_ATTR, overlayScript } from './overlay.ts'
 import { startRecording, type Recording } from './recorder.ts'
 import { CAPTION_SCALE, PACE_FACTOR, sceneHasContent, videoStyle } from './edit.ts'
 import { applyVars, loadVideo, videoVars, type Target, type VideoScenario } from './scenario.ts'
-import { locate, runSteps } from './steps.ts'
+import { locate, replayScenes, runSteps } from './steps.ts'
 import { readingTime, toSrt, toVtt, type Cue } from './subtitles.ts'
-import { createProvider, narrate, type Clip, type TtsConfig, type TtsProvider } from './tts/index.ts'
+import { createProvider, narrate, type Clip, type OpenAiOptions, type TtsConfig, type TtsProvider } from './tts/index.ts'
 
 export * from './compose.ts'
 export * from './describe.ts'
@@ -68,6 +69,8 @@ export interface VideoOptions extends ManualRef {
   // Kokoro 모델 위치. 기본 <root>/.video-cache/models. localModel이면 내려받지 않는다 (앱)
   modelDir?: string
   localModel?: boolean
+  // tts.provider가 openai일 때 키와 모델 (CLI가 .env에서 읽어 넘긴다)
+  openai?: OpenAiOptions
   // 기본 PATH의 ffmpeg
   ffmpegPath?: string
   // <root> 기준. 기본 dist/videos
@@ -129,6 +132,7 @@ export async function renderVideo({
   tts: ttsOption,
   modelDir,
   localModel,
+  openai,
   ffmpegPath,
   outDir,
   headed,
@@ -173,7 +177,7 @@ export async function renderVideo({
     const provider =
       'synthesize' in tts
         ? tts
-        : await createProvider({ ...tts, speed: style.speed }, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel })
+        : await createProvider({ ...tts, speed: style.speed }, { modelDir: modelDir ?? join(cache, 'models'), localOnly: localModel, openai })
     clips = await narrate(lines, provider, join(cache, 'tts'), ({ index, total, cached }) => {
       signal?.throwIfAborted()
       onProgress?.({ stage: 'tts', message: `음성 ${index + 1}/${total}${cached ? ' (캐시)' : ''}` })
@@ -203,13 +207,13 @@ export async function renderVideo({
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다
     onProgress?.({ stage: 'prepare', message: 'STG 열기' })
     await v.goto('/')
-    if (fromScene) {
-      const fast = new Director(page, { baseUrl, mutates: scenario.mutates, pace: 0 })
-      for (const [index, scene] of scenario.scenes.slice(0, fromScene).entries()) {
-        onProgress?.({ stage: 'prepare', message: `장면 ${index + 1} 빠르게 재생`, scene: index })
-        await runSteps(fast, scene.steps, index, { signal })
-      }
-    }
+    await replayScenes(page, scenario.scenes.slice(0, fromScene), {
+      baseUrl,
+      mutates: scenario.mutates,
+      overlay: true,
+      signal,
+      onScene: (index) => onProgress?.({ stage: 'prepare', message: `장면 ${index + 1} 빠르게 재생`, scene: index }),
+    })
     await applyMask(page, scenario.mask)
     await v.placeCursor(viewport.width / 2, viewport.height / 2)
     if (!fromScene) await v.card(scenario.title, manual.title)

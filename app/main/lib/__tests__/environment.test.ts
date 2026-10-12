@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { findPandoc, formatAge } from '../environment.ts'
+import { formatAge } from '../../../shared/format.ts'
+import { findPandoc } from '../environment.ts'
 
 describe('environment', () => {
   it('후보 경로에서 실행 가능한 pandoc을 찾는다', () => {

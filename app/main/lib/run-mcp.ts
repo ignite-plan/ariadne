@@ -77,3 +77,29 @@ export function buildRunMcpConfig(
   const servers = Object.fromEntries(atlassian.map((name) => [name, confluenceReadOnly(registered[name], { jira })]))
   return { config: { mcpServers: { ...servers, ...ariadne } }, strict: true, missing }
 }
+
+// 개인 Claude 설정(CLAUDE.md, hooks, 플러그인, 자동 메모리)이 앱 작업에 섞이지 않게 --bare로 실행할 수 있는지.
+// --bare는 ANTHROPIC_API_KEY로만 인증하고 MCP는 넘긴 것만 쓰므로, 키가 있고 Atlassian 설정을 모두 옮길 수 있을 때만
+export function canRunBare({
+  dataDir,
+  auth,
+  hasKey,
+  atlassian,
+  registered,
+}: {
+  dataDir?: string
+  auth: 'apiKey' | 'login'
+  hasKey: boolean
+  atlassian: string[]
+  registered: Record<string, McpServerConfig>
+}) {
+  return Boolean(dataDir) && auth === 'apiKey' && hasKey && atlassian.every((name) => registered[name])
+}
+
+// 실행 한 번의 --bare와 CLAUDE_CONFIG_DIR. 이번 실행의 MCP를 strict로 넘기지 못하면 PC 설정으로 실행한다
+export function bareFlags(bare: boolean, strict: boolean, configDir?: string) {
+  return {
+    bare: bare && strict,
+    extraEnv: configDir && strict ? { CLAUDE_CONFIG_DIR: configDir } : undefined,
+  }
+}

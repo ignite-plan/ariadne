@@ -1,20 +1,17 @@
 // 가짜 STG(메뉴 관리 화면)와 설치된 Chrome으로 StgSession과 Ariadne MCP를 검증한다
 import assert from 'node:assert/strict'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import http from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
+import { skipWithout, startFakeStg } from '../../../../src/core/__tests__/browser.ts'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
-import { markSession } from '../../../../src/core/session.ts'
+import { markSession, sessionInfo } from '../../../../src/core/session.ts'
 import { loadManual } from '../../../../src/core/manual.ts'
 import { loadVideo, saveVideo } from '../../../../src/core/video/scenario.ts'
 import { startAriadneMcp } from '../mcp.ts'
 import { StgSession } from '../stg.ts'
-
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 const PAGE = `<!doctype html><html><head><title>Menu Management</title></head><body style="margin:0;font-family:sans-serif">
 <div id="root">
@@ -36,35 +33,33 @@ const PAGE = `<!doctype html><html><head><title>Menu Management</title></head><b
 <script>document.getElementById('add').onclick=()=>{document.getElementById('dlg').hidden=false}</script>
 </body></html>`
 
-describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+describe('STG 세션과 Ariadne MCP (Chrome)', { skip: skipWithout() }, () => {
   const fx = createFixture()
   const requests: string[] = []
-  let server: http.Server
+  let fake: Awaited<ReturnType<typeof startFakeStg>>
   let baseUrl = ''
   const profileDir = join(fx.ref.root, 'stg-profile')
 
   before(async () => {
-    server = http.createServer((req, res) => {
+    fake = await startFakeStg((req, res, port) => {
       requests.push(`${req.method} ${req.url}`)
       if (req.url?.startsWith('/api/')) {
         res.setHeader('Content-Type', 'application/json')
         return res.end('{}')
       }
       if (req.url?.startsWith('/ca/admin/expired')) {
-        res.writeHead(302, { Location: `http://localhost:${(server.address() as AddressInfo).port}/login` })
+        res.writeHead(302, { Location: `http://localhost:${port}/login` })
         return res.end()
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
       res.end(req.url?.startsWith('/login') ? '<h1>MPASS</h1>' : PAGE)
-    })
-    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done))
-    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/ca/admin`
-    markSession(profileDir, baseUrl)
+    }, { basePath: '/ca/admin', profileDir })
+    baseUrl = fake.baseUrl
     writeFileSync(join(fx.dir, 'shots.ts'), "import { defineShots } from '../../src/core/shot.ts'\n\nexport const shots = defineShots([])\n")
     mkdirSync(join(fx.dir, 'images'), { recursive: true })
   })
   after(async () => {
-    await new Promise((done) => server.close(done))
+    await fake.close()
     fx.cleanup()
   })
 
@@ -141,6 +136,14 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: !existsSync(chrome) && 'C
     it('STG 밖 주소와 세션 만료를 알려 준다', async () => {
       await assert.rejects(session.open('https://example.com/'), /STG 밖 주소/)
       await assert.rejects(session.open('/expired'), /세션 만료/)
+      assert.equal(sessionInfo(profileDir).exists, false, '로그인 표식을 지운다')
+      markSession(profileDir, baseUrl)
+      // 캡처 저장도 로그인 페이지를 찍지 않고 멈춘다
+      await assert.rejects(session.saveShot({ id: 'expired-shot', path: '/expired' }), /세션 만료/)
+      assert.equal(existsSync(join(fx.dir, 'images', 'expired-shot.png')), false)
+      assert.doesNotMatch(readFileSync(join(fx.dir, 'shots.ts'), 'utf8'), /expired-shot/)
+      assert.equal(sessionInfo(profileDir).exists, false)
+      markSession(profileDir, baseUrl)
     })
 
     it('캡처 저장: 단계를 새 페이지에서 재생해 찍고 shots.ts에 추가', async () => {

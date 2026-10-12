@@ -3,16 +3,13 @@ import { createInterface } from 'node:readline/promises'
 import { relative } from 'node:path'
 import { parseArgs } from 'node:util'
 import { defaultProfileDir, loadManual, login } from '../core/index.ts'
+import { baseUrlOverride, loadEnv, MANUAL_OPTION, manualRef } from './common.ts'
 
-try {
-  process.loadEnvFile()
-} catch {
-  // .env 없이 manual.yaml capture.baseUrl만 써도 된다
-}
-const { values } = parseArgs({ options: { manual: { type: 'string', default: 'bo' } } })
-const ref = { root: process.cwd(), manual: values.manual! }
-const baseUrl = (values.manual === 'bo' && process.env.BO_BASE_URL) || loadManual(ref).capture?.baseUrl
-if (!baseUrl) throw new Error(`manuals/${values.manual}/manual.yaml에 capture.baseUrl이 없습니다`)
+loadEnv()
+const { values } = parseArgs({ options: MANUAL_OPTION })
+const ref = manualRef(values.manual)
+const baseUrl = baseUrlOverride(ref.manual) ?? loadManual(ref).capture?.baseUrl
+if (!baseUrl) throw new Error(`manuals/${ref.manual}/manual.yaml에 capture.baseUrl이 없습니다`)
 
 const profileDir = await login({
   baseUrl,

@@ -4,13 +4,12 @@ import type { BrowserContext } from 'playwright'
 import { loadManual, type ManualRef } from '../../../src/core/manual.ts'
 import { guardWrites } from '../../../src/core/safety.ts'
 import { openProfile } from '../../../src/core/session.ts'
-import { Director } from '../../../src/core/video/director.ts'
 import { videoViewport } from '../../../src/core/video/index.ts'
-import { attachRecorder, type RecordEvent } from '../../../src/core/video/record.ts'
+import { attachRecorder } from '../../../src/core/video/record.ts'
 import { applyVars, loadVideo, videoVars } from '../../../src/core/video/scenario.ts'
-import { runSteps } from '../../../src/core/video/steps.ts'
-
-export type RecordSessionEvent = RecordEvent | { kind: 'ready' }
+import { replayScenes } from '../../../src/core/video/steps.ts'
+import { gotoStg, withSlash } from '../../../src/core/stg-url.ts'
+import type { VideoRecordEvent } from '../../shared/api.ts'
 
 export interface RecordOptions extends ManualRef {
   id: string
@@ -19,7 +18,7 @@ export interface RecordOptions extends ManualRef {
   baseUrl: string
   // 로그인 세션(유지되는 Chrome 프로필)
   profileDir: string
-  onEvent: (event: RecordSessionEvent) => void
+  onEvent: (event: VideoRecordEvent) => void
 }
 
 let current: BrowserContext | undefined
@@ -55,21 +54,18 @@ export async function startRecording({ id, scene, baseUrl, profileDir, onEvent, 
     }
     page.setDefaultTimeout(15_000)
     page.on('close', () => void context.close().catch(() => {}))
-    const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: 0, overlay: false })
-    await v.goto('/')
+    await gotoStg(page, baseUrl, '/')
+    await page.waitForLoadState('networkidle')
     const before = scenario.scenes.slice(0, scene + 1)
-    for (const [index, s] of before.entries()) {
-      try {
-        await runSteps(v, s.steps, index)
-      } catch (error) {
-        onEvent({ kind: 'warning', message: `앞 단계를 재생하다 멈췄습니다. 지금 화면에서 이어서 기록합니다: ${(error as Error).message}` })
-        break
-      }
+    try {
+      await replayScenes(page, before, { baseUrl, mutates: scenario.mutates })
+    } catch (error) {
+      onEvent({ kind: 'warning', message: `앞 단계를 재생하다 멈췄습니다. 지금 화면에서 이어서 기록합니다: ${(error as Error).message}` })
     }
     // 화면 열기 단계가 아직 없으면 지금 화면을 첫 단계로 넣는다
     if (!before.some((s) => s.steps.some((step) => 'open' in step))) {
-      const base = new URL(baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`)
-      const path = page.url().startsWith(base.href) ? `/${page.url().slice(base.href.length)}` : '/'
+      const base = withSlash(baseUrl)
+      const path = page.url().startsWith(base) ? `/${page.url().slice(base.length)}` : '/'
       onEvent({ kind: 'step', step: { open: path } })
     }
     await attachRecorder(page, {

@@ -1,0 +1,59 @@
+title: Dealers Front User Manual-EN
+version: 1.0.7
+output: Dealers Front User Manual-EN_v{version}
+capture:
+  baseUrl: https://stg-dealers.hyundai-corp.io
+  viewport:
+    width: 1440
+    height: 900
+code:
+  app: apps/hyundai-fo
+chapters:
+  - title: TABLE OF CONTENTS {table-of-contents .TOC-Heading}
+    dir: 01-table-of-contents-table-of-contents-toc-heading
+    sections:
+      - 00-intro.md
+  - title: Login & Logout
+    dir: 02-login-and-logout
+    sections:
+      - 00-intro.md
+  - title: Home
+    dir: 03-home
+    sections:
+      - 00-intro.md
+      - 01-gnb.md
+      - 02-menu.md
+      - 03-announcement.md
+      - 04-quick-link.md
+      - 05-board-you-ve-visited.md
+      - 06-bulletin-highlight.md
+      - 07-footer.md
+  - title: Search Result
+    dir: 04-search-result
+    sections:
+      - 00-intro.md
+  - title: Bulletin Board
+    dir: 05-bulletin-board
+    sections:
+      - 00-intro.md
+      - 01-post-list.md
+      - 02-post-detail.md
+  - title: Email Notification
+    dir: 06-email-notification
+    sections:
+      - 00-intro.md
+  - title: Dealer employee management
+    dir: 07-dealer-employee-management
+    sections:
+      - 00-intro.md
+      - 01-dealer-employee-list.md
+      - 02-create-dealer-employee.md
+      - 03-view-dealer-employee.md
+      - 04-edit-dealer-employee.md
+  - title: HMG-Notification
+    dir: 08-hmg-notification
+    sections:
+      - 00-intro.md
+      - 01-page-notification.md
+      - 02-pop-up-notification.md
+      - 03-consent-notification.md

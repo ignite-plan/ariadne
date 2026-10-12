@@ -13,7 +13,7 @@ description: 릴리즈 변경분을 기존 매뉴얼에 반영한다. "매뉴얼
 ## 절차
 1. `pnpm affected --manual bo --base <base> --head <head>` → 영향 섹션, 변경 파일, 변경 i18n key, 섹션 이미지 목록
 2. 재캡처
-   - `.auth/bo.json`이 없거나 만료됐으면 사용자에게 `pnpm login --manual bo` 실행을 요청하고 기다린다 (MFA 수동)
+   - 로그인 세션(유지 프로필 `.auth/bo-profile`)이 없거나 만료됐으면(`pnpm capture`가 `pnpm login` 안내와 함께 멈춘다) 사용자에게 `pnpm login --manual bo` 실행을 요청하고 기다린다 (MFA 수동)
    - `pnpm capture --manual bo --only <영향 섹션 이미지 id,...>`
    - `.capture/bo/report.json`의 changed / failed 확인. failed는 shots.ts 셀렉터를 고치고 재시도
 3. 본문 수정 (섹션별)

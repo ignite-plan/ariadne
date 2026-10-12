@@ -1,6 +1,7 @@
 // BO는 MPASS MFA가 있어 자동 로그인이 안 된다. 유지되는 Chrome 프로필에 사람이 직접 로그인한다 (session.ts)
 import type { Page } from 'playwright'
 import { markSession, openProfile } from './session.ts'
+import { isOnStg } from './stg-url.ts'
 
 export interface LoginOptions {
   baseUrl: string
@@ -16,7 +17,7 @@ export async function login({ baseUrl, profileDir, waitUntilDone }: LoginOptions
     await waitUntilDone(page)
     await page.waitForLoadState('networkidle').catch(() => {})
     // 로그인 페이지(다른 origin)에 머물러 있으면 아직 로그인하지 않은 것이다
-    if (new URL(page.url()).origin !== new URL(baseUrl).origin) {
+    if (!isOnStg(page.url(), baseUrl)) {
       throw new Error(`아직 로그인 페이지입니다 (${page.url()}). STG 화면이 보인 뒤 완료를 누르세요`)
     }
     markSession(profileDir, baseUrl)

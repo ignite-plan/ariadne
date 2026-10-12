@@ -1,17 +1,12 @@
 import { useState } from 'react'
 import type { DraftInput, ManualTree } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import { slugify as slug } from '../../../../src/core/naming.ts'
+import { api } from '../api.ts'
+import { useAsyncAction } from '../hooks.ts'
 import { Modal } from './Modal.tsx'
 
 const NEW_CHAPTER = '__new__'
 const END = -1
-
-const slug = (text: string) =>
-  text
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
 
 // 직접 쓰기: 빈 화면 파일을 만든다 / Claude: 초안 패널로 넘긴다
 export function NewSectionDialog({
@@ -35,25 +30,15 @@ export function NewSectionDialog({
   const [menu, setMenu] = useState('')
   const [path, setPath] = useState('')
   const [notes, setNotes] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const { run, busy, error } = useAsyncAction()
 
   const isNew = chapter === NEW_CHAPTER
   const chapterIndex = position === END ? undefined : position
 
-  const create = async () => {
-    setBusy(true)
-    setError('')
-    try {
-      const created = await api.manual.create(
-        isNew ? { title, newChapterTitle: chapterTitle, chapterIndex } : { title, chapterDir: chapter },
-      )
-      onCreated(created)
-    } catch (e) {
-      setError(errorMessage(e))
-      setBusy(false)
-    }
-  }
+  const create = () =>
+    run(async () =>
+      onCreated(await api.manual.create(isNew ? { title, newChapterTitle: chapterTitle, chapterIndex } : { title, chapterDir: chapter })),
+    )
 
   const draft = () =>
     onDraft({

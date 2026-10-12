@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
 import { analyzeDocx, guessVersion, importDocx, matchDrawings } from '../import.ts'
-import { loadManual, localePath, outputName, stripFrontMatter } from '../manual.ts'
+import { plain, titleCase } from '../import/structure.ts'
+import { loadManual, localePath, outputName, saveManual, stripFrontMatter, type Manual } from '../manual.ts'
 import { referenceStyles, styleIdByName } from '../reference.ts'
 
 const hasPandoc = (() => {
@@ -18,7 +20,6 @@ const hasPandoc = (() => {
   }
 })()
 const BO_SOURCE = resolve('manuals/bo/source/Hyundai.docx')
-const repoRoot = process.cwd()
 
 describe('manual 설정', () => {
   it('Word 파일 이름: output 템플릿, 없으면 제목_v버전', () => {
@@ -30,6 +31,13 @@ describe('manual 설정', () => {
     assert.equal(localePath({ title: '', version: '', code: { app: 'apps/hyundai-fo' }, chapters: [] }), 'apps/hyundai-fo/src/locales/en.json')
     assert.equal(localePath({ title: '', version: '', code: { app: 'a', locale: 'x.json' }, chapters: [] }), 'x.json')
     assert.equal(localePath({ title: '', version: '', chapters: [] }), undefined)
+  })
+
+  it('목차 비교용 문자열과 제목: pandoc 표시·쪽 번호·장 번호를 걷어낸다', () => {
+    assert.equal(plain('[**2.1 Dealer List View** 12](#_Toc1)'), '2.1 dealer list view')
+    assert.equal(plain('# []{#_Toc2 .anchor}2. Dealer [Management]{.mark}'), '2. dealer management')
+    assert.equal(titleCase('# []{#_Toc2 .anchor}2. Dealer  **Management**'), 'Dealer Management')
+    assert.equal(titleCase('- > Login Screen'), 'Login Screen')
   })
 
   it('파일 이름에서 버전 추정', () => {
@@ -84,10 +92,16 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     ])
   })
 
-  // 2장은 파일럿 때 본문을 손으로 다듬어(하위 목록 들여쓰기, 코드 연결 키) 원본과 다르다
-  const HAND_EDITED = new Set(['02-dealer-management'])
+  // 가져오기 결과 스냅샷 (fixtures/bo-import.json). 리포의 manuals/bo는 기획자가 계속 고치므로 직접 비교하지 않는다.
+  // 가져오기를 일부러 바꿨으면 스냅샷도 다시 만든다. 2장은 파일럿 때 손으로 다듬어 스냅샷에서 뺐다
+  const snapshot = JSON.parse(readFileSync(resolve('src/core/__tests__/fixtures/bo-import.json'), 'utf8')) as {
+    chapters: Manual['chapters']
+    sections: Record<string, string>
+    images: Record<string, string>
+  }
+  const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex')
 
-  it('가져오기 결과가 리포의 BO 매뉴얼과 같다 (손으로 다듬은 2장 본문 제외)', async () => {
+  it('가져오기 결과가 스냅샷과 같다 (장·절, 본문, 이미지)', async () => {
     const phases = new Set<string>()
     const result = await importDocx({
       root,
@@ -99,27 +113,20 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     })
     assert.deepEqual([...phases], ['convert', 'write', 'images', 'reference'])
     const imported = loadManual({ root, manual: 'bo' })
-    const repo = loadManual({ root: repoRoot, manual: 'bo' })
-    assert.equal(result.files, repo.chapters.reduce((n, c) => n + c.sections.length, 0))
-    assert.deepEqual(imported.chapters, repo.chapters)
-    for (const chapter of repo.chapters) {
-      if (HAND_EDITED.has(chapter.dir)) continue
-      for (const file of chapter.sections) {
-        // 리포의 BO는 형광펜을 유지하기 전에 가져온 것이라 형광펜 표기를 빼고 비교한다
-        const read = (r: string) =>
-          stripFrontMatter(readFileSync(join(r, 'manuals/bo', chapter.dir, file), 'utf8')).replace(/\[([^\]\n]+)\]\{\.mark\}/g, '$1')
-        assert.equal(read(root), read(repoRoot), `${chapter.dir}/${file}`)
-      }
+    assert.equal(result.files, snapshot.chapters.reduce((n, c) => n + c.sections.length, 0))
+    assert.deepEqual(imported.chapters, snapshot.chapters)
+    for (const [path, hash] of Object.entries(snapshot.sections)) {
+      assert.equal(sha(stripFrontMatter(readFileSync(join(root, 'manuals/bo', path), 'utf8'))), hash, path)
     }
-    const images = readdirSync(join(repoRoot, 'manuals/bo/images'))
-    assert.deepEqual(readdirSync(join(root, 'manuals/bo/images')).sort(), images.sort())
-    for (const image of images) {
-      assert.ok(readFileSync(join(root, 'manuals/bo/images', image)).equals(readFileSync(join(repoRoot, 'manuals/bo/images', image))), image)
-    }
+    const images = readdirSync(join(root, 'manuals/bo/images')).sort()
+    assert.deepEqual(images, Object.keys(snapshot.images).sort())
+    for (const image of images) assert.equal(sha(readFileSync(join(root, 'manuals/bo/images', image))), snapshot.images[image], image)
     assert.ok(existsSync(join(root, 'manuals/bo/reference.docx')))
     assert.ok(existsSync(join(root, 'manuals/bo/shots.ts')))
     // Word 노란 형광펜이 본문에 남는다 (제목 줄에는 없음)
-    const all = repo.chapters.flatMap((c) => c.sections.map((f) => readFileSync(join(root, 'manuals/bo', c.dir, f), 'utf8'))).join('\n')
+    const all = Object.keys(snapshot.sections)
+      .map((path) => readFileSync(join(root, 'manuals/bo', path), 'utf8'))
+      .join('\n')
     assert.ok((all.match(/\]\{\.mark\}/g) ?? []).length > 100)
     assert.ok(!/^#.*\{\.mark\}/m.test(all))
   })
@@ -202,6 +209,30 @@ describe('목차 없는 Word 가져오기 (제목 스타일)', { skip: !hasPando
     assert.ok(existsSync(join(root, 'manuals/fo/source', 'Hyundai-Dealers FO User Manual_v2.1.0_EN.docx')))
     assert.match(readFileSync(join(root, 'manuals/fo/shots.ts'), 'utf8'), /defineShots\(\[\]\)/)
     assert.ok(existsSync(join(root, 'manuals/fo/reference.docx')))
+  })
+
+  it('기존 매뉴얼에 일부 장만 다시 가져와도 가이드 영상 설정(video)은 남는다', async () => {
+    const ref = { root, manual: 'fo' }
+    const before = loadManual(ref)
+    saveManual(ref, { ...before, video: { captionSize: 'large' } })
+    await importDocx({ ...ref, docx, chapters: [2], reference: false })
+    const after = loadManual(ref)
+    assert.deepEqual(after.video, { captionSize: 'large' })
+    assert.equal(after.output, before.output)
+    assert.deepEqual(Object.keys(after), ['title', 'version', 'output', 'capture', 'code', 'video', 'chapters'])
+  })
+
+  it('pandoc이 실패해도 임시 폴더를 남기지 않는다', async () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'ariadne-import-tmp-'))
+    const saved = process.env.TMPDIR
+    process.env.TMPDIR = tmp
+    try {
+      await assert.rejects(analyzeDocx(docx, join(root, 'no-pandoc')), /pandoc 실행 실패/)
+      assert.deepEqual(readdirSync(tmp), [])
+    } finally {
+      process.env.TMPDIR = saved
+      rmSync(tmp, { recursive: true, force: true })
+    }
   })
 
   it('잘못된 id와 없는 파일은 거절', async () => {

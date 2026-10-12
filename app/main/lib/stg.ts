@@ -3,23 +3,28 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Locator, Page } from 'playwright'
-import { captureDir } from '../../../src/core/capture.ts'
-import { guardWrites, isBlockedLabel } from '../../../src/core/safety.ts'
-import { clearSession, isSessionExpired, profileTab, type OpenTab, type StgTab } from '../../../src/core/session.ts'
-import { Director } from '../../../src/core/video/director.ts'
-import type { Scene } from '../../../src/core/video/scenario.ts'
-import { runSteps } from '../../../src/core/video/steps.ts'
-import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
-
-export type Role = 'button' | 'link' | 'tab' | 'menuitem' | 'checkbox' | 'radio' | 'combobox' | 'option' | 'treeitem' | 'row'
-
+import { z } from 'zod'
+import { captureDir, shootShot } from '../../../src/core/capture.ts'
 // 저장/삭제류 버튼, 쓰기 요청 판단은 가이드 영상과 같은 규칙을 쓴다
-export { isAllowedRequest, isBlockedLabel } from '../../../src/core/safety.ts'
+import { guardWrites, isBlockedLabel } from '../../../src/core/safety.ts'
+import { clearSession, profileTab, type OpenTab, type StgTab } from '../../../src/core/session.ts'
+import { assertOnStg, isSessionExpired, withSlash } from '../../../src/core/stg-url.ts'
+import type { Scene } from '../../../src/core/video/scenario.ts'
+import { replayScenes } from '../../../src/core/video/steps.ts'
+import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from '../../../src/core/manual.ts'
+import { ID_PATTERN, ID_RULE } from '../../../src/core/naming.ts'
 
-export type ShotStep =
-  | { click: { role: Role; name: string; nth?: number } }
-  | { fill: { label: string; value: string } }
-  | { waitFor: string }
+// Claude가 누를 수 있는 요소 (MCP 도구 스키마도 이 목록을 쓴다)
+export const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combobox', 'option', 'treeitem', 'row'] as const
+export type Role = (typeof ROLES)[number]
+
+// 캡처 전 조작. Claude가 임의 코드를 쓰지 않게 정해진 단계만 받는다 (MCP save_shot 스키마)
+export const SHOT_STEP = z.union([
+  z.object({ click: z.object({ role: z.enum(ROLES), name: z.string(), nth: z.number().int().min(0).optional() }) }),
+  z.object({ fill: z.object({ label: z.string(), value: z.string() }) }),
+  z.object({ waitFor: z.string().describe('CSS/텍스트 locator. 예: text=Menu Information') }),
+])
+export type ShotStep = z.infer<typeof SHOT_STEP>
 
 export interface ShotInput {
   id: string
@@ -36,6 +41,20 @@ function setTimeouts(page: Page) {
 }
 
 const quote = (text: string) => `'${text.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
+
+// 단계를 지금 실행한다. shotToCode가 shots.ts에 쓰는 코드와 같은 동작이다 (다음 릴리즈 캡처도 같게 찍히도록)
+export function shotSteps(steps: ShotStep[]) {
+  return async (page: Page) => {
+    for (const step of steps) {
+      if ('click' in step) {
+        const { role, name, nth } = step.click
+        const all = page.getByRole(role, { name })
+        await (nth === undefined ? all.first() : all.nth(nth)).click()
+      } else if ('fill' in step) await page.getByLabel(step.fill.label).first().fill(step.fill.value)
+      else await page.locator(step.waitFor).first().waitFor()
+    }
+  }
+}
 
 // 구조화된 단계를 shots.ts 코드로 만든다. Claude가 임의 코드를 쓰지 않게 하려고
 export function shotToCode(shot: ShotInput) {
@@ -172,7 +191,7 @@ export class StgSession {
   readonly viewport: Viewport
 
   constructor(private readonly options: StgOptions) {
-    this.baseUrl = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`
+    this.baseUrl = withSlash(options.baseUrl)
     this.viewport = options.viewport ?? loadManual(options).capture?.viewport ?? DEFAULT_VIEWPORT
   }
 
@@ -243,14 +262,22 @@ export class StgSession {
     return { url, title, snapshot, scope, truncated, changesOnly: false, screenshot, blockedRequests }
   }
 
+  // 로그인 페이지로 튕기면(세션 만료) 앱이 '로그인 세션 있음'으로 잘못 보여 주지 않게 로그인 표식을 지운다
+  private async expireOnFail<T>(run: () => Promise<T>) {
+    try {
+      return await run()
+    } catch (error) {
+      if (isSessionExpired(error)) clearSession(this.options.profileDir)
+      throw error
+    }
+  }
+
   async open(path: string, options?: DescribeOptions) {
     const page = await this.ensurePage()
-    await page.goto(this.url(path))
-    if (new URL(page.url()).origin !== new URL(this.baseUrl).origin) {
-      // 앱이 '로그인 세션 있음'으로 잘못 보여 주지 않게 로그인 표식을 지운다
-      clearSession(this.options.profileDir)
-      throw new Error(`로그인 페이지로 이동했습니다(세션 만료). 앱에서 [다시 로그인]을 눌러 로그인해야 합니다: ${page.url()}`)
-    }
+    await this.expireOnFail(async () => {
+      await page.goto(this.url(path))
+      assertOnStg(page, this.baseUrl)
+    })
     return this.describe(page, options)
   }
 
@@ -266,13 +293,13 @@ export class StgSession {
   async replay(scenes: Scene[], mutates = false) {
     const page = await this.ensurePage()
     page.setDefaultTimeout(15_000)
-    const v = new Director(page, { baseUrl: this.baseUrl, mutates, pace: 0, overlay: false })
     try {
-      await v.goto('/')
-      for (const [index, scene] of scenes.entries()) await runSteps(v, scene.steps, index)
-    } catch (error) {
-      if (isSessionExpired(error)) clearSession(this.options.profileDir)
-      throw error
+      await this.expireOnFail(async () => {
+        await page.goto(this.baseUrl)
+        assertOnStg(page, this.baseUrl)
+        await page.waitForLoadState('networkidle')
+        await replayScenes(page, scenes, { baseUrl: this.baseUrl, mutates })
+      })
     } finally {
       // 재생만 길게 기다렸다. 이어지는 탐색은 다시 짧게
       setTimeouts(page)
@@ -308,7 +335,7 @@ export class StgSession {
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
   // replace: 이미 있는 이미지/캡처 정의를 바꾼다 (최신화). 아니면 기존 이미지 id는 거절한다
   async saveShot(shot: ShotInput, replace = false) {
-    if (!/^[a-z0-9][a-z0-9-]*$/.test(shot.id)) throw new Error('shot id는 영문 소문자, 숫자, -만 쓸 수 있습니다')
+    if (!ID_PATTERN.test(shot.id)) throw new Error(`shot id는 ${ID_RULE}`)
     for (const step of shot.steps ?? []) {
       if ('click' in step && isBlockedLabel(step.click.name)) {
         throw new Error(`"${step.click.name}"은(는) 데이터를 바꿀 수 있는 버튼이라 캡처 단계에 넣을 수 없습니다`)
@@ -322,26 +349,14 @@ export class StgSession {
     // 형식 오류·중복은 찍기 전에 알린다. 실제 쓰기는 찍은 뒤 다시 읽어서 (여러 화면 작업이 동시에 shots.ts를 고친다)
     appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
 
+    this.url(shot.path) // STG 밖 주소는 거절
     const page = await this.newPage(await this.ensurePage())
     try {
-      await page.goto(this.url(shot.path))
-      await page.waitForLoadState('networkidle').catch(() => {})
-      if (shot.ready) await page.locator(shot.ready).first().waitFor({ timeout: 8000 })
-      for (const step of shot.steps ?? []) {
-        if ('click' in step) {
-          const { role, name, nth } = step.click
-          const all = page.getByRole(role, { name })
-          await (nth === undefined ? all.first() : all.nth(nth)).click()
-        } else if ('fill' in step) await page.getByLabel(step.fill.label).first().fill(step.fill.value)
-        else await page.locator(step.waitFor).first().waitFor({ timeout: 8000 })
-      }
-      await page.waitForLoadState('networkidle').catch(() => {})
       const imagesDir = join(manualDir(this.options), 'images')
       mkdirSync(imagesDir, { recursive: true })
       const file = join(imagesDir, `${shot.id}.png`)
-      const mask = shot.mask?.map((m) => page.locator(m))
-      if (shot.clip) await page.locator(shot.clip).first().screenshot({ path: file, mask, animations: 'disabled' })
-      else await page.screenshot({ path: file, mask, animations: 'disabled' })
+      const { steps, ...rest } = shot
+      await this.expireOnFail(() => shootShot(page, this.baseUrl, { ...rest, steps: steps?.length ? shotSteps(steps) : undefined }, file))
       writeFileSync(shotsFile, appendShot(readFileSync(shotsFile, 'utf8'), shot, replace))
       return { image: `images/${shot.id}.png`, file }
     } finally {

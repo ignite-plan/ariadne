@@ -1,31 +1,28 @@
 // 로컬 HTTP 서버를 가짜 BO로 두고 설치된 Chrome으로 실제 캡처한다. Chrome이 없으면 건너뛴다
 import assert from 'node:assert/strict'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import http from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { adoptShots, capture, captureDir } from '../capture.ts'
 import type { Shot } from '../shot.ts'
 import { checkSession, markSession, openProfile, sessionInfo } from '../session.ts'
+import { skipWithout, startFakeStg } from './browser.ts'
 import { createFixture } from './fixture.ts'
 
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-
-describe('capture (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+describe('capture (Chrome)', { skip: skipWithout() }, () => {
   const fx = createFixture()
   let color = '#2563eb'
-  let server: http.Server
+  let stg: Awaited<ReturnType<typeof startFakeStg>>
   let baseUrl = ''
   const profileDir = join(fx.ref.root, '.auth', 'demo-profile')
 
   before(async () => {
-    server = http.createServer((req, res) => {
+    stg = await startFakeStg((req, res, port) => {
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
       // 세션이 끊기면 다른 origin(MPASS)의 로그인 페이지로 보낸다
       if (req.url?.startsWith('/admin/expired')) {
         res.statusCode = 302
-        res.setHeader('Location', `http://localhost:${(server.address() as AddressInfo).port}/login`)
+        res.setHeader('Location', `http://localhost:${port}/login`)
         return res.end()
       }
       if (req.url?.startsWith('/login')) return res.end('<!doctype html><h1>MPASS Login</h1>')
@@ -35,13 +32,11 @@ describe('capture (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, (
         <button onclick="document.getElementById('popup').hidden=false">Location</button>
         <div id="popup" role="dialog" hidden style="width:200px;height:80px;background:#fde68a">Location Information</div>
         </div></body></html>`)
-    })
-    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/admin`
-    markSession(profileDir, baseUrl)
+    }, { basePath: '/admin', profileDir })
+    baseUrl = stg.baseUrl
   })
   after(async () => {
-    await new Promise((resolve) => server.close(resolve))
+    await stg.close()
     fx.cleanup()
   })
 
@@ -104,7 +99,7 @@ describe('capture (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, (
       ],
     })
     assert.equal(report.failed.length, 1)
-    assert.match(report.failed[0].error, /^세션 만료로 보임/)
+    assert.match(report.failed[0].error, /^세션 만료: 로그인 페이지로 이동했습니다/)
     assert.deepEqual(report.changed.concat(report.unchanged), [])
     // 로그인 표식을 지워 다음에는 로그인부터 하게 한다
     assert.equal(sessionInfo(profileDir).exists, false)

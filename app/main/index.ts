@@ -2,8 +2,8 @@ import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { app, BrowserWindow, Menu, net, protocol, shell } from 'electron'
 import { ASSET_PROTOCOL } from '../shared/api.ts'
-import { registerIpc } from './ipc.ts'
-import { installErrorHooks, registerReportIpc } from './report-ipc.ts'
+import { openReport, registerIpc } from './ipc/index.ts'
+import { installErrorHooks } from './log.ts'
 import { isMediaFile, mediaResponse } from './lib/asset.ts'
 import { resolveInside } from './lib/sections.ts'
 import { getSettings } from './settings.ts'
@@ -28,7 +28,6 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 let window: BrowserWindow | undefined
-let openReport: () => void = () => {}
 
 function createWindow() {
   window = new BrowserWindow({
@@ -123,7 +122,6 @@ if (!app.requestSingleInstanceLock()) {
       }
     })
     registerIpc(() => window)
-    openReport = registerReportIpc(() => window)
     buildMenu()
     createWindow()
     app.on('activate', () => {

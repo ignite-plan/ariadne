@@ -76,6 +76,27 @@ export function saveManual(ref: ManualRef, manual: Manual) {
   writeFileSync(join(manualDir(ref), 'manual.yaml'), YAML.stringify(manual))
 }
 
+export type ManualSettings = Omit<Manual, 'chapters'>
+
+const OPTIONAL_KEYS = ['output', 'capture', 'code', 'video'] as const
+
+// 설정을 바꾼 manual.yaml. 키 순서를 지켜 불필요한 diff를 줄인다.
+// patch에 있는 키는 바꾸고(빈 값이면 지운다), 없는 키(설정 화면에 없는 video 등)는 그대로 둔다
+export function mergeManual(current: Manual, patch: Partial<ManualSettings>): Manual {
+  const optional: Partial<ManualSettings> = {}
+  for (const key of OPTIONAL_KEYS) {
+    const value = key in patch ? patch[key] : current[key]
+    const empty = value === undefined || value === '' || (typeof value === 'object' && !Object.keys(value).length)
+    if (!empty) Object.assign(optional, { [key]: value })
+  }
+  return {
+    title: patch.title ?? current.title,
+    version: patch.version ?? current.version,
+    ...optional,
+    chapters: current.chapters,
+  }
+}
+
 export function readSection(ref: ManualRef, chapter: Chapter, file: string) {
   return readFileSync(join(manualDir(ref), chapter.dir, file), 'utf8')
 }
@@ -85,12 +106,38 @@ export function chapterNo(chapter: Chapter) {
   return Number.parseInt(chapter.dir, 10)
 }
 
+const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/
+
 export function parseFrontMatter(md: string): SectionMeta {
   return YAML.parse(md.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '{}') ?? {}
 }
 
 export function stripFrontMatter(md: string) {
-  return md.replace(/^---\n[\s\S]*?\n---\n/, '')
+  return md.replace(FRONT_MATTER, '')
+}
+
+export function splitSection(raw: string) {
+  const frontMatter = raw.match(FRONT_MATTER)?.[0] ?? ''
+  // front-matter 뒤 빈 줄 하나는 형식이라 본문에서 뺀다
+  const body = raw.slice(frontMatter.length).replace(/^\n/, '')
+  return { frontMatter, body }
+}
+
+// 키 순서를 정해 쓴다 (앱과 CLI가 같은 diff를 내도록)
+export function serializeFrontMatter(meta: SectionMeta) {
+  const ordered: SectionMeta = {
+    title: meta.title ?? '',
+    routes: meta.routes ?? [],
+    sources: meta.sources ?? [],
+    i18nPrefix: meta.i18nPrefix ?? [],
+    ...(meta.refreshedFrom?.length ? { refreshedFrom: meta.refreshedFrom } : {}),
+  }
+  return `---\n${YAML.stringify(ordered).trim()}\n---\n`
+}
+
+export function joinSection(frontMatter: string, body: string) {
+  const text = body.replace(/\s+$/, '')
+  return `${frontMatter}${frontMatter ? '\n' : ''}${text}\n`
 }
 
 // 본문이 참조하는 shot id (images/<id>.png)

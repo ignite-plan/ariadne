@@ -1,8 +1,8 @@
 // 시나리오 단계 실행. Target → Playwright locator, 단계 → Director 조작
 import type { Locator, Page } from 'playwright'
-import type { Director } from './director.ts'
+import { Director } from './director.ts'
 import { describeStep } from './describe.ts'
-import type { Step, Target } from './scenario.ts'
+import type { Scene, Step, Target } from './scenario.ts'
 
 type Role = Parameters<Page['getByRole']>[0]
 
@@ -29,6 +29,12 @@ export class StepError extends Error {
   ) {
     super(message, options)
   }
+}
+
+// 실패를 화면에 보일 값으로 (IPC·worker는 Error의 필드를 전달하지 않는다). StepError면 장면·단계 번호를 담는다
+export function stepFailure(error: unknown): { error: string; scene?: number | 'cleanup'; step?: number } {
+  const message = error instanceof Error ? error.message : String(error)
+  return error instanceof StepError ? { error: message, scene: error.scene, step: error.step } : { error: message }
 }
 
 export async function runStep(v: Director, step: Step) {
@@ -66,5 +72,24 @@ export async function runSteps(
       const message = (error instanceof Error ? error.message : String(error)).split('\n')[0]
       throw new StepError(scene, index, `${where} 단계 ${index + 1} (${describeStep(step)}): ${message}`, { cause: error })
     }
+  }
+}
+
+export interface ReplayOptions {
+  baseUrl: string
+  mutates?: boolean
+  // 자막·강조를 그린다 (영상 만들기). 기록 브라우저·Claude 탐색에는 overlay가 없다
+  overlay?: boolean
+  signal?: AbortSignal
+  onScene?: (index: number) => void
+}
+
+// 장면들의 단계를 기다림 없이 이어서 재생해, 다음 장면이 시작되는 화면을 만든다.
+// 영상을 중간 장면부터 만들 때, STG에서 기록할 때, Claude가 장면 하나를 채울 때 같이 쓴다
+export async function replayScenes(page: Page, scenes: Scene[], { baseUrl, mutates = false, overlay = false, signal, onScene }: ReplayOptions) {
+  const v = new Director(page, { baseUrl, mutates, pace: 0, overlay })
+  for (const [index, scene] of scenes.entries()) {
+    onScene?.(index)
+    await runSteps(v, scene.steps, index, { signal })
   }
 }

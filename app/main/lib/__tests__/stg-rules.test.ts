@@ -5,7 +5,8 @@ import { after, describe, it } from 'node:test'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { loadShotsBundled } from '../shots.ts'
 import { isTelemetryRequest } from '../../../../src/core/safety.ts'
-import { appendShot, inputNames, snapshotChanges, isAllowedRequest, isBlockedLabel, removeShot, shotToCode } from '../stg.ts'
+import { isAllowedRequest, isBlockedLabel } from '../../../../src/core/safety.ts'
+import { appendShot, inputNames, snapshotChanges, removeShot, shotToCode } from '../stg.ts'
 
 describe('STG 안전장치', () => {
   it('데이터를 바꾸는 버튼 이름을 막는다', () => {

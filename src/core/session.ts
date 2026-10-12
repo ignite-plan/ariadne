@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { chromium, type BrowserContext, type Page } from 'playwright'
 import { DEFAULT_VIEWPORT, type ManualRef, type Viewport } from './manual.ts'
+import { isOnStg } from './stg-url.ts'
 
 // 로그인을 마쳤다는 표식. 세션 만료가 감지되면 지운다
 export const SESSION_MARK = 'ariadne-session.json'
@@ -35,10 +36,6 @@ export function clearSession(profileDir: string) {
 
 export function requireSession(profileDir: string) {
   if (!sessionInfo(profileDir).exists) throw new Error(`STG 로그인 세션 없음 (${profileDir}). 로그인 먼저 실행`)
-}
-
-export function isSessionExpired(error: unknown) {
-  return error instanceof Error && error.message.includes('세션 만료')
 }
 
 export interface OpenProfileOptions {
@@ -144,8 +141,7 @@ export async function checkSession(profileDir: string, baseUrl: string, openTab:
     await page.goto(baseUrl)
     await page.waitForLoadState('networkidle').catch(() => {})
     const url = page.url()
-    // 세션이 끝나면 다른 origin의 로그인·로그아웃 페이지(MPASS, stg-admin logout.html)로 넘어간다
-    if (new URL(url).origin !== new URL(baseUrl).origin) {
+    if (!isOnStg(url, baseUrl)) {
       clearSession(profileDir)
       return { exists: false, valid: false, url }
     }

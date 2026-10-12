@@ -1,51 +1,29 @@
-// STG 로그인 세션 표시와 MFA 로그인. 캡처와 가이드 영상이 같은 세션을 쓴다
+// STG 로그인 세션 표시와 MFA 로그인. 캡처·가이드 영상·Claude 작업이 같은 세션(tasks.session)을 본다
 import { useEffect, useState } from 'react'
-import type { SessionInfo } from '../../../shared/api.ts'
+import { formatAge } from '../../../shared/format.ts'
 import { api, errorMessage } from '../api.ts'
 import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { useToast } from './Toast.tsx'
 
-function age(ms: number) {
-  const minutes = Math.round((Date.now() - ms) / 60000)
-  if (minutes < 60) return `${minutes}분 전`
-  const hours = Math.round(minutes / 60)
-  return hours < 48 ? `${hours}시간 전` : `${Math.round(hours / 24)}일 전`
-}
-
-export function StgSession({
-  disabled,
-  onChange,
-  version,
-}: {
-  disabled?: boolean
-  onChange?: (session: SessionInfo) => void
-  // 바뀌면 세션 상태를 다시 읽는다 (다른 곳에서 확인·만료된 뒤)
-  version?: number
-}) {
+export function StgSession({ disabled }: { disabled?: boolean }) {
   const toast = useToast()
-  const [session, setSession] = useState<SessionInfo>({ exists: false })
+  // busy: Claude 작업·영상 만들기 등이 공유 Chrome을 쓰는 중. 로그인은 화면이 보이는 Chrome을 따로 띄우므로 그동안 못 한다
+  const { session, setSession, reloadSession, stgBusy: busy } = useTasks()
   const [loggingIn, setLoggingIn] = useState(false)
   const [checking, setChecking] = useState(false)
-  // 로그인은 화면이 보이는 Chrome을 따로 띄운다. Claude 작업·영상 만들기 등이 공유 Chrome을 쓰는 동안에는 못 한다
-  const busy = useTasks().stgBusy
 
-  const update = (next: SessionInfo) => {
-    setSession(next)
-    onChange?.(next)
-  }
-
+  // 매뉴얼마다 로그인 프로필이 다르다. 패널을 열 때 다시 읽는다
   useEffect(() => {
-    void api.capture.session().then(update)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [version])
+    void reloadSession()
+  }, [reloadSession])
 
   const login = async () => {
     setLoggingIn(true)
     try {
       await api.capture.login()
-      update(await api.capture.session())
+      await reloadSession()
       toast.show('success', '로그인 세션을 저장했습니다')
     } catch (e) {
       if (!errorMessage(e).includes('취소')) toast.error(e)
@@ -59,7 +37,7 @@ export function StgSession({
     setChecking(true)
     try {
       const result = await api.capture.checkSession()
-      update(result)
+      setSession(result)
       if (result.valid) toast.show('success', 'STG 로그인 세션이 살아 있습니다')
       else toast.show('error', 'STG 로그인 세션이 만료되었습니다. 다시 로그인하세요')
     } catch (e) {
@@ -76,7 +54,7 @@ export function StgSession({
         <div>
           <b>{session.exists ? 'STG 로그인됨' : 'STG 로그인 필요'}</b>
           <span className="muted">
-            {session.exists && session.savedAt ? `${age(session.savedAt)} 확인됨` : 'MFA 로그인이 필요합니다'}
+            {session.exists && session.savedAt ? `${formatAge(Date.now() - session.savedAt)} 확인됨` : 'MFA 로그인이 필요합니다'}
           </span>
         </div>
         <div className="session-actions">
@@ -97,19 +75,25 @@ export function StgSession({
       </div>
 
       {loggingIn && (
-        <Modal title="STG 로그인" onClose={() => void api.capture.cancelLogin()} width={440}>
+        <Modal
+          title="STG 로그인"
+          onClose={() => void api.capture.cancelLogin()}
+          width={440}
+          footer={
+            <>
+              <button className="button" onClick={() => void api.capture.cancelLogin()}>
+                취소
+              </button>
+              <button className="button primary" onClick={() => void api.capture.finishLogin()}>
+                로그인 완료
+              </button>
+            </>
+          }
+        >
           <ol className="howto">
             <li>방금 열린 Chrome 창에서 STG에 로그인합니다 (MFA 포함)</li>
             <li>메인 화면이 보이면 아래 버튼을 누릅니다</li>
           </ol>
-          <div className="actions">
-            <button className="button" onClick={() => void api.capture.cancelLogin()}>
-              취소
-            </button>
-            <button className="button primary" onClick={() => void api.capture.finishLogin()}>
-              로그인 완료
-            </button>
-          </div>
         </Modal>
       )}
     </>

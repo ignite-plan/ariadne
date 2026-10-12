@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { FileChange, Settings, SubmitResult, SyncState } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import { CHANGE_STATUS_LABEL as STATUS_LABEL } from '../../../shared/format.ts'
+import { api } from '../api.ts'
+import { useAsyncAction } from '../hooks.ts'
 import { Modal } from './Modal.tsx'
-
-const STATUS_LABEL = { added: '추가', modified: '수정', deleted: '삭제' } as const
 
 function defaultMessage(changes: FileChange[]) {
   const sections = [...new Set(changes.filter((c) => c.kind === 'section').map((c) => c.label))]
@@ -28,19 +28,9 @@ export function SubmitDialog({
   onClose: () => void
 }) {
   const [message, setMessage] = useState(() => defaultMessage(changes))
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const { run, busy, error } = useAsyncAction()
 
-  const submit = async () => {
-    setBusy(true)
-    setError('')
-    try {
-      onDone(await api.workspace.submit(message))
-    } catch (e) {
-      setError(errorMessage(e))
-      setBusy(false)
-    }
-  }
+  const submit = () => run(async () => onDone(await api.workspace.submit(message)))
 
   const pendingCommit = !changes.length && (sync?.status === 'ahead' || sync?.status === 'diverged')
 

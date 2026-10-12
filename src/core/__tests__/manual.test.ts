@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, describe, it } from 'node:test'
-import { chapterNo, loadManual, parseFrontMatter, sectionImages, stripFrontMatter } from '../manual.ts'
+import { chapterNo, loadManual, mergeManual, parseFrontMatter, sectionImages, stripFrontMatter, type Manual } from '../manual.ts'
 import { createFixture, SECTIONS } from './fixture.ts'
 
 describe('manual', () => {
@@ -32,5 +32,22 @@ describe('manual', () => {
 
   it('본문이 참조하는 이미지 id를 순서대로 뽑는다', () => {
     assert.deepEqual(sectionImages(SECTIONS['02-dealer/01-list.md']), ['dealer-list', 'location-popup'])
+  })
+
+  it('설정 병합: 키 순서를 지키고, patch에 없는 키(video)는 두고, 빈 값은 지운다', () => {
+    const current: Manual = {
+      title: 'T',
+      version: '1.0.0',
+      output: 'X_v{version}',
+      capture: { baseUrl: 'https://a' },
+      video: { captionSize: 'small' },
+      chapters: [{ title: 'C', dir: '01-c', sections: [] }],
+    }
+    const next = mergeManual(current, { version: '1.1.0', code: { app: 'apps/x' }, output: '' })
+    assert.deepEqual(Object.keys(next), ['title', 'version', 'capture', 'code', 'video', 'chapters'])
+    assert.equal(next.version, '1.1.0')
+    assert.deepEqual(next.video, { captionSize: 'small' })
+    assert.deepEqual(next.chapters, current.chapters)
+    assert.equal('capture' in mergeManual(current, { capture: {} }), false)
   })
 })

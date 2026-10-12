@@ -1,4 +1,6 @@
 // 가져오기 마법사에서 고르는 dealerhub-web 앱과 캡처 기본값
+import { uniqueName } from '../../src/core/naming.ts'
+
 export interface CodePreset {
   app: string
   label: string
@@ -33,7 +35,5 @@ export function suggestManualId(title: string, taken: string[]) {
     .split(' ')
     .filter((w) => w && !['dealers', 'dealer', 'user', 'manual', 'hyundai', 'the'].includes(w))
   const base = (words.join('-') || 'manual').slice(0, 32).replace(/-$/, '')
-  let id = base
-  for (let n = 2; taken.includes(id); n++) id = `${base}-${n}`
-  return id
+  return uniqueName(base, (id) => taken.includes(id))
 }

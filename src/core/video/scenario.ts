@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import YAML from 'yaml'
 import { z } from 'zod'
 import { manualDir, type ManualRef } from '../manual.ts'
+import { ID_PATTERN, ID_RULE } from '../naming.ts'
 
 // 화면 요소 찾기. role + name(접근성 이름)을 먼저 쓰고, 없으면 label/placeholder/text
 export interface Target {
@@ -87,14 +88,12 @@ export type VideoFile = z.infer<typeof videoFileSchema>
 // id는 파일 이름이다
 export type VideoScenario = VideoFile & { id: string }
 
-export const VIDEO_ID = /^[a-z0-9][a-z0-9-]*$/
-
 export function videosDir(ref: ManualRef) {
   return join(manualDir(ref), 'videos')
 }
 
 function videoFile(ref: ManualRef, id: string) {
-  if (!VIDEO_ID.test(id)) throw new Error(`영상 id는 영문 소문자, 숫자, -만 쓸 수 있습니다: ${id}`)
+  if (!ID_PATTERN.test(id)) throw new Error(`영상 id는 ${ID_RULE}: ${id}`)
   return join(videosDir(ref), `${id}.yaml`)
 }
 

@@ -1,6 +1,7 @@
 // 시나리오가 쓰는 조작 헬퍼. 사람이 조작하는 것처럼 커서를 옮기고, 누를 곳을 강조한 뒤 누른다.
 import type { Locator, Page } from 'playwright'
 import { isBlockedLabel } from '../safety.ts'
+import { gotoStg } from '../stg-url.ts'
 import type { OverlayApi } from './overlay.ts'
 
 export class MutationBlockedError extends Error {}
@@ -22,8 +23,7 @@ const CAPTION_ZONE = 160
 
 export class Director {
   private cursor = { x: 0, y: 0 }
-  private readonly base: string
-  private readonly origin: string
+  private readonly baseUrl: string
   private readonly mutates: boolean
   private readonly pace: number
   private readonly drawOverlay: boolean
@@ -32,8 +32,7 @@ export class Director {
     readonly page: Page,
     { baseUrl, mutates = false, pace = 1, overlay = true }: DirectorOptions,
   ) {
-    this.base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
-    this.origin = new URL(baseUrl).origin
+    this.baseUrl = baseUrl
     this.mutates = mutates
     this.pace = pace
     this.drawOverlay = overlay
@@ -41,8 +40,7 @@ export class Director {
 
   // baseUrl 기준 경로로 이동. 로그인 페이지로 튕기면 세션 만료로 멈춘다
   async goto(path: string) {
-    await this.page.goto(new URL(path.replace(/^\//, ''), this.base).href)
-    if (!this.page.url().startsWith(this.origin)) throw new Error(`세션 만료로 보임: ${this.page.url()}`)
+    await gotoStg(this.page, this.baseUrl, path)
     await this.page.waitForLoadState('networkidle')
   }
 
