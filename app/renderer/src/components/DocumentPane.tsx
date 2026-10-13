@@ -1,6 +1,8 @@
 // 열린 화면: 위치·최신화·저장 상태·보기 방식, front-matter, 편집기 도구 막대, 편집기와 미리보기
 import type { RefObject } from 'react'
 import type { ManualTree, SectionDoc, SectionMeta } from '../../../shared/api.ts'
+import { formatAge } from '../../../shared/format.ts'
+import type { ReviewHunk } from '../../../shared/review-diff.ts'
 import type { SaveState } from '../workbench-state.ts'
 import { useToast } from './Toast.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
@@ -30,6 +32,7 @@ export function DocumentPane({
   onRefresh,
   onInsertImage,
   onImageFile,
+  review,
 }: {
   doc: SectionDoc
   docVersion: number
@@ -49,6 +52,15 @@ export function DocumentPane({
   onRefresh: () => void
   onInsertImage: () => void
   onImageFile: (file: File) => void
+  // Claude 변경 검토 중이면 바뀐 곳과 이동·검토 완료
+  review?: {
+    hunks: ReviewHunk[]
+    at?: number
+    beforeHtml?: string
+    index: number
+    onGo: (index: number) => void
+    onDone: () => void
+  }
 }) {
   const toast = useToast()
   // 나란히 볼 때 편집기 스크롤에 미리보기를 맞춘다
@@ -90,6 +102,29 @@ export function DocumentPane({
       {locked && (
         <p className="notice doc-lock">Claude가 이 화면을 고치는 중입니다. 끝나면 고친 내용으로 다시 열리고, 그때부터 편집할 수 있습니다.</p>
       )}
+      {review && review.hunks.length > 0 && (
+        <div className="review-bar">
+          <Icon name="sparkle" size={14} />
+          <b>Claude 변경</b>
+          <span className="review-count">
+            {review.index + 1} / {review.hunks.length}
+          </span>
+          <button className="icon-button small" onClick={() => review.onGo(review.index - 1)} title="이전 변경" aria-label="이전 변경">
+            <Icon name="up" size={14} />
+          </button>
+          <button className="icon-button small" onClick={() => review.onGo(review.index + 1)} title="다음 변경" aria-label="다음 변경">
+            <Icon name="down" size={14} />
+          </button>
+          <span className="muted ellipsis">
+            {review.at ? `${Date.now() - review.at < 60000 ? '방금' : formatAge(Date.now() - review.at)} 최신화 · ` : ''}
+            <span className="review-legend ins">넣은 글자</span> <span className="review-legend del">지운 글자</span>
+          </span>
+          <span className="spacer" />
+          <button className="button small" onClick={review.onDone} title="표시를 끕니다. 내용은 그대로 둡니다">
+            <Icon name="check" size={14} /> 검토 완료
+          </button>
+        </div>
+      )}
       <fieldset className="lock" disabled={locked}>
         <MetaPanel meta={doc.meta} onSave={onSaveMeta} />
       </fieldset>
@@ -124,10 +159,11 @@ export function DocumentPane({
             onChange={onChange}
             onImageFile={onImageFile}
             onScrollRatio={syncScroll}
+            review={review?.hunks}
           />
         </div>
         <div className="pane preview-pane">
-          <Preview ref={previewRef} html={preview.html} error={preview.error} />
+          <Preview ref={previewRef} html={preview.html} error={preview.error} beforeHtml={review?.beforeHtml} />
         </div>
       </div>
     </>

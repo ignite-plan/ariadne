@@ -58,7 +58,7 @@ export function extractTodos(body: string) {
   return todos
 }
 
-export function readTree(ref: ManualRef, modified: Set<string> = new Set()): ManualTree {
+export function readTree(ref: ManualRef, modified: Set<string> = new Set(), reviews: Set<string> = new Set()): ManualTree {
   const manual = loadManual(ref)
   const dir = manualDir(ref)
   return {
@@ -78,6 +78,7 @@ export function readTree(ref: ManualRef, modified: Set<string> = new Set()): Man
           title: sectionTitle(raw) || file,
           todos: extractTodos(splitSection(raw).body).length,
           modified: modified.has(`manuals/${ref.manual}/${path}`),
+          ...(reviews.has(path) ? { review: true } : {}),
         }
       }),
     })),

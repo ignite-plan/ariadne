@@ -4,8 +4,9 @@ import { isDraftTarget } from '../../../shared/draft-log.ts'
 import { isVideoDraft } from '../../../shared/draft-mode.ts'
 import { api } from '../api.ts'
 import { allSections, findSection, pickSection } from '../manual-tree.ts'
+import { REVIEW_ATTR } from '../review-marks.ts'
 import { useClaudeDone, useTasks } from '../tasks.tsx'
-import { LAST_PATH, storage, usePersistentState, usePreview, useSectionDocument, useWorkspaceSide } from '../workbench-state.ts'
+import { LAST_PATH, storage, usePersistentState, usePreview, useReview, useSectionDocument, useWorkspaceSide } from '../workbench-state.ts'
 import { CapturePanel } from './CapturePanel.tsx'
 import { DiffDialog } from './DiffDialog.tsx'
 import { DocumentPane, type Layout } from './DocumentPane.tsx'
@@ -46,6 +47,11 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [previewNonce, setPreviewNonce] = useState(0)
   const preview = usePreview(doc, section.body, layout !== 'editor', previewNonce)
   const previewRef = useRef<HTMLDivElement>(null)
+  // Claude 변경 검토 (최신화가 고치기 직전 본문과 비교)
+  const review = useReview(doc, section.version, section.body, layout !== 'editor', previewNonce)
+  const [reviewIndex, setReviewIndex] = useState(0)
+  // 결과 카드에서 연 화면은 첫 변경으로 간다
+  const jumpToReview = useRef<string>(undefined)
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const [capturing, setCapturing] = useState(false)
   const [update, setUpdate] = useState<UpdateInfo | null>(null)
@@ -138,6 +144,41 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         else section.close()
       },
     })
+  }
+
+  // 변경 사이 이동. 편집기는 그 줄로, 미리보기만 볼 때는 표시한 문단으로
+  const goToChange = (index: number) => {
+    const count = review.hunks.length
+    if (!count) return
+    const next = ((index % count) + count) % count
+    setReviewIndex(next)
+    if (layout !== 'preview') section.editor.current?.goToLine(review.hunks[next].from)
+    else {
+      const marks = previewRef.current?.querySelectorAll(`[${REVIEW_ATTR}]`)
+      if (marks?.length) marks[Math.round((next * (marks.length - 1)) / Math.max(1, count - 1))].scrollIntoView({ block: 'center' })
+    }
+  }
+
+  useEffect(() => {
+    setReviewIndex(0)
+  }, [doc?.path, review.active])
+
+  useEffect(() => {
+    if (!doc || jumpToReview.current !== doc.path || !review.hunks.length) return
+    jumpToReview.current = undefined
+    // 미리보기가 다 그려진 뒤에 옮긴다
+    setTimeout(() => goToChange(0), 400)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc, review.hunks])
+
+  const finishReview = async () => {
+    try {
+      await review.clear()
+      await side.refresh()
+      toast.show('success', 'Claude 변경 검토를 마쳤습니다')
+    } catch (e) {
+      toast.error(e)
+    }
   }
 
   // Claude로 최신화: 화면 하나 또는 장 전체
@@ -264,6 +305,18 @@ export function Workbench({ onReset }: { onReset: () => void }) {
               onRefresh={() => currentChapter && void startRefresh({ chapterDir: currentChapter.dir, path: doc.path })}
               onInsertImage={() => setDialog({ type: 'image' })}
               onImageFile={(f) => void onImageFile(f)}
+              review={
+                review.active
+                  ? {
+                      hunks: review.hunks,
+                      at: review.at,
+                      beforeHtml: review.beforeHtml,
+                      index: Math.min(reviewIndex, review.hunks.length - 1),
+                      onGo: goToChange,
+                      onDone: () => void finishReview(),
+                    }
+                  : undefined
+              }
             />
           ) : (
             <div className="empty-state">
@@ -314,6 +367,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
             onOpenSection={(path) => {
               tasks.clearClaude()
               tasks.closeVideo()
+              jumpToReview.current = path
               void side.refresh().then(() => section.open(path))
             }}
             onDiff={(path, title) => setDialog({ type: 'diff', path, title })}

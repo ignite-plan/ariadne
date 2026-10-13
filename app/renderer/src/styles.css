@@ -2724,3 +2724,81 @@ fieldset.lock:disabled {
   gap: 8px;
   margin-left: 6px;
 }
+
+/* Claude 변경 검토: 미리보기는 넣은 글자 초록 밑줄, 지운 글자 빨간 취소선. 노란색은 Word로 나가는 실제 형광펜이라 쓰지 않는다 */
+:root {
+  --review-ins: #1a7f37;
+  --review-ins-soft: rgba(46, 160, 67, 0.16);
+  --review-del: #cf222e;
+  --review-del-soft: rgba(248, 81, 73, 0.12);
+}
+.review-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 20px 0;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--review-ins-soft);
+  color: var(--text);
+  font-size: 12.5px;
+}
+.review-bar .review-count {
+  font-variant-numeric: tabular-nums;
+}
+.review-legend.ins {
+  color: var(--review-ins);
+  text-decoration: underline;
+}
+.review-legend.del {
+  color: var(--review-del);
+  text-decoration: line-through;
+}
+.badge.review {
+  flex: none;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--review-ins-soft);
+  color: var(--review-ins);
+  font-size: 10.5px;
+}
+.page ins.review-ins {
+  background: var(--review-ins-soft);
+  text-decoration: underline var(--review-ins);
+  text-underline-offset: 2px;
+}
+.page del.review-del {
+  margin: 0 2px;
+  background: var(--review-del-soft);
+  color: var(--review-del);
+  text-decoration: line-through;
+}
+/* 바뀐 문단은 옅은 배경만 (목록 글머리 기호와 겹치지 않게) */
+.page .review-block-changed {
+  border-radius: 3px;
+  background: rgba(46, 160, 67, 0.05);
+}
+.page img.review-block-add {
+  outline: 3px solid var(--review-ins);
+  outline-offset: 2px;
+}
+.page .review-block-add:not(img) {
+  background: var(--review-ins-soft);
+}
+.page .review-block-del {
+  margin: 4px 0;
+  padding: 2px 6px;
+  border-left: 3px solid var(--review-del);
+  background: var(--review-del-soft);
+  color: var(--review-del);
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+/* 편집기: 바뀐 줄 왼쪽 막대만 (본문 서식 기호와 섞이지 않게) */
+.cm-line.cm-review-add,
+.cm-line.cm-review-change {
+  box-shadow: inset 3px 0 0 var(--review-ins);
+}
+.cm-line.cm-review-del {
+  box-shadow: inset 0 2px 0 var(--review-del);
+}

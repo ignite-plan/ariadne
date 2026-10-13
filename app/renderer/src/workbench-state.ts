@@ -1,6 +1,7 @@
 // 편집 화면(Workbench) 상태: 사이드바 데이터·동기화, 열린 화면과 자동 저장, 미리보기, 기억해 두는 화면 설정
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { FileChange, ManualTree, SectionDoc, SectionMeta, SyncState, Todo } from '../../shared/api.ts'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { FileChange, ManualTree, ReviewBase, SectionDoc, SectionMeta, SyncState, Todo } from '../../shared/api.ts'
+import { reviewHunks } from '../../shared/review-diff.ts'
 import { api, errorMessage } from './api.ts'
 import type { EditorHandle } from './components/Editor.tsx'
 import { useToast } from './components/Toast.tsx'
@@ -192,4 +193,50 @@ export function usePreview(doc: SectionDoc | undefined, body: string, enabled: b
     return () => clearTimeout(handle)
   }, [doc, body, enabled, nonce])
   return preview
+}
+
+// Claude 변경 검토: 최신화가 고치기 직전 본문(main에 저장)과 지금 본문을 비교한다.
+// 화면을 다시 열 때(version)마다 새로 읽는다. 미리보기용으로 고치기 전 본문도 pandoc으로 그린다
+export function useReview(doc: SectionDoc | undefined, version: number, body: string, previewEnabled: boolean, nonce: number) {
+  const [base, setBase] = useState<ReviewBase>()
+  const [beforeHtml, setBeforeHtml] = useState<string>()
+  const path = doc?.path
+
+  useEffect(() => {
+    setBase(undefined)
+    if (!path) return
+    let alive = true
+    api.review.get(path).then(
+      (next) => alive && setBase(next ?? undefined),
+      () => undefined,
+    )
+    return () => {
+      alive = false
+    }
+  }, [path, version])
+
+  useEffect(() => {
+    setBeforeHtml(undefined)
+    if (!path || !base || !previewEnabled) return
+    let alive = true
+    api.preview.render(path, base.before).then(
+      (html) => alive && setBeforeHtml(html),
+      () => undefined,
+    )
+    return () => {
+      alive = false
+    }
+  }, [path, base, previewEnabled, nonce])
+
+  const hunks = useMemo(() => (base ? reviewHunks(base.before, body) : []), [base, body])
+
+  const clear = useCallback(async () => {
+    if (!path) return
+    await api.review.clear(path)
+    setBase(undefined)
+  }, [path])
+
+  // 기획자가 고쳐서 원문과 같아졌으면 표시할 것이 없다
+  const active = Boolean(base && hunks.length)
+  return { active, at: base?.at, hunks, beforeHtml: active ? beforeHtml : undefined, clear }
 }

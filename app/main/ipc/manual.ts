@@ -9,6 +9,7 @@ import type { ManualConfig, ManualInfo } from '../../shared/api.ts'
 import { analyzeInWorker, importInWorker } from '../importer.ts'
 import * as gitOps from '../lib/git.ts'
 import { renderSection } from '../lib/preview.ts'
+import { clearReview, listReviews, readReview } from '../lib/review.ts'
 import {
   collectTodos,
   createSection,
@@ -77,7 +78,7 @@ export function registerManual() {
     requireWorkspace()
     const r = ref()
     const modified = new Set((await gitOps.changes(r.root)).map((c) => c.path))
-    return readTree(r, modified)
+    return readTree(r, modified, new Set(listReviews(r)))
   })
   handle('manual:read', (path) => readSectionDoc(ref(), path))
   handle('manual:write', (path, body, meta) => writeSectionDoc(ref(), path, body, meta))
@@ -105,6 +106,9 @@ export function registerManual() {
     return importImage(ref(), id, image.toPNG())
   })
 
+  // Claude 변경 검토 (최신화가 고치기 직전 본문)
+  handle('review:get', (path) => readReview(ref(), path) ?? null)
+  handle('review:clear', (path) => clearReview(ref(), path))
   handle('preview:render', (_path, body) => {
     const r = ref()
     const versions = new Map(listImages(r).map((i) => [i.id, Math.round(i.mtime)]))

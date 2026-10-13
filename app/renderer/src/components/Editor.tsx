@@ -1,7 +1,7 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab, redo, undo } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Compartment, EditorState, RangeSetBuilder } from '@codemirror/state'
 import {
   Decoration,
   drawSelection,
@@ -18,6 +18,21 @@ import {
 import { tags } from '@lezer/highlight'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { MARK_RE, toggleCenter, toggleMark } from '../../../shared/markdown-edit.ts'
+import type { ReviewHunk } from '../../../shared/review-diff.ts'
+
+// Claude가 바꾼 줄 왼쪽에 막대를 그린다 (본문에는 아무것도 넣지 않는다). 줄 번호는 지금 본문 기준
+function reviewLines(hunks: ReviewHunk[]) {
+  return EditorView.decorations.compute(['doc'], (state) => {
+    const builder = new RangeSetBuilder<Decoration>()
+    const lines = state.doc.lines
+    for (const hunk of hunks) {
+      for (let n = Math.max(1, hunk.from); n <= Math.min(hunk.to, lines); n++) {
+        builder.add(state.doc.line(n).from, state.doc.line(n).from, Decoration.line({ class: `cm-review-${hunk.kind}` }))
+      }
+    }
+    return builder.finish()
+  })
+}
 
 export interface EditorHandle {
   insert: (text: string) => void
@@ -156,8 +171,10 @@ export const Editor = forwardRef<
     onScrollRatio?: (ratio: number) => void
     // Claude가 이 화면을 고치는 중
     readOnly?: boolean
+    // Claude가 바꾼 줄 (검토 중일 때)
+    review?: ReviewHunk[]
   }
->(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio, readOnly = false }, ref) {
+>(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio, readOnly = false, review }, ref) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | undefined>(undefined)
   const callbacks = useRef({ onChange, onImageFile, onScrollRatio })
@@ -166,6 +183,10 @@ export const Editor = forwardRef<
   const locked = useRef(readOnly)
   locked.current = readOnly
   const lockExtension = (on: boolean) => [EditorState.readOnly.of(on), EditorView.editable.of(!on)]
+  const reviewing = useRef(new Compartment())
+  const reviewHunks = useRef(review)
+  reviewHunks.current = review
+  const reviewExtension = (hunks?: ReviewHunk[]) => (hunks?.length ? reviewLines(hunks) : [])
 
   const createState = (doc: string) =>
     EditorState.create({
@@ -184,6 +205,7 @@ export const Editor = forwardRef<
         markPlugin(/\*\*\\\[[^\]]*\\\]\*\*/g, 'cm-ui-label'),
         placeholder('내용을 입력하세요'),
         lock.current.of(lockExtension(locked.current)),
+        reviewing.current.of(reviewExtension(reviewHunks.current)),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         theme,
         EditorView.updateListener.of((u) => {
@@ -222,6 +244,10 @@ export const Editor = forwardRef<
   useEffect(() => {
     view.current?.dispatch({ effects: lock.current.reconfigure(lockExtension(readOnly)) })
   }, [readOnly])
+
+  useEffect(() => {
+    view.current?.dispatch({ effects: reviewing.current.reconfigure(reviewExtension(review)) })
+  }, [review])
 
   // 다른 섹션을 열면 undo 기록까지 새로 시작한다
   useEffect(() => {

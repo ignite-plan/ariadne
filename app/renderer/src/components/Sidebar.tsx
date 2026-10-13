@@ -201,6 +201,11 @@ function TocTab({
                   >
                     <button className="toc-section" onClick={() => onOpen(s.path)} title={s.path}>
                       <span className="ellipsis">{s.title}</span>
+                      {s.review && (
+                        <span className="badge review" title="Claude가 바꾼 곳을 아직 검토하지 않았습니다">
+                          검토
+                        </span>
+                      )}
                       {s.todos > 0 && <span className="badge todo">{s.todos}</span>}
                       {s.modified && <span className="dot" title="제출하지 않은 변경" />}
                     </button>

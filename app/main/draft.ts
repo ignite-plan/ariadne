@@ -39,6 +39,7 @@ import {
   type McpServerConfig,
 } from './lib/run-mcp.ts'
 import { runRefreshBatch } from './lib/refresh-batch.ts'
+import { clearReview, saveReviewBase } from './lib/review.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
 import { StgSession } from './lib/stg.ts'
@@ -439,6 +440,8 @@ async function refresh({
       runScreen: async (target, brief) => {
         const file = join(manualDir(ref), target)
         const before = readFileSync(file, 'utf8')
+        // 기획자가 Claude가 바꾼 곳을 볼 수 있게 고치기 직전 본문을 남긴다 (검토 전에 다시 최신화하면 처음 원문을 유지)
+        const reviewSaved = saveReviewBase(ref, target, readSectionDoc(ref, target).body)
         let stg: StgSession | undefined
         try {
           // 기획서 요약을 받았으면 Confluence를 다시 뒤지지 않게 도구를 빼고 막는다 (요약에 없는 정책은 TODO)
@@ -463,6 +466,7 @@ async function refresh({
           if (summary) summaries.set(target, summary)
           if (!result.ok) failures.push(`${target}: ${result.text}`)
           const changed = readFileSync(file, 'utf8') !== before || Boolean(summary?.images?.length)
+          if (reviewSaved && readFileSync(file, 'utf8') === before) clearReview(ref, target)
           return { ok: result.ok, changed, todos: summary?.todos, text: result.text, durationMs: result.durationMs }
         } finally {
           await stg?.close()

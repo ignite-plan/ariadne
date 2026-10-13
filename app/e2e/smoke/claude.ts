@@ -93,6 +93,12 @@ export async function claude({ page, step, snap, toast, workspace, claudeHold }:
     await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
     // 열려 있던 화면은 Claude가 고친 내용으로 다시 읽힌다
     await page.locator('.cm-content', { hasText: 'lists all registered dealers and their status' }).waitFor({ timeout: 10000 })
+    // Claude가 바꾼 곳을 표시한다: 검토 막대, 미리보기 단어 단위(넣은 글자·지운 글자), 편집기 줄 막대
+    await page.locator('.review-bar', { hasText: 'Claude 변경' }).waitFor({ timeout: 10000 })
+    await page.locator('.page ins.review-ins', { hasText: 'status' }).waitFor({ timeout: 10000 })
+    await page.locator('.page del.review-del', { hasText: 'provides' }).waitFor()
+    assert.ok((await page.locator('.cm-line.cm-review-change').count()) >= 1, '편집기에 바뀐 줄 표시')
+    await snap('13c-review')
     // 최신화 뒤에는 변경 탭으로 간다
     await page.locator('.change-item', { hasText: 'Dealer List View' }).getByTitle('변경 보기').click()
     await page.locator('.diff-row.add', { hasText: 'their status' }).waitFor()
@@ -100,6 +106,8 @@ export async function claude({ page, step, snap, toast, workspace, claudeHold }:
     await page.getByRole('button', { name: '모두 되돌리기' }).click()
     await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    // 되돌리면 검토할 것도 없다
+    await page.locator('.review-bar').waitFor({ state: 'detached', timeout: 10000 })
     await page.getByRole('tab', { name: '목차' }).click()
   })
 
@@ -132,6 +140,14 @@ export async function claude({ page, step, snap, toast, workspace, claudeHold }:
     assert.match(after, /lists all registered dealers and their status/)
     assert.doesNotMatch(after, /refreshedFrom/, '일부만 반영했으므로 근거 버전을 남기지 않는다')
     await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    // 목차에 검토할 화면을 표시하고, [검토 완료]로 표시를 끈다 (내용은 그대로)
+    await page.getByRole('tab', { name: '목차' }).click()
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).locator('.badge.review').waitFor({ timeout: 10000 })
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).click()
+    await page.locator('.review-bar').getByRole('button', { name: /검토 완료/ }).click()
+    await page.locator('.review-bar').waitFor({ state: 'detached' })
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).locator('.badge.review').waitFor({ state: 'detached' })
+    assert.match(readFileSync(listFile, 'utf8'), /lists all registered dealers and their status/)
     // 바뀐 파일은 딜러 목록 화면 하나 (캡처·shots.ts는 그대로)
     await page.getByRole('tab', { name: /변경/ }).click()
     // 변경 목록이 갱신될 때까지 기다린 뒤 센다

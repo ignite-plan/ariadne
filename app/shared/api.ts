@@ -228,6 +228,14 @@ export interface SectionNode {
   title: string
   todos: number
   modified: boolean
+  // Claude가 바꾼 곳을 아직 검토하지 않았다
+  review?: boolean
+}
+
+export interface ReviewBase {
+  // Claude가 고치기 직전 본문 (front-matter 제외)
+  before: string
+  at: number
 }
 
 export interface ChapterNode {
@@ -433,6 +441,11 @@ export interface AriadneApi {
   preview: {
     render(path: string, body: string): Promise<string>
   }
+  // Claude 변경 검토: 최신화가 고치기 직전 본문. 검토 완료·제출·되돌리기 때 지운다
+  review: {
+    get(path: string): Promise<ReviewBase | null>
+    clear(path: string): Promise<void>
+  }
   build: {
     docx(chapters?: number[]): Promise<BuildResult>
     open(path: string): Promise<void>
@@ -558,6 +571,7 @@ export const API_METHODS = {
     'suggestImageId',
   ],
   preview: ['render'],
+  review: ['get', 'clear'],
   build: ['docx', 'open'],
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
   video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
