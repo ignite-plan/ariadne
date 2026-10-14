@@ -39,18 +39,21 @@ Creating Menu -- Display information
   - **Updated Date/Updated By**: The date the menu was modified and the person who modified it are automatically entered.
 
     - Creation rule: MM DD, YYYY (EST) / ID(employee number)
+   
+<!-- TODO: 모바일웹 설정 기능 화면 캡처 필요-->
 
-- **Mobile Display setting (Required field)**: A function to control whether the menu and its sub-menus are displayed on the Mobile Front screen. Only displayed when the tenant's Mobile Web setting is enabled; if the tenant's Mobile Web setting is disabled, this field (and the Mobile status in the banner above) is not shown and only the PC Display setting applies.
+- [**Mobile Display setting (Required field)**: A function to control whether the menu and its sub-menus are displayed on the Mobile Front screen. Only displayed when the tenant's Mobile Web setting is enabled; if the tenant's Mobile Web setting is disabled, this field (and the Mobile status in the banner above) is not shown and only the PC Display setting applies.]{.mark}
 
-  - **(Default) Enabled**: Can be set to Enabled or Disabled while Display setting is Enabled. Guidance message: "Controls menu and submenu visibility on Mobile. Available only when Display Setting is ON."
 
-  - **Disabled**: Automatically set to Disabled and cannot be changed while Display setting is Disabled. Guidance message: "Mobile Display Setting is disabled when this is OFF."
+  -[ **(Default) Enabled**: Can be set to Enabled or Disabled while Display setting is Enabled. Guidance message: "Controls menu and submenu visibility on Mobile. Available only when Display Setting is ON.".]{.mark}
+
+  - [**Disabled**: Automatically set to Disabled and cannot be changed while Display setting is Disabled. Guidance message: "Mobile Display Setting is disabled when this is OFF.".]{.mark}
 
 - **Scheduled Display**: A function to plan scheduled menu exposure by setting a specific future display start date, allowing the menu to be displayed on the front screen from that date. Scheduled Display is only available while Display setting is Enabled; when Display setting is Disabled, Scheduled Display is forced to Disabled and cannot be changed.
 
-  - **(Default) Disabled:** The scheduled menu exposure function is not used. The menu will appear on the Front screen within approximately 1-2 minutes after saving.
+  - [ **(Default) Disabled:** The scheduled menu exposure function is not used. The menu will appear on the Front screen within approximately 1-2 minutes after saving.]{.mark}
 
-  - **Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. [\
+  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date..]{.mark} [\
     ]{.mark} ![](images/menu-creation-img-2.png){width=1.39in}
 
 Calendar setting
@@ -67,6 +70,7 @@ Calendar setting
 
 ![](images/menu-creation-img-3.png){width=5.31in}
 
+<!-- TODO:  메뉴타입 화면 갱신 필요 -->
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
 - **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset.\
@@ -81,7 +85,7 @@ Domain dropdown
 
 - Menu URL: A function to enter the actual page address (URL) that will be connected when a user clicks on the menu. The Domain and Menu URL are combined to complete the link. For menus linked to bulletin boards, the bulletin board ID is automatically entered.
 
-  - **Input rules**: Up to 240 characters. An empty or null value is automatically set to \'/\'. If the value does not start with a leading \'/\', it is automatically corrected to start with \'/\' at the time of **\[Save\]**. Entering more than 246 characters shows an immediate inline error "Menu URL Maximum 240 chars."
+  - [**Input rules**: Up to 240 characters. An empty or null value is automatically set to \'/\'. If the value does not start with a leading \'/\', it is automatically corrected to start with \'/\' at the time of **\[Save\]**. Entering more than 246 characters shows an immediate inline error "Menu URL Maximum 240 chars.".]{.mark}
 
   - Example:
 
@@ -94,11 +98,11 @@ Linking menu-board mapping - Domain and Menu URL
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2326 Menu URL 하단 "Is this page implemented with DEALERS' Frontend Library?" 라디오버튼이 캡처에 없음 -->
 
-- **Is this page implemented with DEALERS' Frontend Library?**: A radio button that marks whether the linked page is built with the DEALERS Frontend Library, so the Front GNB/LNB menu can be highlighted accurately. Displayed below Menu URL only when Menu Type is Same Tab or New Tab and a Domain address (not "No selection (Directory)") is selected; not displayed for Bulletin Board menus or when Domain is "No selection (Directory)".
+- [**Is this page implemented with DEALERS' Frontend Library?**: A radio button that marks whether the linked page is built with the DEALERS Frontend Library, so the Front GNB/LNB menu can be highlighted accurately. Displayed below Menu URL only when Menu Type is Same Tab or New Tab and a Domain address (not "No selection (Directory)") is selected; not displayed for Bulletin Board menus or when Domain is "No selection (Directory)".]{.mark}
 
-  - **YES**: The system automatically appends `?menuId={menuId}` to the saved Menu URL.
+  - [**YES**: The system automatically appends `?menuId={menuId}` to the saved Menu URL.]{.mark}
 
-  - **(Default) NO**: The Menu URL is saved as entered, without the `menuId` parameter.
+  - [**(Default) NO**: The Menu URL is saved as entered, without the `menuId` parameter.]{.mark}
 
 - (Default) [Same Tab]{.mark}: When selected, Domain has \"No selection (Directory)\" selected, and Menu name must be entered as required.
 
