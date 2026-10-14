@@ -4,17 +4,19 @@ import { existsSync } from 'node:fs'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { McpServer, type ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import YAML from 'yaml'
 import { z } from 'zod'
 import { loadManual, manualDir, type ManualRef } from '../../../src/core/manual.ts'
 import { describeStep } from '../../../src/core/video/describe.ts'
 import { applyVars, listVideos, loadVideo, parseScene, parseVideo, saveVideo, videoVars } from '../../../src/core/video/scenario.ts'
+import type { ZodRawShapeCompat } from '@modelcontextprotocol/sdk/server/zod-compat.js'
+import { ariadneToolLabel, MCP_NAME } from './ariadne-tools.ts'
 import { createSection, readTree } from './sections.ts'
-import type { OpenResult, Role, ShotInput, StgSession } from './stg.ts'
+import { ROLES, SHOT_STEP, type OpenResult, type StgSession } from './stg.ts'
 
-export const MCP_NAME = 'ariadne'
+export { MCP_NAME }
 
 export interface ToolEvent {
   tool: string
@@ -35,8 +37,6 @@ export interface AriadneMcpDeps {
 }
 
 export type VideoCheck = { ok: true; durationMs: number; blockedRequests: string[] } | { ok: false; error: string; scene?: number | 'cleanup'; step?: number }
-
-const ROLES = ['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'combobox', 'option', 'treeitem', 'row'] as const
 
 const FULL = z
   .boolean()
@@ -73,52 +73,55 @@ function describe(result: OpenResult) {
 
 function buildServer(deps: AriadneMcpDeps) {
   const server = new McpServer({ name: MCP_NAME, version: '1.0.0' })
-  const run = async <T>(tool: string, summary: string, fn: () => Promise<T> | T) => {
-    deps.onEvent?.({ tool, summary })
-    return fn()
+  // 호출을 알리고, 던진 오류는 Claude가 읽을 도구 오류로 돌려준다
+  const tool = <S extends ZodRawShapeCompat>(name: string, config: { description: string; inputSchema: S }, fn: ToolCallback<S>) => {
+    const call = fn as (...args: unknown[]) => ReturnType<typeof text> | Promise<ReturnType<typeof text>>
+    const guarded = async (...args: unknown[]) => {
+      try {
+        deps.onEvent?.({ tool: name, summary: ariadneToolLabel(name, (args[0] ?? {}) as Record<string, unknown>) })
+        return await call(...args)
+      } catch (error) {
+        return fail(error)
+      }
+    }
+    server.registerTool(name, config, guarded as ToolCallback<S>)
   }
 
-  server.registerTool(
+  tool(
     'manual_outline',
     {
       description: '지금 매뉴얼의 장/화면 목록, 매뉴얼 폴더 경로, 작성 템플릿 경로, 캡처 주소를 돌려준다. 작업 시작 때 먼저 부른다',
       inputSchema: {},
     },
-    async () => {
-      try {
-        return await run('manual_outline', '매뉴얼 목차 확인', () => {
-          const tree = readTree(deps.ref)
-          const manual = loadManual(deps.ref)
-          const dir = manualDir(deps.ref)
-          return text(
-            JSON.stringify(
-              {
-                manual: deps.ref.manual,
-                title: tree.title,
-                folder: dir,
-                template: existsSync(join(dir, '_template.md')) ? join(dir, '_template.md') : join(deps.ref.root, 'manuals', 'bo', '_template.md'),
-                example: join(deps.ref.root, 'manuals', 'bo', '02-dealer-management', '01-dealer-list-view.md'),
-                captureBaseUrl: manual.capture?.baseUrl,
-                chapters: tree.chapters.map((c, index) => ({
-                  index,
-                  no: c.no,
-                  dir: c.dir,
-                  title: c.title,
-                  sections: c.sections.map((s) => ({ path: s.path, title: s.title })),
-                })),
-              },
-              null,
-              2,
-            ),
-          )
-        })
-      } catch (error) {
-        return fail(error)
-      }
+    () => {
+      const tree = readTree(deps.ref)
+      const manual = loadManual(deps.ref)
+      const dir = manualDir(deps.ref)
+      return text(
+        JSON.stringify(
+          {
+            manual: deps.ref.manual,
+            title: tree.title,
+            folder: dir,
+            template: existsSync(join(dir, '_template.md')) ? join(dir, '_template.md') : join(deps.ref.root, 'manuals', 'bo', '_template.md'),
+            example: join(deps.ref.root, 'manuals', 'bo', '02-dealer-management', '01-dealer-list-view.md'),
+            captureBaseUrl: manual.capture?.baseUrl,
+            chapters: tree.chapters.map((c, index) => ({
+              index,
+              no: c.no,
+              dir: c.dir,
+              title: c.title,
+              sections: c.sections.map((s) => ({ path: s.path, title: s.title })),
+            })),
+          },
+          null,
+          2,
+        ),
+      )
     },
   )
 
-  server.registerTool(
+  tool(
     'create_section',
     {
       description:
@@ -130,35 +133,23 @@ function buildServer(deps: AriadneMcpDeps) {
         chapterIndex: z.number().int().min(0).optional().describe('새 장을 넣을 위치 (0부터)'),
       },
     },
-    async (args) => {
-      try {
-        return await run('create_section', `화면 만들기: ${args.title}`, () => {
-          const path = createSection(deps.ref, args)
-          return text(JSON.stringify({ path, file: join(manualDir(deps.ref), path) }))
-        })
-      } catch (error) {
-        return fail(error)
-      }
+    (args) => {
+      const path = createSection(deps.ref, args)
+      return text(JSON.stringify({ path, file: join(manualDir(deps.ref), path) }))
     },
   )
 
-  server.registerTool(
+  tool(
     'stg_open',
     {
       description:
         'STG 화면을 연다 (캡처 주소 기준 경로, 예: /menu). 화면 접근성 트리와 스크린샷 경로를 돌려준다. 저장/삭제는 할 수 없다',
       inputSchema: { path: z.string(), full: FULL },
     },
-    async ({ path, full }) => {
-      try {
-        return await run('stg_open', `화면 열기: ${path}`, async () => text(describe(await deps.stg().open(path, { full }))))
-      } catch (error) {
-        return fail(error)
-      }
-    },
+    async ({ path, full }) => text(describe(await deps.stg().open(path, { full }))),
   )
 
-  server.registerTool(
+  tool(
     'stg_click',
     {
       description: '지금 화면에서 버튼/탭/링크 등을 누른다 (팝업, 탭, 상세 보기 열기). 저장/삭제/승인/발송류는 거절된다',
@@ -169,39 +160,19 @@ function buildServer(deps: AriadneMcpDeps) {
         full: FULL,
       },
     },
-    async ({ role, name, nth, full }) => {
-      try {
-        return await run('stg_click', `누르기: ${name}`, async () =>
-          text(describe(await deps.stg().click(role as Role, name, nth, { full }))),
-        )
-      } catch (error) {
-        return fail(error)
-      }
-    },
+    async ({ role, name, nth, full }) => text(describe(await deps.stg().click(role, name, nth, { full }))),
   )
 
-  server.registerTool(
+  tool(
     'stg_fill',
     {
       description: '입력칸에 값을 넣는다 (생성/수정 화면을 입력 상태로 보여 줄 때). label은 접근성 트리의 입력칸 이름(textbox "…", combobox "…" 등) 그대로 쓴다. 안내 문구나 선택값이 아니다. 없으면 지금 화면의 입력칸 목록을 돌려준다. 저장 버튼은 누르지 않는다',
       inputSchema: { label: z.string(), value: z.string(), full: FULL },
     },
-    async ({ label, value, full }) => {
-      try {
-        return await run('stg_fill', `입력: ${label}`, async () => text(describe(await deps.stg().fill(label, value, { full }))))
-      } catch (error) {
-        return fail(error)
-      }
-    },
+    async ({ label, value, full }) => text(describe(await deps.stg().fill(label, value, { full }))),
   )
 
-  const step = z.union([
-    z.object({ click: z.object({ role: z.enum(ROLES), name: z.string(), nth: z.number().int().min(0).optional() }) }),
-    z.object({ fill: z.object({ label: z.string(), value: z.string() }) }),
-    z.object({ waitFor: z.string().describe('CSS/텍스트 locator. 예: text=Menu Information') }),
-  ])
-
-  server.registerTool(
+  tool(
     'save_shot',
     {
       description:
@@ -210,7 +181,7 @@ function buildServer(deps: AriadneMcpDeps) {
         id: z.string().describe('caption slug. 예: menu-list'),
         path: z.string(),
         ready: z.string().optional().describe('화면 준비 완료 locator. 예: text=Total'),
-        steps: z.array(step).optional(),
+        steps: z.array(SHOT_STEP).optional(),
         clip: z.string().optional().describe('찍을 영역 locator. 팝업은 [role="dialog"], 전체 화면은 생략 또는 #root'),
         mask: z.array(z.string()).optional(),
         replace: z
@@ -220,15 +191,9 @@ function buildServer(deps: AriadneMcpDeps) {
       },
     },
     async ({ replace, ...args }) => {
-      try {
-        if (deps.noShots) throw new Error(deps.noShots)
-        return await run('save_shot', `캡처 저장: ${args.id}`, async () => {
-          const saved = await deps.stg().saveShot(args as ShotInput, replace)
-          return text(JSON.stringify({ image: saved.image, file: saved.file }))
-        })
-      } catch (error) {
-        return fail(error)
-      }
+      if (deps.noShots) throw new Error(deps.noShots)
+      const saved = await deps.stg().saveShot(args, replace)
+      return text(JSON.stringify({ image: saved.image, file: saved.file }))
     },
   )
 
@@ -240,66 +205,54 @@ function buildServer(deps: AriadneMcpDeps) {
       .join('\n')
   }
 
-  server.registerTool(
+  tool(
     'video_get',
     {
       description:
         '가이드 영상 시나리오 YAML(manuals/<m>/videos/<id>.yaml)과 형식 안내를 돌려준다. 시나리오를 쓰기 전에 먼저 부른다',
       inputSchema: { id: z.string() },
     },
-    async ({ id }) => {
-      try {
-        return await run('video_get', `영상 시나리오 읽기: ${id}`, () => {
-          if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
-          const v = loadVideo(deps.ref, id)
-          const { id: _, ...file } = v
-          return text(
-            JSON.stringify(
-              {
-                id,
-                file: join(manualDir(deps.ref), 'videos', `${id}.yaml`),
-                section: v.section ? join(manualDir(deps.ref), v.section) : null,
-                yaml: YAML.stringify(file),
-                example: join(deps.ref.root, 'manuals', 'bo', 'videos', 'dealer-list.yaml'),
-              },
-              null,
-              2,
-            ),
-          )
-        })
-      } catch (error) {
-        return fail(error)
-      }
+    ({ id }) => {
+      if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
+      const v = loadVideo(deps.ref, id)
+      const { id: _, ...file } = v
+      return text(
+        JSON.stringify(
+          {
+            id,
+            file: join(manualDir(deps.ref), 'videos', `${id}.yaml`),
+            section: v.section ? join(manualDir(deps.ref), v.section) : null,
+            yaml: YAML.stringify(file),
+            example: join(deps.ref.root, 'manuals', 'bo', 'videos', 'dealer-list.yaml'),
+          },
+          null,
+          2,
+        ),
+      )
     },
   )
 
-  server.registerTool(
+  tool(
     'video_save',
     {
       description:
         '가이드 영상 시나리오 전체를 YAML로 저장한다 (형식 검사 후). title, intro, section, maskPersonal, mask, scenes[say, steps]. mutates(STG 저장 허용)는 켤 수 없다',
       inputSchema: { id: z.string(), yaml: z.string().describe('시나리오 YAML 전체 (id 제외)') },
     },
-    async ({ id, yaml }) => {
-      try {
-        return await run('video_save', `영상 시나리오 저장: ${id}`, () => {
-          if (deps.videoScene) throw new Error('이 작업은 장면 하나만 바꿉니다. video_save_scene을 쓰세요')
-          if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
-          const next = parseVideo(id, YAML.parse(yaml))
-          // 저장·삭제 버튼을 실제로 누를지는 기획자가 정한다
-          if (next.mutates && !loadVideo(deps.ref, id).mutates) {
-            throw new Error('mutates(STG 저장 허용)는 켤 수 없습니다. 저장 버튼 직전까지만 시나리오에 넣으세요')
-          }
-          saveVideo(deps.ref, next)
-          return text(`저장했습니다.\n${outline(id)}`)
-        })
-      } catch (error) {
-        return fail(error)
+    ({ id, yaml }) => {
+      if (deps.videoScene) throw new Error('이 작업은 장면 하나만 바꿉니다. video_save_scene을 쓰세요')
+      if (!listVideos(deps.ref).includes(id)) throw new Error(`영상 시나리오가 없습니다: ${id}`)
+      const next = parseVideo(id, YAML.parse(yaml))
+      // 저장·삭제 버튼을 실제로 누를지는 기획자가 정한다
+      if (next.mutates && !loadVideo(deps.ref, id).mutates) {
+        throw new Error('mutates(STG 저장 허용)는 켤 수 없습니다. 저장 버튼 직전까지만 시나리오에 넣으세요')
       }
+      saveVideo(deps.ref, next)
+      return text(`저장했습니다.\n${outline(id)}`)
     },
   )
 
-  server.registerTool(
+  tool(
     'video_open_scene',
     {
       description:
@@ -307,53 +260,41 @@ function buildServer(deps: AriadneMcpDeps) {
       inputSchema: { id: z.string(), scene: z.number().int().min(0).describe('이 장면(0부터)이 시작되는 화면까지 재생') },
     },
     async ({ id, scene }) => {
-      try {
-        return await run('video_open_scene', `장면 ${scene + 1} 앞까지 재생: ${id}`, async () => {
-          const v = applyVars(loadVideo(deps.ref, id), videoVars())
-          // 저장 허용 시나리오는 앞 장면을 재생하면 STG에 저장이 한 번 더 일어난다
-          if (v.mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 앞 장면을 재생하지 않습니다. 앱의 [STG에서 기록]을 쓰세요')
-          return text(describe(await deps.stg().replay(v.scenes.slice(0, scene), v.mutates)))
-        })
-      } catch (error) {
-        return fail(error)
-      }
+      const v = applyVars(loadVideo(deps.ref, id), videoVars())
+      // 저장 허용 시나리오는 앞 장면을 재생하면 STG에 저장이 한 번 더 일어난다
+      if (v.mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 앞 장면을 재생하지 않습니다. 앱의 [STG에서 기록]을 쓰세요')
+      return text(describe(await deps.stg().replay(v.scenes.slice(0, scene), v.mutates)))
     },
   )
 
-  server.registerTool(
+  tool(
     'video_save_scene',
     {
       description:
         '이번 작업의 대상 장면 하나만 YAML로 저장한다 (say, caption, steps). 다른 장면과 시나리오 설정은 그대로 둔다. 처음 저장하면 새 장면이 들어가고, 다시 저장하면 그 장면을 고친다',
       inputSchema: { id: z.string(), yaml: z.string().describe('장면 하나의 YAML. 예: say: ... / steps: [...]') },
     },
-    async ({ id, yaml }) => {
-      try {
-        return await run('video_save_scene', `장면 저장: ${id}`, () => {
-          const target = deps.videoScene
-          if (!target || target.id !== id) throw new Error('이 작업에서는 장면 하나만 저장할 수 없습니다')
-          const scene = parseScene(YAML.parse(yaml))
-          const v = loadVideo(deps.ref, id)
-          const scenes = [...v.scenes]
-          if (target.insert) {
-            scenes.splice(target.index + 1, 0, scene)
-            // 다음 저장부터는 방금 넣은 장면을 고친다
-            target.index += 1
-            target.insert = false
-          } else {
-            if (!scenes[target.index]) throw new Error(`장면 ${target.index + 1}이 없습니다`)
-            scenes[target.index] = scene
-          }
-          saveVideo(deps.ref, { ...v, scenes })
-          return text(`장면 ${target.index + 1}로 저장했습니다. 확인: video_check(fromScene: ${target.index})\n${outline(id)}`)
-        })
-      } catch (error) {
-        return fail(error)
+    ({ id, yaml }) => {
+      const target = deps.videoScene
+      if (!target || target.id !== id) throw new Error('이 작업에서는 장면 하나만 저장할 수 없습니다')
+      const scene = parseScene(YAML.parse(yaml))
+      const v = loadVideo(deps.ref, id)
+      const scenes = [...v.scenes]
+      if (target.insert) {
+        scenes.splice(target.index + 1, 0, scene)
+        // 다음 저장부터는 방금 넣은 장면을 고친다
+        target.index += 1
+        target.insert = false
+      } else {
+        if (!scenes[target.index]) throw new Error(`장면 ${target.index + 1}이 없습니다`)
+        scenes[target.index] = scene
       }
+      saveVideo(deps.ref, { ...v, scenes })
+      return text(`장면 ${target.index + 1}로 저장했습니다. 확인: video_check(fromScene: ${target.index})\n${outline(id)}`)
     },
   )
 
-  server.registerTool(
+  tool(
     'video_check',
     {
       description:
@@ -361,20 +302,14 @@ function buildServer(deps: AriadneMcpDeps) {
       inputSchema: { id: z.string(), fromScene: z.number().int().min(0).optional().describe('이 장면(0부터)부터. 앞 장면은 빠르게 재생') },
     },
     async ({ id, fromScene }) => {
-      try {
-        return await run('video_check', `영상 시나리오 실행해 보기: ${id}`, async () => {
-          if (!deps.videoCheck) throw new Error('이 작업에서는 영상 시나리오를 실행할 수 없습니다')
-          if (loadVideo(deps.ref, id).mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 실행하지 않습니다')
-          const result = await deps.videoCheck(id, fromScene)
-          if (result.ok) {
-            const blocked = result.blockedRequests.length ? `\n막은 쓰기 요청: ${result.blockedRequests.join(', ')}` : ''
-            return text(`끝까지 실행했습니다 (${Math.round(result.durationMs / 1000)}초).${blocked}`)
-          }
-          return { ...text(`실패: ${result.error}`), isError: true }
-        })
-      } catch (error) {
-        return fail(error)
+      if (!deps.videoCheck) throw new Error('이 작업에서는 영상 시나리오를 실행할 수 없습니다')
+      if (loadVideo(deps.ref, id).mutates) throw new Error('STG 저장 허용 시나리오는 Claude가 실행하지 않습니다')
+      const result = await deps.videoCheck(id, fromScene)
+      if (result.ok) {
+        const blocked = result.blockedRequests.length ? `\n막은 쓰기 요청: ${result.blockedRequests.join(', ')}` : ''
+        return text(`끝까지 실행했습니다 (${Math.round(result.durationMs / 1000)}초).${blocked}`)
       }
+      return { ...text(`실패: ${result.error}`), isError: true }
     },
   )
 

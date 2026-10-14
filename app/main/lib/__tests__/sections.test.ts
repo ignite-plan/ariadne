@@ -6,12 +6,13 @@ import { after, describe, it } from 'node:test'
 import { PNG } from 'pngjs'
 import YAML from 'yaml'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
+import { joinSection, serializeFrontMatter, splitSection } from '../../../../src/core/manual.ts'
+import { slugify, uniqueName } from '../../../../src/core/naming.ts'
 import {
   collectTodos,
   createSection,
   extractTodos,
   importImage,
-  joinSection,
   listImages,
   listManuals,
   readSectionDoc,
@@ -19,9 +20,6 @@ import {
   removeSection,
   resolveInside,
   sectionTitle,
-  serializeFrontMatter,
-  slugify,
-  splitSection,
   suggestImageId,
   writeSectionDoc,
 } from '../sections.ts'
@@ -94,6 +92,12 @@ describe('slugify', () => {
   it('영문 소문자와 -만 남긴다', () => {
     assert.equal(slugify('Zone/District Management & More'), 'zone-district-management-and-more')
     assert.equal(slugify('딜러'), '')
+  })
+
+  it('겹치면 -2, -3을 붙인다', () => {
+    const taken = new Set(['menu', 'menu-2'])
+    assert.equal(uniqueName('menu', (n) => taken.has(n)), 'menu-3')
+    assert.equal(uniqueName('dealer', (n) => taken.has(n)), 'dealer')
   })
 })
 
@@ -182,16 +186,15 @@ describe('섹션 조작', () => {
   })
 
   it('이미지: PNG만 받고 id 규칙과 중복을 지킨다', () => {
-    assert.equal(importImage(fx.ref, 'dealer-list', { data: png() }), 'dealer-list')
+    assert.equal(importImage(fx.ref, 'dealer-list', png()), 'dealer-list')
     assert.deepEqual(listImages(fx.ref).map((i) => i.id), ['dealer-list'])
     assert.equal(suggestImageId(fx.ref, 'Dealer List'), 'dealer-list-2')
     assert.equal(suggestImageId(fx.ref, '딜러'), 'image')
-    assert.throws(() => importImage(fx.ref, 'Bad Id', { data: png() }), /영문 소문자/)
-    assert.throws(() => importImage(fx.ref, 'jpeg', { data: new Uint8Array([0xff, 0xd8, 0xff]) }), /PNG 이미지만/)
-    const src = join(fx.ref.root, 'src.png')
-    writeFileSync(src, png(3, 3))
-    importImage(fx.ref, 'from-file', { path: src })
-    assert.deepEqual(readFileSync(join(fx.dir, 'images/from-file.png')), readFileSync(src))
+    assert.throws(() => importImage(fx.ref, 'Bad Id', png()), /영문 소문자/)
+    assert.throws(() => importImage(fx.ref, 'jpeg', new Uint8Array([0xff, 0xd8, 0xff])), /PNG 이미지만/)
+    const bytes = png(3, 3)
+    importImage(fx.ref, 'pasted', bytes)
+    assert.deepEqual(readFileSync(join(fx.dir, 'images/pasted.png')), bytes)
   })
 })
 

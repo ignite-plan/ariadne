@@ -12,7 +12,7 @@ description: 매뉴얼 화면 하나의 사용법 가이드 영상 시나리오(
 
 ## 도구
 - `mcp__ariadne__video_get` / `video_save` / `video_check`: 시나리오 읽기, 저장(형식 검사), STG에서 실행해 보기
-- `mcp__ariadne__stg_open` / `stg_click` / `stg_fill`: 화면 확인. 돌려준 **접근성 트리의 이름이 대상(role, name)의 근거**다. STG 응답은 짧게 온다: 팝업이 열려 있으면 그 팝업만, 화면 이동 직후엔 앞부분(4000자), 같은 화면에서 누르기·입력한 뒤에는 **앞 응답과 달라진 줄만** 온다(나머지는 앞 응답 그대로). `full: true`는 대화에 크게 쌓이니 잘린 뒤쪽이 꼭 필요할 때만 쓴다. 이름은 role 뒤 따옴표 안의 것을 그대로 쓴다 (안내 문구·선택값·도움말 문장이 아니다)
+- `mcp__ariadne__stg_open` / `stg_click` / `stg_fill`: 화면 확인. 돌려준 **접근성 트리의 이름이 대상(role, name)의 근거**다. STG 응답 형식과 이름 쓰는 법은 아래 '작업 방식 (앱 실행 공통)'을 따른다
 - Confluence 읽기 도구(있으면), Read/Glob/Grep(작업 폴더). Bash, 웹, 하위 에이전트는 막혀 있다
 
 ## 1. 준비

@@ -1,14 +1,13 @@
 // 가짜 화면에서 사람이 조작하듯 Playwright로 누르고 입력해, 기록된 단계가 기대한 대상인지와 그대로 재생되는지 본다
 import assert from 'node:assert/strict'
-import { existsSync } from 'node:fs'
 import { after, before, describe, it } from 'node:test'
 import { chromium, type Browser, type Page } from 'playwright'
 import { Director } from '../video/director.ts'
 import { appendRecorded, attachRecorder, type RecordEvent } from '../video/record.ts'
 import type { Step } from '../video/scenario.ts'
 import { runSteps } from '../video/steps.ts'
+import { skipWithout } from './browser.ts'
 
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 const HTML = `<!doctype html><body style="font-family:sans-serif">
   <h1 id="title" onclick="window.titleClicked = true">Dealer Management</h1>
@@ -29,7 +28,7 @@ const HTML = `<!doctype html><body style="font-family:sans-serif">
   </script>
 </body>`
 
-describe('기록 (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+describe('기록 (Chrome)', { skip: skipWithout() }, () => {
   let browser: Browser
   before(async () => {
     browser = await chromium.launch({ channel: 'chrome' })

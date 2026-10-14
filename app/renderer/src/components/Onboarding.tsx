@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { AuthStatus, EnvCheck, Settings, WorkspaceState } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import type { AuthStatus, Settings, WorkspaceState } from '../../../shared/api.ts'
+import { api } from '../api.ts'
+import { useAsyncAction, useEnvChecks } from '../hooks.ts'
 import { EnvList } from './EnvList.tsx'
 import { Icon } from './Icon.tsx'
+import { Progress } from './Progress.tsx'
 
 const TOKEN_URL = 'https://github.com/settings/personal-access-tokens/new'
 
@@ -74,22 +76,14 @@ function TokenStep({
   onDone: (auth: AuthStatus) => void
 }) {
   const [token, setToken] = useState('')
-  const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const { run, busy, error } = useAsyncAction()
   const [repoUrl, setRepoUrl] = useState(settings.repoUrl)
 
-  const submit = async () => {
-    setBusy(true)
-    setError('')
-    try {
+  const submit = () =>
+    run(async () => {
       if (repoUrl !== settings.repoUrl) onSettings(await api.settings.update({ repoUrl }))
       onDone(await api.auth.setToken(token))
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setBusy(false)
-    }
-  }
+    })
 
   return (
     <section className="onboarding-card">
@@ -165,8 +159,7 @@ function WorkspaceStep({
   onBack: () => void
   onDone: (ws: WorkspaceState) => void
 }) {
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
+  const { run, busy, error } = useAsyncAction()
   const [progress, setProgress] = useState<{ phase: string; loaded: number; total?: number }>()
 
   useEffect(() => api.on('clone-progress', setProgress), [])
@@ -177,16 +170,8 @@ function WorkspaceStep({
   }
 
   const clone = async () => {
-    setBusy(true)
-    setError('')
-    try {
-      onDone(await api.workspace.clone())
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setBusy(false)
-      setProgress(undefined)
-    }
+    await run(async () => onDone(await api.workspace.clone()))
+    setProgress(undefined)
   }
 
   const percent = progress?.total ? Math.round((progress.loaded / progress.total) * 100) : undefined
@@ -204,12 +189,11 @@ function WorkspaceStep({
       </div>
       <p className="hint">이미 내려받은 리포 폴더를 고르면 그 폴더를 그대로 씁니다.</p>
       {busy && (
-        <div className="progress">
-          <div className="progress-bar" style={{ width: `${percent ?? 15}%` }} data-indeterminate={percent === undefined} />
+        <Progress percent={percent} fallback={15}>
           <span>
             {progress?.phase ?? '연결 중'} {percent !== undefined ? `${percent}%` : ''}
           </span>
-        </div>
+        </Progress>
       )}
       {error && <p className="form-error">{error}</p>}
       <div className="actions">
@@ -225,14 +209,7 @@ function WorkspaceStep({
 }
 
 function EnvStep({ onDone }: { onDone: () => void }) {
-  const [checks, setChecks] = useState<EnvCheck[]>()
-  const run = async () => {
-    setChecks(undefined)
-    setChecks(await api.env.check())
-  }
-  useEffect(() => {
-    void run()
-  }, [])
+  const { checks, run } = useEnvChecks()
   const blocking = checks?.filter((c) => c.required && !c.ok) ?? []
 
   return (

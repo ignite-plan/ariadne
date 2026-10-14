@@ -4,19 +4,17 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { cpSync, mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import http from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
-import { _electron as electron } from 'playwright'
 import type { AriadneApi } from '../shared/api.ts'
+import { launchApp, prepareUserData, startFakeBo, stepper } from './harness.ts'
 
 const { values } = parseArgs({ options: { app: { type: 'string' }, models: { type: 'string' }, keep: { type: 'boolean' } } })
 
 // 가짜 BO: 목록 → Location 팝업. Save는 쓰기 요청 (mutates가 아니면 막혀야 한다)
 const posts: string[] = []
-const bo = http.createServer((req, res) => {
+const bo = await startFakeBo((req, res) => {
   if (req.method === 'POST') {
     posts.push(req.url ?? '')
     return res.end('{}')
@@ -28,15 +26,13 @@ const bo = http.createServer((req, res) => {
     <button onclick="fetch('/api/x',{method:'POST'})">Go</button>
     <div id="p" role="dialog" hidden style="padding:20px;background:#fde68a">Location Information</div></div></body>`)
 })
-await new Promise<void>((done) => bo.listen(0, '127.0.0.1', done))
-const boBaseUrl = `http://127.0.0.1:${(bo.address() as AddressInfo).port}/ca/admin`
+const boBaseUrl = bo.baseUrl
 
 // 작업 폴더: 지금 리포의 manuals/bo를 복사한 git 리포
 const temp = mkdtempSync(join(tmpdir(), 'ariadne-video-e2e-'))
 const userData = join(temp, 'user-data')
 const workspace = join(temp, 'workspace')
 const models = values.models ? resolve(values.models) : join(temp, 'models')
-mkdirSync(join(userData, 'profiles', 'bo'), { recursive: true })
 cpSync(resolve('manuals/bo'), join(workspace, 'manuals/bo'), { recursive: true })
 writeFileSync(join(workspace, '.gitignore'), 'dist\n.video\n.video-cache\n')
 mkdirSync(join(workspace, 'manuals/bo/videos'), { recursive: true })
@@ -62,29 +58,17 @@ scenes:
 execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: workspace })
 execFileSync('git', ['add', '-A'], { cwd: workspace })
 execFileSync('git', ['-c', 'user.name=e2e', '-c', 'user.email=e2e@local', 'commit', '-q', '-m', 'init'], { cwd: workspace })
-writeFileSync(join(userData, 'settings.json'), JSON.stringify({ workspaceDir: workspace, manual: 'bo' }))
-writeFileSync(join(userData, 'profiles', 'bo', 'ariadne-session.json'), JSON.stringify({ baseUrl: boBaseUrl }))
+prepareUserData(userData, { settings: { workspaceDir: workspace, manual: 'bo' }, baseUrl: boBaseUrl })
 
-const app = await electron.launch({
-  ...(values.app
-    ? { executablePath: join(resolve(values.app), 'Contents/MacOS/Ariadne'), args: [] }
-    : { args: [resolve('out/main/index.js')] }),
-  env: { ...process.env, ARIADNE_USER_DATA: userData, ARIADNE_CAPTURE_BASE_URL: boBaseUrl, ARIADNE_VIDEO_MODEL_DIR: models },
+const app = await launchApp({
+  appPath: values.app,
+  env: { ARIADNE_USER_DATA: userData, ARIADNE_CAPTURE_BASE_URL: boBaseUrl, ARIADNE_VIDEO_MODEL_DIR: models },
 })
 const page = await app.firstWindow()
 const call = <T>(fn: (api: AriadneApi) => Promise<T>) =>
   page.evaluate(`(${fn.toString()})(window.ariadne)`) as Promise<T>
 
-const step = async (name: string, fn: () => Promise<void>) => {
-  const started = Date.now()
-  try {
-    await fn()
-    console.log(`✓ ${name} (${Date.now() - started}ms)`)
-  } catch (error) {
-    console.log(`✗ ${name}`)
-    throw error
-  }
-}
+const step = stepper()
 
 try {
   await step('환경 점검: ffmpeg는 앱에 들어 있음', async () => {

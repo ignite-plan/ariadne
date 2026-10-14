@@ -3,16 +3,13 @@
 // --from: 이 장면(1부터)부터 녹화 / --preview: 브라우저를 띄워 실행만 해 본다 (파일 없음)
 import { relative } from 'node:path'
 import { parseArgs } from 'node:util'
-import { defaultProfileDir, listVideos, renderVideo } from '../core/index.ts'
+import { defaultProfileDir, isSessionExpired, listVideos, renderVideo } from '../core/index.ts'
+import { baseUrlOverride, loadEnv, MANUAL_OPTION, manualRef, withReloginHint } from './common.ts'
 
-try {
-  process.loadEnvFile()
-} catch {
-  // .env 없이 manual.yaml capture.baseUrl만 써도 된다
-}
+loadEnv()
 const { values } = parseArgs({
   options: {
-    manual: { type: 'string', default: 'bo' },
+    ...MANUAL_OPTION,
     id: { type: 'string' },
     'no-tts': { type: 'boolean', default: false },
     headed: { type: 'boolean', default: false },
@@ -20,9 +17,10 @@ const { values } = parseArgs({
     from: { type: 'string' },
   },
 })
-// .env BO_BASE_URL은 bo 매뉴얼의 주소를 덮어쓴다 (capture와 같음)
-const baseUrl = values.manual === 'bo' ? process.env.BO_BASE_URL : undefined
-const ref = { root: process.cwd(), manual: values.manual! }
+const ref = manualRef(values.manual)
+const baseUrl = baseUrlOverride(ref.manual)
+// tts.provider가 openai일 때만 쓴다
+const openai = { apiKey: process.env.OPENAI_API_KEY, model: process.env.OPENAI_TTS_MODEL }
 const profileDir = defaultProfileDir(ref)
 const ids = values.id?.split(',') ?? listVideos(ref)
 if (!ids.length) throw new Error(`manuals/${ref.manual}/videos/에 시나리오가 없습니다`)
@@ -37,6 +35,7 @@ for (const id of ids) {
       baseUrl,
       profileDir,
       tts: values['no-tts'] ? false : undefined,
+      openai,
       headed: values.headed || undefined,
       preview: values.preview,
       fromScene: values.from ? Number(values.from) - 1 : undefined,
@@ -55,10 +54,8 @@ for (const id of ids) {
     } else console.log(`  ✓ 미리보기 끝 (${(result.durationMs / 1000).toFixed(1)}s)`)
   } catch (error) {
     failed++
-    const message = error instanceof Error ? error.message : String(error)
-    const relogin = message.includes(profileDir) || message.includes('세션 만료')
-    console.log(`  ✗ ${relogin ? `${message}: pnpm login --manual ${ref.manual}` : message}`)
-    if (message.includes('세션 만료')) break
+    console.log(`  ✗ ${withReloginHint(error, ref, profileDir)}`)
+    if (isSessionExpired(error)) break
   }
 }
 if (failed) process.exitCode = 1

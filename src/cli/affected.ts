@@ -2,11 +2,12 @@
 import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { DEFAULT_LOCALE, findAffected } from '../core/index.ts'
+import { loadEnv, MANUAL_OPTION, manualRef } from './common.ts'
 
-process.loadEnvFile()
+loadEnv()
 const { values } = parseArgs({
   options: {
-    manual: { type: 'string', default: 'bo' },
+    ...MANUAL_OPTION,
     base: { type: 'string' },
     head: { type: 'string', default: 'HEAD' },
     locale: { type: 'string', default: DEFAULT_LOCALE },
@@ -15,8 +16,7 @@ const { values } = parseArgs({
 if (!values.base) throw new Error('--base is required')
 
 const result = findAffected({
-  root: process.cwd(),
-  manual: values.manual!,
+  ...manualRef(values.manual),
   repo: resolve(process.env.DEALERHUB_WEB_DIR ?? '../dealerhub-web'),
   base: values.base,
   head: values.head,

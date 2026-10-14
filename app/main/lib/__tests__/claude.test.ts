@@ -72,6 +72,8 @@ describe('진행 문구', () => {
     assert.equal(toolLabel('mcp__mcp-atlassian-hmg__confluence_get_page', { page_id: '536957869' }), '기획서 읽기: 536957869')
     assert.equal(toolLabel('Write', { file_path: '/ws/manuals/bo/08-menu/01-a.md' }, '/ws'), '쓰기: manuals/bo/08-menu/01-a.md')
     assert.equal(toolLabel('ToolSearch', { query: 'select:mcp__ariadne__stg_open' }), '도구 준비')
+    assert.equal(toolLabel('mcp__ariadne__video_open_scene', { id: 'menu', scene: 1 }), '영상 장면 2 앞까지 재생: menu')
+    assert.equal(toolLabel('mcp__ariadne__video_save_scene', { id: 'menu' }), '영상 장면 저장: menu')
   })
 })
 

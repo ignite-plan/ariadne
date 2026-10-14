@@ -1,28 +1,18 @@
 // 공유 Chrome 하나에서 Claude STG 탐색 탭과 영상 녹화 탭(다른 연결, CDP)이 동시에 도는지 가짜 STG로 확인한다
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
 import http from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { after, before, describe, it } from 'node:test'
+import { skipWithout, startFakeStg } from '../../../../src/core/__tests__/browser.ts'
 import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
-import { cdpTab, markSession, profileTab } from '../../../../src/core/session.ts'
+import { cdpTab, profileTab } from '../../../../src/core/session.ts'
 import { renderVideo, type VideoScenario } from '../../../../src/core/video/index.ts'
 import { acquireExclusiveProfile, closeAllHosts, hostCount, hostTab, leaseEndpoint, leaseTab } from '../browser-host.ts'
 import { StgSession } from '../stg.ts'
 
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const hasFfmpeg = (() => {
-  try {
-    execFileSync('ffmpeg', ['-version'])
-    return true
-  } catch {
-    return false
-  }
-})()
-const skip = (!existsSync(chrome) && 'Chrome 없음') || (!hasFfmpeg && 'ffmpeg 없음')
+const skip = skipWithout({ ffmpeg: true })
 
 const PAGE = `<!doctype html><html><head><title>Menu Management</title></head><body style="margin:0;font-family:sans-serif">
 <h1>Menu Management</h1><p>Total 3</p>
@@ -34,26 +24,24 @@ const PAGE = `<!doctype html><html><head><title>Menu Management</title></head><b
 describe('공유 Chrome (Chrome)', { skip }, () => {
   const fx = createFixture()
   const writes: string[] = []
-  let server: http.Server
+  let fake: Awaited<ReturnType<typeof startFakeStg>>
   let baseUrl = ''
   const profileDir = join(fx.ref.root, 'stg-profile')
 
   before(async () => {
-    server = http.createServer((req, res) => {
+    fake = await startFakeStg((req, res) => {
       if (req.method !== 'GET') {
         writes.push(`${req.method} ${req.url}`)
         return res.end('{}')
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
       res.end(PAGE)
-    })
-    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done))
-    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/ca`
-    markSession(profileDir, baseUrl)
+    }, { basePath: '/ca', profileDir })
+    baseUrl = fake.baseUrl
   })
   after(async () => {
     await closeAllHosts()
-    await new Promise((done) => server.close(done))
+    await fake.close()
     fx.cleanup()
   })
 

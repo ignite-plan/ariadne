@@ -1,7 +1,7 @@
 // Claude에게 줄 작업 지시. 스킬 본문 + "이번 작업". Electron에 의존하지 않는다 (단위 테스트 대상)
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { ManualRef } from '../../../src/core/manual.ts'
+import { stripFrontMatter, type ManualRef } from '../../../src/core/manual.ts'
 import type { DraftInput } from '../../shared/api.ts'
 
 // 앱이 실행하는 모든 Claude 작업에 붙이는 작업 방식. 시간의 대부분이 Claude 출력과 턴 수라서 둘을 줄인다
@@ -9,6 +9,7 @@ export const APP_RULES = `## 작업 방식 (앱 실행 공통)
 - 도구 호출 사이에 설명 문장을 쓰지 않는다. 사람에게 보여 줄 글은 마지막 응답 하나뿐이다
 - 서로 상관없는 조회(Read, Grep, Glob, Confluence 검색·페이지 읽기)는 한 턴에 함께 부른다
 - STG 누르기(stg_click)는 매뉴얼 화면(섹션) 하나에 15번 안쪽으로 끝낸다. 이미 본 화면·팝업은 다시 열지 않는다
+- STG 응답은 짧게 온다: 팝업이 열려 있으면 그 팝업만, 화면 이동 직후엔 앞부분(4000자), 같은 화면에서 누르기·입력한 뒤에는 **앞 응답과 달라진 줄만** 온다(나머지는 앞 응답 그대로). \`full: true\`는 대화에 크게 쌓이니 잘린 뒤쪽이 꼭 필요할 때만 쓴다. 이름은 role 뒤 따옴표 안의 것을 그대로 쓴다 (안내 문구·선택값·도움말 문장이 아니다)
 - 확인이 끝나면 더 둘러보지 말고 바로 쓴다. 근거가 모자란 곳은 TODO로 남긴다`
 
 // 스킬 본문 + 작업 방식 + 이번 작업
@@ -33,7 +34,7 @@ export function namedSkillText(root: string, name: string, bundled: Record<strin
   const file = join(root, '.claude/skills', name, 'SKILL.md')
   const raw = (bundledFirst && bundled[name]) || (existsSync(file) ? readFileSync(file, 'utf8') : bundled[name])
   if (!raw) throw new Error(`스킬을 찾지 못했습니다: ${name}`)
-  return raw.replace(/^---\n[\s\S]*?\n---\n/, '').trim()
+  return stripFrontMatter(raw).trim()
 }
 
 // 최신화 1단계: 기획서 요약을 마지막 응답 JSON으로 받는다 (파일은 앱이 쓴다). 지난 요약과 버전이 같으면 reused

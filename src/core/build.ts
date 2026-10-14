@@ -49,6 +49,28 @@ export function addImageBorders(documentXml: string) {
   })
 }
 
+// 이미지 가운데 정렬: {align=center}가 붙은 이미지 문단에 reference.docx의 가운데 정렬 그림 스타일(Figure)을 입힌다.
+// pandoc은 이미지 정렬을 직접 지원하지 않는다. 목록 안 이미지도 목록 기호를 유지한 채 가운데가 된다.
+// 형광펜 [글자]{.mark}는 pandoc이 그대로 Word 노란 형광펜(w:highlight yellow)으로 만든다
+export const CENTER_FILTER = `
+local function centered_image(content)
+  if #content ~= 1 or content[1].t ~= 'Image' then return nil end
+  local img = content[1]
+  if img.attributes.align ~= 'center' then return nil end
+  img.attributes.align = nil
+  return img
+end
+local function wrap(block)
+  local img = centered_image(block.content)
+  if not img then return nil end
+  return pandoc.Div({ pandoc.Para({ img }) }, { ['custom-style'] = 'Figure' })
+end
+return {
+  { Para = wrap, Plain = wrap },
+  { Image = function(img) img.attributes.align = nil; return img end },
+}
+`
+
 export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: BuildOptions): BuildResult {
   const { manual, markdown } = assembleMarkdown(ref, chapters)
   const dir = manualDir(ref)
@@ -58,6 +80,10 @@ export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: Build
   const merged = join(distDir, `${ref.manual}${suffix}.md`)
   const docx = join(distDir, `${outputName(manual)}${suffix}.docx`)
   writeFileSync(merged, markdown)
+  // pandoc은 앱(asar) 안 파일을 못 읽으므로 필터를 임시 파일로 쓴다
+  const filterDir = mkdtempSync(join(tmpdir(), 'manual-filter-'))
+  const filter = join(filterDir, 'center.lua')
+  writeFileSync(filter, CENTER_FILTER)
 
   const result = spawnSync(
     pandoc,
@@ -68,9 +94,11 @@ export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: Build
       '--toc-depth=2',
       `--resource-path=${dir}`,
       `--reference-doc=${join(dir, 'reference.docx')}`,
+      `--lua-filter=${filter}`,
     ],
     { encoding: 'utf8' },
   )
+  rmSync(filterDir, { recursive: true, force: true })
   if (result.error) throw new Error(`pandoc 실행 실패 (${pandoc}): ${result.error.message}`)
   if (result.status !== 0) throw new Error(`pandoc 실패 (exit ${result.status})\n${result.stderr}`)
 

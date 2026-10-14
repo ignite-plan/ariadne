@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReportResult } from '../../../shared/api.ts'
-import { api, errorMessage } from '../api.ts'
+import { api } from '../api.ts'
+import { useAsyncAction } from '../hooks.ts'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
 import { useToast } from './Toast.tsx'
@@ -32,9 +33,8 @@ function ReportDialog({ error, onClose }: { error?: string; onClose: () => void 
   const [description, setDescription] = useState('')
   const [includeLog, setIncludeLog] = useState(true)
   const [preview, setPreview] = useState<{ title: string; body: string }>()
-  const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<ReportResult>()
-  const [failure, setFailure] = useState('')
+  const { run, busy, error: failure } = useAsyncAction()
 
   // 보낼 내용을 미리 보여 준다 (토큰·키·홈 경로는 가린 상태)
   useEffect(() => {
@@ -44,19 +44,12 @@ function ReportDialog({ error, onClose }: { error?: string; onClose: () => void 
     return () => clearTimeout(handle)
   }, [description, error, includeLog])
 
-  const submit = async () => {
-    setBusy(true)
-    setFailure('')
-    try {
+  const submit = () =>
+    run(async () => {
       const r = await api.report.submit({ description, error, includeLog })
       setResult(r)
       if (r.via === 'api') toast.show('success', '신고했습니다. 고마워요!')
-    } catch (e) {
-      setFailure(errorMessage(e))
-    } finally {
-      setBusy(false)
-    }
-  }
+    })
 
   return (
     <Modal

@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
 
 export interface TtsConfig {
-  // kokoro: 로컬 모델(기본, 키 없음) / openai: OPENAI_API_KEY 필요
+  // kokoro: 로컬 모델(기본, 키 없음) / openai: API 키 필요 (CLI가 .env OPENAI_API_KEY를 넘긴다)
   provider?: 'kokoro' | 'openai'
   voice?: string
   speed?: number
@@ -27,12 +27,19 @@ export interface ProviderOptions {
   modelDir: string
   // true면 모델을 내려받지 않고 modelDir에 있는 것만 쓴다 (앱: main이 net.fetch로 미리 받음)
   localOnly?: boolean
+  // provider가 openai일 때 키와 모델 (core는 .env를 읽지 않는다)
+  openai?: OpenAiOptions
+}
+
+export interface OpenAiOptions {
+  apiKey?: string
+  model?: string
 }
 
 export async function createProvider(config: TtsConfig, options: ProviderOptions): Promise<TtsProvider> {
   if (config.provider === 'openai') {
     const { openaiProvider } = await import('./openai.ts')
-    return openaiProvider(config)
+    return openaiProvider(config, options.openai)
   }
   const { kokoroProvider } = await import('./kokoro.ts')
   return kokoroProvider(config, options)

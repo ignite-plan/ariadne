@@ -17,7 +17,7 @@ description: 매뉴얼에 없는 BO 메뉴의 섹션을 기존 포맷으로 작�
 - 근거가 없는 내용은 `<!-- TODO: 확인 필요 -->`
 
 ## 3. 화면 탐색과 캡처
-- `.auth/bo.json` 세션으로 Playwright MCP에서 STG 화면을 직접 열어 구조를 확인한다. 로그인이 필요하면 사용자에게 요청
+- STG 화면 구조는 `pnpm login --manual bo`로 로그인한 유지 프로필(`.auth/bo-profile`)로 확인한다. 로그인이 필요하면 사용자에게 요청 (MFA 수동). Playwright MCP를 쓸 때도 이 프로필(user data dir)로 열고 storageState 파일로 새 컨텍스트를 열지 않는다 (BO 토큰 갱신 때문에 로그아웃된다). 프로필은 한 번에 Chrome 하나만 열 수 있으니 `pnpm capture` 전에 닫는다
 - 화면/팝업마다 `manuals/bo/shots.ts`에 shot을 추가한다. id는 caption slug (`enrollment-request-list`)
 - 생성·수정 화면은 입력 상태까지만. **저장/삭제/발송/승인 버튼은 누르지 않는다**
 - `pnpm capture --manual bo --only <ids>` 후 이미지를 Read로 확인

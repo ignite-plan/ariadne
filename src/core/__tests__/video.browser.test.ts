@@ -2,26 +2,15 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import http from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { chromium } from 'playwright'
 import { PNG } from 'pngjs'
 import { MASK_ATTR, overlayScript, renderVideo, StepError, videoWorkDir, type TtsProvider, type VideoScenario } from '../video/index.ts'
+import { skipWithout, startFakeStg } from './browser.ts'
 import { createFixture } from './fixture.ts'
-import { markSession } from '../session.ts'
 
-const chrome = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const hasFfmpeg = (() => {
-  try {
-    execFileSync('ffmpeg', ['-version'])
-    return true
-  } catch {
-    return false
-  }
-})()
-const skip = (!existsSync(chrome) && 'Chrome 없음') || (!hasFfmpeg && 'ffmpeg 없음')
+const skip = skipWithout({ ffmpeg: true })
 
 // 문장 길이와 상관없이 1초짜리 사인파
 const fakeTts: TtsProvider = {
@@ -56,12 +45,12 @@ describe('renderVideo (Chrome)', { skip }, () => {
   const fx = createFixture()
   const viewport = { width: 960, height: 600 }
   const posts: string[] = []
-  let server: http.Server
+  let stg: Awaited<ReturnType<typeof startFakeStg>>
   let baseUrl = ''
   const profileDir = join(fx.ref.root, '.auth', 'demo-profile')
 
   before(async () => {
-    server = http.createServer((req, res) => {
+    stg = await startFakeStg((req, res) => {
       if (req.method === 'POST') {
         posts.push(req.url ?? '')
         return res.end('{}')
@@ -75,13 +64,11 @@ describe('renderVideo (Chrome)', { skip }, () => {
         <div id="popup" role="dialog" hidden>Location Information</div>
         <div id="done" hidden>Saved</div><div id="went" hidden>Went</div>
         </div></body></html>`)
-    })
-    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-    baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/admin`
-    markSession(profileDir, baseUrl)
+    }, { basePath: '/admin', profileDir })
+    baseUrl = stg.baseUrl
   })
   after(async () => {
-    await new Promise((resolve) => server.close(resolve))
+    await stg.close()
     fx.cleanup()
   })
 
@@ -190,7 +177,7 @@ describe('renderVideo (Chrome)', { skip }, () => {
   })
 })
 
-describe('overlay 자막 크기 (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+describe('overlay 자막 크기 (Chrome)', { skip: skipWithout() }, () => {
   it('배율만큼 자막 글자가 커지고 작아진다', async () => {
     const browser = await chromium.launch({ channel: 'chrome' })
     try {
@@ -220,7 +207,7 @@ describe('overlay 자막 크기 (Chrome)', { skip: !existsSync(chrome) && 'Chrom
   })
 })
 
-describe('overlay 개인정보 가리기 (Chrome)', { skip: !existsSync(chrome) && 'Chrome 없음' }, () => {
+describe('overlay 개인정보 가리기 (Chrome)', { skip: skipWithout() }, () => {
   it('이메일·전화번호가 있는 요소에 mask 속성을 붙인다 (나중에 생긴 요소 포함)', async () => {
     const browser = await chromium.launch({ channel: 'chrome' })
     try {

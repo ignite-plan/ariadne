@@ -112,5 +112,6 @@ describe('변경 보기 줄 비교', () => {
     assert.match(APP_RULES, /설명 문장을 쓰지 않는다/)
     assert.match(APP_RULES, /한 턴에 함께 부른다/)
     assert.match(APP_RULES, /15번 안쪽/)
+    assert.match(APP_RULES, /role 뒤 따옴표 안의 것을 그대로/)
   })
 })

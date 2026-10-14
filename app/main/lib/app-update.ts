@@ -8,10 +8,10 @@ import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { promisify } from 'node:util'
+import type { Fetch } from './github.ts'
 
 const run = promisify(execFile)
 
-export type Fetch = (url: string, init?: RequestInit) => Promise<Response>
 
 export interface UpdateAsset {
   // GitHub API의 asset 주소 (비공개 리포라 토큰으로 받는다)

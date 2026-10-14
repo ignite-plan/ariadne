@@ -1,7 +1,7 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab, redo, undo } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Compartment, EditorState, RangeSetBuilder } from '@codemirror/state'
 import {
   Decoration,
   drawSelection,
@@ -17,9 +17,29 @@ import {
 } from '@codemirror/view'
 import { tags } from '@lezer/highlight'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { MARK_RE, toggleCenter, toggleMark } from '../../../shared/markdown-edit.ts'
+import type { ReviewHunk } from '../../../shared/review-diff.ts'
+
+// Claude가 바꾼 줄 왼쪽에 막대를 그린다 (본문에는 아무것도 넣지 않는다). 줄 번호는 지금 본문 기준
+function reviewLines(hunks: ReviewHunk[]) {
+  return EditorView.decorations.compute(['doc'], (state) => {
+    const builder = new RangeSetBuilder<Decoration>()
+    const lines = state.doc.lines
+    for (const hunk of hunks) {
+      for (let n = Math.max(1, hunk.from); n <= Math.min(hunk.to, lines); n++) {
+        builder.add(state.doc.line(n).from, state.doc.line(n).from, Decoration.line({ class: `cm-review-${hunk.kind}` }))
+      }
+    }
+    return builder.finish()
+  })
+}
 
 export interface EditorHandle {
   insert: (text: string) => void
+  // 노란 형광펜 켜기/끄기 (선택한 글자)
+  toggleMark: () => void
+  // 커서가 있는 줄의 이미지 가운데 정렬 켜기/끄기. 이미지가 없으면 false
+  toggleCenter: () => boolean
   wrap: (before: string, after: string, fallback: string) => void
   prefixLines: (prefix: string) => void
   goToLine: (line: number) => void
@@ -40,7 +60,7 @@ class SizeWidget extends WidgetType {
     const span = document.createElement('span')
     span.className = 'cm-size-chip'
     span.textContent = this.label
-    span.title = 'Word에 들어갈 이미지 크기. 바꾸려면 이미지를 다시 넣으세요'
+    span.title = 'Word에 들어갈 이미지 크기와 정렬. 크기를 바꾸려면 이미지를 다시 넣고, 가운데 정렬은 툴바 버튼으로 켜고 끕니다'
     return span
   }
 }
@@ -52,10 +72,44 @@ const sizeLabel = (width: string) => {
   return `아이콘 ${width}in`
 }
 
+// {width=4.2in}, {width=4.2in align=center}, {align=center} (형광펜 {.mark}는 아님)
 const sizeMatcher = new MatchDecorator({
-  regexp: /\{width=([\d.]+)in(?:\s+height=[\d.]+in)?\}/g,
-  decoration: (match) => Decoration.replace({ widget: new SizeWidget(sizeLabel(match[1])) }),
+  regexp: /\{(?:width=([\d.]+)in(?:\s+height=[\d.]+in)?(?:\s+align=center)?|align=center)\}/g,
+  decoration: (match) =>
+    Decoration.replace({
+      widget: new SizeWidget(
+        [match[1] ? sizeLabel(match[1]) : '', match[0].includes('align=center') ? '가운데' : ''].filter(Boolean).join(' · '),
+      ),
+    }),
 })
+
+// 형광펜 [글자]{.mark}: 괄호 표기는 숨기고 글자에 노란 배경
+const hideSyntax = Decoration.replace({})
+const markBg = Decoration.mark({ class: 'cm-hl' })
+const markMatcher = new MatchDecorator({
+  regexp: MARK_RE,
+  decorate: (add, from, to) => {
+    add(from, from + 1, hideSyntax)
+    add(from + 1, to - '{.mark}'.length - 1, markBg)
+    add(to - '{.mark}'.length - 1, to, hideSyntax)
+  },
+})
+
+const markHighlights = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet
+    constructor(view: EditorView) {
+      this.decorations = markMatcher.createDeco(view)
+    }
+    update(update: ViewUpdate) {
+      this.decorations = markMatcher.updateDeco(update, this.decorations)
+    }
+  },
+  {
+    decorations: (v) => v.decorations,
+    provide: (plugin) => EditorView.atomicRanges.of((view) => view.plugin(plugin)?.decorations ?? Decoration.none),
+  },
+)
 
 const sizeChips = ViewPlugin.fromClass(
   class {
@@ -117,8 +171,10 @@ export const Editor = forwardRef<
     onScrollRatio?: (ratio: number) => void
     // Claude가 이 화면을 고치는 중
     readOnly?: boolean
+    // Claude가 바꾼 줄 (검토 중일 때)
+    review?: ReviewHunk[]
   }
->(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio, readOnly = false }, ref) {
+>(function Editor({ docKey, value, onChange, onImageFile, onScrollRatio, readOnly = false, review }, ref) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | undefined>(undefined)
   const callbacks = useRef({ onChange, onImageFile, onScrollRatio })
@@ -127,6 +183,10 @@ export const Editor = forwardRef<
   const locked = useRef(readOnly)
   locked.current = readOnly
   const lockExtension = (on: boolean) => [EditorState.readOnly.of(on), EditorView.editable.of(!on)]
+  const reviewing = useRef(new Compartment())
+  const reviewHunks = useRef(review)
+  reviewHunks.current = review
+  const reviewExtension = (hunks?: ReviewHunk[]) => (hunks?.length ? reviewLines(hunks) : [])
 
   const createState = (doc: string) =>
     EditorState.create({
@@ -139,11 +199,13 @@ export const Editor = forwardRef<
         markdown(),
         syntaxHighlighting(highlight),
         sizeChips,
+        markHighlights,
         markPlugin(/<!--\s*TODO\b[^]*?-->/g, 'cm-todo'),
         markPlugin(/!\[[^\]]*\]\(images\/[^)]+\)/g, 'cm-image'),
         markPlugin(/\*\*\\\[[^\]]*\\\]\*\*/g, 'cm-ui-label'),
         placeholder('내용을 입력하세요'),
         lock.current.of(lockExtension(locked.current)),
+        reviewing.current.of(reviewExtension(reviewHunks.current)),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         theme,
         EditorView.updateListener.of((u) => {
@@ -183,6 +245,10 @@ export const Editor = forwardRef<
     view.current?.dispatch({ effects: lock.current.reconfigure(lockExtension(readOnly)) })
   }, [readOnly])
 
+  useEffect(() => {
+    view.current?.dispatch({ effects: reviewing.current.reconfigure(reviewExtension(review)) })
+  }, [review])
+
   // 다른 섹션을 열면 undo 기록까지 새로 시작한다
   useEffect(() => {
     const v = view.current
@@ -198,6 +264,22 @@ export const Editor = forwardRef<
       const { from, to } = v.state.selection.main
       v.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length }, scrollIntoView: true })
       v.focus()
+    },
+    toggleMark() {
+      const v = view.current!
+      const { from, to } = v.state.selection.main
+      const edit = toggleMark(v.state.doc.toString(), from, to)
+      v.dispatch({ changes: { from: edit.from, to: edit.to, insert: edit.insert }, selection: edit.selection })
+      v.focus()
+    },
+    toggleCenter() {
+      const v = view.current!
+      const line = v.state.doc.lineAt(v.state.selection.main.head)
+      const next = toggleCenter(line.text)
+      if (next === null) return false
+      v.dispatch({ changes: { from: line.from, to: line.to, insert: next } })
+      v.focus()
+      return true
     },
     wrap(before, after, fallback) {
       const v = view.current!

@@ -3,10 +3,12 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import pixelmatch from 'pixelmatch'
+import type { Page } from 'playwright'
 import { PNG } from 'pngjs'
 import { DEFAULT_VIEWPORT, loadManual, manualDir, type ManualRef, type Viewport } from './manual.ts'
 import { clearSession, defaultProfileDir, profileTab, requireSession, type OpenTab } from './session.ts'
 import type { Shot } from './shot.ts'
+import { gotoStg, isSessionExpired } from './stg-url.ts'
 
 export interface CaptureOptions extends ManualRef {
   // 없으면 manual.yaml capture.baseUrl
@@ -59,6 +61,20 @@ export function adoptShots(ref: ManualRef, ids: string[]) {
   }
 }
 
+// 화면 하나를 찍는다: 이동 → 준비 → 조작 → 가리고 찍기. pnpm capture와 앱의 캡처 저장(Claude save_shot)이 같이 쓴다
+export async function shootShot(page: Page, baseUrl: string, shot: Omit<Shot, 'id' | 'manual'>, file: string) {
+  await gotoStg(page, baseUrl, shot.path)
+  await page.waitForLoadState('networkidle').catch(() => {})
+  if (shot.ready) await page.locator(shot.ready).first().waitFor()
+  if (shot.steps) {
+    await shot.steps(page)
+    await page.waitForLoadState('networkidle').catch(() => {})
+  }
+  const mask = shot.mask?.map((m) => page.locator(m))
+  if (shot.clip) await page.locator(shot.clip).first().screenshot({ path: file, mask, animations: 'disabled' })
+  else await page.screenshot({ path: file, mask, animations: 'disabled' })
+}
+
 export async function capture({
   baseUrl: baseUrlOption,
   viewport: viewportOption,
@@ -81,13 +97,11 @@ export async function capture({
   const outDir = captureDir(ref)
   mkdirSync(outDir, { recursive: true })
   const imagesDir = join(manualDir(ref), 'images')
-  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`
 
   const report: CaptureReport = { changed: [], unchanged: [], skipped: [], failed: [] }
 
   const { page, close } = await (openTab ?? profileTab(profile))({ viewport })
   try {
-
     for (const [index, shot] of targets.entries()) {
       onProgress?.({ id: shot.id, index, total: targets.length })
       if (shot.manual) {
@@ -95,15 +109,8 @@ export async function capture({
         continue
       }
       try {
-        await page.goto(new URL(shot.path.replace(/^\//, ''), base).href)
-        if (!page.url().startsWith(new URL(baseUrl).origin)) throw new Error(`세션 만료로 보임: ${page.url()}`)
-        await page.waitForLoadState('networkidle')
-        if (shot.ready) await page.locator(shot.ready).first().waitFor()
-        await shot.steps?.(page)
         const file = join(outDir, `${shot.id}.png`)
-        const mask = shot.mask?.map((m) => page.locator(m))
-        if (shot.clip) await page.locator(shot.clip).first().screenshot({ path: file, mask, animations: 'disabled' })
-        else await page.screenshot({ path: file, mask, animations: 'disabled' })
+        await shootShot(page, baseUrl, shot, file)
 
         const current = join(imagesDir, `${shot.id}.png`)
         if (existsSync(current) && diffRatio(current, file) <= threshold) {
@@ -115,7 +122,7 @@ export async function capture({
       } catch (error) {
         const message = error instanceof Error ? error.message.split('\n')[0] : String(error)
         report.failed.push({ id: shot.id, error: message })
-        if (message.startsWith('세션 만료')) {
+        if (isSessionExpired(error)) {
           clearSession(profile)
           break
         }

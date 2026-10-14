@@ -2,7 +2,8 @@
 import type { AffectedSection } from '../../src/core/affected.ts'
 import type { CaptureReport } from '../../src/core/capture.ts'
 import type { DocxAnalysis, ImportProgress } from '../../src/core/import.ts'
-import type { Manual, SectionMeta, Viewport } from '../../src/core/manual.ts'
+import type { ManualSettings, SectionMeta, Viewport } from '../../src/core/manual.ts'
+import type { StgSessionInfo } from '../../src/core/session.ts'
 import type { VideoProgress, VideoResult } from '../../src/core/video/index.ts'
 import type { RecordEvent } from '../../src/core/video/record.ts'
 import type { Scene, Step, Target, VideoScenario } from '../../src/core/video/scenario.ts'
@@ -11,7 +12,9 @@ export type { AffectedSection, CaptureReport, DocxAnalysis, ImportProgress, Sect
 export type { Scene as VideoScene, Step as VideoStep, Target as VideoTarget, VideoProgress, VideoScenario }
 
 // manual.yaml에서 chapters를 뺀 매뉴얼 설정
-export type ManualConfig = Omit<Manual, 'chapters'>
+export type ManualConfig = ManualSettings
+
+export type SessionInfo = StgSessionInfo
 
 export interface ManualInfo {
   id: string
@@ -194,7 +197,7 @@ export interface AuthStatus {
   error?: string
 }
 
-export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'atlassian' | 'ffmpeg' | 'voice'
+export type EnvCheckId = 'token' | 'workspace' | 'pandoc' | 'chrome' | 'session' | 'claude' | 'ffmpeg' | 'voice'
 
 export interface EnvCheck {
   id: EnvCheckId
@@ -225,6 +228,14 @@ export interface SectionNode {
   title: string
   todos: number
   modified: boolean
+  // Claude가 바꾼 곳을 아직 검토하지 않았다
+  review?: boolean
+}
+
+export interface ReviewBase {
+  // Claude가 고치기 직전 본문 (front-matter 제외)
+  before: string
+  at: number
 }
 
 export interface ChapterNode {
@@ -297,11 +308,6 @@ export interface CaptureProgress {
   id: string
   index: number
   total: number
-}
-
-export interface SessionInfo {
-  exists: boolean
-  savedAt?: number
 }
 
 // 가이드 영상 목록 한 줄. 경로는 작업 폴더 기준
@@ -435,6 +441,11 @@ export interface AriadneApi {
   preview: {
     render(path: string, body: string): Promise<string>
   }
+  // Claude 변경 검토: 최신화가 고치기 직전 본문. 검토 완료·제출·되돌리기 때 지운다
+  review: {
+    get(path: string): Promise<ReviewBase | null>
+    clear(path: string): Promise<void>
+  }
   build: {
     docx(chapters?: number[]): Promise<BuildResult>
     open(path: string): Promise<void>
@@ -498,19 +509,85 @@ export interface AriadneApi {
     openExternal(url: string): Promise<void>
     testNotification(): Promise<void>
   }
-  on(event: 'capture-progress', listener: (progress: CaptureProgress) => void): () => void
-  on(event: 'open-report', listener: () => void): () => void
-  on(event: 'clone-progress', listener: (progress: { phase: string; loaded: number; total?: number }) => void): () => void
-  on(event: 'import-progress', listener: (progress: ImportProgress) => void): () => void
-  on(event: 'draft-event', listener: (event: DraftEvent) => void): () => void
-  // 지금 STG 로그인 프로필을 쓰는 작업 이름이 바뀔 때
-  on(event: 'stg-tasks', listener: (names: string[]) => void): () => void
-  on(event: 'video-progress', listener: (progress: VideoProgress) => void): () => void
-  on(event: 'update-state', listener: (state: UpdateState) => void): () => void
-  on(event: 'install-progress', listener: (progress: InstallProgress) => void): () => void
-  on(event: 'video-model-progress', listener: (progress: VideoModelProgress) => void): () => void
-  on(event: 'video-record', listener: (event: VideoRecordEvent) => void): () => void
+  // main → renderer 이벤트. 해제 함수를 돌려준다
+  on<E extends AriadneEvent>(event: E, listener: (payload: AriadneEvents[E]) => void): () => void
 }
+
+// main → renderer 이벤트와 내용
+export interface AriadneEvents {
+  'capture-progress': CaptureProgress
+  'open-report': void
+  'clone-progress': { phase: string; loaded: number; total?: number }
+  'import-progress': ImportProgress
+  'draft-event': DraftEvent
+  // 지금 STG 로그인 프로필을 쓰는 작업 이름이 바뀔 때
+  'stg-tasks': string[]
+  'video-progress': VideoProgress
+  'update-state': UpdateState
+  'install-progress': InstallProgress
+  'video-model-progress': VideoModelProgress
+  'video-record': VideoRecordEvent
+}
+export type AriadneEvent = keyof AriadneEvents
+
+// renderer → main 요청. 채널 이름은 '<namespace>:<method>'이고 AriadneApi에서 만든다 (preload와 main이 손으로 맞추지 않는다)
+export type AriadneMethods = Omit<AriadneApi, 'on'>
+export type Namespace = keyof AriadneMethods
+export type Channel = { [N in Namespace]: `${N}:${keyof AriadneMethods[N] & string}` }[Namespace]
+export type ChannelMethod<C extends Channel> = C extends `${infer N extends Namespace}:${infer M}`
+  ? M extends keyof AriadneMethods[N]
+    ? AriadneMethods[N][M]
+    : never
+  : never
+// main 핸들러. Promise가 아닌 값을 돌려줘도 된다
+export type ChannelHandler<C extends Channel> = ChannelMethod<C> extends (...args: infer A) => Promise<infer R>
+  ? (...args: A) => R | Promise<R>
+  : never
+
+// preload가 이 목록으로 window.ariadne를 만든다. 빠진 메서드가 있으면 아래 검사에서 컴파일 오류
+export const API_METHODS = {
+  settings: ['get', 'update', 'pickDirectory'],
+  auth: ['status', 'setToken', 'clearToken'],
+  env: ['check', 'install'],
+  workspace: ['state', 'clone', 'sync', 'changes', 'revert', 'submit', 'reveal', 'diff'],
+  manual: [
+    'list',
+    'config',
+    'updateConfig',
+    'pickDocx',
+    'analyzeDocx',
+    'importDocx',
+    'tree',
+    'read',
+    'write',
+    'create',
+    'remove',
+    'moveChapter',
+    'moveSection',
+    'todos',
+    'images',
+    'pickImageFile',
+    'importImage',
+    'suggestImageId',
+  ],
+  preview: ['render'],
+  review: ['get', 'clear'],
+  build: ['docx', 'open'],
+  capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
+  video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
+  draft: ['check', 'start', 'cancel', 'decide'],
+  affected: ['run'],
+  log: ['write', 'reveal'],
+  report: ['preview', 'submit'],
+  app: ['version', 'checkUpdate', 'downloadUpdate', 'installUpdate', 'updateState', 'openExternal', 'testNotification'],
+} as const satisfies { [N in Namespace]: readonly (keyof AriadneMethods[N])[] }
+
+type MissingMethods = { [N in Namespace]: `${N}:${Exclude<keyof AriadneMethods[N] & string, (typeof API_METHODS)[N][number]>}` }[Namespace]
+// 빠진 메서드가 있으면 그 채널 이름이 오류에 나온다
+const _allMethodsListed: [MissingMethods] extends [never] ? true : MissingMethods = true
+void _allMethodsListed
+
+export const channelOf = <N extends Namespace>(namespace: N, method: keyof AriadneMethods[N] & string) => `${namespace}:${method}` as Channel
 
 // 리포 안 파일을 renderer에서 보여 줄 때 쓰는 custom protocol
 export const ASSET_PROTOCOL = 'ariadne'

@@ -3,10 +3,11 @@
 import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import { makeReference, manualDir } from '../core/index.ts'
+import { MANUAL_OPTION, manualRef } from './common.ts'
 
 const { values } = parseArgs({
-  options: { docx: { type: 'string' }, manual: { type: 'string', default: 'bo' } },
+  options: { docx: { type: 'string' }, ...MANUAL_OPTION },
 })
 if (!values.docx) throw new Error('--docx is required')
 
-console.log(makeReference(resolve(values.docx), resolve(manualDir({ root: process.cwd(), manual: values.manual! }), 'reference.docx')))
+console.log(makeReference(resolve(values.docx), resolve(manualDir(manualRef(values.manual)), 'reference.docx')))

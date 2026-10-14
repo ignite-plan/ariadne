@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { assetUrl, type CaptureProgress, type CaptureReport, type SessionInfo, type ShotInfo } from '../../../shared/api.ts'
+import { isSessionExpired } from '../../../../src/core/stg-url.ts'
+import { assetUrl, type CaptureProgress, type CaptureReport, type ShotInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
+import { useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
+import { Progress } from './Progress.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
 
@@ -19,7 +22,7 @@ export function CapturePanel({
   const toast = useToast()
   const [shots, setShots] = useState<ShotInfo[]>()
   const [loadError, setLoadError] = useState('')
-  const [session, setSession] = useState<SessionInfo>({ exists: false })
+  const { session, reloadSession } = useTasks()
   const [scope, setScope] = useState<'section' | 'all'>(currentSection ? 'section' : 'all')
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [running, setRunning] = useState(false)
@@ -52,8 +55,9 @@ export function CapturePanel({
       setReport(result)
       setAdopt(new Set(result.changed))
       setStamp(Date.now())
-      if (result.failed.some((f) => f.error.startsWith('세션 만료'))) {
+      if (result.failed.some((f) => isSessionExpired(f.error))) {
         toast.show('error', '로그인 세션이 만료되었습니다. 다시 로그인하세요')
+        void reloadSession()
       }
     } catch (e) {
       toast.error(e)
@@ -95,7 +99,7 @@ export function CapturePanel({
 
       <div className="capture-body">
         <aside className="capture-side">
-          <StgSession disabled={running} onChange={setSession} />
+          <StgSession disabled={running} />
 
           <div className="segmented small">
             <button
@@ -138,12 +142,11 @@ export function CapturePanel({
             <Icon name="camera" /> {running ? '캡처 중…' : `${checked.size}장 캡처`}
           </button>
           {running && progress && (
-            <div className="progress">
-              <div className="progress-bar" style={{ width: `${Math.round(((progress.index + 1) / progress.total) * 100)}%` }} />
+            <Progress percent={Math.round(((progress.index + 1) / progress.total) * 100)}>
               <span className="ellipsis">
                 {progress.index + 1}/{progress.total} · {progress.id}
               </span>
-            </div>
+            </Progress>
           )}
         </aside>
 
