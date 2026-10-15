@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, RefreshScope } from '../../../shared/api.ts'
+import { canQueue, queuePosition, type QueuedDraft } from '../../../shared/claude-queue.ts'
 import { SCREEN_LABEL, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
-import { checkScope, DRAFT_MODES, draftMode, isVideoDraft, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
+import { checkScope, DRAFT_MODES, draftLabel, draftMode, isVideoDraft, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { formatAge } from '../../../shared/format.ts'
 import { api } from '../api.ts'
 import { useNow } from '../hooks.ts'
@@ -37,7 +38,13 @@ export function DraftPanel({
   const toast = useToast()
   const tasks = useTasks()
   // 이 패널이 보여 주는 작업 (시작 전이면 없음)
-  const task = tasks.claude?.panel === panel.id ? tasks.claude : undefined
+  const task = tasks.taskOf(panel.id)
+  // 대기 중인 패널이면 몇 번째인지 (아니면 -1)
+  const position = queuePosition(tasks.queue, panel.id)
+  const queued = position >= 0 && !task
+  const queuedItem = queued ? tasks.queue.items[position] : undefined
+  // 다른 최신화가 도는 중이면 시작 대신 대기에 넣는다
+  const canEnqueue = !task && !queued && tasks.claude?.phase === 'running' && canQueue(input)
   const [localPhase, setLocalPhase] = useState<'check' | 'ready'>('check')
   const phase: Phase = task?.phase ?? localPhase
   const [force, setForce] = useState(false)
@@ -70,8 +77,12 @@ export function DraftPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const options = () => (refresh ? { force: force && !scope.value, scope: scope.value } : {})
+
   const start = async () => {
     if (refresh && scope.error) return toast.show('error', scope.error)
+    // 세션은 대기 작업이 시작될 때 확인한다
+    if (canEnqueue) return tasks.enqueueClaude(panel, options())
     // 만료된 세션으로 몇 분씩 돌지 않게 시작 전에 실제로 STG를 열어 본다
     if (tasks.session.exists) {
       setLocalPhase('check')
@@ -85,11 +96,11 @@ export function DraftPanel({
         setLocalPhase('ready')
       }
     }
-    void tasks.startClaude(panel, refresh ? { force: force && !scope.value, scope: scope.value } : {})
+    void tasks.startClaude(panel, options())
   }
 
   const close = () => {
-    if (phase === 'running') return tasks.hideDraft()
+    if (phase === 'running' || queued) return tasks.hideDraft()
     if (phase === 'done') return onDone(input, Boolean(task?.result))
     tasks.clearClaude()
   }
@@ -130,12 +141,28 @@ export function DraftPanel({
             {!tasks.session.exists && <p className="muted small-note">STG 로그인이 없으면 화면 확인과 캡처를 건너뜁니다</p>}
           </div>
 
-          <DraftInputList input={input} sceneNo={sceneNo} subject={mode.subject} task={task} />
+          <DraftInputList input={input} sceneNo={sceneNo} subject={mode.subject} task={task} queued={queuedItem} />
 
-          {refresh && !task && <RefreshScopeFields force={force} onForce={setForce} onScope={setScope} />}
+          {refresh && !task && !queued && <RefreshScopeFields force={force} onForce={setForce} onScope={setScope} />}
 
           <span className="spacer" />
-          {phase === 'running' ? (
+          {queued ? (
+            <>
+              <p className="notice queue-notice">
+                {tasks.queue.paused
+                  ? `대기열이 멈췄습니다: ${tasks.queue.paused}`
+                  : `대기 ${position + 1}번째입니다. 앞 작업이 끝나면 자동으로 시작합니다`}
+              </p>
+              {tasks.queue.paused && (
+                <button className="button primary block" onClick={tasks.resumeQueue}>
+                  <Icon name="sync" /> 계속
+                </button>
+              )}
+              <button className="button block" onClick={() => tasks.removeQueued(panel.id)}>
+                <Icon name="x" /> 대기에서 빼기
+              </button>
+            </>
+          ) : phase === 'running' ? (
             <button className="button block" onClick={() => void api.draft.cancel()}>
               <Icon name="x" /> 중지
             </button>
@@ -145,7 +172,7 @@ export function DraftPanel({
             </button>
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude} onClick={start}>
-              <Icon name={mode.startIcon} /> {mode.start}
+              <Icon name={mode.startIcon} /> {canEnqueue ? `대기에 추가 (${tasks.queue.items.length + 1}번째)` : mode.start}
             </button>
           )}
           <p className="hint">{mode.duration} 걸리고, 내 Claude 사용량을 씁니다.</p>
@@ -153,17 +180,24 @@ export function DraftPanel({
 
         <section className="capture-results draft-log">
           {phase === 'check' && <p className="muted">환경을 확인하는 중…</p>}
-          {phase === 'ready' && (
+          {phase === 'ready' && !queued && (
             <div className="empty-state">
               <Icon name="flag" size={32} />
               <p>{mode.ready(sceneNo)}</p>
+              {canEnqueue && (
+                <p>
+                  지금 다른 Claude {draftLabel(tasks.claude!.input)} 작업이 돌고 있습니다. [대기에 추가]를 누르면 그 작업이 끝난 뒤 이어서 시작합니다.
+                </p>
+              )}
               <p className="muted">진행 상황이 여기에 한 줄씩 나옵니다. 저장·삭제 같은 버튼은 앱이 막습니다.</p>
             </div>
           )}
+          {(task || queued) && <QueueList current={panel.id} />}
           {task && <DraftLog task={task} />}
           {task?.phase === 'done' && (
             <DraftSummaryCard input={input} result={task.result} error={task.error} onOpenSection={onOpenSection} onDiff={onDiff} />
           )}
+          {(phase === 'running' || queued || task?.phase === 'done') && <FinishedList current={panel.id} />}
         </section>
       </div>
     </div>
@@ -260,8 +294,101 @@ function CheckRow({
   )
 }
 
+// 대기 중인 최신화: 순서 바꾸기·빼기·모두 비우기. 멈췄으면 [계속]
+function QueueList({ current }: { current: number }) {
+  const tasks = useTasks()
+  const { items, paused } = tasks.queue
+  if (!items.length) return null
+  const label = (item: QueuedDraft) => {
+    const targets = item.input.targets ?? []
+    const what = targets.length === 1 ? screenName(targets[0]) : `${item.input.menu} · 화면 ${targets.length}개`
+    const scope = scopeLabel(item.options.scope)
+    return scope ? `${what} · ${scope}` : what
+  }
+  return (
+    <section className="queue-list">
+      <header>
+        <b>대기 중인 최신화 {items.length}</b>
+        {paused && <span className="badge todo">멈춤</span>}
+        <span className="spacer" />
+        {paused && (
+          <button className="button small" onClick={tasks.resumeQueue}>
+            계속
+          </button>
+        )}
+        <button className="button small ghost" onClick={tasks.clearQueue}>
+          모두 비우기
+        </button>
+      </header>
+      <ol>
+        {items.map((item, i) => (
+          <li key={item.panel} className={item.panel === current ? 'current' : ''}>
+            <span className="queue-no">{i + 1}</span>
+            <button className="link ellipsis" title="이 대기 항목 보기" onClick={() => tasks.openPanel({ input: item.input, id: item.panel })}>
+              {label(item)}
+            </button>
+            <button className="icon-button small" title="앞으로" aria-label="앞으로" disabled={i === 0} onClick={() => tasks.moveQueued(item.panel, -1)}>
+              <Icon name="up" size={13} />
+            </button>
+            <button
+              className="icon-button small"
+              title="뒤로"
+              aria-label="뒤로"
+              disabled={i === items.length - 1}
+              onClick={() => tasks.moveQueued(item.panel, 1)}
+            >
+              <Icon name="down" size={13} />
+            </button>
+            <button className="icon-button small" title="대기에서 빼기" aria-label="대기에서 빼기" onClick={() => tasks.removeQueued(item.panel)}>
+              <Icon name="x" size={13} />
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+// 이번에 끝난 다른 작업들 (대기열로 이어서 끝난 결과를 다시 연다)
+function FinishedList({ current }: { current: number }) {
+  const tasks = useTasks()
+  const others = tasks.finished.filter((t) => t.panel !== current)
+  if (!others.length) return null
+  return (
+    <section className="queue-list finished">
+      <header>
+        <b>끝난 작업</b>
+      </header>
+      <ol>
+        {others.map((t) => (
+          <li key={t.panel}>
+            <Icon name={t.error ? 'alert' : 'check'} size={13} />
+            <button className="link ellipsis" onClick={() => tasks.openPanel({ input: t.input, id: t.panel })}>
+              Claude {draftLabel(t.input)} · {t.input.targets?.length === 1 ? screenName(t.input.targets[0]) : t.input.menu}
+            </button>
+            <span className="muted">{t.error ? '실패' : '결과 보기'}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
 // 작업 대상: 메뉴·장·영상, 위치·대상 화면·반영 범위, STG 경로
-function DraftInputList({ input, sceneNo, subject, task }: { input: DraftInput; sceneNo: number; subject: string; task?: ClaudeTask }) {
+function DraftInputList({
+  input,
+  sceneNo,
+  subject,
+  task,
+  queued,
+}: {
+  input: DraftInput
+  sceneNo: number
+  subject: string
+  task?: ClaudeTask
+  queued?: QueuedDraft
+}) {
+  const scope = task?.scope ?? queued?.options.scope
   return (
     <dl className="draft-input">
       <dt>{subject}</dt>
@@ -282,10 +409,10 @@ function DraftInputList({ input, sceneNo, subject, task }: { input: DraftInput; 
         <>
           <dt>대상</dt>
           <dd>{input.targets?.length === 1 ? input.targets[0] : `화면 ${input.targets?.length ?? 0}개`}</dd>
-          {task?.scope && (
+          {scope && (
             <>
               <dt>반영 범위</dt>
-              <dd>{scopeLabel(task.scope)}</dd>
+              <dd>{scopeLabel(scope)}</dd>
             </>
           )}
         </>

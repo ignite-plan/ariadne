@@ -198,6 +198,44 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     })
   })
 
+  // 대기 작업이 시작되면, 그 화면에 저장하지 않은 편집을 먼저 저장한다 (곧 편집이 막히고 Claude가 그 파일을 읽는다)
+  useEffect(() => {
+    if (tasks.claude?.phase === 'running' && doc && isDraftTarget(tasks.claude.input, doc.path)) void flush()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks.claude?.seq])
+
+  // Claude 작업·대기·영상 만들기가 있으면 앱을 끄기 전에 묻는다 (대기열은 앱을 켜 둔 동안만 유지한다)
+  const allowQuit = useRef(false)
+  const busyWork = [
+    tasks.claude?.phase === 'running' ? '진행 중인 Claude 작업' : '',
+    tasks.queue.items.length ? `대기 중인 최신화 ${tasks.queue.items.length}건` : '',
+    tasks.video ? '영상 만들기' : '',
+  ].filter(Boolean)
+  const busyRef = useRef(busyWork)
+  busyRef.current = busyWork
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      const busy = busyRef.current
+      if (allowQuit.current || !busy.length) return
+      // Electron은 returnValue가 있으면 창 닫기(앱 종료)를 멈춘다
+      e.preventDefault()
+      e.returnValue = false
+      setDialog({
+        type: 'confirm',
+        title: '앱 종료',
+        message: `${busy.join(', ')}이(가) 중단되고 사라집니다. 종료할까요?`,
+        confirmLabel: '종료',
+        danger: true,
+        run: async () => {
+          allowQuit.current = true
+          window.close()
+        },
+      })
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [])
+
   // 순서를 바꾸면 폴더/파일 번호가 바뀐다. 지금 연 화면을 번호를 뺀 이름으로 다시 찾는다
   const reopenAfterMove = async () => {
     const t = await api.manual.tree()

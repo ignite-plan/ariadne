@@ -178,4 +178,55 @@ export async function claude({ page, step, snap, toast, workspace, claudeHold }:
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 10000 })
     await page.getByRole('tab', { name: '목차' }).click()
   })
+
+  await step('Claude 최신화 대기열: 도는 중에 다른 최신화를 대기 → 순서 바꾸기·빼기 → 차례로 진행 → 결과 → 되돌리기', async () => {
+    // 다음 최신화는 Claude가 이 파일이 생길 때까지 기다린다
+    rmSync(claudeHold, { force: true })
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).click()
+    await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.doc-header').getByRole('button', { name: /Claude로 최신화/ }).click()
+    await page.getByRole('button', { name: '최신화 시작' }).click()
+    await page.locator('.log li', { hasText: '기획서를 더 읽는 중' }).waitFor({ timeout: 60000 })
+    await page.locator('.panel-header').getByRole('button', { name: '숨기기' }).click()
+
+    // 도는 중에 장 전체, 화면 하나를 차례로 대기에 넣는다 (반영 범위도 함께)
+    const chapter = page.locator('.toc-chapter', { hasText: 'Dealer Management' })
+    await chapter.locator('.toc-chapter-row').hover()
+    await chapter.getByTitle('이 장 전체를 Claude로 최신화').click()
+    await page.getByRole('heading', { name: 'Claude로 최신화' }).waitFor()
+    await page.getByLabel('시작 월').fill('2026-05')
+    await page.getByRole('button', { name: '대기에 추가 (1번째)' }).click({ timeout: 60000 })
+    await toast(/대기에 추가했습니다 \(1번째\)/).waitFor()
+    const creation = page.locator('.toc-section', { hasText: 'Dealer Creation' })
+    await creation.hover()
+    await creation.locator('..').getByTitle('이 화면을 Claude로 최신화').click()
+    await page.getByRole('button', { name: '대기에 추가 (2번째)' }).click({ timeout: 60000 })
+    await page.locator('.task-chip', { hasText: '대기 2' }).waitFor()
+
+    // 진행 패널에서 대기 순서를 바꾸고 하나를 뺀다
+    await page.locator('.task-chip', { hasText: 'Claude 최신화' }).click()
+    const queue = page.locator('.queue-list:not(.finished) li')
+    await queue.nth(0).locator('.link', { hasText: 'Dealer Management · 화면 3개 · 2026-05' }).waitFor()
+    await queue.nth(1).locator('.link', { hasText: '02-dealer-creation-screen' }).waitFor()
+    await queue.nth(1).getByRole('button', { name: '앞으로' }).click()
+    await queue.nth(0).locator('.link', { hasText: '02-dealer-creation-screen' }).waitFor()
+    // 장 전체(반영 범위 있음)는 뺀다
+    await queue.nth(1).getByRole('button', { name: '대기에서 빼기' }).click()
+    await page.waitForFunction(() => document.querySelectorAll('.queue-list:not(.finished) li').length === 1)
+    await snap('13d-queue')
+
+    // 앞 작업이 끝나면 대기 작업이 자동으로 시작해 끝난다. 끝난 작업 목록에서 결과를 다시 연다
+    writeFileSync(claudeHold, '')
+    await page.locator('.queue-list.finished li', { hasText: '02-dealer-creation-screen' }).waitFor({ timeout: 90000 })
+    await page.locator('.queue-list:not(.finished)').waitFor({ state: 'detached' })
+    await page.locator('.queue-list.finished li', { hasText: '02-dealer-creation-screen' }).getByRole('button').click()
+    await page.locator('.draft-input', { hasText: '02-dealer-management/02-dealer-creation-screen.md' }).waitFor()
+    await page.locator('.draft-summary').waitFor({ timeout: 10000 })
+    await page.locator('.panel-header').getByRole('button', { name: '닫기' }).click()
+    await page.getByRole('tab', { name: /변경/ }).click()
+    await page.getByRole('button', { name: '모두 되돌리기' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    await page.getByRole('tab', { name: '목차' }).click()
+  })
 }

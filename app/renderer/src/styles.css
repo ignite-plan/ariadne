@@ -2802,3 +2802,52 @@ fieldset.lock:disabled {
 .cm-line.cm-review-del {
   box-shadow: inset 0 2px 0 var(--review-del);
 }
+
+/* Claude 최신화 대기열 */
+.queue-list {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.queue-list header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.queue-list ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.queue-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 0;
+}
+.queue-list li.current {
+  font-weight: 600;
+}
+.queue-list li .link {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.queue-list .queue-no {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  text-align: center;
+  line-height: 18px;
+}
+.notice.queue-notice {
+  margin: 0 0 8px;
+}
