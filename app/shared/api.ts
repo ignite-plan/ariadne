@@ -174,7 +174,7 @@ export interface Settings {
   // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
   // auto: 키가 있으면 apiKey, 없으면 claude.ai 로그인 (기본)
   claudeAuth: 'auto' | 'apiKey' | 'login'
-  // 앱의 Claude 작업 모델 (--model). 기본 claude-sonnet-5[1m], 비우면 ~/.zshrc의 ANTHROPIC_MODEL
+  // 앱의 Claude 작업 모델 (--model). 기본 claude-sonnet-5-5[1m], 비우면 ~/.zshrc의 ANTHROPIC_MODEL
   claudeModel: string
   // 앱 Claude 작업의 생각량. 낮을수록 빠르고 싸다
   claudeEffort: ClaudeEffort

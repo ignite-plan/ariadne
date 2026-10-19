@@ -6,7 +6,12 @@ export type ClaudeAuth = 'apiKey' | 'login'
 export type ClaudeAuthSetting = 'auto' | ClaudeAuth
 
 // 앱 Claude 작업의 기본 모델 (설정 → 고급 → Claude 모델을 비우면 ANTHROPIC_MODEL 또는 Claude Code 기본)
-export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5[1m]'
+export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5-5[1m]'
+// 예전 기본값. 설정은 저장할 때 모든 값을 같이 써서, 기본값을 그대로 둔 사람도 파일에 남아 있다
+const OLD_DEFAULT_CLAUDE_MODELS = ['claude-sonnet-5[1m]']
+
+// 저장된 모델이 예전 기본값이면 지금 기본값으로 (직접 넣은 모델은 그대로)
+export const upgradeClaudeModel = (saved: string) => (OLD_DEFAULT_CLAUDE_MODELS.includes(saved) ? DEFAULT_CLAUDE_MODEL : saved)
 
 export const KEY_VARS = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'] as const
 // 인증과 상관없이 로그인 셸 값을 넘기는 변수. 게이트웨이(H-Chat 등)가 받는 모델을 ~/.zshrc에서 정한다

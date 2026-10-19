@@ -18,8 +18,8 @@ export async function settings({ page, step, snap, token, userData }: Smoke) {
     await auth.selectOption('apiKey')
     await page.getByText('로그인 셸(~/.zshrc)의 ANTHROPIC_API_KEY를 씁니다').waitFor()
     await auth.selectOption('auto')
-    // 기본 모델은 Sonnet 1M
-    assert.equal(await page.locator('.field', { hasText: 'Claude 모델' }).locator('input').inputValue(), 'claude-sonnet-5[1m]')
+    // 기본 모델은 Sonnet 5.5 1M
+    assert.equal(await page.locator('.field', { hasText: 'Claude 모델' }).locator('input').inputValue(), 'claude-sonnet-5-5[1m]')
     await nav('변경 영향').click()
     await page.getByText('dealerhub-web 경로 지정하기').waitFor()
     await nav('정보').click()
