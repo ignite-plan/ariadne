@@ -1,14 +1,8 @@
 ---
 title: Quick Link
-routes:
-  - /
+routes: []
 sources: []
 i18nPrefix: []
-refreshedFrom:
-  - page: "196834715"
-    version: 3
-  - page: "536948751"
-    version: 2
 ---
 
 ## Quick Link
@@ -31,11 +25,9 @@ Quick Link
 
 - Quick links are provided on the right side of the home screen.
 
-- If no menu has been added yet, the title and settings button are still shown along with the guidance message "Add frequently used menus to Quick Links" and an **\[add quick links\]** button that opens the settings popup.
+- All registered Quick link lists are displayed on the screen, and up to 20 can be registered and checked. If a menu name is long, it is displayed with line breaks so the full name is visible.
 
-- All registered Quick link lists are displayed on the screen, and up to 20 can be registered and checked. Adding more than 20 shows the alert "You can add up to 20 items." If a menu name is long, it is displayed with line breaks so the full name is visible.
-
-- Hovering over a menu name for about 1 second displays the full menu path.
+- Hovering over a menu name displays the full menu path.
 
 - Clicking the **star icon** to the right of the menu name removes it from the quick link list.
 
@@ -56,9 +48,9 @@ Quick Link
 **\
 Using Quick Link from Other Screens**
 
-- Clicking the star icon in the GNB opens the Quick links slide panel on the right side of the screen. The panel can be accessed from any screen within Dealers by clicking this icon.
+- Clicking the star icon in the upper right area of the Dealers screen creates a Quick links list on the right.
 
-- The panel is closed by clicking the GNB star icon again, clicking the X button on the panel, or clicking outside the panel.
+- This list can be accessed from any screen within Dealers by clicking the **star icon** at the top.
 
 - Clicking a menu name in the list takes you to that menu.
 
@@ -74,15 +66,23 @@ Using Quick Link from Other Screens**
 
 - ![](images/quick-link-img-4.png){width=6.79in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2353 Menu List 상단(검색창 하단)에 가이드 배너 추가 -->
+
 Quick Link Setting Popup
 
-- Menu List shows the entire menu tree the user has permission to access, organized by depth. Each level can be collapsed or expanded, and the list is fully expanded by default. Directory-type menus do not show a bookmark icon and cannot be added to Quick Links.
+- Menu List shows the list of menus displayed on the Dealers screen according to the user\'s permissions.
 
-- Using the search box at the top, you can quickly find a menu by searching part of its name; matching keywords are highlighted and parent menus of a match are also shown. Clicking the X button resets the search.
+- Using the search box at the top, you can quickly find a menu by searching for its name.
 
-- Add to **Quick Links** shows "Choose menu items on the left to add as quick links" when empty. Clicking the bookmark icon on a menu adds it here regardless of depth, and newly selected items are stacked at the bottom. Clicking the hamburger icon on the left allows you to change the order by dragging.
+- A guide banner with the message "Only menus linked to a page can be added as Quick Links." is displayed at the top of the Menu List, below the search box. The info icon next to the message is a simple icon, not a tooltip. Directory-type menus do not show a star icon and cannot be added.
 
-- Up to 20 can be added to quick links. Adding more than 20 shows the alert "You can add up to 20 items."
+- The banner stays fixed at the top, so it remains visible while scrolling the menu list.
+
+- Clicking the **x** button on the banner closes it, and it is not displayed again once closed. The closed state is saved in the browser's local storage per dealer, so the banner is displayed the first time the same employee accesses a different dealer.
+
+- Add to **Quick Links** is a list of menus added by the user. The first added menu is at the top, and clicking the six-dot drag handle icon on the left allows you to change the order as desired.
+
+- Up to 20 can be added to quick links.
 
 - Pressing the **\[cancel\]** button closes the window without saving the changes made so far. Pressing the **\[save\]** button saves the changes and the new quick link list is reflected in all quick link lists.
 
@@ -90,26 +90,25 @@ Quick Link Setting Popup
 
 ![Rename Quick Link](images/rename-quick-link.png){width=3.60in}
 
-- Hovering over a Quick Link item displays a pencil icon. Clicking it opens the "Rename Quick Link" modal.
+- Hovering over a Quick Link item displays a pencil icon. Clicking it opens the Rename Quick Link modal.
 
-- If no custom name has been saved, the Name field placeholder displays the original menu name (following the language setting). If a custom name exists, it is pre-filled.
+- If no custom name has been saved, the field placeholder displays the original menu name. If a custom name exists, it is pre-filled.
 
-- Maximum 50 characters. Numbers and special characters are allowed, and there are no banned words. A character counter is provided.
+- Maximum 50 characters. Numbers and special characters are allowed. A character counter is provided.
 
 - Clearing the field via the X button and losing focus restores the original menu name as text.
 
-- The menu path is displayed below the text field, up to the menu's own depth (maximum 5 depths).
+- The full menu path is displayed below the text field.
 
 - Cancel closes the modal without saving. Save is always enabled.
 
 **After Saving**
 
-- The custom name is reflected in the Quick Links area, Quick Links slide panel, and \"Board you\'ve visited\" (for menus already added to Quick Links).
-
+- The custom name is reflected in the Quick Links area, Quick Links slide panel, and \"Board you\'ve visited\" (for menus added to Quick Links).
 
 - Not reflected in the Menu List within Quick Link Settings, GNB/SNB, or \"Board you\'ve visited\" for menus not added to Quick Links.
 
-- A custom name can duplicate another menu's original name or custom name; duplicate registration is allowed.
+- Duplicate custom names are allowed across different menus.
 
 - Custom names are applied per dealer and are not synced across dealers for multi-dealer users.
 

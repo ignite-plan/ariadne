@@ -1,7 +1,6 @@
 ---
 title: Footer
-routes:
-  - /
+routes: []
 sources: []
 i18nPrefix: []
 ---
@@ -10,9 +9,18 @@ i18nPrefix: []
 
 - In the footer area at the very bottom of the Dealers homepage, you can check the Terms, privacy policy, FAQ, Cookie policy and User Manual content.
 
-- For the HACC tenant (Hyundai/Genesis), the Terms item is not displayed in the footer, and the remaining items are shown in the order Privacy Policy, Cookie Policy, User Manual, FAQ. For all other tenants, the footer keeps the order Terms, Privacy Policy, Cookie Policy, FAQ, User Manual.
 
+- For HACC (Hyundai and Genesis) on PC, the Terms text and link are not displayed, and the links are displayed in the order Privacy Policy | Cookie Policy | User Manual | FAQ. 
 
+**Service Term**
+
+- Clicking on **Service Term** allows you to check the latest service terms.
+
+- When you click Service Term, the Service Term page will open in a new tab.
+
+- Clicking on the select box in the upper right provides previous versions of the service terms.
+
+![Service Term](images/service-term.png){width=6.79in}
 
 **Privacy Policy**
 

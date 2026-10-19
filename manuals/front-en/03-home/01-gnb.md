@@ -138,13 +138,21 @@ Language selection
 
 Account
 
-- If the user has registered a profile picture, the profile image is displayed. If an image has not been registered, a default image is displayed.
+- If the user has registered a profile picture, the profile image is displayed. If an image has not been registered, an initials avatar is displayed instead. This applies to the GNB and the Account layer.
+
+  - For Latin-script names, the first letter of the First Name and the first letter of the Last Name are used (e.g., Isabel Marant → IM).
+
+  - The font, size, and color of the avatar follow the design definition.
 
 - When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to view Profile, Reset password, and logout.
 
 ![Account layer](images/account-layer.png){width=2.78in}
 
-- When **Profile** is clicked, the user is taken to the Profile screen. See the Profile chapter for details.
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 사진 미등록 시 기본 이미지 대신 이니셜 아바타 표시 (gnb-img-10, account-layer) -->
+
+**\**
+
+
 
 **Reset Password**
 
