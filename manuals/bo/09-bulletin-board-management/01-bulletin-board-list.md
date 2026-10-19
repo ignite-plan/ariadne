@@ -1,19 +1,20 @@
 ---
 title: Bulletin Board List
-routes: []
+routes:
+  - /board
 sources: []
 i18nPrefix: []
 ---
 
 ## Bulletin Board List
 
-- When accessing the Bulletin Board Management menu, you can view the **list of registered bulletin boards** **and create/modify** the boards.
+- When accessing the Bulletin Board Management menu, a full page with a search panel and a **list of registered bulletin boards** opens. The previous board tree panel and inline detail panel are no longer displayed.
 
-- The bulletin board list displays basic information such as Board ID, Board Name.
+- The bulletin board list displays Board ID, Board Name, Menu-Board Mapping, Menu Path, Created By, Updated By, Created Date, and Updated Date.
 
-- When clicking the **\[New Board\]** button, you can create a bulletin board.
+- When clicking the **\[+ New Board\]** button at the top right, you move to the bulletin board creation page.
 
-- When clicking on the **Board Name**, you can view detailed information about the bulletin board.
+- When clicking a row in the list, you move to the **Board Details** page of the bulletin board.
 
 - When a tenant or brand is added, the system automatically creates an **Announcement Board**, which is a system-fixed bulletin board that cannot be deleted.
 
@@ -25,18 +26,37 @@ i18nPrefix: []
 
     - The following attributes are **Disabled**: Post Target and Additional Properties.
 
-![Bulletin board List](images/bulletin-board-list.png){width=5.85in}
+
+![Bulletin board List](images/bulletin-board-list-2.png){width=6.27in}
+
 
 **Bulletin Board Search & Result**
 
-- You can search for **Board ID/Board Name** in the Bulletin board search box. When you type words in the search box, real-time keyword search is available.
+- Search conditions in the search panel:
 
-- Bulletin board search conditions:
+  - **Board ID / Board Name**: Select the criteria in the dropdown (default: Board Name) and enter text. The placeholder changes according to the selected criteria (`Please enter the board name` / `Please enter the board ID`).
 
-  - **Real-time keyword search** is performed.
+  - **Menu-Board Mapping**: Select **All**, **Yes**, or **No** (default: All).
 
-  - Keywords matching the search criteria are highlighted with color.
+  - **Created By / Updated By**: Select the criteria in the dropdown (default: Created By) and enter a user name or ID (`Please enter the user name or ID`).
 
-  - Clicking the **\[x\] button** on the right after entering search terms deletes all keywords and returns to the initial state.
+  - **Created Date / Updated Date**: Select the criteria in the dropdown (default: All), then enter the From \~ To dates (MM-DD-YYYY). The date fields are enabled after you select a criteria other than All.
 
-  - If there are no search results, a \"no search results\" message is displayed.
+  - **Menu**: Select one or more top-level (depth 1) menus in the multi-select dropdown (`Please select the menu`). Typing in the field filters the options. Selected menus are checked and displayed as chips below the field; clicking the **x** on a chip removes the chip and clears the check. Boards linked to the sub-menus of the selected menu are also searched.
+
+- Clicking the **\[Reset\]** button clears all entered text and chips and returns the dropdowns and radio buttons to their default values.
+
+- When Menu-Board Mapping is set to **No**, the Menu dropdown is disabled.
+
+- Bulletin board list:
+
+  - **Menu-Board Mapping** shows whether the board is linked to a menu, and **Menu Path** shows the menu hierarchy separated by `>` (for example, `Sales > Bulletins > 20-General`). If the board is not linked to a menu, `-` is displayed in Menu Path.
+
+  - **Created By / Updated By** are displayed in the `Name(Employee ID)` format.
+
+  - The Announcement Board is displayed at the top of the list, followed by the other boards in ascending order of Board ID.
+
+  - If a value is longer than the column width, it is truncated with `...`, and the full text is displayed as a tooltip when you hover over it.
+
+
+![Bulletin board List 1](images/bulletin-board-list-1.png){width=6.27in}

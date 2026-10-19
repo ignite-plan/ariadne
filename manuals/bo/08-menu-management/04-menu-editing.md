@@ -14,22 +14,52 @@ i18nPrefix: []
 
 Menu access permissions List
 
-- When clicking the \[Edit\] button in Menu access permission, a pop-up is displayed as follows according to the granted permission conditions.
+- When clicking the \[Edit\] button in Menu access permission, [the conditions are checked in the following four steps, and a pop-up is displayed according to the first condition that applies. The same steps apply to both the Job title tab and the User name tab, and also to the first access right after a menu is created.]{.mark}
 
-- When there are no granted Job title permissions:
+  1. **Current menu has no menu permission**: The Add Menu Permission pop-up is displayed.
 
-  - A popup is displayed that checks whether there are permissions granted to parent menus and allows copying parent menu access.\
-    ![](images/menu-editing-img-2.png){width=2.99in}
+     - **\[Go to Setting\]**: Moves to the Menu Details tab of the current menu and focuses on the permission area.
+
+     - **\[Later\]**: Closes the pop-up only.
+
+  2. **Parent menu has no menu permission** (skipped if there is no parent menu): The Add Parent Menu Permission pop-up is displayed.
+
+     - **\[Go to Setting\]**: Moves to the Menu Details tab of the parent menu and focuses on the permission area.
+
+     - **\[Later\]**: Closes the pop-up only.
+
+  3. **Current menu has Job title permissions other than Dealer Principal / Dealer Admin** (User name permissions on the User name tab): The Menu Access Permission pop-up is displayed, and you can grant permissions (Access, Read, etc.) to job titles (or user names) that can access the menu. For a 1 Depth menu, the same pop-up is displayed even if there are no such permissions.
+
+  4. **Parent menu has Job title permissions other than Dealer Principal / Dealer Admin** (User name permissions on the User name tab): The Import {target} Permissions pop-up is displayed. If there are none, the Add Parent Menu Access Permission pop-up is displayed. {target} is Job Title or User.
+
+     - Import {target} Permissions: "Would you like to import {target} permissions from the parent menu? The parent menu's {target} permissions will be automatically applied to this menu."
+
+       - **\[Import\]**: Copies the parent menu permissions to the current menu, closes the pop-up, and shows the copied permissions in the list screen.
+
+       - **\[Add Manually\]**: Moves to the Edit screen with no permissions selected.
+
+     - Add Parent Menu Access Permission:
+
+       - **\[Go to Setting\]**: Moves to the Menu Access Permissions tab (list screen) of the parent menu.
+
+       - **\[Later\]**: Closes the pop-up only.
+
+       - On the User name tab, the pop-up message is "No menu access permissions have been set for the parent menu. Users must be added to the parent menu before they can be assigned to sub-menus."
+
+- **\[Import\]** copies only the permissions that are registered in the Permission List of the current menu and also checked in the parent menu. For example, if the current menu has only Access and the parent menu has Access and Read, only Access is copied. After copying, the list is sorted by the Job title / User sorting rule.
+
+- After clicking **\[Later\]**, clicking \[Edit\] again starts again from step 1. If the condition is not resolved, the same pop-up is displayed again.
+
+![](images/menu-editing-img-2.png){width=2.99in}
 
 Menu access permissions List -- Import Job title pop-up
 
-- **When there are granted or grantable Job title permissions**:
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2168 Import Job title pop-up 버튼이 [Cancel]/[Confirm]에서 [Add Manually]/[Import]로 바뀌고 Add Menu Permission, Add Parent Menu Permission, Add Parent Menu Access Permission 팝업이 추가됨 (menu-editing-img-2) -->
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2477 흐름 이미지가 Job title flow와 User flow 두 개로 나뉨 -->
 
-  - The Menu Access Permission pop-up is displayed, and you can grant permissions (Access, Read, etc.) to job titles that can access the menu.
+- In the Menu Access Permission pop-up, the Job title popup shows the Job titles that the User belongs to even if that User has permissions (Job and User permissions can overlap). The User name pop-up does not show Users who are already included in a selected Job title.
 
-- **When there are grantable User name permissions**:
-
-  - The Menu Access Permission pop-up is displayed, and you can grant permissions (Access, Read, etc.) to user names that can access the menu.
+- A permission cannot be removed on the Job title tab if a sub-menu has the Job-access permission, and on the User name tab if a sub-menu has the User-access permission.
 
 ![](images/menu-editing-img-3.png){width=2.94in} ![](images/menu-editing-img-4.png){width=2.94in}
 

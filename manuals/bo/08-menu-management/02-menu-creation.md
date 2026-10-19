@@ -1,6 +1,7 @@
 ---
 title: Menu Creation
-routes: []
+routes:
+  - /menu
 sources: []
 i18nPrefix: []
 ---
@@ -32,6 +33,8 @@ Creating Menu -- Display information
 
   - **Disabled**: The menu is not displayed on the front screen, and the Scheduled Display function is deactivated. The menu is also shown as disabled in the menu tree.
 
+  - [When creating a menu, switching the Display setting takes effect immediately without a confirmation popup.]{.mark}
+
   - **Created Date/Created By**: When saving a menu, the date the menu was created and the person who created it are automatically entered.
 
     - Creation rule: MM DD, YYYY (EST) / ID(employee number)
@@ -53,7 +56,7 @@ Creating Menu -- Display information
 
   - [ **(Default) Disabled:** The scheduled menu exposure function is not used. The menu will appear on the Front screen within approximately 1-2 minutes after saving.]{.mark}
 
-  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date..]{.mark} [\
+  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. Guidance message: "The menu will become visible on the Front screen at the start of the selected date".]{.mark} [\
     ]{.mark} ![](images/menu-creation-img-2.png){width=1.39in}
 
 Calendar setting
@@ -73,7 +76,7 @@ Calendar setting
 <!-- TODO:  메뉴타입 화면 갱신 필요 -->
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
-- **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset.\
+- **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset. [Menu name, Menu-board mapping, Domain, and Menu URL are reset, while the Menu Permission List is kept as is.]{.mark}\
   ![](images/menu-creation-img-4.png){width=1.59in}
 
 Menu type
@@ -85,7 +88,7 @@ Domain dropdown
 
 - Menu URL: A function to enter the actual page address (URL) that will be connected when a user clicks on the menu. The Domain and Menu URL are combined to complete the link. For menus linked to bulletin boards, the bulletin board ID is automatically entered.
 
-  - [**Input rules**: Up to 240 characters. An empty or null value is automatically set to \'/\'. If the value does not start with a leading \'/\', it is automatically corrected to start with \'/\' at the time of **\[Save\]**. Entering more than 246 characters shows an immediate inline error "Menu URL Maximum 240 chars.".]{.mark}
+  - [**Input rules**: Up to 240 characters. An empty or null value is automatically set to \'/\'. If the value does not start with a leading \'/\', it is automatically corrected to start with \'/\' at the time of **\[Save\]**. Spaces inside the value are allowed. Pasting more than 240 characters shows an immediate inline error "Menu URL Maximum {limit} chars.".]{.mark}
 
   - Example:
 
@@ -175,27 +178,27 @@ Editing Domain Setting
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2104 Domain/SSO callback path 입력칸의 placeholder·글자수 카운터가 캡처에 없음 -->
 
-- **Domain**: Placeholder "e.g., https://example.com", with a character counter (n/100) shown below the input. Validated in order, with an inline error for the first rule that fails:
+- **[Domain**: Placeholder "e.g., https://example.com", with a character counter (n/100) shown below the input. Validated in order, with an inline error for the first rule that fails:]{.mark}
 
-  - Required (e.g., "Domain is required.")
+[  - Required (e.g., "Domain is required.")]{.mark}
 
-  - Maximum 100 characters (e.g., "Domain Maximum 100 chars.")
+[  - Maximum 100 characters (e.g., "Domain Maximum 100 chars.")]{.mark}
 
-  - Must start with a scheme (\'http://\' or \'https://\')
+[  - Must start with a scheme (\'http://\' or \'https://\')]{.mark}
 
-  - Must not end with a trailing \'/\'
+[  - Must not end with a trailing \'/\']{.mark}
 
-  - Must not contain spaces
+[  - Must not contain spaces]{.mark}
 
-  - Must be a valid URL format
+[  - Must be a valid URL format]{.mark}
 
-  - Must not contain a query string or fragment
+[  - Must not contain a query string or fragment]{.mark}
 
-  - Must not duplicate an existing domain
+[  - Must not duplicate an existing domain]{.mark}
 
-- **SSO callback path** supports SSO that allows movement to all services with just HMG-admin and Dealers system login. Placeholder "e.g., /sso/callback", with a character counter (n/90) shown below the input.
+[- **SSO callback path** supports SSO that allows movement to all services with just HMG-admin and Dealers system login. Placeholder "e.g., /sso/callback", with a character counter (n/90) shown below the input.]{.mark}
 
-- **SSO callback path input rules**: Up to 90 characters can be entered, starting with \'/\'. Leading/trailing spaces are trimmed automatically. An empty or null value is automatically set to \'/\'. Absolute URLs are not allowed, and a trailing \'/\' is not allowed (except when the value is a single \'/\').
+[- **SSO callback path input rules**: Up to 90 characters can be entered, starting with \'/\'. Leading/trailing spaces are trimmed automatically. An empty or null value is automatically set to \'/\'. Absolute URLs are not allowed, and a trailing \'/\' is not allowed (except when the value is a single \'/\').]{.mark}
 
 - Clicking **\[Save\]** in the Domain Setting popup immediately reflects the change in the Domain List, regardless of whether the menu itself is saved.
 
@@ -203,9 +206,9 @@ Editing Domain Setting
 
 Creating Menu -- Basic information 2
 
-- Menu Name (Front-end screen) (Required field): Menu name can be entered up to 50 characters in EN and FR.
+- Menu Name (Front-end screen) (Required field): Menu name can be entered up to 50 characters in EN and FR. [The languages follow the Primary/Secondary languages set in Tenant Management; for a tenant without a Secondary language, only the Primary language is entered.]{.mark}
 
-- Menu Description (Front-end screen): Menu description displayed on the front screen, can be entered up to 300 characters in EN and FR.
+- Menu Description (Front-end screen): Menu description displayed on the front screen, can be entered up to 200 characters in EN and FR. [All characters, including special characters, are allowed. The languages follow the same Primary/Secondary setting as Menu Name.]{.mark}
 
 - Menu Description (For Admin Use): Menu description entered by operators for internal management purposes, can be entered up to 300 characters.
 
@@ -220,9 +223,15 @@ Creating Menu -- Permission List information 1
 
 - Menu permissions can be added through the Menu permission \[+Add\] button, and can be saved when all required fields are entered.
 
+- [Menu permissions can be added, edited, and deleted regardless of the Domain setting, including for Same Tab menus whose Domain is "No selection (Directory)". Permissions added to a parent Directory menu are used when granting Job Title and User permissions to its sub-menus.]{.mark}
+
+<!-- TODO: 확인 필요 - GIDPDVO-2067 Jira '확인 필요 케이스' 4건(하위에만 권한이 있던 Directory에 상위 권한 추가 후 삭제 시나리오, Directory permission code 채번, 운영 중 하위 메뉴와의 접근 권한 정합성, 운영 중 하위 메뉴의 Import 팝업 노출) 결론 (기획서 요약에 없음) -->
+
+<!-- TODO: 확인 필요 - GIDPDVO-1723 권한 하이라키 알럿에서 Write 문구를 빼고 'Access > Read order is maintained'로 바뀐 알럿의 전체 문구 (기획서 요약에 없음) -->
+
   - Permission(Required field): Access, Read can be selected, and duplicates are not allowed.
 
-  - Permission Description: You can enter a description of the permission. Up to 300 characters can be entered in EN and FR.
+  - Permission Description: You can enter a description of the permission. Up to 200 characters can be entered in EN and FR.
 
   - **Permission Code:** Refers to the permission code automatically issued by the system for each menu upon creation. This field is **read-only** and cannot be modified by operators.
 

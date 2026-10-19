@@ -234,7 +234,7 @@ Additional attribute setting pop-up -- Display format 2
 
 - **Display values** list EN/FR language-specific duplicate check: Prevents the same Display values from being entered more than once.
 
-- For dropdowns, up to 30 entries are possible; for radio buttons, up to 5 entries are possible.
+- [For dropdowns, up to 40 entries are possible; for radio buttons, up to 5 entries are possible. The guidance below the Display Values list reads "You can add up to 40 items for dropdowns and 5 for radio buttons."]{.mark}
 
 - Display Values List
 
@@ -252,12 +252,19 @@ Additional attribute setting pop-up -- Display format 2
 
 ![Additional attribute setting pop-up -- Display values setting 1](images/additional-attribute-setting-pop-up-display-values-setting-1.png){width=4.97in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2050 Display Values 안내 문구가 "You can add up to 40 items for dropdowns and 5 for radio buttons."로 바뀜 -->
+
+<!-- TODO: 확인 필요 - 기획서 [202606output]는 아직 드롭다운 Display Values 최대 30개로 적혀 있음 (GIDPDVO-2050은 Jira 완료 내용과 STG 화면 기준으로 40개 반영) -->
+
+<!-- TODO: 확인 필요 - GIDPGRO-914 Menu Display Status 배너는 근거 문서(Mobile Web PC BO)가 기획서 요약에 없고 반영 범위(2026-07) 밖이라 반영하지 않음. STG 신규 생성 화면에는 이 배너가 보이지 않음 -->
+
+
 - Example of screen display when there are 5 or more display values (a scroll is created on the right.)\
   ![](images/bulletin-board-creation-img-7.png){width=4.26in}
 
 Additional attribute setting pop-up -- Display values setting 2
 
-- When **the \[+Add\] button** is clicked, EN and FR input field UIs are displayed as a pair at the bottom, and you can add up to 30 for Dropdowns and up to 5 for Radio buttons.
+- When **the \[+Add\] button** is clicked, EN and FR input field UIs are displayed as a pair at the bottom, and you can add up to 40 for Dropdowns and up to 5 for Radio buttons.
 
 - If a display value is not entered, or if one of the EN or FR values is not entered, an alert message is displayed at the bottom.
 

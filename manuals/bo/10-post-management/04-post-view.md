@@ -1,6 +1,7 @@
 ---
 title: Post View
-routes: []
+routes:
+  - /board/1000890/post/1053426
 sources: []
 i18nPrefix: []
 ---
@@ -8,6 +9,20 @@ i18nPrefix: []
 ## Post View
 
 - You can view saved posts.
+
+- **Menu Display Status**: A banner at the top of the screen shows whether the menu linked to the bulletin board is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.
+
+  - If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.
+
+  - If Mobile Web is disabled, only a single value (Visible or Not Visible) is shown.
+
+  - Visible is marked with a green dot, and Not Visible with a gray dot.
+
+  - The fixed notice below the banner reads: "This menu's visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting."
+
+<!-- TODO: 확인 필요 - 게시글 조회 화면의 Menu Display Status 배너 (STG 확인 가능한 조회 화면은 메뉴와 연결되지 않은 Announcement 게시글뿐이라 배너가 보이지 않음. 배너 위치·고정 안내 문구 표시 방식은 기획서 요약 기준) -->
+
+- Posts of a menu whose Mobile Display is Disabled do not appear in the Mobile Home Bulletin Highlight or the Mobile integrated search. The post view screen has no separate mobile setting.
 
 ![](images/post-view-img-1.png){width=4.88in}\
 ![](images/post-view-img-2.png){width=5.02in}\
@@ -19,6 +34,8 @@ Post Detail
 - **Post Status Information**
 
 ![Post Detail -- Post status information](images/post-detail-post-status-information.png){width=5.93in}
+
+<!-- TODO: 이미지 갱신 필요 - GIDPGRO-914 조회 화면 상단 Menu Display Status 배너 추가 -->
 
 - Board Name: The bulletin board name (bulletin board ID) to which the post belongs is displayed.
 
@@ -199,6 +216,8 @@ Post Detail -- Attachments preview pop-up2
 - Table columns
 
   - Change Date: Updated date
+
+<!-- TODO: 확인 필요 - GIDPGRO-581 EST 시각 표기 방식 변경이 조회 화면 Change Date에 어떻게 적용되는지 (기획서 요약은 템플릿 Created Date만 명시, STG의 변경 이력은 비어 있어 확인 불가) -->
 
   - Change Info: Area and item name where the change information occurred
 
