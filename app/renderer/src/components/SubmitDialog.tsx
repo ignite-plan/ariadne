@@ -19,20 +19,25 @@ export function SubmitDialog({
   sync,
   settings,
   onDone,
+  onRecorded,
   onClose,
 }: {
   changes: FileChange[]
   sync?: SyncState
   settings: Settings
   onDone: (result: SubmitResult) => void
+  // 내 PC에 기록만 했을 때 (지금까지 기록 수)
+  onRecorded: (recorded: number) => void
   onClose: () => void
 }) {
   const [message, setMessage] = useState(() => defaultMessage(changes))
   const { run, busy, error } = useAsyncAction()
 
   const submit = () => run(async () => onDone(await api.workspace.submit(message)))
+  const record = () => run(async () => onRecorded((await api.workspace.record(message)).recorded))
 
-  const pendingCommit = !changes.length && (sync?.status === 'ahead' || sync?.status === 'diverged')
+  const recorded = sync?.recorded ?? 0
+  const pendingCommit = !changes.length && !recorded && (sync?.status === 'ahead' || sync?.status === 'diverged')
 
   return (
     <Modal
@@ -45,6 +50,14 @@ export function SubmitDialog({
           <button className="button" onClick={onClose} disabled={busy}>
             취소
           </button>
+          <button
+            className="button"
+            onClick={record}
+            disabled={busy || !changes.length}
+            title="원격에 올리지 않고 내 PC에만 기록합니다. 고친 내용이 이력에 남아 날아가지 않습니다"
+          >
+            내 PC에 기록만
+          </button>
           <button className="button primary" onClick={submit} disabled={busy || (!changes.length && !pendingCommit)}>
             {busy ? '올리는 중…' : settings.submitMode === 'push' ? '제출하고 바로 반영' : '제출 (PR)'}
           </button>
@@ -52,6 +65,9 @@ export function SubmitDialog({
       }
     >
       {pendingCommit && <p className="notice">지난번에 올리지 못한 변경이 있습니다. 다시 제출합니다.</p>}
+      {recorded > 0 && (
+        <p className="notice">내 PC에만 기록한 것이 {recorded}건 있습니다. 제출하면 아래 변경과 함께 한 번에 올라갑니다.</p>
+      )}
       {changes.length > 0 && (
         <ul className="submit-list">
           {changes.map((c) => (
@@ -67,6 +83,7 @@ export function SubmitDialog({
         <textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} />
       </label>
       <p className="hint">
+        [내 PC에 기록만]은 원격에 올리지 않고 이력만 남깁니다(오프라인에서도 됩니다).{' '}
         {settings.submitMode === 'push'
           ? '매뉴얼 원본(main)에 바로 반영합니다. 다른 사람과 같은 곳을 고쳤으면 자동으로 PR을 만들어 개발자에게 넘깁니다.'
           : 'PR을 만들어 개발자 검토 후 반영합니다.'}

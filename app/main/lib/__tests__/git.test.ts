@@ -281,12 +281,77 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     // 커밋까지만 된 상태를 만든다
     const broken = { ...ctx, url: 'http://127.0.0.1:1/nowhere.git' }
     await assert.rejects(gitOps.submit(broken, submitOptions('docs: retry')))
-    assert.deepEqual(await gitOps.changes(ctx.dir), [])
-    assert.equal((await gitOps.sync(ctx)).status, 'ahead')
+    // 커밋만 된 변경도 제출 전이므로 변경 목록에 보인다
+    assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/b.md', status: 'modified' }])
+    const state = await gitOps.sync(ctx)
+    assert.equal(state.status, 'ahead')
+    assert.equal(state.recorded, 0, '기록(커밋만)이 아니라 멈춘 제출')
     const result = await gitOps.submit(ctx, submitOptions('ignored'))
     assert.equal(result.mode, 'push')
     assert.equal(server.log()[0], 'docs: retry')
     assert.equal(server.show('main', 'manuals/bo/b.md'), 'b retried\n')
+  })
+
+  it('내 PC에 기록만: 변경 목록·변경 보기는 마지막 제출 기준, 제출하면 기록을 묶어 한 커밋으로', async () => {
+    const ctx = await workspace()
+    const before = read(ctx, 'manuals/bo/b.md')
+    write(ctx, 'manuals/bo/b.md', 'b recorded\n')
+    write(ctx, 'manuals/bo/rec.md', 'rec 1\n')
+    // 원격에 연결하지 않는다 (오프라인에서도 된다)
+    const first = await gitOps.record(ctx.dir, ctx.author, 'docs: 1차 기록')
+    assert.equal(first.recorded, 1)
+    assert.deepEqual(await gitOps.changes(ctx.dir), [
+      { path: 'manuals/bo/b.md', status: 'modified' },
+      { path: 'manuals/bo/rec.md', status: 'added' },
+    ])
+    assert.equal(await gitOps.headContent(ctx.dir, 'manuals/bo/b.md'), before, '변경 보기의 전 내용은 마지막 제출 상태')
+    assert.equal(await gitOps.headContent(ctx.dir, 'manuals/bo/rec.md'), null)
+    await assert.rejects(gitOps.record(ctx.dir, ctx.author, 'x'), /기록할 새 변경이 없습니다/)
+    write(ctx, 'manuals/bo/rec.md', 'rec 2\n')
+    assert.equal((await gitOps.record(ctx.dir, ctx.author, 'docs: 2차 기록')).recorded, 2)
+    const state = await gitOps.sync(ctx)
+    assert.deepEqual([state.status, state.recorded, state.changes], ['ahead', 2, 2])
+
+    const result = await gitOps.submit(ctx, submitOptions('docs: 기록 제출'))
+    assert.equal(result.mode, 'push')
+    assert.equal(server.log()[0], 'docs: 기록 제출')
+    assert.match(server.git('log', '-1', '--format=%B', 'main'), /docs: 기록 제출\n\n기록:\n- docs: 1차 기록\n- docs: 2차 기록/)
+    assert.equal(server.show('main', 'manuals/bo/rec.md'), 'rec 2\n')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [])
+    assert.equal((await gitOps.sync(ctx)).recorded, 0)
+  })
+
+  it('기록한 뒤 되돌리기: 마지막 제출 상태로. 다 되돌리면 기록도 정리한다', async () => {
+    const ctx = await workspace()
+    const before = read(ctx, 'manuals/bo/b.md')
+    write(ctx, 'manuals/bo/b.md', 'b to drop\n')
+    write(ctx, 'manuals/bo/keep.md', 'keep\n')
+    await gitOps.record(ctx.dir, ctx.author, 'docs: 기록')
+    write(ctx, 'manuals/bo/later.md', 'later\n')
+    await gitOps.revert(ctx.dir, ['manuals/bo/b.md'])
+    assert.equal(read(ctx, 'manuals/bo/b.md'), before)
+    assert.deepEqual((await gitOps.changes(ctx.dir)).map((c) => c.path), ['manuals/bo/keep.md', 'manuals/bo/later.md'])
+    await gitOps.revert(ctx.dir, ['manuals/bo/keep.md', 'manuals/bo/later.md'])
+    assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/keep.md')))
+    assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/later.md')))
+    assert.deepEqual(await gitOps.changes(ctx.dir), [])
+    const state = await gitOps.sync(ctx)
+    assert.deepEqual([state.status, state.recorded], ['synced', 0], '빈 기록은 정리된다')
+  })
+
+  it('기록한 뒤 다른 사람이 올렸으면: 남의 변경은 내 변경에 안 섞이고, 제출할 때 합친다', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/mine.md', 'mine\n')
+    await gitOps.record(ctx.dir, ctx.author, 'docs: 내 기록')
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/theirs.md'), 'theirs\n'), 'other adds theirs')
+    const state = await gitOps.sync(ctx)
+    assert.equal(state.status, 'diverged')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/mine.md', status: 'added' }])
+    await gitOps.submit(ctx, submitOptions('docs: mine 제출'))
+    assert.equal(server.show('main', 'manuals/bo/mine.md'), 'mine\n')
+    assert.equal(server.show('main', 'manuals/bo/theirs.md'), 'theirs\n')
+    assert.equal(read(ctx, 'manuals/bo/theirs.md'), 'theirs\n')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [])
   })
 
   it('HEAD 내용 읽기 (변경 보기)', async () => {

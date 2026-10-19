@@ -7,7 +7,7 @@ import { createPullRequest } from '../lib/github.ts'
 import { clearAllReviews, clearReviewsForRepoPaths } from '../lib/review.ts'
 import { resolveInside } from '../lib/sections.ts'
 import { getSettings } from '../settings.ts'
-import { currentUser, gitContext, handle, netFetch, ref, requireToken, requireWorkspace, send, workspaceState } from './context.ts'
+import { currentUser, gitContext, handle, netFetch, recordAuthor, ref, requireToken, requireWorkspace, send, workspaceState } from './context.ts'
 
 export function registerWorkspace() {
   handle('workspace:state', () => workspaceState())
@@ -53,6 +53,8 @@ export function registerWorkspace() {
     clearAllReviews(ref())
     return result
   })
+  // 내 PC에만 기록(커밋). 원격에 연결하지 않아 오프라인에서도 된다. 검토 표시는 그대로 둔다
+  handle('workspace:record', async (message) => gitOps.record(requireWorkspace(), await recordAuthor(), message))
   handle('workspace:reveal', (relPath) => {
     const root = requireWorkspace()
     if (relPath) shell.showItemInFolder(resolveInside(root, relPath))

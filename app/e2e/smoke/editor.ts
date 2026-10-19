@@ -1,5 +1,6 @@
 // 편집 화면: 목차, 미리보기, 자동 저장, 제출 다이얼로그, 되돌리기, 이미지, 새 화면, Word 만들기
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Smoke } from './context.ts'
@@ -43,21 +44,29 @@ export async function editor({ page, step, snap, toast, workspace }: Smoke) {
     await snap('05-changes')
   })
 
-  await step('제출 다이얼로그 (제출하지 않음)', async () => {
+  await step('제출 다이얼로그 → 내 PC에 기록만 (원격에 올리지 않음)', async () => {
     await page.getByRole('button', { name: /제출/ }).first().click()
     await page.getByRole('dialog').getByText('변경사항 제출').waitFor()
     const message = await page.getByRole('dialog').locator('textarea').inputValue()
     assert.match(message, /Dealer List View/)
     await snap('06-submit')
-    await page.getByRole('dialog').getByRole('button', { name: '취소' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '내 PC에 기록만' }).click()
+    await toast(/내 PC에 기록했습니다 \(제출 전 기록 1건\)/).waitFor()
+    const log = execFileSync('git', ['-C', workspace, 'log', '-1', '--format=%B'], { encoding: 'utf8' })
+    assert.match(log, /Dealer List View[\s\S]*Ariadne-Record: true/)
+    // 기록만 한 변경도 제출 전이라 변경 탭에 남고, 상단에 기록 수가 보인다
+    await page.locator('.change-item', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.sync-badge', { hasText: '내 PC 기록 1' }).waitFor({ timeout: 30000 })
   })
 
-  await step('되돌리기', async () => {
+  await step('되돌리기 (기록한 변경도 마지막 제출 상태로)', async () => {
     await page.locator('.change-item', { hasText: 'Dealer List View' }).getByTitle('변경 되돌리기').click()
     await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
     await toast('되돌렸습니다').waitFor()
     assert.equal(readFileSync(sectionFile, 'utf8'), original)
     await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor()
+    // 다 되돌리면 빈 기록도 정리된다
+    assert.doesNotMatch(execFileSync('git', ['-C', workspace, 'log', '-1', '--format=%B'], { encoding: 'utf8' }), /Ariadne-Record/)
   })
 
   await step('이미지 다이얼로그', async () => {

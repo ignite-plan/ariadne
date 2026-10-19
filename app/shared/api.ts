@@ -292,8 +292,10 @@ export interface FileChange {
 
 export interface SyncState {
   status: 'synced' | 'behind' | 'ahead' | 'diverged' | 'offline'
-  // 로컬에 저장만 하고 제출하지 않은 변경 수
+  // 로컬에 저장만 하고 제출하지 않은 변경 수 (기록만 한 것 포함)
   changes: number
+  // "내 PC에 기록"만 하고 아직 제출하지 않은 기록 수
+  recorded?: number
   message: string
 }
 
@@ -423,8 +425,10 @@ export interface AriadneApi {
     changes(): Promise<FileChange[]>
     revert(paths: string[]): Promise<void>
     submit(message: string): Promise<SubmitResult>
+    // 제출하지 않고 내 PC에만 기록(커밋)한다. 원격에 연결하지 않는다
+    record(message: string): Promise<{ commit: string; recorded: number }>
     reveal(relPath?: string): Promise<void>
-    // 마지막 제출(HEAD) 내용과 지금 내용. 새 파일이면 before가 null
+    // 마지막으로 제출된 상태의 내용과 지금 내용. 새 파일이면 before가 null
     diff(path: string): Promise<{ before: string | null; after: string | null }>
   }
   manual: {
@@ -570,7 +574,7 @@ export const API_METHODS = {
   settings: ['get', 'update', 'pickDirectory'],
   auth: ['status', 'setToken', 'clearToken'],
   env: ['check', 'install'],
-  workspace: ['state', 'clone', 'sync', 'changes', 'revert', 'submit', 'reveal', 'diff'],
+  workspace: ['state', 'clone', 'sync', 'changes', 'revert', 'submit', 'record', 'reveal', 'diff'],
   manual: [
     'list',
     'config',

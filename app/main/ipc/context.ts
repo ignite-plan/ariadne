@@ -92,6 +92,11 @@ export async function currentUser() {
   return user
 }
 
+// 기록(커밋만)의 작성자. 오프라인이라 GitHub 사용자를 못 읽으면 임시 이름 (제출할 때 다시 쓰는 커밋은 실제 작성자)
+export async function recordAuthor() {
+  return currentUser().then(commitAuthor, () => ({ name: 'Ariadne', email: 'ariadne@localhost' }))
+}
+
 // 앱이 받아 두는 도구(pandoc, Claude Code). 작업 폴더와 상관없이 userData에 둔다
 export const toolsDir = () => join(app.getPath('userData'), 'tools')
 // 앱 전용 Claude 설정 폴더 (--bare 실행의 CLAUDE_CONFIG_DIR, 대화 기록)

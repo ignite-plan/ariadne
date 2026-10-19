@@ -47,7 +47,12 @@ export function TitleBar({
   onSettings: () => void
 }) {
   const tasks = useTasks()
-  const syncInfo = sync ? SYNC_LABEL[sync.status] : undefined
+  // 내 PC에 기록만 한 것이 있으면 그 수를 보여 준다 (제출하면 올라간다)
+  const syncInfo = sync
+    ? sync.recorded && sync.status !== 'offline'
+      ? { icon: 'upload' as const, text: `내 PC 기록 ${sync.recorded}` }
+      : SYNC_LABEL[sync.status]
+    : undefined
   const claudeRunning = tasks.claude?.phase === 'running'
   // Claude가 고치는 중에는 제출하지 않는다 (반쯤 고친 파일이 올라간다)
   const canSubmit = (changes > 0 || sync?.status === 'ahead' || sync?.status === 'diverged') && !claudeRunning

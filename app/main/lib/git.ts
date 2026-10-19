@@ -136,9 +136,73 @@ async function writeFiles(dir: string, files: Map<string, FileEntry>) {
 const OWNED = 'manuals/'
 const owned = (path: string) => path.startsWith(OWNED)
 
-// HEAD 대비 작업 폴더 변경 (manuals/ 아래만)
+// "내 PC에 기록"(커밋만)한 커밋에 붙이는 표식. 제출할 때 이 기록들을 묶어 한 커밋으로 올린다
+const RECORD_TRAILER = 'Ariadne-Record: true'
+
+// 마지막으로 제출된 상태: 원격 main과 갈라진 지점. 기록만 한 커밋은 그 뒤에 있다.
+// 원격을 아직 받지 않았거나 HEAD가 원격과 같으면 HEAD
+async function baseCommit(dir: string) {
+  const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
+  const branch = (await git.currentBranch({ fs, dir })) ?? 'main'
+  const upstream = await oid(dir, `refs/remotes/${remote}/${branch}`)
+  if (!upstream || upstream === head) return head
+  const [base] = await git.findMergeBase({ fs, dir, oids: [head, upstream] })
+  return base ?? head
+}
+
+// 지금 작업 폴더 파일의 blob oid. 없으면 undefined
+async function workdirOid(dir: string, path: string) {
+  const file = join(dir, path)
+  if (!fs.existsSync(file)) return undefined
+  return (await git.hashBlob({ object: fs.readFileSync(file) })).oid
+}
+
+// 마지막 제출 상태 대비 작업 폴더 변경 (manuals/ 아래만). 기록만 하고 제출하지 않은 변경도 들어간다
 export async function changes(dir: string): Promise<Change[]> {
-  return (await workdirChanges(dir)).filter((c) => owned(c.path))
+  const work = (await workdirChanges(dir)).filter((c) => owned(c.path))
+  const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
+  const base = await baseCommit(dir)
+  if (base === head) return work
+  const [baseFiles, headFiles] = await Promise.all([treeFiles(dir, base), treeFiles(dir, head)])
+  const candidates = new Set(work.map((c) => c.path))
+  for (const path of new Set([...baseFiles.keys(), ...headFiles.keys()])) {
+    if (owned(path) && baseFiles.get(path)?.oid !== headFiles.get(path)?.oid) candidates.add(path)
+  }
+  const result: Change[] = []
+  for (const path of candidates) {
+    const before = baseFiles.get(path)?.oid
+    const now = await workdirOid(dir, path)
+    if (before === now) continue
+    result.push({ path, status: !before ? 'added' : !now ? 'deleted' : 'modified' })
+  }
+  return result.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+// 기록만 하고 아직 제출하지 않은 커밋 (최근 것부터)
+async function recordedCommits(dir: string) {
+  const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
+  const base = await baseCommit(dir)
+  if (base === head) return []
+  const log = await git.log({ fs, dir, ref: head })
+  const result: { oid: string; message: string }[] = []
+  for (const entry of log) {
+    if (entry.oid === base) break
+    if (entry.commit.message.includes(RECORD_TRAILER)) {
+      result.push({ oid: entry.oid, message: entry.commit.message.replace(RECORD_TRAILER, '').trim() })
+    }
+  }
+  return result
+}
+
+// 제출하지 않고 내 PC에만 커밋한다 (원격에 연결하지 않는다). 기록할 새 변경이 없으면 오류
+export async function record(dir: string, author: GitContext['author'], message: string) {
+  if (!(await stageAll(dir))) throw new Error('기록할 새 변경이 없습니다')
+  const commit = await git.commit({ fs, dir, message: `${message.trim() || 'docs: 매뉴얼 수정'}\n\n${RECORD_TRAILER}`, author })
+  return { commit, recorded: (await recordedCommits(dir)).length }
+}
+
+export async function recordedCount(dir: string) {
+  return (await recordedCommits(dir)).length
 }
 
 // HEAD 대비 작업 폴더 변경 전체. .gitignore 대상은 빠진다
@@ -168,8 +232,32 @@ async function workdirChanges(dir: string): Promise<Change[]> {
   return result.sort((a, b) => a.path.localeCompare(b.path))
 }
 
-// 변경을 버리고 HEAD 상태로 되돌린다. 새로 만든 파일은 지운다
+// 변경을 버리고 마지막으로 제출된 상태로 되돌린다 (기록만 한 변경도). 새로 만든 파일은 지운다.
+// 다 되돌려 남은 변경이 없으면 기록만 한 커밋도 정리한다 (브랜치를 제출 상태로)
 export async function revert(dir: string, paths: string[]) {
+  const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
+  const base = await baseCommit(dir)
+  if (base === head) return revertToHead(dir, paths)
+  const baseFiles = await treeFiles(dir, base)
+  for (const p of paths) {
+    const entry = baseFiles.get(p)
+    if (!entry) {
+      await rm(join(dir, p), { force: true })
+      continue
+    }
+    const { blob } = await git.readBlob({ fs, dir, oid: entry.oid })
+    await mkdir(dirname(join(dir, p)), { recursive: true })
+    await writeFile(join(dir, p), blob)
+  }
+  if (!(await changes(dir)).length) {
+    const branch = (await git.currentBranch({ fs, dir })) ?? 'main'
+    await git.writeRef({ fs, dir, ref: `refs/heads/${branch}`, value: base, force: true })
+    await git.checkout({ fs, dir, ref: branch, force: true })
+  }
+}
+
+// HEAD 상태로 되돌린다 (기록이 없을 때, manuals/ 밖 정리)
+async function revertToHead(dir: string, paths: string[]) {
   const current = new Map((await workdirChanges(dir)).map((c) => [c.path, c.status]))
   const tracked = paths.filter((p) => current.get(p) === 'modified' || current.get(p) === 'deleted')
   for (const p of paths.filter((p) => current.get(p) === 'added')) {
@@ -185,11 +273,11 @@ export async function revert(dir: string, paths: string[]) {
   }
 }
 
-// 마지막 커밋(HEAD)의 파일 내용. 없으면 null
+// 마지막으로 제출된 상태의 파일 내용 (변경 보기의 "전"). 없으면 null
 export async function headContent(dir: string, filepath: string) {
   try {
-    const head = await git.resolveRef({ fs, dir, ref: 'HEAD' })
-    const { blob } = await git.readBlob({ fs, dir, oid: head, filepath })
+    const base = await baseCommit(dir)
+    const { blob } = await git.readBlob({ fs, dir, oid: base, filepath })
     return Buffer.from(blob).toString('utf8')
   } catch {
     return null
@@ -215,7 +303,7 @@ async function fetchRemote(ctx: GitContext) {
 // 새로 생긴 파일은 둔다 (제출에 들어가지 않는다)
 async function restoreOutside(dir: string) {
   const stray = (await workdirChanges(dir)).filter((c) => !owned(c.path) && c.status !== 'added')
-  if (stray.length) await revert(dir, stray.map((c) => c.path))
+  if (stray.length) await revertToHead(dir, stray.map((c) => c.path))
 }
 
 // 원격을 받아 온다. 작업 중인 변경이 없으면 fast-forward까지 한다
@@ -225,7 +313,8 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
     await fetchRemote(ctx)
   } catch (error) {
     const pending = (await changes(ctx.dir)).length
-    return { status: 'offline', changes: pending, message: `원격에 연결하지 못했습니다: ${(error as Error).message}` }
+    const recorded = await recordedCount(ctx.dir)
+    return { status: 'offline', changes: pending, recorded, message: `원격에 연결하지 못했습니다: ${(error as Error).message}` }
   }
   const pending = await changes(ctx.dir)
   const local = (await oid(ctx.dir, ctx.branch))!
@@ -246,18 +335,21 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
   const message = {
     synced: '최신 상태입니다',
     behind: '다른 사람의 변경이 있습니다. 제출할 때 함께 합칩니다',
-    ahead: '아직 올리지 못한 커밋이 있습니다',
+    ahead: '내 PC에만 기록된 변경이 있습니다. 제출하면 올라갑니다',
     diverged: '다른 사람의 변경과 갈라졌습니다. 제출할 때 합칩니다',
     offline: '',
   }[status]
-  return { status, changes: pending.length, message }
+  return { status, changes: pending.length, recorded: await recordedCount(ctx.dir), message }
 }
 
+// HEAD 대비 바뀐 manuals/ 파일을 커밋할 수 있게 올린다. 올린 수
 async function stageAll(dir: string) {
-  for (const change of await changes(dir)) {
+  const pending = (await workdirChanges(dir)).filter((c) => owned(c.path))
+  for (const change of pending) {
     if (change.status === 'deleted') await git.remove({ fs, dir, filepath: change.path })
     else await git.add({ fs, dir, filepath: change.path })
   }
+  return pending.length
 }
 
 export interface SubmitOptions {
@@ -280,7 +372,8 @@ function stamp(now: Date) {
 // 브랜치에 옛 .github/workflows가 들어가면 GitHub가 workflow scope 없는 토큰의 push도 거절한다.
 // 파일 단위로 비교하므로 isomorphic-git이 못 합치는 히스토리(merge base가 여럿)도 처리한다.
 // 내가 바꾼 파일을 onto 쪽도 바꿨으면 conflicts에 담는다 (내 내용으로 덮어쓴다). 얹을 게 없으면 oid가 없다
-async function rebuild(ctx: GitContext, local: string, onto: string) {
+// message: 올릴 커밋 메시지 (없으면 내 마지막 커밋 메시지)
+async function rebuild(ctx: GitContext, local: string, onto: string, message?: string) {
   const { dir } = ctx
   const bases = await git.findMergeBase({ fs, dir, oids: [local, onto] })
   const [mine, theirs, ...olds] = await Promise.all([local, onto, ...bases].map((ref: string) => treeFiles(dir, ref)))
@@ -297,19 +390,19 @@ async function rebuild(ctx: GitContext, local: string, onto: string) {
   }
   const tree = await writeFiles(dir, files)
   if (tree === (await git.readCommit({ fs, dir, oid: onto })).commit.tree) return { conflicts }
-  const { message } = (await git.readCommit({ fs, dir, oid: local })).commit
+  message ??= (await git.readCommit({ fs, dir, oid: local })).commit.message
   const oid = await git.commit({ fs, dir, message, author: ctx.author, tree, parent: [onto], noUpdateBranch: true })
   return { oid, conflicts: conflicts.sort() }
 }
 
 // 같은 파일을 둘 다 고쳤을 때 줄 단위로 합쳐 본다. 못 합치면 undefined.
 // 내 커밋을 그대로 합치지 않고 merge base 위에 manuals/ 변경만 얹은 커밋을 합친다
-async function mergeOwned(ctx: GitContext, local: string, upstreamRef: string) {
+async function mergeOwned(ctx: GitContext, local: string, upstreamRef: string, message?: string) {
   const { dir } = ctx
   const upstream = (await oid(dir, upstreamRef))!
   const bases = await git.findMergeBase({ fs, dir, oids: [local, upstream] })
   if (bases.length !== 1) return undefined
-  const { oid: mine } = await rebuild(ctx, local, bases[0])
+  const { oid: mine } = await rebuild(ctx, local, bases[0], message)
   if (!mine) return undefined
   const temp = 'refs/heads/ariadne-submit'
   await git.writeRef({ fs, dir, ref: temp, value: mine, force: true })
@@ -332,10 +425,14 @@ async function mergeOwned(ctx: GitContext, local: string, upstreamRef: string) {
 export async function submit(ctx: GitContext, options: SubmitOptions): Promise<SubmitResult> {
   const { dir, branch } = ctx
   const upstreamRef = `refs/remotes/${remote}/${branch}`
-  // 지난 제출이 push 단계에서 실패했으면 커밋만 남아 있다. 변경이 없어도 그 커밋을 올린다
+  // 기록만 한 커밋이 있으면 제출 메시지 아래에 기록들을 적어 한 커밋으로 올린다.
+  // 지난 제출이 push 단계에서 실패했으면 커밋만 남아 있다. 변경이 없어도 그 커밋을 그 메시지로 올린다
+  const records = await recordedCommits(dir)
+  const message = records.length
+    ? [options.message, '', '기록:', ...records.reverse().map((r) => `- ${r.message.split('\n')[0]}`)].join('\n')
+    : undefined
   let commit: string
-  if ((await changes(dir)).length) {
-    await stageAll(dir)
+  if (await stageAll(dir)) {
     commit = await git.commit({ fs, dir, message: options.message, author: ctx.author })
   } else {
     commit = (await oid(dir, branch))!
@@ -372,7 +469,7 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
   }
 
   if (options.mode === 'pr') {
-    const { oid: rebuilt, conflicts } = await rebuild(ctx, commit, (await oid(dir, upstreamRef))!)
+    const { oid: rebuilt, conflicts } = await rebuild(ctx, commit, (await oid(dir, upstreamRef))!, message)
     if (!rebuilt) throw new Error('제출할 변경이 없습니다')
     return toPullRequest(rebuilt, conflicts)
   }
@@ -382,14 +479,14 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
     const local = (await oid(dir, branch))!
     const upstream = (await oid(dir, upstreamRef))!
     // 내 커밋을 그대로 올리지 않고 원격 main 위에 manuals/ 변경만 얹어 올린다 (예전 앱이 만든 커밋에 섞인 옛 내용을 거른다)
-    const { oid: rebuilt, conflicts } = await rebuild(ctx, local, upstream)
+    const { oid: rebuilt, conflicts } = await rebuild(ctx, local, upstream, message)
     // 내 변경이 이미 원격에 다 들어가 있다
     if (!rebuilt) {
       await moveTo(upstream)
       return { mode: 'push', commit: upstream }
     }
     if (conflicts.length) {
-      const merged = await mergeOwned(ctx, local, upstreamRef)
+      const merged = await mergeOwned(ctx, local, upstreamRef, message)
       if (!merged) return toPullRequest(rebuilt, conflicts)
       await moveTo(merged)
     } else {

@@ -32,7 +32,8 @@ export function Sidebar({
   onOpenTodo: (todo: Todo) => void
   onNewSection: (chapterDir?: string) => void
   onRemoveSection: (path: string, title: string) => void
-  onRevert: (changes: FileChange[]) => void
+  // all: [모두 되돌리기] (그때의 변경 전부)
+  onRevert: (changes: FileChange[], all?: boolean) => void
   onMoveChapter: (dir: string, toIndex: number) => void
   onMoveSection: (path: string, toIndex: number) => void
   onRefresh: (target: { chapterDir: string; path?: string }) => void
@@ -263,7 +264,8 @@ function ChangesTab({
 }: {
   changes: FileChange[]
   onOpen: (path: string) => void
-  onRevert: (changes: FileChange[]) => void
+  // all: [모두 되돌리기] (그때의 변경 전부)
+  onRevert: (changes: FileChange[], all?: boolean) => void
   onDiff: (change: FileChange) => void
 }) {
   return (
@@ -296,7 +298,7 @@ function ChangesTab({
       </div>
       {changes.length > 1 && (
         <div className="sidebar-footer">
-          <button className="button small block" onClick={() => onRevert(changes)}>
+          <button className="button small block" onClick={() => onRevert(changes, true)}>
             <Icon name="revert" size={14} /> 모두 되돌리기
           </button>
         </div>

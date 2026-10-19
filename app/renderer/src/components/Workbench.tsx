@@ -124,7 +124,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     if (doc) await section.open(doc.path).catch(() => undefined)
   }
 
-  const askRevert = (targets: FileChange[]) => {
+  const askRevert = (targets: FileChange[], all = false) => {
     setDialog({
       type: 'confirm',
       title: '변경 되돌리기',
@@ -136,11 +136,15 @@ export function Workbench({ onReset }: { onReset: () => void }) {
       danger: true,
       run: async () => {
         section.discard()
-        await api.workspace.revert(targets.map((t) => t.path))
+        // 모두 되돌리기는 화면의 목록이 아니라 지금 변경 전부를 다시 읽어 되돌린다 (방금 끝난 Claude 작업이 목록에 늦게 올라올 수 있다)
+        const paths = all ? (await api.workspace.changes()).map((c) => c.path) : targets.map((t) => t.path)
+        await api.workspace.revert(paths)
         const next = pickSection(await api.manual.tree(), doc?.path)
         // 문서를 먼저 연다. 변경 목록이 먼저 비면 그 사이 다른 화면을 연 것을 늦게 덮어쓴다
         if (next) await section.open(next)
         await side.refresh()
+        // 기록만 한 것까지 다 되돌렸으면 기록이 정리되므로 동기화 표시를 다시 읽는다
+        if (sync?.recorded) void side.runSync(true)
         toast.show('success', '되돌렸습니다')
       },
     })
@@ -470,7 +474,18 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         />
       )}
       {dialog?.type === 'submit' && settings && (
-        <SubmitDialog changes={changes} sync={sync} settings={settings} onClose={() => setDialog(null)} onDone={(r) => void onSubmitted(r)} />
+        <SubmitDialog
+          changes={changes}
+          sync={sync}
+          settings={settings}
+          onClose={() => setDialog(null)}
+          onDone={(r) => void onSubmitted(r)}
+          onRecorded={(recorded) => {
+            setDialog(null)
+            toast.show('success', `내 PC에 기록했습니다 (제출 전 기록 ${recorded}건). 제출하면 함께 올라갑니다`)
+            void side.runSync(true)
+          }}
+        />
       )}
       {dialog?.type === 'diff' && <DiffDialog path={dialog.path} title={dialog.title} onClose={() => setDialog(null)} />}
       {dialog?.type === 'import' && (

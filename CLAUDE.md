@@ -9,6 +9,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - `manuals/bo/images/<shot-id>.png`: 캡처 산출물. `manuals/bo/shots.ts`의 id와 같다
 - `manuals/bo/videos/<id>.yaml`: 가이드 영상 시나리오 (데이터, id = 파일 이름). scene = `say`(자막+내레이션) + `steps`(정해진 단계만, `src/core/video/scenario.ts` zod 스키마). 쓸 때는 `saveVideo`(YAML.stringify)만. 엔진은 `src/core/video/` (overlay로 자막·커서를 페이지에 그림 → `page.screencast` 프레임 → ffmpeg h264+aac+mov_text). ffmpeg에 libass가 없어 자막을 ffmpeg로 새기지 않는다
 - `.capture/<m>/review/<화면>.md.json`: Claude 변경 검토 기준. 최신화가 화면을 고치기 직전 본문을 남기고(이미 있으면 유지), 편집 화면이 지금 본문과 비교해 표시한다(`app/main/lib/review.ts`, 비교는 `app/shared/review-diff.ts`, 미리보기 표시는 `renderer/src/review-marks.ts`). 검토 완료·제출·되돌리기 때 지운다. 본문이 원문과 같아도 지우지 않는다(Claude가 아직 고치는 중일 수 있다)
+- "내 PC에 기록만"(제출 창): `git.ts` `record`가 manuals/ 변경을 커밋만 한다(메시지 끝 `Ariadne-Record: true`, 원격 연결 없음). 변경 목록·변경 보기·되돌리기의 기준은 HEAD가 아니라 **마지막 제출 상태**(원격 main과의 merge-base, `baseCommit`)라 기록한 변경도 제출 전까지 변경 탭에 보인다. 제출하면 기록들을 메시지에 적어 한 커밋으로 올리고, 다 되돌리면 빈 기록은 정리한다. Claude 작업(`draft:start`)은 시작 전에 자동으로 기록한다
 - Claude 최신화 대기열은 renderer `tasks.tsx`가 가진다(순수 함수 `app/shared/claude-queue.ts`, 앱을 켜 둔 동안만). main `draft.ts`는 지금처럼 한 번에 하나만 실행하고, 작업이 끝나면 renderer가 세션 확인 뒤 다음 항목을 시작한다. 끝난 작업 후처리는 `useClaudeDone`(상태가 아니라 완료 알림 구독)으로 해야 바로 이어지는 다음 작업에 묻히지 않는다
 - `manuals/bo/reference.docx`: Word 스타일 템플릿 (`pnpm make:reference`로 원본에서 생성)
 - 사용법 문서: `README.md`는 길잡이 표만, 기획자용은 `docs/planner/`(기능별 파일, 목차는 `docs/planner/README.md`), 개발자용은 `docs/developer/`, 작성 규칙은 `docs/writing-rules.md`. 기능을 바꾸면 해당 문서를 고친다
