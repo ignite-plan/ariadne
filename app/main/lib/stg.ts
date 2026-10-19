@@ -79,6 +79,9 @@ export function shotToCode(shot: ShotInput) {
   return `  {\n    ${fields.join(',\n    ')},\n  },`
 }
 
+// shots.ts에 이 id의 정의가 있는지
+export const hasShot = (source: string, id: string) => idPattern(id).test(source)
+
 const idPattern = (id: string) => new RegExp(`id:\\s*['"]${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`)
 
 // shots.ts에서 id의 { ... } 항목을 지운다 (뒤 쉼표, 줄 포함)
@@ -334,7 +337,8 @@ export class StgSession {
 
   // 새 페이지에서 단계를 다시 재생해 찍는다. 같은 단계가 다음 릴리즈 캡처에도 그대로 쓰인다
   // replace: 이미 있는 이미지/캡처 정의를 바꾼다 (최신화). 아니면 기존 이미지 id는 거절한다
-  async saveShot(shot: ShotInput, replace = false) {
+  // defineOnly: 캡처 정의만 등록한다. 매뉴얼 이미지는 그대로 두고, 찍은 결과는 비교용으로 .capture/<m>/defined/<id>.png에 둔다
+  async saveShot(shot: ShotInput, replace = false, { defineOnly = false } = {}) {
     if (!ID_PATTERN.test(shot.id)) throw new Error(`shot id는 ${ID_RULE}`)
     for (const step of shot.steps ?? []) {
       if ('click' in step && isBlockedLabel(step.click.name)) {
@@ -343,22 +347,23 @@ export class StgSession {
     }
     const shotsFile = join(manualDir(this.options), 'shots.ts')
     const imageFile = join(manualDir(this.options), 'images', `${shot.id}.png`)
-    if (!replace && existsSync(imageFile)) {
+    if (defineOnly && !existsSync(imageFile)) throw new Error(`매뉴얼에 없는 이미지 id입니다: ${shot.id}. 캡처 정의는 이미 있는 이미지에만 만든다`)
+    if (!replace && !defineOnly && existsSync(imageFile)) {
       throw new Error(`이미 있는 이미지 id입니다: ${shot.id}. 다른 id를 쓰거나, 그 이미지를 바꾸려면 replace: true`)
     }
     // 형식 오류·중복은 찍기 전에 알린다. 실제 쓰기는 찍은 뒤 다시 읽어서 (여러 화면 작업이 동시에 shots.ts를 고친다)
-    appendShot(readFileSync(shotsFile, 'utf8'), shot, replace)
+    appendShot(readFileSync(shotsFile, 'utf8'), shot, replace || defineOnly)
 
     this.url(shot.path) // STG 밖 주소는 거절
     const page = await this.newPage(await this.ensurePage())
     try {
-      const imagesDir = join(manualDir(this.options), 'images')
-      mkdirSync(imagesDir, { recursive: true })
-      const file = join(imagesDir, `${shot.id}.png`)
+      const dir = defineOnly ? join(captureDir(this.options), 'defined') : join(manualDir(this.options), 'images')
+      mkdirSync(dir, { recursive: true })
+      const file = join(dir, `${shot.id}.png`)
       const { steps, ...rest } = shot
       await this.expireOnFail(() => shootShot(page, this.baseUrl, { ...rest, steps: steps?.length ? shotSteps(steps) : undefined }, file))
-      writeFileSync(shotsFile, appendShot(readFileSync(shotsFile, 'utf8'), shot, replace))
-      return { image: `images/${shot.id}.png`, file }
+      writeFileSync(shotsFile, appendShot(readFileSync(shotsFile, 'utf8'), shot, replace || defineOnly))
+      return { image: defineOnly ? file : `images/${shot.id}.png`, file, manualImage: imageFile }
     } finally {
       await page.close()
     }

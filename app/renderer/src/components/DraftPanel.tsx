@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, RefreshScope } from '../../../shared/api.ts'
 import { canQueue, queuePosition, type QueuedDraft } from '../../../shared/claude-queue.ts'
-import { SCREEN_LABEL, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
+import { screenLabel, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
 import { checkScope, DRAFT_MODES, draftLabel, draftMode, isVideoDraft, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { formatAge } from '../../../shared/format.ts'
 import { api } from '../api.ts'
@@ -169,7 +169,7 @@ export function DraftPanel({
             </button>
           ) : phase === 'done' ? (
             <button className="button primary block" onClick={close}>
-              <Icon name="check" /> 닫고 결과 보기
+              <Icon name="check" /> {input.mode === 'shots' ? '닫고 캡처 열기' : '닫고 결과 보기'}
             </button>
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude || needsLogin(check)} onClick={start}>
@@ -469,7 +469,7 @@ function DraftInputList({
           <dt>연결 화면</dt>
           <dd>{input.targets?.[0] ?? '없음'}</dd>
         </>
-      ) : input.mode === 'refresh' ? (
+      ) : input.mode === 'refresh' || input.mode === 'shots' ? (
         <>
           <dt>대상</dt>
           <dd>{input.targets?.length === 1 ? input.targets[0] : `화면 ${input.targets?.length ?? 0}개`}</dd>
@@ -607,7 +607,7 @@ function DraftLog({ task }: { task: ClaudeTask }) {
                 >
                   {row.status === 'running' && <Icon name="sync" size={12} className="spin" />}
                   <span>{screenName(target)}</span>
-                  <b>{SCREEN_LABEL[row.status]}</b>
+                  <b>{screenLabel(row.status, task.input.mode)}</b>
                 </button>
               </li>
             ))}

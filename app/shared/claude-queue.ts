@@ -18,8 +18,8 @@ export interface ClaudeQueue {
 
 export const EMPTY_QUEUE: ClaudeQueue = { items: [] }
 
-// 대기할 수 있는 작업. 초안·영상 Claude 작업은 화면 생성·영상 패널과 얽혀 지금처럼 한 번에 하나
-export const canQueue = (input: DraftInput) => input.mode === 'refresh'
+// 대기할 수 있는 작업 (최신화, 캡처 정의). 초안·영상 Claude 작업은 화면 생성·영상 패널과 얽혀 지금처럼 한 번에 하나
+export const canQueue = (input: DraftInput) => input.mode === 'refresh' || input.mode === 'shots'
 
 export function enqueue(queue: ClaudeQueue, item: QueuedDraft): ClaudeQueue {
   if (queue.items.some((i) => i.panel === item.panel)) return queue

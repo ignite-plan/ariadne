@@ -12,8 +12,9 @@ const item = (panel: number, menu = `Menu ${panel}`): QueuedDraft => ({
 const panels = (q: { items: QueuedDraft[] }) => q.items.map((i) => i.panel)
 
 describe('Claude 최신화 대기열', () => {
-  it('최신화만 대기할 수 있다', () => {
+  it('최신화와 캡처 정의만 대기할 수 있다', () => {
     assert.equal(canQueue({ mode: 'refresh', menu: 'A' }), true)
+    assert.equal(canQueue({ mode: 'shots', menu: 'A' }), true)
     for (const mode of ['create', 'video', 'video-scene'] as DraftInput['mode'][]) assert.equal(canQueue({ mode, menu: 'A' }), false)
   })
 

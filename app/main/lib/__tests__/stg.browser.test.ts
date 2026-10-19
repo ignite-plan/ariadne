@@ -300,6 +300,47 @@ describe('STG 세션과 Ariadne MCP (Chrome)', { skip: skipWithout() }, () => {
       assert.deepEqual(events, ['manual_outline', 'create_section', 'stg_open', 'stg_click', 'save_shot'])
     })
 
+    it('캡처 정의만: 대상 화면 이미지만 받고, 매뉴얼 이미지는 그대로, 이번에 등록한 정의만 뺄 수 있다', async () => {
+      const textOf = (r: unknown) => (r as { content: { text: string }[] }).content[0].text
+      const manualImage = join(fx.dir, 'images', 'menu-list.png')
+      const before = readFileSync(manualImage)
+      const defineMcp = await startAriadneMcp({
+        ref: fx.ref,
+        stg: () => (stg ??= new StgSession({ ...fx.ref, baseUrl, profileDir })),
+        defineShots: ['menu-list', 'menu-information-popup'],
+      })
+      const defineClient = new Client({ name: 'test-define', version: '1.0.0' })
+      await defineClient.connect(
+        new StreamableHTTPClientTransport(new URL(defineMcp.url), { requestInit: { headers: { Authorization: `Bearer ${defineMcp.token}` } } }),
+      )
+      try {
+        assert.ok((await defineClient.listTools()).tools.some((t) => t.name === 'drop_shot'))
+        const saved = await defineClient.callTool({
+          name: 'save_shot',
+          arguments: { id: 'menu-list', path: '/menu', ready: 'text=Total', steps: [{ click: { role: 'button', name: '+ Group Addition' } }], clip: '[role="dialog"]' },
+        })
+        const { captured, manual } = JSON.parse(textOf(saved))
+        assert.equal(captured, join(fx.ref.root, '.capture', 'demo', 'defined', 'menu-list.png'))
+        assert.equal(manual, manualImage)
+        assert.ok(existsSync(captured))
+        assert.ok(readFileSync(manualImage).equals(before), '매뉴얼 이미지는 그대로')
+        assert.match(readFileSync(join(fx.dir, 'shots.ts'), 'utf8'), /id: 'menu-list'[\s\S]*\+ Group Addition/)
+        // 다른 화면의 이미지, 매뉴얼에 없는 이미지는 거절
+        const other = await defineClient.callTool({ name: 'save_shot', arguments: { id: 'imported-shot', path: '/menu' } })
+        assert.match(textOf(other), /이 화면의 이미지가 아닙니다/)
+        // 원래 있던 정의(menu-information-popup)는 뺄 수 없고, 이번에 등록한 것만 뺀다
+        const refused = await defineClient.callTool({ name: 'drop_shot', arguments: { id: 'menu-information-popup', reason: 'x' } })
+        assert.match(textOf(refused), /이번 작업에서 등록한 정의가 아닙니다/)
+        await defineClient.callTool({ name: 'drop_shot', arguments: { id: 'menu-list', reason: '다른 팝업' } })
+        const shots = readFileSync(join(fx.dir, 'shots.ts'), 'utf8')
+        assert.doesNotMatch(shots, /id: 'menu-list'/)
+        assert.match(shots, /id: 'menu-information-popup'/)
+      } finally {
+        await defineClient.close()
+        await defineMcp.close()
+      }
+    })
+
     it('토큰이 없으면 401', async () => {
       const res = await fetch(mcp.url, { method: 'POST', body: '{}' })
       assert.equal(res.status, 401)

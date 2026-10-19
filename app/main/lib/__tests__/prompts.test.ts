@@ -32,6 +32,19 @@ describe('작업 지시', () => {
     assert.match(text, /## 기획서 요약\n\(없음/)
   })
 
+  it('캡처 정의: 화면 하나, 정의할 이미지 id, 본문은 건드리지 않음. 기획서 요약·코드 위치는 없다', () => {
+    const text = taskText(
+      { root, manual: 'bo' },
+      { mode: 'shots', menu: 'Menu Management', targets: ['08-menu-management/01-menu-list-view.md'] },
+      { shots: [{ id: 'menu-list', manual: false }, { id: 'menu-icon', manual: true }] },
+    )
+    assert.match(text, /자동 캡처 정의를 등록한다 \(본문·이미지·다른 화면은 건드리지 않는다\)/)
+    assert.match(text, /대상 화면: manuals\/bo\/08-menu-management\/01-menu-list-view\.md/)
+    assert.match(text, /save_shot은 이 id만 받는다\): menu-list, menu-icon \(지금은 수동으로 표시됨\)/)
+    assert.doesNotMatch(text, /기획서 요약|dealerhub-web/)
+    assert.equal(skillText(root, 'shots', { 'manual-shots': '---\nname: s\n---\nBUNDLED SHOTS' }), 'BUNDLED SHOTS')
+  })
+
   it('최신화 화면 하나: 그 화면만, 기획서 요약을 붙인다', () => {
     const text = taskText(
       { root, manual: 'bo' },

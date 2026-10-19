@@ -1,6 +1,6 @@
 // Claude Code에 주는 앱 도구(MCP). 127.0.0.1 임의 포트 + 토큰. Electron에 의존하지 않는다
 import { randomBytes } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
@@ -14,7 +14,7 @@ import { applyVars, listVideos, loadVideo, parseScene, parseVideo, saveVideo, vi
 import type { ZodRawShapeCompat } from '@modelcontextprotocol/sdk/server/zod-compat.js'
 import { ariadneToolLabel, MCP_NAME } from './ariadne-tools.ts'
 import { createSection, readTree } from './sections.ts'
-import { ROLES, SHOT_STEP, type OpenResult, type StgSession } from './stg.ts'
+import { removeShot, ROLES, SHOT_STEP, type OpenResult, type StgSession } from './stg.ts'
 
 export { MCP_NAME }
 
@@ -33,6 +33,8 @@ export interface AriadneMcpDeps {
   videoScene?: { id: string; index: number; insert: boolean }
   // 캡처 저장을 막는 이유 (반영 범위를 정한 최신화: 지금 STG엔 범위 밖 변경이 들어 있을 수 있다)
   noShots?: string
+  // 캡처 정의만 만드는 작업: 이 이미지 id만 받고, 매뉴얼 이미지는 바꾸지 않는다 (대상 화면이 쓰는 이미지)
+  defineShots?: string[]
   onEvent?: (event: ToolEvent) => void
 }
 
@@ -71,7 +73,8 @@ function describe(result: OpenResult) {
     .join('\n')
 }
 
-function buildServer(deps: AriadneMcpDeps) {
+// definedNow: 이 작업에서 save_shot(정의만)으로 등록한 id. 서버는 요청마다 새로 만들므로 작업 단위로 바깥에서 들고 있다
+function buildServer(deps: AriadneMcpDeps, definedNow: Set<string>) {
   const server = new McpServer({ name: MCP_NAME, version: '1.0.0' })
   // 호출을 알리고, 던진 오류는 Claude가 읽을 도구 오류로 돌려준다
   const tool = <S extends ZodRawShapeCompat>(name: string, config: { description: string; inputSchema: S }, fn: ToolCallback<S>) => {
@@ -192,10 +195,38 @@ function buildServer(deps: AriadneMcpDeps) {
     },
     async ({ replace, ...args }) => {
       if (deps.noShots) throw new Error(deps.noShots)
+      if (deps.defineShots) {
+        if (!deps.defineShots.includes(args.id)) {
+          throw new Error(`이 화면의 이미지가 아닙니다: ${args.id}. 대상 화면이 쓰는 이미지만 정의한다: ${deps.defineShots.join(', ')}`)
+        }
+        const saved = await deps.stg().saveShot(args, true, { defineOnly: true })
+        definedNow.add(args.id)
+        // 찍은 결과(captured)를 매뉴얼 이미지(manual)와 Read로 비교해 같은 화면 상태인지 확인한다
+        return text(JSON.stringify({ captured: saved.file, manual: saved.manualImage }))
+      }
       const saved = await deps.stg().saveShot(args, replace)
       return text(JSON.stringify({ image: saved.image, file: saved.file }))
     },
   )
+
+  // 캡처 정의만 만드는 작업: 찍어 보니 매뉴얼 이미지와 다른 화면이면 이번에 등록한 정의를 뺀다 (원래 있던 정의는 못 뺀다)
+  if (deps.defineShots) {
+    tool(
+      'drop_shot',
+      {
+        description:
+          '이번 작업에서 save_shot으로 등록한 캡처 정의를 뺀다. 찍은 결과가 매뉴얼 이미지와 다른 화면이고 같은 상태를 만들 수 없을 때 쓴다',
+        inputSchema: { id: z.string(), reason: z.string().describe('뺀 이유 (기획자에게 보여 준다)') },
+      },
+      ({ id }) => {
+        if (!definedNow.has(id)) throw new Error(`이번 작업에서 등록한 정의가 아닙니다: ${id}`)
+        const file = join(manualDir(deps.ref), 'shots.ts')
+        writeFileSync(file, removeShot(readFileSync(file, 'utf8'), id))
+        definedNow.delete(id)
+        return text(`캡처 정의를 뺐습니다: ${id}`)
+      },
+    )
+  }
 
   // 가이드 영상 시나리오. 정해진 단계만 담은 YAML이라 임의 코드는 없다
   const outline = (id: string) => {
@@ -319,6 +350,7 @@ function buildServer(deps: AriadneMcpDeps) {
 
 export async function startAriadneMcp(deps: AriadneMcpDeps) {
   const token = randomBytes(24).toString('hex')
+  const definedNow = new Set<string>()
   const httpServer = http.createServer(async (req, res) => {
     if (req.headers.authorization !== `Bearer ${token}` || !req.url?.startsWith('/mcp')) {
       res.writeHead(401).end()
@@ -332,7 +364,7 @@ export async function startAriadneMcp(deps: AriadneMcpDeps) {
         body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : undefined
       }
       // stateless: 요청마다 서버를 만든다. STG 브라우저 세션은 deps.stg가 유지한다
-      const server = buildServer(deps)
+      const server = buildServer(deps, definedNow)
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
       res.on('close', () => {
         void transport.close()

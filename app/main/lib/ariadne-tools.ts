@@ -12,6 +12,7 @@ const LABELS: Record<string, (input: Input) => string> = {
   stg_click: (i) => `STG 누르기: ${i.name ?? ''}`,
   stg_fill: (i) => `STG 입력: ${i.label ?? ''}`,
   save_shot: (i) => `캡처 저장: ${i.id ?? ''}`,
+  drop_shot: (i) => `캡처 정의 빼기: ${i.id ?? ''}`,
   video_get: (i) => `영상 시나리오 읽기: ${i.id ?? ''}`,
   video_save: (i) => `영상 시나리오 저장: ${i.id ?? ''}`,
   video_open_scene: (i) => `영상 장면 ${sceneNo(i.scene)} 앞까지 재생: ${i.id ?? ''}`,

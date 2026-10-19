@@ -20,6 +20,7 @@ export function composePrompt(skill: string, task: string) {
 export const SKILL_BY_MODE = {
   create: 'manual-draft',
   refresh: 'manual-refresh',
+  shots: 'manual-shots',
   video: 'manual-video-draft',
   'video-scene': 'manual-video-scene',
 } as const
@@ -85,7 +86,12 @@ function linkedSections(ref: ManualRef, targets: string[] = [], none: string) {
 }
 
 // brief: 최신화 화면 하나에 줄 기획서 요약 (앱이 미리 만든 것)
-export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?: string; brief?: string } = {}) {
+// shots: 캡처 정의 작업에서 대상 화면이 쓰는 이미지와 지금 정의 상태
+export function taskText(
+  ref: ManualRef,
+  input: DraftInput,
+  options: { codeDir?: string; brief?: string; shots?: { id: string; manual: boolean }[] } = {},
+) {
   const lines = ['## 이번 작업', `- 매뉴얼 id: ${ref.manual}`, `- 메뉴: ${input.menu}`]
   if (input.mode === 'video-scene') {
     const scene = input.scene ?? 0
@@ -105,6 +111,17 @@ export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?:
     lines.push(...linkedSections(ref, input.targets, '- 연결된 매뉴얼 화면: 없음 (STG 화면과 기획서로 내레이션을 쓴다)'))
     lines.push(`- STG 경로 힌트: ${input.path || '(없음 — 연결 화면의 front-matter routes에서 찾는다)'}`)
     if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
+    return lines.join('\n')
+  }
+  if (input.mode === 'shots') {
+    lines.push('- 할 일: 아래 화면 하나가 쓰는 매뉴얼 이미지마다 자동 캡처 정의를 등록한다 (본문·이미지·다른 화면은 건드리지 않는다)')
+    lines.push(`- 대상 화면: manuals/${ref.manual}/${input.targets?.[0] ?? ''}`)
+    lines.push(
+      options.shots?.length
+        ? `- 정의할 이미지 (save_shot은 이 id만 받는다): ${options.shots.map((s) => `${s.id}${s.manual ? ' (지금은 수동으로 표시됨)' : ''}`).join(', ')}`
+        : '- 정의할 이미지: 없음 (바로 마지막 응답을 낸다)',
+    )
+    lines.push(`- STG 경로 힌트: ${input.path || '(없음 — front-matter routes에서 찾는다)'}`)
     return lines.join('\n')
   }
   if (input.mode === 'refresh') {

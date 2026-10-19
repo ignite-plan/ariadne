@@ -27,13 +27,17 @@ export const SCREEN_LABEL: Record<ScreenStatus, string> = {
   cancelled: '취소',
 }
 
+// 캡처 정의 작업은 본문을 고치지 않으므로 다르게 부른다
+export const screenLabel = (status: ScreenStatus, mode?: DraftInput['mode']) =>
+  mode === 'shots' && status === 'done' ? '정의함' : mode === 'shots' && status === 'unchanged' ? '더할 것 없음' : SCREEN_LABEL[status]
+
 // 화면 경로에서 파일 이름만 (08-menu-management/02-menu-creation.md → 02-menu-creation)
 export const screenName = (target: string) => target.split('/').pop()!.replace(/\.md$/, '')
 
 let lineSeq = 0
 const nextId = () => `line-${++lineSeq}`
 
-export function applyDraftEvent(lines: LogLine[], event: DraftEvent): LogLine[] {
+export function applyDraftEvent(lines: LogLine[], event: DraftEvent, mode?: DraftInput['mode']): LogLine[] {
   const id = nextId()
   if (event.kind === 'status') return [...lines, { id, kind: 'status', text: event.text, target: event.target }]
   if (event.kind === 'warning') return [...lines, { id, kind: 'warning', text: event.text, target: event.target }]
@@ -43,7 +47,7 @@ export function applyDraftEvent(lines: LogLine[], event: DraftEvent): LogLine[] 
   if (event.kind === 'screen') {
     // 대기는 줄을 남기지 않는다 (화면 목록에 보인다)
     if (event.status === 'waiting') return lines
-    const text = `${SCREEN_LABEL[event.status]}${event.text ? ` — ${event.text}` : ''}`
+    const text = `${screenLabel(event.status, mode)}${event.text ? ` — ${event.text}` : ''}`
     return [...lines, { id, kind: event.status === 'failed' ? 'warning' : 'status', text, target: event.target }]
   }
   const { target } = event
@@ -86,7 +90,7 @@ export interface ClaudeTask {
 }
 
 export function applyTaskEvent(task: ClaudeTask, event: DraftEvent): ClaudeTask {
-  const next = { ...task, log: applyDraftEvent(task.log, event) }
+  const next = { ...task, log: applyDraftEvent(task.log, event, task.input.mode) }
   if (event.kind === 'screen') next.screens = { ...task.screens, [event.target]: { status: event.status, text: event.text } }
   if (event.kind === 'phase') next.stage = event.text
   if (event.kind === 'ask') next.ask = { id: event.id, text: event.text }

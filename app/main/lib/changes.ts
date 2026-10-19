@@ -19,6 +19,7 @@ export function describeChanges(ref: ManualRef, changes: Pick<FileChange, 'path'
       return { path, status, label: path.slice(`${prefix}images/`.length, -'.png'.length), kind: 'image' }
     }
     if (path === `${prefix}manual.yaml`) return { path, status, label: '목차 (manual.yaml)', kind: 'manual' }
+    if (path === `${prefix}shots.ts`) return { path, status, label: '자동 캡처 정의 (shots.ts)', kind: 'manual' }
     if (path.startsWith(prefix) && path.endsWith('.md')) return { path, status, label: path.slice(prefix.length), kind: 'section' }
     return { path, status, label: path, kind: 'other' }
   })

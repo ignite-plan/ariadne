@@ -61,11 +61,12 @@ export interface DraftSummary {
 }
 
 export interface DraftInput {
-  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, video: 가이드 영상 시나리오 초안, video-scene: 영상 장면 하나
-  mode?: 'create' | 'refresh' | 'video' | 'video-scene'
+  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, shots: 기존 화면 이미지의 캡처 정의만 (본문·이미지는 그대로),
+  // video: 가이드 영상 시나리오 초안, video-scene: 영상 장면 하나
+  mode?: 'create' | 'refresh' | 'shots' | 'video' | 'video-scene'
   // 메뉴 이름. 예: Menu Management
   menu: string
-  // 최신화할 화면 (<chapter dir>/<file>)
+  // 최신화(캡처 정의)할 화면 (<chapter dir>/<file>)
   targets?: string[]
   // 기존 장에 넣거나, 새 장 이름과 위치(0부터)
   chapterDir?: string

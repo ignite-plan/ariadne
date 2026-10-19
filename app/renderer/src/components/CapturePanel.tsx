@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isSessionExpired } from '../../../../src/core/stg-url.ts'
-import { assetUrl, type CaptureProgress, type CaptureReport, type ShotInfo } from '../../../shared/api.ts'
+import { assetUrl, type CaptureProgress, type CaptureReport, type ManualTree, type ShotInfo } from '../../../shared/api.ts'
 import { api, errorMessage } from '../api.ts'
-import { useTasks } from '../tasks.tsx'
+import { allSections } from '../manual-tree.ts'
+import { useClaudeDone, useTasks } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
 import { Progress } from './Progress.tsx'
 import { StgSession } from './StgSession.tsx'
@@ -11,18 +12,22 @@ import { useToast } from './Toast.tsx'
 export function CapturePanel({
   manual,
   currentSection,
+  tree,
   onAdopted,
   onClose,
 }: {
   manual: string
   currentSection?: string
+  // 자동 캡처가 있는 화면 수와, 캡처 정의를 만들 장을 찾는다
+  tree?: ManualTree
   onAdopted: () => void
   onClose: () => void
 }) {
   const toast = useToast()
   const [shots, setShots] = useState<ShotInfo[]>()
   const [loadError, setLoadError] = useState('')
-  const { session, reloadSession } = useTasks()
+  const tasks = useTasks()
+  const { session, reloadSession } = tasks
   const [scope, setScope] = useState<'section' | 'all'>(currentSection ? 'section' : 'all')
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [running, setRunning] = useState(false)
@@ -31,10 +36,22 @@ export function CapturePanel({
   const [adopt, setAdopt] = useState<Set<string>>(new Set())
   const [stamp, setStamp] = useState(Date.now())
 
+  const loadShots = () => api.capture.shots().then(setShots, (e) => setLoadError(errorMessage(e)))
   useEffect(() => {
-    api.capture.shots().then(setShots, (e) => setLoadError(errorMessage(e)))
+    void loadShots()
     return api.on('capture-progress', setProgress)
   }, [])
+  // Claude가 캡처 정의를 더했으면 목록을 다시 읽는다
+  useClaudeDone((task) => {
+    if (task.input.mode === 'shots') void loadShots()
+  })
+
+  // 자동 캡처가 있는 화면 / 전체 화면
+  const sectionsTotal = allSections(tree).length
+  const covered = new Set((shots ?? []).filter((s) => !s.manual).flatMap((s) => s.sections)).size
+  const chapter = tree?.chapters.find((c) => currentSection && c.sections.some((s) => s.path === currentSection))
+  // Claude로 캡처 정의 만들기 (최신화가 돌고 있으면 패널에서 대기에 추가할 수 있다)
+  const defineShots = (targets: string[]) => chapter && tasks.openDraft({ mode: 'shots', menu: chapter.title, targets })
 
   const visible = useMemo(
     () => (shots ?? []).filter((s) => scope === 'all' || (currentSection && s.sections.includes(currentSection))),
@@ -117,11 +134,28 @@ export function CapturePanel({
           <div className="shot-list">
             {loadError && <p className="form-error">{loadError}</p>}
             {!shots && !loadError && <p className="muted">캡처 목록을 읽는 중…</p>}
-            {shots && !visible.length && (
-              <p className="empty">
-                이 화면에는 자동 캡처가 정의되어 있지 않습니다. <br />
-                개발자에게 <code>shots.ts</code> 추가를 요청하세요.
+            {shots && scope === 'all' && sectionsTotal > 0 && (
+              <p className="muted small-note">
+                자동 캡처가 있는 화면 {covered} / {sectionsTotal}
               </p>
+            )}
+            {shots && !visible.length && (
+              <div className="empty shots-empty">
+                <p>
+                  이 화면에는 자동 캡처가 아직 없습니다. Claude가 STG에서 이 화면의 이미지마다 같은 화면을 찾아 캡처 방법을 등록합니다(본문과
+                  이미지는 그대로).
+                </p>
+                {currentSection && chapter && (
+                  <div className="shots-empty-actions">
+                    <button className="button primary small" onClick={() => defineShots([currentSection])}>
+                      <Icon name="sparkle" /> Claude로 이 화면 캡처 정의 만들기
+                    </button>
+                    <button className="button small" onClick={() => defineShots(chapter.sections.map((s) => s.path))}>
+                      이 장 전체
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             {visible.map((s) => (
               <label key={s.id} className={`shot ${s.manual ? 'disabled' : ''}`} title={s.manual ? '수동 이미지 (자동 캡처 안 함)' : s.path}>

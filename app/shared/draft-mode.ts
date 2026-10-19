@@ -3,7 +3,7 @@ import type { DraftInput, RefreshScope } from './api.ts'
 
 // 장면 채우기는 매뉴얼 본문·시나리오·STG만 본다. 영상 초안은 연결된 매뉴얼 화면이 없을 때만 기획서를 찾는다
 export function needsConfluence(input: Pick<DraftInput, 'mode' | 'targets'>) {
-  if (input.mode === 'video-scene') return false
+  if (input.mode === 'video-scene' || input.mode === 'shots') return false
   if (input.mode === 'video') return !input.targets?.[0]
   return true
 }
@@ -93,6 +93,21 @@ export const DRAFT_MODES: Record<DraftMode, DraftModeText> = {
     duration: '처음에는 15~25분쯤, 기획서가 그대로면 건너뛰어 몇 분',
     done: (changed) => (changed ? '최신화했습니다' : '바꿀 곳이 없었습니다'),
     failed: '최신화를 끝까지 하지 못했습니다',
+    subject: '장',
+  },
+  shots: {
+    chip: '캡처 정의',
+    title: 'Claude로 캡처 정의 만들기',
+    notify: 'Claude 캡처 정의',
+    about: () =>
+      '화면마다 STG에서 매뉴얼 이미지와 같은 화면 상태를 찾아 자동 캡처 방법(shots.ts)만 등록합니다(3개씩 동시에). 본문과 이미지는 바꾸지 않습니다.',
+    start: '캡처 정의 만들기 시작',
+    startIcon: 'sparkle',
+    ready: () =>
+      '[캡처 정의 만들기 시작]을 누르면 Claude가 화면의 이미지마다 STG에서 같은 화면을 열어 찍어 보고, 매뉴얼 이미지와 같으면 캡처 방법을 등록합니다. 끝나면 캡처 패널에서 다시 찍어 비교하세요.',
+    duration: '화면 하나에 몇 분, 장 전체 10~20분',
+    done: (changed) => (changed ? '캡처 정의를 만들었습니다' : '등록한 캡처 정의가 없습니다'),
+    failed: '캡처 정의를 끝까지 만들지 못했습니다',
     subject: '장',
   },
   video: {

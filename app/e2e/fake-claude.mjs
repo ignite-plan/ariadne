@@ -95,6 +95,21 @@ if (prompt.includes('의 장면 하나를 채운다')) {
   process.exit(0)
 }
 
+if (prompt.includes('자동 캡처 정의를 등록한다')) {
+  // 캡처 정의만: 본문 편집 도구가 없고, 정해진 이미지만 정의한다. 첫 이미지는 남기고 둘째는 등록했다가 뺀다
+  assert(!args.some((a) => /^(Edit|Write)\(/.test(a)), '캡처 정의는 본문을 고치지 않는다')
+  assert(!servers['mcp-atlassian-fake'], '캡처 정의는 기획서를 쓰지 않는다')
+  const ids = prompt.match(/save_shot은 이 id만 받는다\): ([^\n]+)/)[1].split(', ').map((s) => s.replace(/ \(.*\)$/, ''))
+  const outside = await call('save_shot', { id: 'dealer-list-zzz', path: '/dealer/company' })
+  assert(outside.isError, '이 화면 이미지가 아니면 거절')
+  const first = JSON.parse((await call('save_shot', { id: ids[0], path: '/dealer/company', ready: 'text=Total', clip: '#root' })).text)
+  assert(first.captured.includes('/.capture/bo/defined/') && first.manual.endsWith(`/images/${ids[0]}.png`), '찍은 결과와 매뉴얼 이미지 경로')
+  await call('save_shot', { id: ids[1], path: '/dealer/company', ready: 'text=Total', clip: '#root' })
+  await call('drop_shot', { id: ids[1], reason: '다른 화면' })
+  const summary = { sections: [], images: [ids[0]], todos: 0, notes: `${ids[1]}: 같은 화면을 만들 수 없어 뺌` }
+  emit({ type: 'result', subtype: 'success', is_error: false, result: `캡처 정의를 등록했습니다.\n\`\`\`json\n${JSON.stringify(summary)}\n\`\`\``, duration_ms: 500, permission_denials: [] })
+  process.exit(0)
+}
 if (prompt.includes('가이드 영상 시나리오')) {
   // 영상 초안: 시나리오를 읽고, STG를 보고, 저장한 뒤 실행해 본다
   const video = prompt.match(/가이드 영상 시나리오 `([a-z0-9-]+)`/)[1]

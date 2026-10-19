@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import type { DraftEvent } from '../api.ts'
-import { applyDraftEvent, applyTaskEvent, isDraftTarget, screenProgress, type ClaudeTask } from '../draft-log.ts'
+import { applyDraftEvent, applyTaskEvent, isDraftTarget, screenLabel, screenProgress, type ClaudeTask } from '../draft-log.ts'
 import { DRAFT_MODES, draftLabel } from '../draft-mode.ts'
 
 const task = (): ClaudeTask => ({ input: { mode: 'refresh', menu: 'Menu' }, panel: 1, phase: 'running', log: [], screens: {}, error: '', startedAt: 0, seq: 1 })
@@ -14,7 +14,7 @@ describe('Claude 작업 진행 기록', () => {
       { kind: 'claude', event: { kind: 'tool_result', id: 't1', isError: false, text: 'ok' } },
       { kind: 'claude', event: { kind: 'tool_result', id: 't2', isError: true, text: '세션 만료' } },
     ]
-    const lines = events.reduce(applyDraftEvent, [])
+    const lines = events.reduce<ReturnType<typeof applyDraftEvent>>((acc, e) => applyDraftEvent(acc, e), [])
     assert.deepEqual(
       lines.map((l) => [l.kind, l.text, l.done, l.failed, l.target]),
       [
@@ -29,6 +29,15 @@ describe('Claude 작업 진행 기록', () => {
     assert.deepEqual(lines.map((l) => l.text), ['끝'])
     lines = applyDraftEvent(lines, { kind: 'screen', target: 'a.md', status: 'waiting' })
     assert.equal(lines.length, 1)
+  })
+
+  it('캡처 정의 작업은 화면 상태를 정의함 / 더할 것 없음으로 부르고, 편집을 막지 않는다', () => {
+    assert.equal(screenLabel('done', 'shots'), '정의함')
+    assert.equal(screenLabel('unchanged', 'shots'), '더할 것 없음')
+    assert.equal(screenLabel('done', 'refresh'), '고침')
+    const t = applyTaskEvent({ ...task(), input: { mode: 'shots', menu: 'Menu' } }, { kind: 'screen', target: 'a.md', status: 'done' })
+    assert.equal(t.log.at(-1)?.text, '정의함')
+    assert.equal(isDraftTarget({ mode: 'shots', menu: 'Menu', targets: ['a.md'] }, 'a.md'), false)
   })
 
   it('화면별 진행, 단계, 질문을 작업에 반영한다', () => {

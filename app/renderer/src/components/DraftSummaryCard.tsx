@@ -20,6 +20,7 @@ export function DraftSummaryCard({
 }) {
   const mode = DRAFT_MODES[draftMode(input)]
   const refresh = input.mode === 'refresh'
+  const shots = input.mode === 'shots'
   const video = isVideoDraft(input)
   const summary = result?.summary
   const manualPrefix = (path: string) => (path.startsWith('manuals/') ? path : `manuals/${result?.manual ?? ''}/${path}`)
@@ -32,6 +33,8 @@ export function DraftSummaryCard({
           <div className="report-summary inline">
             {video ? (
               <span className="pill accent">장면 {summary.scenes ?? 0}</span>
+            ) : shots ? (
+              <span className="pill accent">캡처 정의 {summary.images?.length ?? 0}</span>
             ) : (
               <>
                 <span className="pill accent">
@@ -40,10 +43,10 @@ export function DraftSummaryCard({
                 <span className="pill">이미지 {summary.images?.length ?? 0}</span>
               </>
             )}
-            <span className={`pill ${summary.todos ? 'todo' : ''}`}>TODO {summary.todos ?? 0}</span>
+            {!shots && <span className={`pill ${summary.todos ? 'todo' : ''}`}>TODO {summary.todos ?? 0}</span>}
             {result?.durationMs ? <span className="pill">{formatDuration(result.durationMs)}</span> : null}
           </div>
-          {summary.sections.length > 0 && <h3>{refresh ? '고친 화면' : '만든 화면'}</h3>}
+          {summary.sections.length > 0 && <h3>{refresh ? '고친 화면' : shots ? '캡처 정의를 더한 화면' : '만든 화면'}</h3>}
           <ul>
             {summary.sections.map((path) => (
               <li key={path}>
@@ -60,7 +63,7 @@ export function DraftSummaryCard({
           </ul>
           {summary.unchanged && summary.unchanged.length > 0 && (
             <>
-              <h3>그대로인 화면</h3>
+              <h3>{shots ? '더한 정의가 없는 화면' : '그대로인 화면'}</h3>
               <ul className="muted">
                 {summary.unchanged.map((path) => (
                   <li key={path}>{path}</li>
@@ -132,7 +135,9 @@ export function DraftSummaryCard({
       <p className="hint">
         {video
           ? '[닫고 결과 보기]를 누르면 장면 편집기로 돌아갑니다. 내레이션을 듣고 미리보기로 확인한 뒤 영상을 만드세요.'
-          : 'TODO 탭에서 확인할 곳을 모아 볼 수 있습니다. 검토한 뒤 제출하세요.'}
+          : shots
+            ? '[닫고 캡처 열기]를 누르면 캡처 패널이 열립니다. 새로 등록한 이미지를 찍어 지금 매뉴얼과 비교하고, 캡처 정의(shots.ts)를 제출하세요.'
+            : 'TODO 탭에서 확인할 곳을 모아 볼 수 있습니다. 검토한 뒤 제출하세요.'}
       </p>
     </article>
   )

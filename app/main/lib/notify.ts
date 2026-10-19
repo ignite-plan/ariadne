@@ -58,6 +58,7 @@ export function describeTask(channel: string, args: unknown[], result: unknown, 
       const s = r.summary as AnyRecord | undefined
       const mode = (args[0] as AnyRecord)?.mode
       const parts = [menu]
+      if (s && mode === 'shots') parts.push(s.images?.length ? `이미지 ${s.images.length}개 캡처 정의` : '등록한 캡처 정의 없음')
       if (s && (mode === 'create' || mode === 'refresh' || !mode)) {
         if (mode === 'refresh' && !s.sections?.length) parts.push('바꿀 곳이 없었습니다')
         else parts.push(`화면 ${s.sections?.length ?? 0}개 ${mode === 'refresh' ? '고침' : '만듦'}`)
