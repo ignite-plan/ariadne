@@ -81,19 +81,53 @@ export interface Change {
 
 const seconds = (ms: number) => Math.floor(ms / 1000)
 
-// HEAD 트리의 파일별 blob oid
-async function headBlobs(dir: string) {
-  const blobs = new Map<string, string>()
+interface FileEntry {
+  mode: number
+  oid: string
+  type: 'blob' | 'commit'
+}
+
+// 커밋 트리의 파일(경로 → mode·oid). 디렉토리는 빠진다
+async function treeFiles(dir: string, ref: string) {
+  const files = new Map<string, FileEntry>()
   await git.walk({
     fs,
     dir,
-    trees: [git.TREE({ ref: 'HEAD' })],
+    trees: [git.TREE({ ref })],
     map: async (filepath, [entry]) => {
-      if (entry && (await entry.type()) === 'blob') blobs.set(filepath, await entry.oid())
+      const type = entry && (await entry.type())
+      if (type === 'blob' || type === 'commit') files.set(filepath, { mode: await entry!.mode(), oid: await entry!.oid(), type })
       return true
     },
   })
-  return blobs
+  return files
+}
+
+// 파일 목록으로 트리를 써서 루트 트리 oid를 돌려준다
+async function writeFiles(dir: string, files: Map<string, FileEntry>) {
+  type Node = Map<string, FileEntry | Node>
+  const root: Node = new Map()
+  for (const [path, entry] of files) {
+    const parts = path.split('/')
+    let node = root
+    for (const part of parts.slice(0, -1)) {
+      let next = node.get(part)
+      if (!(next instanceof Map)) node.set(part, (next = new Map()))
+      node = next
+    }
+    node.set(parts.at(-1)!, entry)
+  }
+  const write = async (node: Node): Promise<string> =>
+    git.writeTree({
+      fs,
+      dir,
+      tree: await Promise.all(
+        [...node].map(async ([path, entry]) =>
+          entry instanceof Map ? { path, mode: '040000', oid: await write(entry), type: 'tree' as const } : { path, mode: entry.mode.toString(8), oid: entry.oid, type: entry.type },
+        ),
+      ),
+    })
+  return write(root)
 }
 
 // HEAD 대비 작업 폴더 변경. .gitignore 대상은 빠진다
@@ -114,10 +148,10 @@ export async function changes(dir: string): Promise<Change[]> {
     }
   }
   if (racy.length) {
-    const blobs = await headBlobs(dir)
+    const head = await treeFiles(dir, 'HEAD')
     for (const path of racy) {
       const { oid } = await git.hashBlob({ object: fs.readFileSync(join(dir, path)) })
-      if (oid !== blobs.get(path)) result.push({ path, status: 'modified' })
+      if (oid !== head.get(path)?.oid) result.push({ path, status: 'modified' })
     }
   }
   return result.sort((a, b) => a.path.localeCompare(b.path))
@@ -215,9 +249,37 @@ function stamp(now: Date) {
   return `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`
 }
 
+// 원격 main 위에 내 커밋이 바꾼 파일만 얹은 커밋을 만든다 (브랜치는 옮기지 않는다).
+// 갈라진 내 커밋을 그대로 브랜치로 올리면 그 사이 남이 바꾼 파일을 옛 내용으로 되돌리는 브랜치가 된다.
+// 그중 .github/workflows가 있으면 GitHub가 workflow scope 없는 토큰의 push를 거절한다.
+// 파일 단위로 비교하므로 isomorphic-git이 못 합치는 히스토리(merge base가 여럿)도 처리한다.
+// 내가 바꾼 파일을 남도 바꿨으면 conflicts에 담는다 (내 내용으로 덮어쓴다). 얹을 게 없으면 oid가 없다
+async function rebuild(ctx: GitContext, local: string, upstream: string) {
+  const { dir } = ctx
+  const bases = await git.findMergeBase({ fs, dir, oids: [local, upstream] })
+  const [mine, theirs, ...olds] = await Promise.all([local, upstream, ...bases].map((ref: string) => treeFiles(dir, ref)))
+  // merge base 어느 것과도 다르면 그쪽에서 바꾼 것이다
+  const changed = (path: string, oid?: string) => olds.every((old) => old.get(path)?.oid !== oid)
+  const files = new Map(theirs)
+  const conflicts: string[] = []
+  for (const path of new Set([...mine.keys(), ...theirs.keys()])) {
+    const ours = mine.get(path)
+    if (ours?.oid === theirs.get(path)?.oid || !changed(path, ours?.oid)) continue
+    if (changed(path, theirs.get(path)?.oid)) conflicts.push(path)
+    if (ours) files.set(path, ours)
+    else files.delete(path)
+  }
+  const tree = await writeFiles(dir, files)
+  if (tree === (await git.readCommit({ fs, dir, oid: upstream })).commit.tree) return { conflicts }
+  const { message } = (await git.readCommit({ fs, dir, oid: local })).commit
+  const oid = await git.commit({ fs, dir, message, author: ctx.author, tree, parent: [upstream], noUpdateBranch: true })
+  return { oid, conflicts: conflicts.sort() }
+}
+
 // 변경을 커밋하고 원격에 올린다.
-// push 모드: 원격이 앞서 있으면 합친 뒤 push. 합치다 충돌하면 브랜치 + PR로 돌린다
-// pr 모드: 브랜치 + PR
+// push 모드: 원격이 앞서 있으면 합친 뒤 push. 합치지 못하면 원격 main 위에 내가 바꾼 파일만 얹어 push하고,
+//   그 파일을 남도 바꿨으면 그 커밋을 브랜치 + PR로 돌린다
+// pr 모드: 원격 main 위에 내가 바꾼 파일만 얹은 커밋으로 브랜치 + PR
 // 브랜치로 올린 경우 로컬 main은 원격 main으로 되돌린다 (변경은 PR에 있다)
 export async function submit(ctx: GitContext, options: SubmitOptions): Promise<SubmitResult> {
   const { dir, branch } = ctx
@@ -234,23 +296,38 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
   const initial = await relation(dir, commit, (await oid(dir, upstreamRef))!)
   if (initial === 'synced' || initial === 'behind') throw new Error('제출할 변경이 없습니다')
 
-  const toPullRequest = async (conflict: boolean): Promise<SubmitResult> => {
+  // 로컬 main을 옮기고 작업 폴더를 맞춘다
+  const moveTo = async (value: string) => {
+    await git.writeRef({ fs, dir, ref: `refs/heads/${branch}`, value, force: true })
+    await git.checkout({ fs, dir, ref: branch, force: true })
+  }
+
+  const toPullRequest = async (rebuilt: string, conflicts: string[]): Promise<SubmitResult> => {
     const head = `ariadne/${options.login}-${stamp(options.now ?? new Date())}`
-    await git.branch({ fs, dir, ref: head, object: commit })
+    await git.branch({ fs, dir, ref: head, object: rebuilt })
     await git.push({ fs, dir, url: ctx.url, ref: head, remoteRef: head, ...auth(ctx) })
-    const title = options.message.split('\n')[0]
-    const body = conflict
-      ? '다른 사람의 변경과 같은 곳을 고쳐 자동으로 합치지 못했습니다. 충돌을 해결한 뒤 merge 해 주세요.\n\n_Ariadne에서 제출_'
+    const title = (await git.readCommit({ fs, dir, oid: rebuilt })).commit.message.split('\n')[0]
+    const body = conflicts.length
+      ? [
+          '다른 사람도 고친 파일이라 자동으로 합치지 못했습니다. 이 PR은 아래 파일을 기획자 내용으로 바꿉니다.',
+          '다른 사람의 변경이 사라지지 않게 합친 뒤 merge 해 주세요.',
+          '',
+          ...conflicts.map((path) => `- \`${path}\``),
+          '',
+          '_Ariadne에서 제출_',
+        ].join('\n')
       : '_Ariadne에서 제출_'
     const url = await options.createPullRequest({ head, base: branch, title, body })
     // 로컬 main을 원격 main으로 되돌려 다음 sync가 막히지 않게 한다
-    const upstream = (await oid(dir, upstreamRef))!
-    await git.writeRef({ fs, dir, ref: `refs/heads/${branch}`, value: upstream, force: true })
-    await git.checkout({ fs, dir, ref: branch, force: true })
-    return { mode: 'pr', commit, url, conflict }
+    await moveTo((await oid(dir, upstreamRef))!)
+    return { mode: 'pr', commit: rebuilt, url, conflict: conflicts.length > 0 }
   }
 
-  if (options.mode === 'pr') return toPullRequest(false)
+  if (options.mode === 'pr') {
+    const { oid: rebuilt, conflicts } = await rebuild(ctx, commit, (await oid(dir, upstreamRef))!)
+    if (!rebuilt) throw new Error('제출할 변경이 없습니다')
+    return toPullRequest(rebuilt, conflicts)
+  }
 
   // push 사이에 다른 사람이 먼저 올리면 거절된다. 한 번 더 받아서 합친 뒤 다시 올린다
   for (let attempt = 0; ; attempt++) {
@@ -268,10 +345,15 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
         })
         await git.checkout({ fs, dir, ref: branch, force: true })
       } catch (error) {
-        if (error instanceof Errors.MergeConflictError || error instanceof Errors.MergeNotSupportedError) {
-          return toPullRequest(true)
+        if (!(error instanceof Errors.MergeConflictError || error instanceof Errors.MergeNotSupportedError)) throw error
+        const { oid: rebuilt, conflicts } = await rebuild(ctx, local, upstream)
+        // 내 변경이 이미 원격에 다 들어가 있다
+        if (!rebuilt) {
+          await moveTo(upstream)
+          return { mode: 'push', commit: upstream }
         }
-        throw error
+        if (conflicts.length) return toPullRequest(rebuilt, conflicts)
+        await moveTo(rebuilt)
       }
     }
     try {

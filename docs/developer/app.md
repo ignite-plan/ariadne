@@ -13,7 +13,7 @@ ARIADNE_E2E_TOKEN=$(gh auth token) pnpm app:e2e [--app release/mac-arm64/Ariadne
 - `ARIADNE_CAPTURE_BASE_URL`은 캡처 주소를 덮어씁니다(E2E의 가짜 BO). `ARIADNE_CLAUDE_PATH`는 Claude Code CLI 위치를 덮어씁니다(E2E는 `app/e2e/fake-claude.mjs`: LLM 없이 Ariadne MCP 도구를 실제로 부름).
 - 초안 만들기 구조: 앱이 `127.0.0.1` 임의 포트에 토큰을 붙여 Ariadne MCP(HTTP)를 열고, `claude -p --mcp-config … --allowedTools …`를 작업 폴더에서 실행합니다. 지시는 `.claude/skills/manual-draft/SKILL.md`(초안), `.claude/skills/manual-refresh/SKILL.md`(최신화)입니다. 허용 도구는 Read/Glob/Grep, `Edit|Write(./manuals/<m>/**)`, `mcp__ariadne`, Confluence 읽기 도구뿐이라 나머지는 `-p` 모드에서 자동 거절됩니다.
 - 앱 main의 네트워크는 Electron `net.fetch`만 씁니다(사내 TLS 프록시 때문에 Node fetch가 실패). git은 isomorphic-git이라 기획자 PC에 Xcode CLT가 없어도 됩니다.
-- 제출은 main에 바로 push합니다. 충돌하면 `ariadne/<login>-<시각>` 브랜치와 PR을 만듭니다.
+- 제출은 main에 바로 push합니다. 원격과 갈라졌으면 먼저 합치고, isomorphic-git이 합치지 못하면(충돌, merge base가 여럿) 원격 main 위에 기획자가 바꾼 파일만 얹은 커밋을 만듭니다(`git.ts` `rebuild`). 그 파일을 다른 사람도 고쳤으면 그 커밋으로 `ariadne/<login>-<시각>` 브랜치와 PR을 만들고, 아니면 main에 push합니다. 갈라진 커밋을 그대로 브랜치로 올리지 않는 이유: 그 사이 바뀐 `.github/workflows`를 옛 내용으로 되돌리는 브랜치가 되어 GitHub가 `workflow` scope 없는 토큰의 push를 거절합니다.
 - `ARIADNE_USER_DATA`로 앱 데이터(설정, 토큰, BO 세션) 위치를 바꿀 수 있습니다(E2E, 두 번째 프로필).
 - Apple Developer ID가 없어 ad-hoc 서명만 합니다(`app/build/after-pack.cjs`). 자동 업데이트 대신 실행할 때 Releases의 `app-v*`를 확인해 알립니다.
 

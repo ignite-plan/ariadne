@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import { readFileSync, rmSync, writeFileSync, existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
 import { after, before, describe, it } from 'node:test'
+import git from 'isomorphic-git'
 import * as gitOps from '../git.ts'
 import { startGitServer } from './git-server.ts'
 
@@ -10,7 +13,9 @@ const SEED = {
   'manuals/bo/a.md': 'line 1\nline 2\nline 3\n',
   'manuals/bo/b.md': 'b\n',
   'manuals/bo/images/x.png': 'png-bytes',
+  '.github/workflows/release.yml': 'v1\n',
 }
+const WORKFLOW = '.github/workflows/release.yml'
 
 describe('git (isomorphic-git ↔ git http-backend)', () => {
   let server: Awaited<ReturnType<typeof startGitServer>>
@@ -147,10 +152,15 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal((await gitOps.sync(ctx)).status, 'synced')
   })
 
-  it('push 모드: 같은 줄을 고쳐 충돌하면 브랜치 + PR로 돌리고 로컬 main은 원격으로 맞춘다', async () => {
+  it('push 모드: 같은 줄을 고쳐 충돌하면 원격 main 위에 내 파일만 얹은 브랜치 + PR로 돌리고 로컬 main은 원격으로 맞춘다', async () => {
     const ctx = await workspace()
     write(ctx, 'manuals/bo/a.md', 'line 1 planner\nline 2\nline 3\n')
-    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n'), 'other edits a')
+    write(ctx, 'manuals/bo/b.md', 'b with a\n')
+    // 그 사이 다른 사람이 workflow도 고쳤다. 옛 workflow를 담은 브랜치는 GitHub가 workflow scope 없는 토큰으로 못 올리게 막는다
+    server.other((dir) => {
+      writeFileSync(join(dir, 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
+      writeFileSync(join(dir, WORKFLOW), 'v2\n')
+    }, 'other edits a')
     const before = prs.length
     const result = await gitOps.submit(ctx, submitOptions('docs: a 충돌'))
     assert.equal(result.mode, 'pr')
@@ -159,8 +169,15 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     const pr = prs.at(-1)!
     assert.match(pr.head, /^ariadne\/planner-20261001-0930\d\d$/)
     assert.equal(pr.base, 'main')
+    assert.equal(pr.title, 'docs: a 충돌')
+    assert.match(pr.body, /- `manuals\/bo\/a.md`/)
+    assert.doesNotMatch(pr.body, /b.md/)
     assert.ok(server.branches().includes(pr.head))
+    // 브랜치는 원격 main 바로 위의 커밋 하나이고, 내가 고친 파일만 다르다
+    assert.equal(server.git('rev-parse', `${pr.head}^`), server.git('rev-parse', 'main'))
+    assert.deepEqual(server.git('diff', '--name-only', 'main', pr.head).split('\n'), ['manuals/bo/a.md', 'manuals/bo/b.md'])
     assert.equal(server.show(pr.head, 'manuals/bo/a.md'), 'line 1 planner\nline 2\nline 3\n')
+    assert.equal(server.show(pr.head, WORKFLOW), 'v2\n')
     assert.equal(server.show('main', 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
     // 로컬은 원격 main 상태, 변경 없음
     assert.equal(read(ctx, 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
@@ -168,15 +185,49 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal((await gitOps.sync(ctx)).status, 'synced')
   })
 
-  it('pr 모드: main은 그대로 두고 브랜치 + PR을 만든다', async () => {
+  it('push 모드: isomorphic-git이 못 합치는 히스토리(merge base 여럿)라도 파일이 겹치지 않으면 main에 올린다', async () => {
+    const ctx = await workspace()
+    const auth = { http, onAuth: () => ({ username: 'x', password: 'unused' }) }
+    // 내 커밋 P를 만들고 (push는 실패) 원격 side 브랜치에만 올려 둔다
+    write(ctx, 'manuals/bo/b.md', 'b criss\n')
+    await assert.rejects(gitOps.submit({ ...ctx, url: 'http://127.0.0.1:1/nowhere.git' }, submitOptions('docs: b')))
+    await git.push({ fs, dir: ctx.dir, url: server.url, ref: 'main', remoteRef: 'side', ...auth })
+    // 다른 사람 O가 main에 올라간다. 나는 O를 받아 로컬에서 합친다 (push는 못 함)
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/o.md'), 'o\n'), 'other adds o')
+    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    await git.merge({ fs, dir: ctx.dir, ours: 'main', theirs: 'origin/main', author: ctx.author, message: 'local merge' })
+    await git.checkout({ fs, dir: ctx.dir, ref: 'main', force: true })
+    // 다른 사람은 반대로 P를 합친다 → merge base가 P, O 두 개 (criss-cross)
+    server.other((dir) => {
+      execFileSync('git', ['-C', dir, 'fetch', '-q', 'origin', 'side'])
+      execFileSync('git', ['-C', dir, 'merge', '-q', '--no-edit', 'FETCH_HEAD'])
+      writeFileSync(join(dir, WORKFLOW), 'v3\n')
+    }, 'other merges side')
+    write(ctx, 'manuals/bo/criss.md', 'criss\n')
+    const result = await gitOps.submit(ctx, submitOptions('docs: criss 추가'))
+    assert.equal(result.mode, 'push')
+    assert.equal(server.log()[0], 'docs: criss 추가')
+    assert.equal(server.git('diff', '--name-only', 'main^', 'main'), 'manuals/bo/criss.md')
+    assert.equal(server.show('main', 'manuals/bo/b.md'), 'b criss\n')
+    assert.equal(server.show('main', WORKFLOW), 'v3\n')
+    assert.equal(read(ctx, WORKFLOW), 'v3\n')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [])
+    assert.equal((await gitOps.sync(ctx)).status, 'synced')
+  })
+
+  it('pr 모드: main은 그대로 두고 원격 main 위에 브랜치 + PR을 만든다', async () => {
     const ctx = await workspace()
     const mainBefore = server.show('main', 'manuals/bo/b.md')
     write(ctx, 'manuals/bo/b.md', 'b via pr\n')
+    server.other((dir) => writeFileSync(join(dir, WORKFLOW), 'v4\n'), 'other edits workflow')
     const result = await gitOps.submit(ctx, submitOptions('docs: b PR', 'pr'))
     assert.equal(result.mode, 'pr')
     assert.ok(!result.conflict)
+    const head = prs.at(-1)!.head
     assert.equal(server.show('main', 'manuals/bo/b.md'), mainBefore)
-    assert.equal(server.show(prs.at(-1)!.head, 'manuals/bo/b.md'), 'b via pr\n')
+    assert.equal(server.show(head, 'manuals/bo/b.md'), 'b via pr\n')
+    assert.equal(server.git('rev-parse', `${head}^`), server.git('rev-parse', 'main'))
+    assert.equal(server.git('diff', '--name-only', 'main', head), 'manuals/bo/b.md')
   })
 
   it('지난 제출이 push에서 멈췄으면 남은 커밋을 다시 올린다', async () => {

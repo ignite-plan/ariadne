@@ -80,6 +80,8 @@ export async function startGitServer(files: Record<string, string>) {
     },
     show: (ref: string, path: string) => git(bare, 'show', `${ref}:${path}`),
     log: (ref = 'main') => git(bare, 'log', '--format=%s', ref).trim().split('\n'),
+    // 원격 저장소에서 git 명령 (rev-parse 등)
+    git: (...args: string[]) => git(bare, ...args).trim(),
     branches: () => git(bare, 'branch', '--format=%(refname:short)').trim().split('\n'),
     close: async () => {
       await new Promise((resolve) => server.close(resolve))
