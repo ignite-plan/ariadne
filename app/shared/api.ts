@@ -129,8 +129,8 @@ export interface DraftResult {
 }
 
 export interface DraftCheck {
-  // managed: 앱 전용으로 설치한 고정 버전
-  claude: { path: string; version: string; managed?: boolean } | null
+  // managed: 앱 전용으로 설치한 고정 버전. installable: 내 PC의 claude를 쓰는 중이고 경로를 직접 지정하지 않았다 (앱 전용 설치를 권한다)
+  claude: { path: string; version: string; managed?: boolean; installable?: boolean } | null
   // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
   auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
   // detail: 연결 실패 이유

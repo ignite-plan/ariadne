@@ -11,13 +11,20 @@ import { getSettings, profileDir } from '../settings.ts'
 import { handle, netFetch, pandoc, ref, send, toolsDir, videoModelDir, workspaceState } from './context.ts'
 import { authStatus } from './settings.ts'
 
+// 앱 전용 Claude Code 설치는 한 번에 하나 (앱 시작 때 자동 설치와 환경 점검의 버튼이 겹칠 수 있다)
+let installingClaude: ReturnType<typeof installClaude> | undefined
+
 export function registerEnv() {
   handle('env:install', async (tool) => {
     const progress = (p: ToolProgress) => send('install-progress', { tool, ...p } satisfies InstallProgress)
     if (tool === 'pandoc') return installPandoc(toolsDir(), netFetch, progress)
-    const installed = await installClaude(toolsDir(), netFetch, progress)
-    setManagedClaude(installed.path)
-    return installed
+    installingClaude ??= installClaude(toolsDir(), netFetch, progress)
+      .then((installed) => {
+        setManagedClaude(installed.path)
+        return installed
+      })
+      .finally(() => (installingClaude = undefined))
+    return installingClaude
   })
   handle('env:check', async () => {
     const settings = getSettings()
