@@ -74,6 +74,16 @@ export function specTaskText(ref: ManualRef, input: DraftInput, { previous = [] 
   return lines.join('\n')
 }
 
+// 가이드 영상에 연결된 매뉴얼 화면. 여러 개면 영상이 그 순서로 화면을 옮겨 가며 보여 준다
+function linkedSections(ref: ManualRef, targets: string[] = [], none: string) {
+  if (!targets.length) return [none]
+  if (targets.length === 1) return [`- 연결된 매뉴얼 화면: manuals/${ref.manual}/${targets[0]} (내레이션 문장의 근거)`]
+  return [
+    '- 연결된 매뉴얼 화면 (내레이션 문장의 근거, 영상에 나오는 순서. 하나의 흐름으로 이어서 보여 준다):',
+    ...targets.map((t, i) => `  ${i + 1}. manuals/${ref.manual}/${t}`),
+  ]
+}
+
 // brief: 최신화 화면 하나에 줄 기획서 요약 (앱이 미리 만든 것)
 export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?: string; brief?: string } = {}) {
   const lines = ['## 이번 작업', `- 매뉴얼 id: ${ref.manual}`, `- 메뉴: ${input.menu}`]
@@ -87,18 +97,12 @@ export function taskText(ref: ManualRef, input: DraftInput, options: { codeDir?:
         : `- 대상: 장면 ${scene + 1}. video_open_scene(scene: ${scene}), video_check(fromScene: ${scene})`,
     )
     lines.push(`- 기획자 요청 (이 장면에서 보여 줄 것): ${input.notes?.trim() || '(없음 — 지금 장면의 내레이션을 따른다)'}`)
-    lines.push(
-      input.targets?.[0] ? `- 연결된 매뉴얼 화면: manuals/${ref.manual}/${input.targets[0]} (내레이션 문장의 근거)` : '- 연결된 매뉴얼 화면: 없음',
-    )
+    lines.push(...linkedSections(ref, input.targets, '- 연결된 매뉴얼 화면: 없음'))
     return lines.join('\n')
   }
   if (input.mode === 'video') {
     lines.push(`- 할 일: 가이드 영상 시나리오 \`${input.video}\`를 채운다 (video_get → STG 확인 → video_save → video_check)`)
-    lines.push(
-      input.targets?.[0]
-        ? `- 연결된 매뉴얼 화면: manuals/${ref.manual}/${input.targets[0]} (내레이션 문장의 근거)`
-        : '- 연결된 매뉴얼 화면: 없음 (STG 화면과 기획서로 내레이션을 쓴다)',
-    )
+    lines.push(...linkedSections(ref, input.targets, '- 연결된 매뉴얼 화면: 없음 (STG 화면과 기획서로 내레이션을 쓴다)'))
     lines.push(`- STG 경로 힌트: ${input.path || '(없음 — 연결 화면의 front-matter routes에서 찾는다)'}`)
     if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
     return lines.join('\n')

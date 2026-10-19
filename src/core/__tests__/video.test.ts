@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
 import { isBlockedLabel } from '../safety.ts'
@@ -126,6 +126,18 @@ describe('시나리오 YAML', () => {
     assert.throws(() => parseVideo('x', { title: 'X', scenes: [{ steps: [{ run: 'rm -rf /' }] }] }), /형식 오류/)
     assert.throws(() => parseVideo('x', { scenes: [] }), /title/)
     assert.throws(() => saveVideo(fx.ref, { ...scenario, id: '../x' }), /영문 소문자/)
+  })
+
+  it('예전 section(화면 하나)은 sections로 읽고, 저장하면 sections로 쓴다', () => {
+    assert.deepEqual(parseVideo('x', { title: 'X', section: '02-a/01.md', scenes: [] }).sections, ['02-a/01.md'])
+    assert.deepEqual(parseVideo('x', { title: 'X', section: '02-a/01.md', sections: ['02-a/02.md'], scenes: [] }).sections, ['02-a/01.md', '02-a/02.md'])
+    assert.deepEqual(parseVideo('x', { title: 'X', section: '02-a/01.md', sections: ['02-a/01.md'], scenes: [] }).sections, ['02-a/01.md'])
+    assert.equal('section' in parseVideo('x', { title: 'X', section: '', scenes: [] }), false)
+    mkdirSync(join(fx.dir, 'videos'), { recursive: true })
+    writeFileSync(join(fx.dir, 'videos', 'old.yaml'), 'title: Old\nsection: 02-a/01.md\nscenes: []\n')
+    saveVideo(fx.ref, loadVideo(fx.ref, 'old'))
+    assert.equal(readFileSync(join(fx.dir, 'videos', 'old.yaml'), 'utf8'), 'title: Old\nsections:\n  - 02-a/01.md\nscenes: []\n')
+    deleteVideo(fx.ref, 'old')
   })
 
   it('장면 단계가 없으면 빈 배열', () => {

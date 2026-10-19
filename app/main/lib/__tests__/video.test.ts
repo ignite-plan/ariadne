@@ -16,7 +16,7 @@ describe('가이드 영상 목록·만들기', () => {
   after(fx.cleanup)
 
   it('제목으로 id를 만들고, 겹치면 번호를 붙인다', () => {
-    const first = createVideo(fx.ref, { title: 'Dealer List View', section: '02-dealer/01-list.md' })
+    const first = createVideo(fx.ref, { title: 'Dealer List View', sections: ['02-dealer/01-list.md', '02-dealer/02-create.md'] })
     assert.equal(first.id, 'dealer-list-view')
     assert.deepEqual(first.scenes, [{ say: '', steps: [] }])
     assert.equal(newVideoId(fx.ref, 'Dealer List View'), 'dealer-list-view-2')
@@ -30,11 +30,11 @@ describe('가이드 영상 목록·만들기', () => {
     writeFileSync(join(fx.ref.root, 'dist', 'videos', 'dealer-list-view.mp4'), 'x')
     const infos = videoInfos(fx.ref)
     assert.deepEqual(
-      infos.map((i) => [i.id, i.title, i.scenes, i.section ?? null, Boolean(i.error)]),
+      infos.map((i) => [i.id, i.title, i.scenes, i.sections, Boolean(i.error)]),
       [
-        ['broken', 'broken', 0, null, true],
-        ['dealer-list-view', 'Dealer List View', 1, '02-dealer/01-list.md', false],
-        ['dealer-list-view-2', 'Dealer List View', 1, null, false],
+        ['broken', 'broken', 0, [], true],
+        ['dealer-list-view', 'Dealer List View', 1, ['02-dealer/01-list.md', '02-dealer/02-create.md'], false],
+        ['dealer-list-view-2', 'Dealer List View', 1, [], false],
       ],
     )
     assert.equal(infos[1].output?.mp4, 'dist/videos/dealer-list-view.mp4')

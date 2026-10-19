@@ -18,9 +18,9 @@ export function videoInfos(ref: ManualRef): VideoInfo[] {
   return listVideos(ref).map((id) => {
     try {
       const v = loadVideo(ref, id)
-      return { id, title: v.title, section: v.section, mutates: Boolean(v.mutates), scenes: v.scenes.length, output: videoOutput(ref, id) }
+      return { id, title: v.title, sections: v.sections ?? [], mutates: Boolean(v.mutates), scenes: v.scenes.length, output: videoOutput(ref, id) }
     } catch (error) {
-      return { id, title: id, mutates: false, scenes: 0, error: (error as Error).message }
+      return { id, title: id, sections: [], mutates: false, scenes: 0, error: (error as Error).message }
     }
   })
 }
@@ -31,13 +31,13 @@ export function newVideoId(ref: ManualRef, title: string) {
   return uniqueName(slugify(title) || 'video', (id) => taken.has(id))
 }
 
-export function createVideo(ref: ManualRef, { title, section }: { title: string; section?: string }): VideoScenario {
+export function createVideo(ref: ManualRef, { title, sections = [] }: { title: string; sections?: string[] }): VideoScenario {
   const trimmed = title.trim()
   if (!trimmed) throw new Error('영상 제목을 입력하세요')
   return saveVideo(ref, {
     id: newVideoId(ref, trimmed),
     title: trimmed,
-    ...(section ? { section } : {}),
+    ...(sections.length ? { sections } : {}),
     maskPersonal: true,
     scenes: [{ say: '', steps: [] }],
   })

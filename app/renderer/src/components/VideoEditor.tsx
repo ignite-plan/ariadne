@@ -6,7 +6,7 @@ import { SPEED_CHOICES } from '../../../../src/core/video/edit.ts'
 import { assetUrl, type ManualTree, type VideoScenario, type VideoScene, type VideoStep, type VideoTarget } from '../../../shared/api.ts'
 import { api } from '../api.ts'
 import { Icon } from './Icon.tsx'
-import { SectionSelect } from './SectionSelect.tsx'
+import { SectionsSelect } from './SectionSelect.tsx'
 import { useToast } from './Toast.tsx'
 import { MaskDialog, StepDialog } from './VideoStepDialog.tsx'
 
@@ -141,15 +141,20 @@ export function VideoEditor({
   return (
     <div className="video-editor">
       <section className="scene intro">
-        <div className="editor-grid">
+        <div className="editor-grid top">
           <label className="field">
             <span>영상 제목 (영어, 시작 카드)</span>
             <input value={scenario.title} disabled={disabled} onChange={(e) => set({ title: e.target.value })} />
           </label>
-          <label className="field">
-            <span>연결할 화면</span>
-            <SectionSelect tree={tree} value={scenario.section ?? ''} disabled={disabled} onChange={(path) => set({ section: path || undefined })} />
-          </label>
+          <div className="field">
+            <span>연결할 화면 (여러 개면 이 순서로 보여 줍니다)</span>
+            <SectionsSelect
+              tree={tree}
+              value={scenario.sections ?? []}
+              disabled={disabled}
+              onChange={(paths) => set({ sections: paths.length ? paths : undefined })}
+            />
+          </div>
         </div>
         <label className="field">
           <span>시작 카드 내레이션 (선택)</span>

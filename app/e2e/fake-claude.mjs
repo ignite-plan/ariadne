@@ -103,7 +103,8 @@ if (prompt.includes('가이드 영상 시나리오')) {
   await call('stg_open', { path: '/dealer/company' })
   const yaml = (mutates) => `title: Dealer List View
 intro: This video shows how to view the dealer list.
-section: 02-dealer-management/01-dealer-list-view.md
+sections:
+  - 02-dealer-management/01-dealer-list-view.md
 maskPersonal: true
 ${mutates ? 'mutates: true\n' : ''}scenes:
   - say: The Dealer List screen provides a list of all registered dealers.

@@ -322,7 +322,8 @@ export interface CaptureProgress {
 export interface VideoInfo {
   id: string
   title: string
-  section?: string
+  // 연결된 매뉴얼 화면, 영상에 나오는 순서
+  sections: string[]
   mutates: boolean
   scenes: number
   // 만든 영상이 있으면
@@ -475,7 +476,7 @@ export interface AriadneApi {
     list(): Promise<VideoInfo[]>
     load(id: string): Promise<VideoScenario>
     save(scenario: VideoScenario): Promise<VideoScenario>
-    create(input: { title: string; section?: string }): Promise<VideoScenario>
+    create(input: { title: string; sections?: string[] }): Promise<VideoScenario>
     remove(id: string): Promise<void>
     run(id: string, options?: VideoRunOptions): Promise<VideoRunResult>
     cancel(): Promise<void>

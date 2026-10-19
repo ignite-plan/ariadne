@@ -67,6 +67,8 @@ describe('작업 지시', () => {
     assert.match(text, /연결된 매뉴얼 화면: manuals\/bo\/02-dealer-management\/01-dealer-list-view\.md/)
     assert.doesNotMatch(text, /넣을 위치|dealerhub-web/)
     assert.match(taskText({ root, manual: 'bo' }, { mode: 'video', menu: 'X', video: 'x' }), /연결된 매뉴얼 화면: 없음/)
+    const two = taskText({ root, manual: 'bo' }, { mode: 'video', menu: 'X', video: 'x', targets: ['02-a/01-list.md', '03-b/01-create.md'] })
+    assert.match(two, /연결된 매뉴얼 화면 \(내레이션 문장의 근거, 영상에 나오는 순서[^\n]*\n  1\. manuals\/bo\/02-a\/01-list\.md\n  2\. manuals\/bo\/03-b\/01-create\.md/)
     assert.throws(() => skillText(root, 'video', bundled), /manual-video-draft/)
     assert.match(skillText(process.cwd(), 'video', bundled), /^# 가이드 영상 시나리오 초안/)
   })

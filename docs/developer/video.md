@@ -21,7 +21,7 @@ pnpm video --manual bo --id dealer-list --preview   # 시나리오 작성 중: �
 ```yaml
 title: Dealer List View                       # 시작 카드
 intro: This video shows how to ...             # 시작 카드 내레이션
-section: 02-dealer-management/01-dealer-list-view.md
+sections: [02-dealer-management/01-dealer-list-view.md] # 문장 출처인 매뉴얼 화면, 영상에 나오는 순서 (여러 개 가능. 예전 section 하나도 읽는다)
 maskPersonal: true                             # 이메일·전화번호처럼 보이는 글자 자동 blur
 captionSize: large                             # 자막 크기 small|medium|large (없으면 manual.yaml video.captionSize, 그다음 medium)
 speed: 1.1                                     # 내레이션 속도 0.8~1.3 (없으면 manual.yaml video.tts.speed, 그다음 1)

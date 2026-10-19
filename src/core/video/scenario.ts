@@ -63,8 +63,8 @@ export const videoFileSchema = z.strictObject({
   title: z.string().min(1),
   // 시작 카드 내레이션. 없으면 카드만 잠깐 보여 준다
   intro: z.string().optional(),
-  // 문장 출처인 매뉴얼 섹션 (manuals/<m>/ 기준, 예: 02-dealer-management/01-dealer-list-view.md)
-  section: z.string().optional(),
+  // 문장 출처인 매뉴얼 화면들, 영상에 나오는 순서 (manuals/<m>/ 기준, 예: 02-dealer-management/01-dealer-list-view.md)
+  sections: z.array(z.string().min(1)).optional(),
   // true일 때만 저장/삭제/발송/승인 버튼과 쓰기 요청을 허용한다. STG 테스트 데이터로만 쓴다
   mutates: z.boolean().optional(),
   // 이메일·전화번호처럼 보이는 글자를 자동으로 blur
@@ -101,8 +101,17 @@ function formatIssues(error: z.ZodError) {
   return error.issues.map((issue) => `${issue.path.join('.') || '(전체)'}: ${issue.message}`).join('\n')
 }
 
+// 예전 시나리오는 화면 하나를 section으로 적었다. sections로 옮겨 읽는다 (저장하면 sections로 바뀐다)
+function upgrade(data: unknown) {
+  if (!data || typeof data !== 'object' || !('section' in data)) return data
+  const { section, ...rest } = data as { section?: unknown; sections?: unknown }
+  if (typeof section !== 'string' || !section) return rest
+  const sections = Array.isArray(rest.sections) ? rest.sections : []
+  return { ...rest, sections: sections.includes(section) ? sections : [section, ...sections] }
+}
+
 export function parseVideo(id: string, data: unknown): VideoScenario {
-  const result = videoFileSchema.safeParse(data)
+  const result = videoFileSchema.safeParse(upgrade(data))
   if (!result.success) throw new Error(`시나리오 ${id} 형식 오류\n${formatIssues(result.error)}`)
   return { id, ...result.data }
 }

@@ -6,7 +6,7 @@ import { useAsyncAction } from '../hooks.ts'
 import { findSection } from '../manual-tree.ts'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
-import { SectionSelect } from './SectionSelect.tsx'
+import { SectionsSelect } from './SectionSelect.tsx'
 
 export function CreateVideoDialog({
   tree,
@@ -19,7 +19,7 @@ export function CreateVideoDialog({
   onClose: () => void
   onCreated: (scenario: VideoScenario) => void
 }) {
-  const [section, setSection] = useState(currentSection ?? '')
+  const [sections, setSections] = useState(currentSection ? [currentSection] : [])
   const [title, setTitle] = useState('')
   const { run, busy, error } = useAsyncAction()
 
@@ -29,7 +29,7 @@ export function CreateVideoDialog({
     if (current) setTitle((v) => v || current.title)
   }, [tree, currentSection])
 
-  const create = () => run(async () => onCreated(await api.video.create({ title, section: section || undefined })))
+  const create = () => run(async () => onCreated(await api.video.create({ title, sections })))
 
   return (
     <Modal
@@ -47,18 +47,18 @@ export function CreateVideoDialog({
         </>
       }
     >
-      <label className="field">
-        <span>연결할 화면</span>
-        <SectionSelect
+      <div className="field">
+        <span>연결할 화면 (여러 개면 이 순서로 보여 줍니다)</span>
+        <SectionsSelect
           tree={tree}
-          value={section}
-          onChange={(path) => {
-            setSection(path)
-            const found = findSection(tree, path)
-            if (found) setTitle(found.title)
+          value={sections}
+          onChange={(paths) => {
+            // 첫 화면을 고르면 그 제목으로 시작한다 (직접 고친 제목은 두 번째 화면부터는 그대로)
+            if (!sections.length && paths[0]) setTitle(findSection(tree, paths[0])?.title ?? title)
+            setSections(paths)
           }}
         />
-      </label>
+      </div>
       <label className="field">
         <span>영상 제목 (영어, 시작 카드에 나옵니다)</span>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Dealer List View" autoFocus />

@@ -14,6 +14,7 @@ import {
 } from '../../../shared/api.ts'
 import { formatClock } from '../../../shared/format.ts'
 import { api, errorMessage } from '../api.ts'
+import { findSection } from '../manual-tree.ts'
 import { useAutosave } from '../hooks.ts'
 import { useClaudeDone, useTasks, type VideoTask } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
@@ -35,6 +36,10 @@ const STAGE: Record<VideoProgress['stage'], string> = {
 type Failure = Extract<VideoRunResult, { ok: false }>
 type Recording = { scene: number; ready: boolean; warnings: string[] }
 type Dialog = { type: 'create' } | { type: 'delete' } | { type: 'mutates'; action: 'preview' | 'render' | 'record'; scene?: number }
+
+// 연결된 화면 제목. 목차에 없으면 경로
+const sectionsLabel = (tree: ManualTree | undefined, sections: string[] = []) =>
+  sections.length ? sections.map((p) => findSection(tree, p)?.title ?? p).join(' → ') : '연결된 화면 없음'
 
 const SAVE_FAILED = '시나리오를 저장하지 못했습니다. 빨간 안내를 확인하세요'
 
@@ -105,7 +110,7 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
           (s) =>
             s ??
             (initial && list.some((v) => v.id === initial) ? initial : undefined) ??
-            list.find((v) => currentSection && v.section === currentSection)?.id ??
+            list.find((v) => currentSection && v.sections.includes(currentSection))?.id ??
             list[0]?.id,
         ),
       (e) => setLoadError(errorMessage(e)),
@@ -217,7 +222,7 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
 
   const openDraft = async () => {
     if (!scenario || !(await flush())) return
-    tasks.openDraft({ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.section ? [scenario.section] : undefined })
+    tasks.openDraft({ mode: 'video', menu: scenario.title, video: scenario.id, targets: scenario.sections })
   }
 
   return (
@@ -256,7 +261,7 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
                 <div className="video-title">
                   <h2>{scenario.title}</h2>
                   <span className="muted ellipsis">
-                    {scenario.section ?? '연결된 화면 없음'} · {saveLabel}
+                    {sectionsLabel(tree, scenario.sections)} · {saveLabel}
                   </span>
                 </div>
                 <label className="video-check" title={voice.model?.ready ? '' : '음성 모델을 받아야 내레이션을 넣을 수 있습니다'}>
@@ -371,7 +376,7 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
               scene: sceneAsk,
               insert,
               notes,
-              targets: scenario.section ? [scenario.section] : undefined,
+              targets: scenario.sections,
             })
           }}
         />
@@ -560,7 +565,7 @@ function VideoList({
           className={`video-item ${v.id === selected ? 'active' : ''}`}
           onClick={() => onSelect(v.id)}
           disabled={disabled}
-          title={v.error ?? v.section ?? v.id}
+          title={v.error ?? (v.sections.join('\n') || v.id)}
         >
           <span className="ellipsis">
             <b>{v.title}</b>
