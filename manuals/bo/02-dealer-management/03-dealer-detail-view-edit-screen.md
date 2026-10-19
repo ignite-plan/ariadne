@@ -417,7 +417,7 @@ Clicking \[save\] registers the new business information.
 
 - Status: The account status of the dealer employee.
 
-- HMG Partner ID: The Partner ID of the dealer employee.
+- ID: The ID (Account) of the dealer employee, managed through hmg-PartnerID. A tooltip next to the field explains this.
 
   - If no account exists, the message \"No account found\" will be displayed.
 
@@ -431,6 +431,8 @@ Search User Popup
 - The dealer principal can only be selected from among dealer employees belonging to that dealership.
 
 - Enter the user No of the user you want to newly designate and press assign.
+
+- Only a dealer employee with a profile photo registered can be assigned as Dealer Principal. If the selected employee has no profile photo, clicking \[Assign\] shows a \'Reassignment Failed\' pop-up with the message: \"A profile photo has not been registered. A photo is required to assign this employee as Dealer Principal.\" Clicking **\[Confirm\]** closes the pop-up and reverts the change; clicking **\[Edit Employee\]** moves to that employee's edit screen.
 
 - When the **Dealer Principal** is changed, the **job** of the newly assigned Dealer Principal is automatically updated to **Dealer Principal**.
 

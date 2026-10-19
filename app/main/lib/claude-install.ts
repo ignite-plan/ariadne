@@ -13,8 +13,8 @@ import { promisify } from 'node:util'
 const run = promisify(execFile)
 
 // 앱이 쓰는 Claude Code 버전. 올릴 때는 앱 옵션(--bare, --strict-mcp-config, --tools, --effort, --model)이 그대로 되는지 확인한다.
-// H-Chat 게이트웨이는 낮은 버전을 400(너무 낮은 버전)으로 거절한다 (2026-10 권장 2.1.292). 2.1.301: Sonnet 5.5
-export const CLAUDE_CODE_VERSION = '2.1.301'
+// H-Chat 게이트웨이는 낮은 버전을 400(너무 낮은 버전)으로 거절한다. 2.1.292는 H-Chat 권장 버전 (2026-10)
+export const CLAUDE_CODE_VERSION = '2.1.292'
 export const CLAUDE_PACKAGE = '@anthropic-ai/claude-code-darwin-arm64'
 
 export const installedClaudePath = (toolsDir: string, version = CLAUDE_CODE_VERSION) => join(toolsDir, 'claude', version, 'claude')

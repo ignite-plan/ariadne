@@ -3,7 +3,7 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
-import { claudeEnv, DEFAULT_CLAUDE_MODEL, explainFailure, isBlockingFailure, keySource, resolveAuth, upgradeClaudeModel } from '../claude-auth.ts'
+import { claudeEnv, DEFAULT_CLAUDE_MODEL, explainFailure, isBlockingFailure, keySource, resolveAuth } from '../claude-auth.ts'
 import { findClaude, runClaude, shellLookup } from '../claude.ts'
 
 const base = {
@@ -172,11 +172,7 @@ echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","permi
     assert.equal(resolveAuth('auto', {}, {}), 'login')
     assert.equal(resolveAuth('login', {}, { ANTHROPIC_API_KEY: 'k' }), 'login')
     assert.equal(resolveAuth('apiKey', {}, {}), 'apiKey')
-    assert.equal(DEFAULT_CLAUDE_MODEL, 'claude-sonnet-5-5[1m]')
-    // 예전 기본값을 저장해 둔 설정은 새 기본값으로, 직접 넣은 모델과 빈 값(ANTHROPIC_MODEL 사용)은 그대로
-    assert.equal(upgradeClaudeModel('claude-sonnet-5[1m]'), 'claude-sonnet-5-5[1m]')
-    assert.equal(upgradeClaudeModel('claude-sonnet-5'), 'claude-sonnet-5')
-    assert.equal(upgradeClaudeModel(''), '')
+    assert.equal(DEFAULT_CLAUDE_MODEL, 'claude-sonnet-5[1m]')
     assert.match(explainFailure('API Error: 400 invalid model: claude-x[1m]', 'apiKey', {}), /Claude 모델을 쓸 수 있는 모델로 바꾸거나 비우세요/)
   })
 })

@@ -6,12 +6,7 @@ export type ClaudeAuth = 'apiKey' | 'login'
 export type ClaudeAuthSetting = 'auto' | ClaudeAuth
 
 // 앱 Claude 작업의 기본 모델 (설정 → 고급 → Claude 모델을 비우면 ANTHROPIC_MODEL 또는 Claude Code 기본)
-export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5-5[1m]'
-// 예전 기본값. 설정은 저장할 때 모든 값을 같이 써서, 기본값을 그대로 둔 사람도 파일에 남아 있다
-const OLD_DEFAULT_CLAUDE_MODELS = ['claude-sonnet-5[1m]']
-
-// 저장된 모델이 예전 기본값이면 지금 기본값으로 (직접 넣은 모델은 그대로)
-export const upgradeClaudeModel = (saved: string) => (OLD_DEFAULT_CLAUDE_MODELS.includes(saved) ? DEFAULT_CLAUDE_MODEL : saved)
+export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5[1m]'
 
 export const KEY_VARS = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL'] as const
 // 인증과 상관없이 로그인 셸 값을 넘기는 변수. 게이트웨이(H-Chat 등)가 받는 모델을 ~/.zshrc에서 정한다
@@ -106,7 +101,7 @@ export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.Proce
     return `${gateway ? `${gateway}가` : 'Claude가'} ${model} 모델을 받지 않습니다 (${raw}).${current}${longContext} ~/.zshrc에 export ANTHROPIC_MODEL="<쓸 수 있는 모델, 예: claude-sonnet-5>"를 넣고 다시 시도하세요`
   }
   if (/expired|invalid api key|fix external api key|authentication_error|failed to authenticate|\b401\b/i.test(raw)) {
-    if (auth === 'login') return `claude.ai 로그인으로 인증하지 못했습니다 (${raw}). 설정 → 고급 → Claude 인증 아래 [claude.ai 로그인]으로 다시 로그인하세요`
+    if (auth === 'login') return `claude.ai 로그인으로 인증하지 못했습니다 (${raw}). 터미널에서 \`claude\`를 열어 /login 하세요`
     // ANTHROPIC_AUTH_TOKEN이 있으면 claude는 ANTHROPIC_API_KEY보다 그것을 먼저 쓴다
     const used = env.ANTHROPIC_AUTH_TOKEN ? 'ANTHROPIC_AUTH_TOKEN' : 'ANTHROPIC_API_KEY'
     const gateway = host(env.ANTHROPIC_BASE_URL)
@@ -119,7 +114,7 @@ export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.Proce
     return 'Claude 작업 대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다. 큰 기획서나 도구 결과가 한꺼번에 들어온 경우입니다. 대상을 줄여(화면 하나씩) 다시 시도하고, 계속되면 [문제 신고]로 알려 주세요'
   }
   if (/not logged in|please run \/login|login required/i.test(raw)) {
-    return 'Claude Code에 로그인되어 있지 않습니다. 설정 → 고급 → Claude 인증을 claude.ai 로그인으로 고르고 [claude.ai 로그인]을 누르거나, Claude 인증을 API 키로 바꾸세요'
+    return 'Claude Code에 로그인되어 있지 않습니다. 터미널에서 `claude`를 실행해 /login 하거나, 설정 → 고급 → Claude 인증을 API 키로 바꾸세요'
   }
   return text
 }

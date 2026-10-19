@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, RefreshScope } from '../../../shared/api.ts'
 import { canQueue, queuePosition, type QueuedDraft } from '../../../shared/claude-queue.ts'
-import { screenLabel, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
+import { SCREEN_LABEL, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
 import { checkScope, DRAFT_MODES, draftLabel, draftMode, isVideoDraft, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { formatAge } from '../../../shared/format.ts'
 import { api } from '../api.ts'
 import { useNow } from '../hooks.ts'
 import { useTasks, type DraftPanelState } from '../tasks.tsx'
-import { ClaudeLoginDialog, loginLabel } from './ClaudeLogin.tsx'
 import { DraftSummaryCard } from './DraftSummaryCard.tsx'
 import { Icon } from './Icon.tsx'
 import { StgSession } from './StgSession.tsx'
@@ -169,10 +168,10 @@ export function DraftPanel({
             </button>
           ) : phase === 'done' ? (
             <button className="button primary block" onClick={close}>
-              <Icon name="check" /> {input.mode === 'shots' ? '닫고 캡처 열기' : '닫고 결과 보기'}
+              <Icon name="check" /> 닫고 결과 보기
             </button>
           ) : (
-            <button className="button primary block" disabled={phase !== 'ready' || !check?.claude || needsLogin(check)} onClick={start}>
+            <button className="button primary block" disabled={phase !== 'ready' || !check?.claude} onClick={start}>
               <Icon name={mode.startIcon} /> {canEnqueue ? `대기에 추가 (${tasks.queue.items.length + 1}번째)` : mode.start}
             </button>
           )}
@@ -220,31 +219,19 @@ function DraftChecks({
   onRecheck: () => void
 }) {
   const missingKey = Boolean(check?.claude && check.auth.mode === 'apiKey' && !check.auth.keySource)
-  // claude.ai 로그인으로 도는데 로그인되어 있지 않으면 여기서 바로 로그인한다
-  const missingLogin = needsLogin(check)
-  const [loggingIn, setLoggingIn] = useState(false)
   const atlassianOk = check?.atlassian.some((a) => a.connected)
   // 내 PC의 claude는 버전이 제각각이라 게이트웨이(H-Chat)가 낮은 버전을 거절할 수 있다. 앱 전용 설치를 권한다
   const pcClaude = Boolean(check?.claude?.installable)
   return (
     <>
       <CheckRow
-        ok={Boolean(check?.claude) && !missingKey && !missingLogin && !pcClaude}
+        ok={Boolean(check?.claude) && !missingKey && !pcClaude}
         loading={!check}
         label="Claude Code"
         detail={claudeDetail(check)}
-        warn={(missingKey || pcClaude) && !missingLogin}
-        action={
-          missingLogin ? (
-            <button className="button small" onClick={() => setLoggingIn(true)}>
-              claude.ai 로그인
-            </button>
-          ) : pcClaude ? (
-            <InstallClaude onDone={onRecheck} />
-          ) : undefined
-        }
+        warn={missingKey || pcClaude}
+        action={pcClaude ? <InstallClaude onDone={onRecheck} /> : undefined}
       />
-      {loggingIn && <ClaudeLoginDialog onClose={() => setLoggingIn(false)} onDone={onRecheck} />}
       {confluence && (
         <CheckRow
           ok={Boolean(atlassianOk)}
@@ -265,12 +252,6 @@ function DraftChecks({
   )
 }
 
-// claude.ai 로그인으로 도는데 로그인되어 있지 않음 (상태를 못 읽었으면 막지 않는다)
-const needsLogin = (check?: DraftCheck) => {
-  const login = check?.claude && check.auth.mode === 'login' ? check.auth.login : undefined
-  return Boolean(login && !login.loggedIn && !login.error)
-}
-
 function claudeDetail(check?: DraftCheck) {
   if (!check?.claude) return '설치되어 있지 않습니다 (설정 → 환경 점검)'
   const where = check.claude.managed
@@ -280,11 +261,7 @@ function claudeDetail(check?: DraftCheck) {
       : ' (설정에서 지정한 경로)'
   const auth =
     check.auth.mode === 'login'
-      ? needsLogin(check)
-        ? 'claude.ai 로그인 필요'
-        : check.auth.login
-          ? loginLabel(check.auth.login)
-          : 'claude.ai 로그인'
+      ? 'claude.ai 로그인'
       : check.auth.keySource
         ? `ANTHROPIC_API_KEY (${check.auth.keySource === 'shell' ? '~/.zshrc' : '앱 환경'})`
         : 'ANTHROPIC_API_KEY 없음 — 설정 → 고급 → Claude 인증 확인'
@@ -469,7 +446,7 @@ function DraftInputList({
           <dt>연결 화면</dt>
           <dd>{input.targets?.[0] ?? '없음'}</dd>
         </>
-      ) : input.mode === 'refresh' || input.mode === 'shots' ? (
+      ) : input.mode === 'refresh' ? (
         <>
           <dt>대상</dt>
           <dd>{input.targets?.length === 1 ? input.targets[0] : `화면 ${input.targets?.length ?? 0}개`}</dd>
@@ -607,7 +584,7 @@ function DraftLog({ task }: { task: ClaudeTask }) {
                 >
                   {row.status === 'running' && <Icon name="sync" size={12} className="spin" />}
                   <span>{screenName(target)}</span>
-                  <b>{screenLabel(row.status, task.input.mode)}</b>
+                  <b>{SCREEN_LABEL[row.status]}</b>
                 </button>
               </li>
             ))}

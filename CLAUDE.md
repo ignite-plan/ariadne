@@ -28,7 +28,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - `pnpm typecheck`
 - `pnpm test`: core + app 테스트 (`src/core/__tests__`, `app/main/lib/__tests__`). git 테스트는 로컬 `git http-backend`, 캡처 테스트는 설치된 Chrome 사용
 - `pnpm app:dev` / `pnpm app:dist`(arm64 dmg, 사내망은 `NODE_USE_SYSTEM_CA=1`) / `pnpm app:e2e`(`ARIADNE_E2E_TOKEN` 필요, 제출은 안 함) / `pnpm app:e2e:video [--app <.app>]`(영상: 모델 받기, 내레이션 영상, 패키징 앱 검증)
-- 앱 릴리즈: `app-v<version>` 태그를 `origin`에 push → Actions가 dmg를 Release에 올림. 사내 자체 서명 인증서(Secrets `MAC_CERT_P12`/`MAC_CERT_PASSWORD`)로 서명해 업데이트해도 폴더 같은 macOS 권한(TCC)이 유지된다. 시크릿이 없으면 릴리스가 멈춘다. 키체인은 서명으로 유지되지 않는다(Team ID가 없어 파티션이 빌드마다 바뀌는 cdhash) — 키체인은 `safeStorage`가 아니라 `app/main/lib/keychain.ts`(`/usr/bin/security`)로만 쓴다
+- 앱 릴리즈: `app-v<version>` 태그를 `origin`에 push → Actions가 dmg를 Release에 올림. 사내 자체 서명 인증서(Secrets `MAC_CERT_P12`/`MAC_CERT_PASSWORD`)로 서명해 업데이트해도 macOS 권한이 유지된다. 시크릿이 없으면 릴리스가 멈춘다
 - 리모트: `origin` = ignite-plan/ariadne(기준, 기획자 제출이 들어옴), `zi-gae` = zi-gae/ariadne(미러). PR 없이 main에 커밋하고 둘 다 push
 
 ## 규칙
@@ -40,9 +40,8 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - 공유 Chrome에서는 route·init script·binding을 **page 단위로만** 건다(`guardWrites(page)`, `page.addInitScript`, `page.exposeBinding`). `context.route`/`context.addInitScript`는 다른 탭(예: STG 저장 허용 영상, 자막 overlay)에 번진다. core 함수는 `openTab`(`session.ts` `OpenTab`)을 받고, 없으면 `profileTab`으로 단독 실행한다(CLI)
 - 쓰기 요청 차단(`safety.ts` `isAllowedRequest`)은 로그인 세션 유지 POST(sso/auth 경로, token/refresh)를 통과시킨다. 막으면 BO 인증이 실패해 화면이 403
 - 앱 main에서 네트워크는 `net.fetch`만 쓴다 (사내 TLS 프록시 때문에 Node fetch 실패). git은 isomorphic-git
-- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-spec`(최신화 1단계 기획서 요약, `.capture/<m>/spec/`), `manual-refresh`(기존 화면 하나 최신화, 앱의 "Claude로 최신화"가 화면마다 3개씩 동시 실행), `manual-shots`(기존 화면 이미지의 캡처 정의만, 캡처 패널의 "Claude로 캡처 정의 만들기". 본문 편집 도구 없음, `save_shot`은 대상 화면 이미지 id만 받고 매뉴얼 이미지 대신 `.capture/<m>/defined/`에 찍으며, 이번에 등록한 정의는 `drop_shot`으로 뺀다), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안"), `manual-video-scene`(영상 장면 하나 채우기, 장면 편집기의 "Claude로 이 장면") — 앱용은 모두 비대화형
+- Skills: `manual-update`(릴리즈 반영), `manual-new-section`(신규 메뉴, 개발자 대화형), `manual-draft`(신규 메뉴 초안, 앱의 "Claude로 초안 만들기"), `manual-spec`(최신화 1단계 기획서 요약, `.capture/<m>/spec/`), `manual-refresh`(기존 화면 하나 최신화, 앱의 "Claude로 최신화"가 화면마다 3개씩 동시 실행), `manual-video-draft`(가이드 영상 시나리오 초안, 영상 패널의 "Claude로 초안"), `manual-video-scene`(영상 장면 하나 채우기, 장면 편집기의 "Claude로 이 장면") — 앱용은 모두 비대화형
 - 영상 시나리오는 Claude가 `video_save`(YAML 형식 검사)로만 쓰고 `video_check`(headless 실행)로 확인한다. `mutates`는 Claude가 켤 수 없고, mutates 시나리오는 `video_check`가 실행하지 않는다
 - 앱의 초안 만들기는 `claude -p`에 허용 도구만 준다: Read/Glob/Grep, `manuals/<m>/` 쓰기, Ariadne MCP(STG는 앱이 대신 열고 저장/삭제 버튼과 쓰기 요청을 막음), Confluence 읽기 도구
 - 앱의 Claude Code는 앱 전용 고정 버전(`app/main/lib/claude-install.ts`의 `CLAUDE_CODE_VERSION`, npm `@anthropic-ai/claude-code-darwin-arm64`를 userData/tools/claude에)을 먼저 쓴다. API 키 방식이면 `--bare` + `CLAUDE_CONFIG_DIR=<userData>/claude`로 개인 CLAUDE.md·hooks·플러그인을 끊고, 대화 기록도 거기에 쌓인다(디버깅 시 `~/Library/Application Support/Ariadne/claude/projects`). 버전을 올릴 때는 앱 옵션(--bare, --strict-mcp-config, --tools, --effort, --model)을 실제로 확인한다. 앱 전용이 없으면(옛 앱에서 업데이트, 고정 버전 올림) 앱을 켤 때 renderer가 뒤에서 설치하고 예전 버전 폴더는 지운다. 내 PC의 claude는 H-Chat이 낮은 버전을 400으로 거절하므로, 그 오류(`isBlockingFailure`: 버전·인증·모델)가 나면 최신화는 묻지 않고 멈춘다
-- claude.ai 로그인은 앱 안에서 `claude auth login --claudeai`(터미널 없이 브라우저를 열고 코드도 stdin으로 받음)와 `auth status --json`으로 한다(`app/main/lib/claude-login.ts`, IPC `claudeLogin`). 로그인 모드 환경(키 변수 뺌, 기본 설정 폴더)이라 터미널의 claude와 로그인을 같이 쓴다
 - 앱의 `claude -p`는 `--strict-mcp-config`(Ariadne + 연결된 Atlassian만, 설정은 `~/.claude.json`에서 옮기고 mcp-atlassian은 `ENABLED_TOOLS`·`READ_ONLY_MODE`로 Confluence 읽기만)와 `--tools`(기본 도구 제한)로 실행한다. PC의 MCP·도구 정의를 전부 실으면 첫 턴부터 문맥이 13만 토큰이 되어 자동 요약을 반복하다 멈춘다 (`app/main/lib/run-mcp.ts`)

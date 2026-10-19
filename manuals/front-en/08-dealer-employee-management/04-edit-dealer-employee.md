@@ -1,6 +1,6 @@
 ---
 title: Edit Dealer Employee
-routes: []
+routes: [/dealer/employee/edit]
 sources: []
 i18nPrefix: []
 ---
@@ -15,23 +15,24 @@ The dealer employee information edit screen is mostly identical to the dealer cr
 
 - The parts that do not match the dealer creation screen are as follows:
 
-- **HMG Partner id:**
+- **ID:**
 
-  - **If HMG Partner ID has already been created:**\
-    The HMG Partner ID cannot be modified or deleted.
+  - **If the ID has already been created:**\
+    The ID cannot be modified or deleted.
 
   - If the user is a multi-dealer user, some information cannot be modified.
 
     - Name(First, Last Name)/Account email/Language
 
-  - **If HMG Partner ID has not been created:**\
+  - **If the ID has not been created:**\
     A message will appear indicating that the status must be set to Active before creating the ID.
 
 ![](images/edit-dealer-employee-img-1.png){width=6.79in}
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨이 'ID'로 변경됨 -->
 
-HMG Partner ID Not existed
+ID Not existed
 
-- When the **Status** is updated to **Active**, the Existing HMG Partner ID field is enabled.
+- When the **Status** is updated to **Active**, the Existing ID field is enabled.
 
 - You can then choose to create a new HMG Partner ID or link an existing one just like in the initial creation screen.
 

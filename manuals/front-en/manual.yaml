@@ -28,22 +28,26 @@ chapters:
       - 05-board-you-ve-visited.md
       - 06-bulletin-highlight.md
       - 07-footer.md
+  - title: Profile
+    dir: 04-profile
+    sections:
+      - 01-profile.md
   - title: Search Result
-    dir: 04-search-result
+    dir: 05-search-result
     sections:
       - 00-intro.md
   - title: Bulletin Board
-    dir: 05-bulletin-board
+    dir: 06-bulletin-board
     sections:
       - 00-intro.md
       - 01-post-list.md
       - 02-post-detail.md
   - title: Email Notification
-    dir: 06-email-notification
+    dir: 07-email-notification
     sections:
       - 00-intro.md
   - title: Dealer employee management
-    dir: 07-dealer-employee-management
+    dir: 08-dealer-employee-management
     sections:
       - 00-intro.md
       - 01-dealer-employee-list.md
@@ -51,7 +55,7 @@ chapters:
       - 03-view-dealer-employee.md
       - 04-edit-dealer-employee.md
   - title: HMG-Notification
-    dir: 08-hmg-notification
+    dir: 09-hmg-notification
     sections:
       - 00-intro.md
       - 01-page-notification.md

@@ -10,7 +10,7 @@
 | 매뉴얼 | 지금 매뉴얼의 제목, 버전, Word 파일 이름, 캡처 주소와 화면 크기, 코드 연결. 바꾸면 제출해야 다른 사람에게 반영됩니다 |
 | 계정 | GitHub 계정 확인, 토큰 바꾸기, 로그아웃 |
 | 환경 점검 | pandoc, Chrome, Claude Code, ffmpeg, 음성 모델, 로그인 세션 상태. pandoc과 Claude Code는 **자동으로 설치** / **앱 전용으로 설치**로 앱이 받습니다 |
-| 고급 | 리포 주소, 작업 폴더, pandoc 경로, **Claude 인증**(ANTHROPIC_API_KEY / claude.ai 로그인. claude.ai 로그인을 고르면 아래에 로그인 상태와 **[claude.ai 로그인]** / **[로그아웃]**), Claude 생각량, Claude 모델, Claude Code CLI 경로, dealerhub-web 경로 |
+| 고급 | 리포 주소, 작업 폴더, pandoc 경로, **Claude 인증**(ANTHROPIC_API_KEY / claude.ai 로그인), Claude 생각량, Claude 모델, Claude Code CLI 경로, dealerhub-web 경로 |
 | 변경 영향 | 개발자용. 두 릴리즈 사이 코드 변경이 어느 화면에 영향을 주는지 찾기 |
 | 정보 | 앱 버전, 새 버전 확인, **문제 신고**(오류 기록을 붙여 GitHub Issue로 올림. 토큰, 키, 내 PC 경로는 가림) |
 
@@ -58,4 +58,4 @@
 | `ANTHROPIC_AUTH_TOKEN(…1234)로 … 인증하지 못했습니다` | `ANTHROPIC_AUTH_TOKEN`이 있으면 `ANTHROPIC_API_KEY`보다 먼저 쓰입니다. H-Chat 설정 스크립트는 `ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`만 쓰므로, `~/.zshrc`에 남은 `export ANTHROPIC_AUTH_TOKEN`을 지웁니다 |
 | `… 모델을 받지 않습니다` | 게이트웨이(H-Chat 등)가 그 모델을 지원하지 않습니다(예: 4.6 지원 종료). `~/.zshrc`에 `export ANTHROPIC_MODEL="claude-sonnet-5"`처럼 쓸 수 있는 모델을 넣습니다 |
 | `너무 낮은 버전의 Claude Code라며 거절했습니다` | H-Chat이 낮은 버전의 Claude Code를 받지 않습니다. 내 PC의 claude를 쓰고 있으면 설정 → 환경 점검 → Claude Code → **앱 전용으로 설치**를 누릅니다(앱은 켤 때 앱 전용 버전이 없으면 알아서 받습니다). 앱 전용 버전인데도 거절되면 앱을 새 버전으로 업데이트합니다 |
-| `claude.ai 로그인으로 인증하지 못했습니다`, 점검 화면에 `claude.ai 로그인 필요` | 설정 → 고급 → Claude 인증 아래 또는 점검 화면의 **[claude.ai 로그인]** → 브라우저에서 로그인합니다. 브라우저가 안 열리면 창의 **로그인 페이지 열기**, 브라우저에 코드가 나오면 창에 붙여 넣습니다. 또는 Claude 인증을 **ANTHROPIC_API_KEY**로 바꿉니다 |
+| `claude.ai 로그인으로 인증하지 못했습니다` | 터미널에서 `claude`를 열어 `/login` 하거나, Claude 인증을 **ANTHROPIC_API_KEY**로 바꿉니다 |

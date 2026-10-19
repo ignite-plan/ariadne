@@ -390,7 +390,6 @@ export function Workbench({ onReset }: { onReset: () => void }) {
           <CapturePanel
             manual={settings.manual}
             currentSection={doc?.path}
-            tree={tree}
             onAdopted={() => {
               side.scheduleRefresh()
               setPreviewNonce((n) => n + 1)
@@ -433,8 +432,6 @@ export function Workbench({ onReset }: { onReset: () => void }) {
             onDone={(input, changed) => {
               tasks.clearClaude()
               if (changed && (input.mode === 'refresh' || input.mode === 'create')) setTab(input.mode === 'refresh' ? 'changes' : 'toc')
-              // 캡처 정의를 만들었으면 바로 다시 찍어 비교할 수 있게 캡처 패널을 연다
-              if (changed && input.mode === 'shots') setCapturing(true)
             }}
           />
         </div>
