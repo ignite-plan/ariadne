@@ -12,6 +12,7 @@ i18nPrefix: []
 - If the employee is a dealer principal, a badge saying dealer principal is displayed.
 
 - If an **ID** has not been created, an **\"ID Required\"** badge will be displayed.
+  <!-- TODO: 확인 필요 - GIDPDVO-2350 이후 "ID Required" 뱃지 문구 확정 (기획서 요약에 확정 문구 없음) -->
 
 - Clicking **\[Reset Password\]** in the upper right will send a link to the registered email address to set a new password.\
   Once the password is changed through the link, the new password will be applied.
@@ -37,12 +38,14 @@ i18nPrefix: []
 
   - **Status**
 
-  - **ID**: If the ID has not been created, a message indicating that creation is required will be displayed.
+  - **ID**: If the ID has not been created, a message indicating that creation is required will be displayed. The following description is provided: "Your ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services."
+    <!-- TODO: STG 화면의 ID 필드에서 설명 문구가 접근성 트리에 보이지 않음 (아이콘 툴팁 여부 확인 필요) -->
 
 [\
 ]{.mark}![](images/view-dealer-employee-img-1.png){width=5.65in}
 
 ![HMG Partner ID Not existed](images/hmg-partner-id-not-existed.png){width=6.79in}
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨이 'ID'로 변경됨 -->
 
 Employee details2
 
