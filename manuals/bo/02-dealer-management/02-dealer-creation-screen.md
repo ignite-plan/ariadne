@@ -587,13 +587,31 @@ i18nPrefix:
 
 ![Creating Dealer - Dealer Principal](images/creating-dealer-dealer-principal.png){width=6.27in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 Photo 필수 필드 반영 -->
+
 - On this screen, only the essential information for dealer employees, dealer principal is entered. Account creation for accessing Dealers is not performed on this screen.
 
 - Although an account is not created, the employee information is saved.
 
 ![](images/dealer-creation-screen-img-1.png){width=6.14in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 Photo 필수 필드 반영 -->
+
 *Dealer - Dealer Principal*
+
+- **Photo**
+
+<!-- -->
+
+- Required (GIDPDVO-2350).
+
+- Upload a photo of the dealer principal. Supported formats: JPEG (JPG) or PNG, up to 20MB in size.
+
+- If no photo is registered when creating or changing the dealer principal, a blocking confirmation modal appears with **\[Confirm\]** and **\[Edit Employee\]** buttons, and the form cannot be saved until a photo is uploaded.
+
+<!-- TODO: 확인 필요 - 블락 모달의 정확한 문구 (GIDPDVO-2350) -->
+
+<!-- -->
 
 - **Name**
 
@@ -659,7 +677,7 @@ i18nPrefix:
 
   - Required
 
-  - Enter the date when the dealer principal started working with Hyundai
+  - Automatically filled with the current date when the dealer principal's employee information is first entered.
 
 - **Year of CEO Enrollment**
 

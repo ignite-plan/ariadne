@@ -11,7 +11,7 @@ i18nPrefix: []
 
 - If the employee is a dealer principal, a badge saying dealer principal is displayed.
 
-- If an **HMG Partner ID** has not been created, an **\"HMG Partner ID Required\"** badge will be displayed.
+- If an **ID** has not been created, an **\"ID Required\"** badge will be displayed.
 
 - Clicking **\[Reset Password\]** in the upper right will send a link to the registered email address to set a new password.\
   Once the password is changed through the link, the new password will be applied.
@@ -25,8 +25,9 @@ i18nPrefix: []
 - The dealer employee detail screen provides the following information:
 
 ![Employee details1](images/employee-details1.png){width=6.79in}
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨/뱃지가 'ID'/'ID Required'로 변경됨 -->
 
-- If a dealer employee photo is registered, it provides the photo.
+- If a dealer employee photo is registered, it provides the photo. If no photo is registered, an initial avatar is automatically displayed instead: for Latin-based names, the first letter of the first name and the first letter of the last name (e.g. Isabel Marant → IM); for non-Latin-based names, only the first letter of the last name (e.g. 이지은 → 이).
 
   - **User No.**: Once the dealer employee information is registered, a unique employee number is automatically generated and displayed by the Dealers system.
 
@@ -36,7 +37,7 @@ i18nPrefix: []
 
   - **Status**
 
-  - **HMG Partner ID**: If the HMG Partner ID has not been created, a message indicating that creation is required will be displayed.
+  - **ID**: If the ID has not been created, a message indicating that creation is required will be displayed.
 
 [\
 ]{.mark}![](images/view-dealer-employee-img-1.png){width=5.65in}
@@ -45,7 +46,7 @@ i18nPrefix: []
 
 Employee details2
 
-- **Account Email**
+- **Account Email:** The employee's personal email, used to manage ID and send password reset requests.
 
 - **Business Email**
 

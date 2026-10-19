@@ -19,15 +19,19 @@ i18nPrefix: []
 
   - Only jpeg(jpg) and png formats are allowed, and a maximum of 20MB can be registered.
 
+  - Required for the **Dealer Principal**. If not uploaded, the error \"Please upload a photo\" is shown.
+
+  - If no photo is registered, an auto-generated initial avatar is displayed for the employee on the View screen.
+
 <!-- -->
 
 - **Name:**
 
 <!-- -->
 
-- First name: Required. 20 characters allowed.
+- First name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
 
-- Last name: Required. 20 characters allowed.
+- Last name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
 
 - **Status**: Status value of the dealer account.
 
@@ -41,7 +45,9 @@ i18nPrefix: []
 
 ![Status - Active](images/status-active.png){width=6.27in}
 
-- **HMG Partner ID**
+- **ID**
+
+  - Tooltip: \"ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services.\"
 
 <!-- -->
 
@@ -101,7 +107,7 @@ Status - Inactive
 
 <!-- -->
 
-- **Account Email:** Required. The personal email address for managing the employee\'s account.
+- **Account Email:** Required. Tooltip: \"The employee's personal email, used to manage ID and send password reset requests.\"
 
 - If an **HMG Partner ID** is created, a **URL to set the account password** will be sent to the registered account email address.
 
@@ -123,7 +129,7 @@ Status - Inactive
 
 - **Date of Birth**: Optional. The dealer employee\'s birthday information.
 
-- **Hyundai Start Date**: Required. Select the date when the dealer employee started working at Hyundai Motors.
+- **Hyundai Start Date**: Required. Select the date when the dealer employee started working at Hyundai Motors. Today\'s date is automatically entered when the form is first opened.
 
 <!-- -->
 
@@ -232,7 +238,7 @@ From the dealer employee list, you can view detailed information about a dealer 
 
     Status: The status of the account
 
-    HMG Partner ID
+    ID
 
   1.  If not created: The message \"Account creation is required\" will be displayed.
 
@@ -242,9 +248,9 @@ From the dealer employee list, you can view detailed information about a dealer 
 
   4.  Resends the account activation email to employees who have not completed registration.
 
-  5.  Displayed when the employee has an HMG Partner ID and is in Not Registered status.
+  5.  Displayed when the employee has an ID and is in Not Registered status.
 
-  6.  The system checks the employee\'s current registration status via HMG Partner ID.
+  6.  The system checks the employee\'s current registration status via the ID.
 
       - If still Not Registered → requests HMG Notification to resend the email
 

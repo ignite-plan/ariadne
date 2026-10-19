@@ -1,6 +1,6 @@
 ---
 title: Create Dealer Employee
-routes: []
+routes: [/dealer/employee/create]
 sources: []
 i18nPrefix: []
 ---
@@ -29,19 +29,20 @@ In the **Basic information** area, enter the user\'s basic information:
 
 - **Active**: Indicates an activated status where the user can access the service. If the initial account status is set to *Active*, an HMG Partner ID can be created.
 
-  - When active, the Existing HMG Partner ID field is enabled.
+  - When active, the Existing ID field is enabled.
 
 <!-- -->
 
-- **Existing HMG Partner ID**
+- **Existing ID**
 
   - No, Create a new account: Proceeds with creating a new HMG Partner ID.
 
   - Yes, Use existing account: Links to an existing HMG Partner ID.
 
 ![Status -- Active: Create New HMG Partner ID](images/status-active-create-new-hmg-partner-id.png){width=6.79in}
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 필드 레이블이 'HMG Partner ID'에서 'ID'로 변경됨 -->
 
-- **HMG Partner ID :** This is the ID used to log in to the Dealers system.
+- **ID :** This is the ID used to log in to the Dealers system. Your ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services.
 
   - An HMG Partner ID can only be created when the account is initially in an **Active** status, and creation is **mandatory** in this case.
 
@@ -52,6 +53,7 @@ In the **Basic information** area, enter the user\'s basic information:
     - Once created, the ID remains valid even if the account status is later changed to **Inactive**.
 
     - The ID must be between **5 to 10 characters**, using a combination of **letters and numbers.**
+    <!-- TODO: STG에 반영 범위 밖 변경 보임 - ID 길이 제한이 STG 화면에서는 5-40자로 보임(현재 문서는 5-10자, GIDPDVO-2350 범위 밖) -->
 
     - **A duplicate check** is required. After entering your desired ID, click **\[Verify ID\]** to check for duplicates.
 
@@ -81,7 +83,7 @@ In the **Basic information** area, enter the user\'s basic information:
 
 ![Employee - Basic information2](images/employee-basic-information2.png){width=6.79in}
 
-- **Account email(required):** The email address linked to the HMG Partner ID. Account-related notifications, such as password resets, will be sent to this address.
+- **Account email(required):** The employee's personal email, used to manage ID and send password reset requests.
 
 - **Business Email(Required):** The business email address. If a domain is registered for the dealership, the domain must be selected from the registered domains.
 
@@ -103,7 +105,7 @@ In the **Basic information** area, enter the user\'s basic information:
 
 - **Date of Birth:** Optional. Enter the user\'s birthday.
 
-- **Hyundai Start date(Required):** Enter the date when the user started working at Hyundai.
+- **Hyundai Start date(Required):** Enter the date when the user started working at Hyundai. This field is automatically filled with the date of registration.
 
 <!-- -->
 
