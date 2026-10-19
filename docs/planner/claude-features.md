@@ -20,6 +20,7 @@ Claude가 **Confluence DLRS 기획서 최신 output**과 **실제 STG 화면**�
 |---|---|
 | Claude Code | 앱이 앱 전용 버전(H-Chat이 받는 고정 버전)을 받아 둡니다. 없으면 앱을 켤 때 뒤에서 받습니다(약 220MB). 점검 화면에서 노란색(내 PC의 claude)이면 **앱 전용으로 설치** |
 | 인증 | 기본은 `~/.zshrc`의 `ANTHROPIC_API_KEY`. 설정 → 고급에서 claude.ai 로그인으로 바꿀 수 있습니다 |
+| 모델 | 기본은 Sonnet 5.5(`claude-sonnet-5-5[1m]`, 1M 문맥). 설정 → 고급 → Claude 모델에서 바꿉니다 |
 | Confluence 연결 | 내 Claude Code에 Atlassian MCP가 연결되어 있어야 합니다(`claude mcp list`). 앱이 그 설정을 가져다 씁니다 |
 
 Claude 패널의 점검 화면에서 세 가지와 STG 로그인 상태를 한 번에 볼 수 있습니다.

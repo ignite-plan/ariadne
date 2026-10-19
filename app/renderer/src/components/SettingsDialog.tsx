@@ -203,7 +203,7 @@ function AdvancedPane({ settings, update, onReset }: { settings: Settings; updat
       <TextSetting
         label="Claude 모델 (Claude로 초안·최신화·영상, 비우면 ~/.zshrc의 ANTHROPIC_MODEL)"
         value={settings.claudeModel}
-        placeholder="claude-sonnet-5[1m]"
+        placeholder="claude-sonnet-5-5[1m]"
         onSave={(claudeModel) => update({ claudeModel: claudeModel.trim() })}
       />
       <TextSetting

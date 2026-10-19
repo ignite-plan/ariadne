@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { join } from 'node:path'
 import { app, safeStorage } from 'electron'
 import type { Settings } from '../shared/api.ts'
-import { DEFAULT_CLAUDE_MODEL } from './lib/claude-auth.ts'
+import { DEFAULT_CLAUDE_MODEL, upgradeClaudeModel } from './lib/claude-auth.ts'
 
 const file = () => join(app.getPath('userData'), 'settings.json')
 const tokenFile = () => join(app.getPath('userData'), 'token.bin')
@@ -35,6 +35,7 @@ export function getSettings(): Settings {
   } catch {
     // 첫 실행이거나 깨진 파일이면 기본값
   }
+  if (typeof saved.claudeModel === 'string') saved.claudeModel = upgradeClaudeModel(saved.claudeModel)
   cache = { ...defaultSettings(), ...saved }
   return cache
 }

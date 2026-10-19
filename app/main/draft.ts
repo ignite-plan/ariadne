@@ -110,7 +110,7 @@ interface DraftOptions {
   input: DraftInput
   claudePath?: string
   claudeAuth?: ClaudeAuthSetting
-  // --model 값 (기본 claude-sonnet-5[1m]: 큰 기획서·긴 STG 탐색에서 자동 요약을 피한다). 비우면 ANTHROPIC_MODEL
+  // --model 값 (기본 claude-sonnet-5-5[1m]: 큰 기획서·긴 STG 탐색에서 자동 요약을 피한다). 비우면 ANTHROPIC_MODEL
   model?: string
   // 생각량. 매뉴얼 작업은 확인·옮기기가 많아 medium이면 충분하고 훨씬 빠르다
   effort?: ClaudeEffort
