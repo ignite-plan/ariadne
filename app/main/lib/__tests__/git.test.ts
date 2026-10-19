@@ -14,6 +14,7 @@ const SEED = {
   'manuals/bo/b.md': 'b\n',
   'manuals/bo/images/x.png': 'png-bytes',
   '.github/workflows/release.yml': 'v1\n',
+  'app/code.ts': 'code v1\n',
 }
 const WORKFLOW = '.github/workflows/release.yml'
 
@@ -85,6 +86,20 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/new.md')))
   })
 
+  it('manuals/ 밖 변경은 목록에 없고, sync가 HEAD 내용으로 되돌린다 (새 파일은 둔다)', async () => {
+    const ctx = await workspace()
+    write(ctx, 'app/code.ts', 'stale\n')
+    rmSync(join(ctx.dir, WORKFLOW))
+    write(ctx, 'scratch.txt', 'mine\n')
+    write(ctx, 'manuals/bo/b.md', 'b outside test\n')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/b.md', status: 'modified' }])
+    await gitOps.sync(ctx)
+    assert.equal(read(ctx, 'app/code.ts'), 'code v1\n')
+    assert.equal(read(ctx, WORKFLOW), 'v1\n')
+    assert.equal(read(ctx, 'scratch.txt'), 'mine\n')
+    assert.equal(read(ctx, 'manuals/bo/b.md'), 'b outside test\n')
+  })
+
   it('같은 초에 같은 크기로 고친 파일도 변경으로 잡고 되돌린다 (racy-git)', async () => {
     const ctx = await workspace()
     // clone 직후 같은 초 안에, 같은 길이로 고친다
@@ -149,6 +164,36 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(server.show('main', 'manuals/bo/e.md'), 'e\n')
     assert.equal(read(ctx, 'manuals/bo/e.md'), 'e\n')
     assert.deepEqual(await gitOps.changes(ctx.dir), [])
+    assert.equal((await gitOps.sync(ctx)).status, 'synced')
+  })
+
+  it('push 모드: 같은 파일의 다른 줄을 고쳤으면 줄 단위로 합쳐 올린다', async () => {
+    const ctx = await workspace()
+    const base = read(ctx, 'manuals/bo/a.md').split('\n')
+    write(ctx, 'manuals/bo/a.md', [base[0], base[1], 'line 3 planner', ''].join('\n'))
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/a.md'), ['line 1 merged other', base[1], base[2], ''].join('\n')), 'other edits a line 1')
+    const result = await gitOps.submit(ctx, submitOptions('docs: a 3번 줄'))
+    assert.equal(result.mode, 'push')
+    assert.equal(server.show('main', 'manuals/bo/a.md'), ['line 1 merged other', base[1], 'line 3 planner', ''].join('\n'))
+    assert.equal(read(ctx, 'manuals/bo/a.md'), server.show('main', 'manuals/bo/a.md'))
+    assert.deepEqual(await gitOps.changes(ctx.dir), [])
+    assert.equal((await gitOps.sync(ctx)).status, 'synced')
+  })
+
+  it('push 모드: 남아 있던 커밋에 섞인 manuals/ 밖 옛 내용은 올리지 않는다', async () => {
+    const ctx = await workspace()
+    // 예전 앱이 어긋난 작업 폴더를 통째로 커밋한 상태
+    write(ctx, 'app/code.ts', 'stale\n')
+    write(ctx, 'manuals/bo/b.md', 'b with stale\n')
+    for (const filepath of ['app/code.ts', 'manuals/bo/b.md']) await git.add({ fs, dir: ctx.dir, filepath })
+    await git.commit({ fs, dir: ctx.dir, message: 'docs: stale 섞임', author: ctx.author })
+    server.other((dir) => writeFileSync(join(dir, 'app/code.ts'), 'code v2\n'), 'other edits code')
+    const result = await gitOps.submit(ctx, submitOptions('ignored'))
+    assert.equal(result.mode, 'push')
+    assert.equal(server.log()[0], 'docs: stale 섞임')
+    assert.equal(server.git('diff', '--name-only', 'main^', 'main'), 'manuals/bo/b.md')
+    assert.equal(server.show('main', 'app/code.ts'), 'code v2\n')
+    assert.equal(read(ctx, 'app/code.ts'), 'code v2\n')
     assert.equal((await gitOps.sync(ctx)).status, 'synced')
   })
 

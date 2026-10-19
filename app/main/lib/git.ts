@@ -130,8 +130,19 @@ async function writeFiles(dir: string, files: Map<string, FileEntry>) {
   return write(root)
 }
 
-// HEAD 대비 작업 폴더 변경. .gitignore 대상은 빠진다
+// 기획자가 고치는 곳. 변경 목록·제출은 이 아래만 본다.
+// 작업 폴더가 HEAD와 어긋나면(받아 오다 checkout이 멈춘 경우 등) 앱 코드·문서의 옛 내용이 변경으로 잡혀
+// 제출에 섞이고, 다른 사람의 변경을 되돌린다
+const OWNED = 'manuals/'
+const owned = (path: string) => path.startsWith(OWNED)
+
+// HEAD 대비 작업 폴더 변경 (manuals/ 아래만)
 export async function changes(dir: string): Promise<Change[]> {
+  return (await workdirChanges(dir)).filter((c) => owned(c.path))
+}
+
+// HEAD 대비 작업 폴더 변경 전체. .gitignore 대상은 빠진다
+async function workdirChanges(dir: string): Promise<Change[]> {
   const matrix = await git.statusMatrix({ fs, dir })
   const result: Change[] = []
   // isomorphic-git은 mtime(초)과 크기만 비교한다. index를 쓴 같은 초에 같은 크기로 고친 파일은
@@ -159,7 +170,7 @@ export async function changes(dir: string): Promise<Change[]> {
 
 // 변경을 버리고 HEAD 상태로 되돌린다. 새로 만든 파일은 지운다
 export async function revert(dir: string, paths: string[]) {
-  const current = new Map((await changes(dir)).map((c) => [c.path, c.status]))
+  const current = new Map((await workdirChanges(dir)).map((c) => [c.path, c.status]))
   const tracked = paths.filter((p) => current.get(p) === 'modified' || current.get(p) === 'deleted')
   for (const p of paths.filter((p) => current.get(p) === 'added')) {
     await rm(join(dir, p), { force: true })
@@ -200,8 +211,16 @@ async function fetchRemote(ctx: GitContext) {
   await git.fetch({ fs, dir: ctx.dir, url: ctx.url, remote, ref: ctx.branch, singleBranch: true, ...auth(ctx) })
 }
 
+// manuals/ 밖에서 고쳐지거나 지워진 파일을 HEAD 내용으로 되돌린다. 기획자는 거기를 고치지 않는다.
+// 새로 생긴 파일은 둔다 (제출에 들어가지 않는다)
+async function restoreOutside(dir: string) {
+  const stray = (await workdirChanges(dir)).filter((c) => !owned(c.path) && c.status !== 'added')
+  if (stray.length) await revert(dir, stray.map((c) => c.path))
+}
+
 // 원격을 받아 온다. 작업 중인 변경이 없으면 fast-forward까지 한다
 export async function sync(ctx: GitContext): Promise<SyncState> {
+  await restoreOutside(ctx.dir)
   try {
     await fetchRemote(ctx)
   } catch (error) {
@@ -214,7 +233,14 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
   let status = await relation(ctx.dir, local, upstream)
   if (status === 'behind' && !pending.length) {
     await git.merge({ fs, dir: ctx.dir, ours: ctx.branch, theirs: `${remote}/${ctx.branch}`, fastForwardOnly: true })
-    await git.checkout({ fs, dir: ctx.dir, ref: ctx.branch })
+    // merge가 브랜치를 먼저 옮긴다. checkout이 실패하면 브랜치를 되돌려 HEAD와 작업 폴더가 어긋나지 않게 한다
+    try {
+      await git.checkout({ fs, dir: ctx.dir, ref: ctx.branch, force: true })
+    } catch (error) {
+      await git.writeRef({ fs, dir: ctx.dir, ref: `refs/heads/${ctx.branch}`, value: local, force: true })
+      await git.checkout({ fs, dir: ctx.dir, ref: ctx.branch, force: true }).catch(() => {})
+      throw new Error(`받아 온 내용을 작업 폴더에 쓰지 못했습니다: ${(error as Error).message}`)
+    }
     status = 'synced'
   }
   const message = {
@@ -249,36 +275,58 @@ function stamp(now: Date) {
   return `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}-${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`
 }
 
-// 원격 main 위에 내 커밋이 바꾼 파일만 얹은 커밋을 만든다 (브랜치는 옮기지 않는다).
-// 갈라진 내 커밋을 그대로 브랜치로 올리면 그 사이 남이 바꾼 파일을 옛 내용으로 되돌리는 브랜치가 된다.
-// 그중 .github/workflows가 있으면 GitHub가 workflow scope 없는 토큰의 push를 거절한다.
+// onto 위에 내 커밋이 manuals/ 아래에서 바꾼 파일만 얹은 커밋을 만든다 (브랜치는 옮기지 않는다).
+// 갈라진 내 커밋을 그대로 올리면 그 사이 남이 바꾼 파일을 옛 내용으로 되돌린다.
+// 브랜치에 옛 .github/workflows가 들어가면 GitHub가 workflow scope 없는 토큰의 push도 거절한다.
 // 파일 단위로 비교하므로 isomorphic-git이 못 합치는 히스토리(merge base가 여럿)도 처리한다.
-// 내가 바꾼 파일을 남도 바꿨으면 conflicts에 담는다 (내 내용으로 덮어쓴다). 얹을 게 없으면 oid가 없다
-async function rebuild(ctx: GitContext, local: string, upstream: string) {
+// 내가 바꾼 파일을 onto 쪽도 바꿨으면 conflicts에 담는다 (내 내용으로 덮어쓴다). 얹을 게 없으면 oid가 없다
+async function rebuild(ctx: GitContext, local: string, onto: string) {
   const { dir } = ctx
-  const bases = await git.findMergeBase({ fs, dir, oids: [local, upstream] })
-  const [mine, theirs, ...olds] = await Promise.all([local, upstream, ...bases].map((ref: string) => treeFiles(dir, ref)))
+  const bases = await git.findMergeBase({ fs, dir, oids: [local, onto] })
+  const [mine, theirs, ...olds] = await Promise.all([local, onto, ...bases].map((ref: string) => treeFiles(dir, ref)))
   // merge base 어느 것과도 다르면 그쪽에서 바꾼 것이다
   const changed = (path: string, oid?: string) => olds.every((old) => old.get(path)?.oid !== oid)
   const files = new Map(theirs)
   const conflicts: string[] = []
   for (const path of new Set([...mine.keys(), ...theirs.keys()])) {
     const ours = mine.get(path)
-    if (ours?.oid === theirs.get(path)?.oid || !changed(path, ours?.oid)) continue
+    if (!owned(path) || ours?.oid === theirs.get(path)?.oid || !changed(path, ours?.oid)) continue
     if (changed(path, theirs.get(path)?.oid)) conflicts.push(path)
     if (ours) files.set(path, ours)
     else files.delete(path)
   }
   const tree = await writeFiles(dir, files)
-  if (tree === (await git.readCommit({ fs, dir, oid: upstream })).commit.tree) return { conflicts }
+  if (tree === (await git.readCommit({ fs, dir, oid: onto })).commit.tree) return { conflicts }
   const { message } = (await git.readCommit({ fs, dir, oid: local })).commit
-  const oid = await git.commit({ fs, dir, message, author: ctx.author, tree, parent: [upstream], noUpdateBranch: true })
+  const oid = await git.commit({ fs, dir, message, author: ctx.author, tree, parent: [onto], noUpdateBranch: true })
   return { oid, conflicts: conflicts.sort() }
 }
 
-// 변경을 커밋하고 원격에 올린다.
-// push 모드: 원격이 앞서 있으면 합친 뒤 push. 합치지 못하면 원격 main 위에 내가 바꾼 파일만 얹어 push하고,
-//   그 파일을 남도 바꿨으면 그 커밋을 브랜치 + PR로 돌린다
+// 같은 파일을 둘 다 고쳤을 때 줄 단위로 합쳐 본다. 못 합치면 undefined.
+// 내 커밋을 그대로 합치지 않고 merge base 위에 manuals/ 변경만 얹은 커밋을 합친다
+async function mergeOwned(ctx: GitContext, local: string, upstreamRef: string) {
+  const { dir } = ctx
+  const upstream = (await oid(dir, upstreamRef))!
+  const bases = await git.findMergeBase({ fs, dir, oids: [local, upstream] })
+  if (bases.length !== 1) return undefined
+  const { oid: mine } = await rebuild(ctx, local, bases[0])
+  if (!mine) return undefined
+  const temp = 'refs/heads/ariadne-submit'
+  await git.writeRef({ fs, dir, ref: temp, value: mine, force: true })
+  try {
+    const result = await git.merge({ fs, dir, ours: temp, theirs: upstreamRef, author: ctx.author, message: `Merge ${upstreamRef.replace('refs/remotes/', '')}` })
+    return result.oid
+  } catch (error) {
+    if (error instanceof Errors.MergeConflictError || error instanceof Errors.MergeNotSupportedError) return undefined
+    throw error
+  } finally {
+    await git.deleteRef({ fs, dir, ref: temp })
+  }
+}
+
+// 변경(manuals/ 아래만)을 커밋하고 원격에 올린다.
+// push 모드: 원격 main 위에 내가 바꾼 파일만 얹어 push. 그 파일을 남도 바꿨으면 줄 단위로 합쳐 보고,
+//   못 합치면 브랜치 + PR로 돌린다
 // pr 모드: 원격 main 위에 내가 바꾼 파일만 얹은 커밋으로 브랜치 + PR
 // 브랜치로 올린 경우 로컬 main은 원격 main으로 되돌린다 (변경은 PR에 있다)
 export async function submit(ctx: GitContext, options: SubmitOptions): Promise<SubmitResult> {
@@ -333,28 +381,19 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
   for (let attempt = 0; ; attempt++) {
     const local = (await oid(dir, branch))!
     const upstream = (await oid(dir, upstreamRef))!
-    if ((await relation(dir, local, upstream)) === 'diverged') {
-      try {
-        await git.merge({
-          fs,
-          dir,
-          ours: branch,
-          theirs: `${remote}/${branch}`,
-          author: ctx.author,
-          message: `Merge ${remote}/${branch}`,
-        })
-        await git.checkout({ fs, dir, ref: branch, force: true })
-      } catch (error) {
-        if (!(error instanceof Errors.MergeConflictError || error instanceof Errors.MergeNotSupportedError)) throw error
-        const { oid: rebuilt, conflicts } = await rebuild(ctx, local, upstream)
-        // 내 변경이 이미 원격에 다 들어가 있다
-        if (!rebuilt) {
-          await moveTo(upstream)
-          return { mode: 'push', commit: upstream }
-        }
-        if (conflicts.length) return toPullRequest(rebuilt, conflicts)
-        await moveTo(rebuilt)
-      }
+    // 내 커밋을 그대로 올리지 않고 원격 main 위에 manuals/ 변경만 얹어 올린다 (예전 앱이 만든 커밋에 섞인 옛 내용을 거른다)
+    const { oid: rebuilt, conflicts } = await rebuild(ctx, local, upstream)
+    // 내 변경이 이미 원격에 다 들어가 있다
+    if (!rebuilt) {
+      await moveTo(upstream)
+      return { mode: 'push', commit: upstream }
+    }
+    if (conflicts.length) {
+      const merged = await mergeOwned(ctx, local, upstreamRef)
+      if (!merged) return toPullRequest(rebuilt, conflicts)
+      await moveTo(merged)
+    } else {
+      await moveTo(rebuilt)
     }
     try {
       const pushed = await git.push({ fs, dir, url: ctx.url, ref: branch, remoteRef: branch, ...auth(ctx) })
