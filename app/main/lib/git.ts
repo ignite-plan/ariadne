@@ -316,10 +316,20 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
     const recorded = await recordedCount(ctx.dir)
     return { status: 'offline', changes: pending, recorded, message: `원격에 연결하지 못했습니다: ${(error as Error).message}` }
   }
-  const pending = await changes(ctx.dir)
   const local = (await oid(ctx.dir, ctx.branch))!
   const upstream = (await oid(ctx.dir, `refs/remotes/${remote}/${ctx.branch}`))!
   let status = await relation(ctx.dir, local, upstream)
+  // PR로 올린 커밋은 로컬에 남겨 둔다. PR이 머지돼 내 변경이 원격에 다 들어갔으면 원격으로 맞춘다
+  if (
+    (status === 'diverged' || status === 'ahead') &&
+    !(await workdirChanges(ctx.dir)).some((c) => owned(c.path)) &&
+    !(await rebuild(ctx, local, upstream)).oid
+  ) {
+    await git.writeRef({ fs, dir: ctx.dir, ref: `refs/heads/${ctx.branch}`, value: upstream, force: true })
+    await git.checkout({ fs, dir: ctx.dir, ref: ctx.branch, force: true })
+    status = 'synced'
+  }
+  const pending = await changes(ctx.dir)
   if (status === 'behind' && !pending.length) {
     await git.merge({ fs, dir: ctx.dir, ours: ctx.branch, theirs: `${remote}/${ctx.branch}`, fastForwardOnly: true })
     // merge가 브랜치를 먼저 옮긴다. checkout이 실패하면 브랜치를 되돌려 HEAD와 작업 폴더가 어긋나지 않게 한다
@@ -421,7 +431,7 @@ async function mergeOwned(ctx: GitContext, local: string, upstreamRef: string, m
 // push 모드: 원격 main 위에 내가 바꾼 파일만 얹어 push. 그 파일을 남도 바꿨으면 줄 단위로 합쳐 보고,
 //   못 합치면 브랜치 + PR로 돌린다
 // pr 모드: 원격 main 위에 내가 바꾼 파일만 얹은 커밋으로 브랜치 + PR
-// 브랜치로 올린 경우 로컬 main은 원격 main으로 되돌린다 (변경은 PR에 있다)
+// 브랜치로 올린 경우 로컬 main은 내 커밋에 그대로 둔다 (PR이 머지되면 sync가 원격으로 맞춘다)
 export async function submit(ctx: GitContext, options: SubmitOptions): Promise<SubmitResult> {
   const { dir, branch } = ctx
   const upstreamRef = `refs/remotes/${remote}/${branch}`
@@ -463,8 +473,9 @@ export async function submit(ctx: GitContext, options: SubmitOptions): Promise<S
         ].join('\n')
       : '_Ariadne에서 제출_'
     const url = await options.createPullRequest({ head, base: branch, title, body })
-    // 로컬 main을 원격 main으로 되돌려 다음 sync가 막히지 않게 한다
-    await moveTo((await oid(dir, upstreamRef))!)
+    // 로컬 main은 내 커밋에 그대로 둔다. 원격으로 되돌리면 PR이 머지되기 전까지 내 작업이 화면에서 사라져
+    // 옛 내용 위에서 다시 작업하게 된다. 다음 제출에서도 같은 충돌이 다시 잡혀 PR로 가고,
+    // PR이 머지되면 sync가 원격으로 맞춘다
     return { mode: 'pr', commit: rebuilt, url, conflict: conflicts.length > 0 }
   }
 

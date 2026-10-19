@@ -115,7 +115,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     } else {
       toast.show(
         result.conflict ? 'info' : 'success',
-        result.conflict ? '다른 사람의 변경과 겹쳐 PR로 올렸습니다. 개발자가 합친 뒤 반영됩니다' : 'PR을 만들었습니다. 검토 후 반영됩니다',
+        result.conflict ? '다른 사람의 변경과 겹쳐 PR로 올렸습니다. 개발자가 합친 뒤 반영됩니다. 내 작업은 그대로 남아 있습니다' : 'PR을 만들었습니다. 검토 후 반영됩니다. 내 작업은 그대로 남아 있습니다',
         result.url ? { label: 'PR 보기', run: () => void api.app.openExternal(result.url!) } : undefined,
       )
     }

@@ -197,7 +197,7 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal((await gitOps.sync(ctx)).status, 'synced')
   })
 
-  it('push 모드: 같은 줄을 고쳐 충돌하면 원격 main 위에 내 파일만 얹은 브랜치 + PR로 돌리고 로컬 main은 원격으로 맞춘다', async () => {
+  it('push 모드: 같은 줄을 고쳐 충돌하면 원격 main 위에 내 파일만 얹은 브랜치 + PR로 돌리고, 로컬은 내 작업을 둔 채 PR이 머지되면 원격으로 맞춘다', async () => {
     const ctx = await workspace()
     write(ctx, 'manuals/bo/a.md', 'line 1 planner\nline 2\nline 3\n')
     write(ctx, 'manuals/bo/b.md', 'b with a\n')
@@ -224,10 +224,22 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(server.show(pr.head, 'manuals/bo/a.md'), 'line 1 planner\nline 2\nline 3\n')
     assert.equal(server.show(pr.head, WORKFLOW), 'v2\n')
     assert.equal(server.show('main', 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
-    // 로컬은 원격 main 상태, 변경 없음
-    assert.equal(read(ctx, 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
-    assert.deepEqual(await gitOps.changes(ctx.dir), [])
-    assert.equal((await gitOps.sync(ctx)).status, 'synced')
+    // 로컬은 내 작업 그대로 (PR 전까지 화면에서 사라지지 않는다)
+    assert.equal(read(ctx, 'manuals/bo/a.md'), 'line 1 planner\nline 2\nline 3\n')
+    assert.deepEqual((await gitOps.changes(ctx.dir)).map((c) => c.path), ['manuals/bo/a.md', 'manuals/bo/b.md'])
+    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    // 머지 전에 또 제출하면 같은 충돌이 다시 잡혀 PR로 간다 (main에 바로 덮어쓰지 않는다)
+    write(ctx, 'manuals/bo/b.md', 'b again\n')
+    const again = await gitOps.submit(ctx, { ...submitOptions('docs: 또 제출'), now: new Date(2026, 9, 1, 10, 0, 0) })
+    assert.equal(again.mode, 'pr')
+    assert.equal(server.show('main', 'manuals/bo/a.md'), 'line 1 other\nline 2\nline 3\n')
+    // 개발자가 마지막 PR을 머지하면 sync가 원격으로 맞춘다
+    server.git('update-ref', 'refs/heads/main', prs.at(-1)!.head)
+    const state = await gitOps.sync(ctx)
+    assert.equal(state.status, 'synced')
+    assert.equal(state.changes, 0)
+    assert.equal(read(ctx, 'manuals/bo/b.md'), 'b again\n')
+    assert.equal(read(ctx, WORKFLOW), 'v2\n')
   })
 
   it('push 모드: isomorphic-git이 못 합치는 히스토리(merge base 여럿)라도 파일이 겹치지 않으면 main에 올린다', async () => {
@@ -273,6 +285,23 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(server.show(head, 'manuals/bo/b.md'), 'b via pr\n')
     assert.equal(server.git('rev-parse', `${head}^`), server.git('rev-parse', 'main'))
     assert.equal(server.git('diff', '--name-only', 'main', head), 'manuals/bo/b.md')
+    // 머지 전에는 내 작업이 남고 sync가 지우지 않는다
+    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    assert.equal(read(ctx, 'manuals/bo/b.md'), 'b via pr\n')
+  })
+
+  it('sync: PR로 올린 뒤 작업 폴더를 또 고쳤으면 PR이 머지돼도 원격으로 맞추지 않는다', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/b.md', 'b pr then edit\n')
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/before-pr.md'), 'x\n'), 'other before pr')
+    await gitOps.submit(ctx, submitOptions('docs: b PR 후 수정', 'pr'))
+    write(ctx, 'manuals/bo/new-after-pr.md', 'new\n')
+    server.git('update-ref', 'refs/heads/main', prs.at(-1)!.head)
+    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    assert.equal(read(ctx, 'manuals/bo/new-after-pr.md'), 'new\n')
+    const result = await gitOps.submit(ctx, submitOptions('docs: 이어서'))
+    assert.equal(result.mode, 'push')
+    assert.equal(server.git('diff', '--name-only', 'main^', 'main'), 'manuals/bo/new-after-pr.md')
   })
 
   it('지난 제출이 push에서 멈췄으면 남은 커밋을 다시 올린다', async () => {
