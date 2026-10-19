@@ -12,8 +12,8 @@ Dealers 사용자 매뉴얼(영문, Word)을 만드는 리포입니다. BO, FO �
 |---|---|
 | 앱 설치 | [설치 가이드](app/INSTALL.md) |
 | 앱으로 매뉴얼 고치기 (기획자) | [기획자 사용법](docs/planner/README.md) |
-| 매뉴얼에 없는 메뉴를 새로 쓰기 | [Claude로 초안 만들기](docs/planner/claude.md#claude로-초안-만들기) |
-| 이미 있는 화면을 최신 기획서·화면에 맞추기 | [Claude로 최신화](docs/planner/claude.md#claude로-최신화) |
+| 매뉴얼에 없는 메뉴를 새로 쓰기 | [Claude로 초안 만들기](docs/planner/claude-features.md#claude로-초안-만들기) |
+| 이미 있는 화면을 최신 기획서·화면에 맞추기 | [Claude로 최신화](docs/planner/claude-features.md#claude로-최신화) |
 | 사용법 가이드 영상(자막, 내레이션) 만들기 | [가이드 영상 만들기](docs/planner/video.md) |
 | Word 원본으로 새 매뉴얼 만들기 | [새 매뉴얼 가져오기](docs/planner/import.md) |
 | 매뉴얼 문장 규칙 | [작성 규칙](docs/writing-rules.md) |
