@@ -6,7 +6,7 @@
 
 매뉴얼에 없는 메뉴(예: Menu Management)의 화면 섹션 초안을 Claude가 씁니다. 근거는 **Confluence DLRS 기획서 최신 output**과 **실제 STG 화면**입니다.
 
-준비(한 번만): 터미널의 Claude Code(`claude`)가 설치되어 있고, 인증(기본: `~/.zshrc`의 `ANTHROPIC_API_KEY`, 또는 설정 → 고급에서 claude.ai 로그인)이 되어 있고, Claude Code에 Atlassian(Confluence) MCP가 연결되어 있어야 합니다. 설정 → 환경 점검에서 확인할 수 있습니다.
+준비(한 번만): Claude Code는 앱이 첫 실행 때 앱 전용 버전을 받아 둡니다. 인증(기본: `~/.zshrc`의 `ANTHROPIC_API_KEY`, 또는 설정 → 고급에서 claude.ai 로그인)이 되어 있고, 내 Claude Code에 Atlassian(Confluence) MCP가 연결되어 있어야 합니다(앱이 그 설정을 가져다 씁니다). 설정 → 환경 점검과 Claude 패널의 점검 화면에서 확인할 수 있습니다.
 
 1. **새 화면** → **Claude로 초안 만들기**
 2. **메뉴 이름**(영어)과 **장**(새 장이면 이름과 위치)을 고릅니다. STG 경로나 메모를 알려 줄 수도 있습니다(선택).

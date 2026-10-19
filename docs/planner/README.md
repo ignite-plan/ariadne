@@ -23,3 +23,4 @@ macOS 앱 **Ariadne**로 매뉴얼을 고치고, 화면을 캡처하고, Word를
 | Word 원본으로 새 매뉴얼(FO 등) 만들기 | [새 매뉴얼 가져오기](import.md) |
 | 설정(⚙), 오류가 날 때 | [설정과 문제 해결](settings.md) |
 | 매뉴얼 문장 규칙 | [작성 규칙](../writing-rules.md) |
+| 기획자 실습 미팅 진행 (설치부터 Claude·영상까지 다같이 따라 하기) | [실습 미팅 진행 스크립트](meeting-guide.md) |
