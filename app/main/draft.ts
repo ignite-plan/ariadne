@@ -2,11 +2,12 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { manualDir, type ManualRef } from '../../src/core/manual.ts'
+import { manualDir, sectionImages, type ManualRef } from '../../src/core/manual.ts'
 import type { OpenTab } from '../../src/core/session.ts'
 import type { DraftCheck, DraftEvent, DraftInput, DraftResult, DraftSummary, ScreenResult } from '../shared/api.ts'
 import draftSkill from '../../.claude/skills/manual-draft/SKILL.md?raw'
 import refreshSkill from '../../.claude/skills/manual-refresh/SKILL.md?raw'
+import shotsSkill from '../../.claude/skills/manual-shots/SKILL.md?raw'
 import specSkill from '../../.claude/skills/manual-spec/SKILL.md?raw'
 import videoSkill from '../../.claude/skills/manual-video-draft/SKILL.md?raw'
 import videoSceneSkill from '../../.claude/skills/manual-video-scene/SKILL.md?raw'
@@ -27,6 +28,7 @@ import {
 import { explainFailure, isBlockingFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
 import { MCP_NAME, startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
+import { claudeLoginStatus } from './lib/claude-login.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import {
   bareFlags,
@@ -42,7 +44,8 @@ import { runRefreshBatch } from './lib/refresh-batch.ts'
 import { clearReview, saveReviewBase } from './lib/review.ts'
 import { readSectionDoc, writeSectionDoc } from './lib/sections.ts'
 import { digestPath, parseSpecReply, readDigest, specRefs, writeDigest, type SpecDigest } from './lib/spec.ts'
-import { StgSession } from './lib/stg.ts'
+import { loadShotsBundled } from './lib/shots.ts'
+import { hasShot, StgSession } from './lib/stg.ts'
 import { createMcpStatusCache, type McpStatusCache } from './lib/mcp-status.ts'
 import { checkScope, needsConfluence, scopeLabel } from '../shared/draft-mode.ts'
 import { errorText } from './lib/logger.ts'
@@ -84,8 +87,10 @@ export async function checkDraft(
   auth: ClaudeAuthSetting = 'auto',
 ): Promise<DraftCheck> {
   const cli = await findClaude(claudePath || undefined, refresh, auth)
-  const authInfo = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
+  const authInfo: DraftCheck['auth'] = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
+  // claude.ai 로그인으로 돌면 로그인되어 있는지 먼저 본다 (안 되어 있으면 점검 화면에서 바로 로그인)
+  if (cli.auth === 'login') authInfo.login = await claudeLoginStatus(cli)
   const installable = !cli.managed && !claudePath && !process.env.ARIADNE_CLAUDE_PATH
   const claude = { path: cli.path, version: cli.version, managed: cli.managed, installable }
   if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }
@@ -103,6 +108,7 @@ const BUNDLED = {
   'manual-video-draft': videoSkill,
   'manual-video-scene': videoSceneSkill,
   'manual-spec': specSkill,
+  'manual-shots': shotsSkill,
 }
 
 interface DraftOptions {
@@ -110,7 +116,7 @@ interface DraftOptions {
   input: DraftInput
   claudePath?: string
   claudeAuth?: ClaudeAuthSetting
-  // --model 값 (기본 claude-sonnet-5[1m]: 큰 기획서·긴 STG 탐색에서 자동 요약을 피한다). 비우면 ANTHROPIC_MODEL
+  // --model 값 (기본 claude-sonnet-5-5[1m]: 큰 기획서·긴 STG 탐색에서 자동 요약을 피한다). 비우면 ANTHROPIC_MODEL
   model?: string
   // 생각량. 매뉴얼 작업은 확인·옮기기가 많아 medium이면 충분하고 훨씬 빠르다
   effort?: ClaudeEffort
@@ -283,6 +289,7 @@ async function draft(options: DraftOptions, job: Job): Promise<DraftResult> {
   const runOne = createRunOne(ctx, job, onEvent)
 
   if (input.mode === 'refresh' && input.targets?.length) return refresh({ ctx, input, onEvent, job, runOne })
+  if (input.mode === 'shots' && input.targets?.length) return defineShots({ ctx, input, onEvent, job, runOne })
 
   let stg: StgSession | undefined
   try {
@@ -479,6 +486,83 @@ async function refresh({
   return refreshResult(ref.manual, batch.screens, batch.digest, summaries, {
     ...cost.sum,
     // 멈춘 이유는 맨 앞에 한 번만 (화면별 실패 문구는 같은 내용이라 뺀다)
+    failures: batch.blocked ? [batch.blocked] : failures,
+    durationMs: Date.now() - started,
+    cancelled: job.cancelled,
+  })
+}
+
+// 캡처 정의: 화면마다 Claude를 따로(동시에 몇 개). 기획서·본문 편집 없이, 그 화면 이미지 중 자동 캡처가 없는 것만 STG에서 찾아 등록한다.
+// 매뉴얼 이미지는 그대로 두고 찍은 결과는 .capture/<m>/defined에 둔다 (기획자가 캡처 패널에서 다시 찍어 비교·반영)
+async function defineShots({
+  ctx,
+  input,
+  onEvent,
+  job,
+  runOne,
+}: {
+  ctx: RunContext
+  input: DraftInput
+  onEvent: (event: DraftEvent) => void
+  job: Job
+  runOne: RunOne
+}): Promise<DraftResult> {
+  const { ref } = ctx
+  const started = Date.now()
+  const cost = totals()
+  const summaries = new Map<string, DraftSummary>()
+  const failures: string[] = []
+  const known = new Map((await loadShotsBundled(ref)).map((s) => [s.id, s]))
+  const shotsFile = join(manualDir(ref), 'shots.ts')
+  const batch = await runRefreshBatch({
+    targets: input.targets ?? [],
+    force: true,
+    label: '캡처 정의',
+    concurrency: ctx.sharedBrowser ? REFRESH_CONCURRENCY : 1,
+    isCancelled: () => job.cancelled,
+    isBlocking: isBlockingFailure,
+    onEvent,
+    readMeta: (target) => readSectionDoc(ref, target).meta,
+    recordRefresh: () => {},
+    runScreen: async (target) => {
+      const images = sectionImages(readFileSync(join(manualDir(ref), target), 'utf8')).filter((id) =>
+        existsSync(join(manualDir(ref), 'images', `${id}.png`)),
+      )
+      // 자동 캡처가 이미 있는 이미지는 그대로 둔다 (수동 표시나 정의가 없는 것만)
+      const pending = images.filter((id) => !known.get(id) || known.get(id)!.manual)
+      if (!pending.length) {
+        return { ok: true, changed: false, text: images.length ? '모든 이미지에 자동 캡처가 있습니다' : '이미지가 없는 화면입니다' }
+      }
+      let stg: StgSession | undefined
+      try {
+        const result = await runOne({
+          prompt: composePrompt(
+            skillText(ref.root, 'shots', BUNDLED),
+            taskText(ref, { ...input, targets: [target] }, { shots: pending.map((id) => ({ id, manual: Boolean(known.get(id)?.manual) })) }),
+          ),
+          // 본문은 고치지 않는다
+          tools: allowedTools(ctx, { withConfluence: false }).filter((tool) => !/^(Edit|Write)\(/.test(tool)),
+          withConfluence: false,
+          extraArgs: ['--max-turns', String(SCREEN_LIMITS.maxTurns)],
+          limits: SCREEN_LIMITS,
+          mcp: { stg: () => (stg ??= ctx.newStg()), defineShots: pending },
+          target,
+        })
+        cost.add(result)
+        // Claude가 등록했다고 한 것 중 shots.ts에 실제로 남은 것만 센다
+        const source = readFileSync(shotsFile, 'utf8')
+        const summary = parseSummary(result.text)
+        const defined = (summary?.images ?? []).filter((id) => pending.includes(id) && hasShot(source, id))
+        summaries.set(target, { ...summary, sections: defined.length ? [target] : [], images: defined })
+        if (!result.ok) failures.push(`${target}: ${result.text}`)
+        return { ok: result.ok, changed: defined.length > 0, text: result.text, durationMs: result.durationMs }
+      } finally {
+        await stg?.close()
+      }
+    },
+  })
+  return refreshResult(ref.manual, batch.screens, undefined, summaries, {
+    ...cost.sum,
     failures: batch.blocked ? [batch.blocked] : failures,
     durationMs: Date.now() - started,
     cancelled: job.cancelled,

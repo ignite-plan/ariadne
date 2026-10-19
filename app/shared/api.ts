@@ -61,11 +61,12 @@ export interface DraftSummary {
 }
 
 export interface DraftInput {
-  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, video: 가이드 영상 시나리오 초안, video-scene: 영상 장면 하나
-  mode?: 'create' | 'refresh' | 'video' | 'video-scene'
+  // create: 새 메뉴 초안, refresh: 기존 화면 최신화, shots: 기존 화면 이미지의 캡처 정의만 (본문·이미지는 그대로),
+  // video: 가이드 영상 시나리오 초안, video-scene: 영상 장면 하나
+  mode?: 'create' | 'refresh' | 'shots' | 'video' | 'video-scene'
   // 메뉴 이름. 예: Menu Management
   menu: string
-  // 최신화할 화면 (<chapter dir>/<file>)
+  // 최신화(캡처 정의)할 화면 (<chapter dir>/<file>)
   targets?: string[]
   // 기존 장에 넣거나, 새 장 이름과 위치(0부터)
   chapterDir?: string
@@ -128,11 +129,19 @@ export interface DraftResult {
   denials: string[]
 }
 
+// claude.ai 로그인 상태 (claude auth status). method: claude.ai / api_key 등, account: 이메일 등 (있으면)
+export interface ClaudeLoginStatus {
+  loggedIn: boolean
+  method?: string
+  account?: string
+  error?: string
+}
+
 export interface DraftCheck {
   // managed: 앱 전용으로 설치한 고정 버전. installable: 내 PC의 claude를 쓰는 중이고 경로를 직접 지정하지 않았다 (앱 전용 설치를 권한다)
   claude: { path: string; version: string; managed?: boolean; installable?: boolean } | null
   // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
-  auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
+  auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null; login?: ClaudeLoginStatus }
   // detail: 연결 실패 이유
   atlassian: { name: string; connected: boolean; detail?: string }[]
   // claude mcp list 자체가 실패했을 때
@@ -174,7 +183,7 @@ export interface Settings {
   // apiKey: ANTHROPIC_API_KEY 환경변수(로그인 셸 ~/.zshrc 포함), login: claude.ai 로그인
   // auto: 키가 있으면 apiKey, 없으면 claude.ai 로그인 (기본)
   claudeAuth: 'auto' | 'apiKey' | 'login'
-  // 앱의 Claude 작업 모델 (--model). 기본 claude-sonnet-5[1m], 비우면 ~/.zshrc의 ANTHROPIC_MODEL
+  // 앱의 Claude 작업 모델 (--model). 기본 claude-sonnet-5-5[1m], 비우면 ~/.zshrc의 ANTHROPIC_MODEL
   claudeModel: string
   // 앱 Claude 작업의 생각량. 낮을수록 빠르고 싸다
   claudeEffort: ClaudeEffort
@@ -314,7 +323,8 @@ export interface CaptureProgress {
 export interface VideoInfo {
   id: string
   title: string
-  section?: string
+  // 연결된 매뉴얼 화면, 영상에 나오는 순서
+  sections: string[]
   mutates: boolean
   scenes: number
   // 만든 영상이 있으면
@@ -467,7 +477,7 @@ export interface AriadneApi {
     list(): Promise<VideoInfo[]>
     load(id: string): Promise<VideoScenario>
     save(scenario: VideoScenario): Promise<VideoScenario>
-    create(input: { title: string; section?: string }): Promise<VideoScenario>
+    create(input: { title: string; sections?: string[] }): Promise<VideoScenario>
     remove(id: string): Promise<void>
     run(id: string, options?: VideoRunOptions): Promise<VideoRunResult>
     cancel(): Promise<void>
@@ -478,6 +488,16 @@ export interface AriadneApi {
     // 고른 장면까지 재생한 뒤 기록을 시작한다. 단계는 'video-record' 이벤트로 온다
     record(id: string, scene: number): Promise<void>
     stopRecord(): Promise<void>
+  }
+  // claude.ai 로그인을 앱 안에서 (설정 → 고급, Claude 점검 화면). status가 null이면 Claude Code가 없다
+  claudeLogin: {
+    status(): Promise<ClaudeLoginStatus | null>
+    // 브라우저 로그인을 시작하고 끝날 때까지 기다린다. 주소는 'claude-login-url' 이벤트로 온다
+    start(): Promise<ClaudeLoginStatus>
+    // 브라우저가 앱으로 돌아오지 못하고 코드를 보여 줄 때 붙여 넣은 코드
+    sendCode(code: string): Promise<void>
+    cancel(): Promise<void>
+    logout(): Promise<ClaudeLoginStatus | null>
   }
   draft: {
     // confluence: 이 작업이 기획서를 쓰는지 (안 쓰면 Atlassian을 확인하지 않는다)
@@ -527,6 +547,7 @@ export interface AriadneEvents {
   'install-progress': InstallProgress
   'video-model-progress': VideoModelProgress
   'video-record': VideoRecordEvent
+  'claude-login-url': string
 }
 export type AriadneEvent = keyof AriadneEvents
 
@@ -575,6 +596,7 @@ export const API_METHODS = {
   build: ['docx', 'open'],
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
   video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
+  claudeLogin: ['status', 'start', 'sendCode', 'cancel', 'logout'],
   draft: ['check', 'start', 'cancel', 'decide'],
   affected: ['run'],
   log: ['write', 'reveal'],
