@@ -74,13 +74,21 @@ Using Quick Link from Other Screens**
 
 - ![](images/quick-link-img-4.png){width=6.79in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2353 Menu List 상단(검색창 하단)에 가이드 배너 추가 -->
+
 Quick Link Setting Popup
 
 - Menu List shows the entire menu tree the user has permission to access, organized by depth. Each level can be collapsed or expanded, and the list is fully expanded by default. Directory-type menus do not show a bookmark icon and cannot be added to Quick Links.
 
 - Using the search box at the top, you can quickly find a menu by searching part of its name; matching keywords are highlighted and parent menus of a match are also shown. Clicking the X button resets the search.
 
-- Add to **Quick Links** shows "Choose menu items on the left to add as quick links" when empty. Clicking the bookmark icon on a menu adds it here regardless of depth, and newly selected items are stacked at the bottom. Clicking the hamburger icon on the left allows you to change the order by dragging.
+- A guide banner with the message "Only menus linked to a page can be added as Quick Links." is displayed at the top of the Menu List, below the search box. The info icon next to the message is a simple icon, not a tooltip. Directory-type menus do not show a star icon and cannot be added.
+
+- The banner stays fixed at the top, so it remains visible while scrolling the menu list.
+
+- Clicking the **x** button on the banner closes it, and it is not displayed again once closed. The closed state is saved in the browser's local storage per dealer, so the banner is displayed the first time the same employee accesses a different dealer.
+
+- Add to **Quick Links** is a list of menus added by the user. The first added menu is at the top, and clicking the six-dot drag handle icon on the left allows you to change the order as desired.
 
 - Up to 20 can be added to quick links. Adding more than 20 shows the alert "You can add up to 20 items."
 
