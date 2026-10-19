@@ -69,9 +69,29 @@ export function Workbench({ onReset }: { onReset: () => void }) {
       const first = pickSection(t, storage(LAST_PATH))
       if (first) await section.open(first)
       setUpdate(await api.app.checkUpdate())
+      await installManagedClaude()
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 앱 전용 Claude Code가 없으면(첫 실행 전에 설치한 앱을 업데이트했거나, 고정 버전을 올렸을 때) 뒤에서 받는다.
+  // 내 PC의 claude는 버전이 제각각이라 게이트웨이(H-Chat)가 낮은 버전을 거절한다. 경로를 직접 지정했으면 받지 않는다
+  const installManagedClaude = async () => {
+    const checks = await api.env.check().catch(() => [])
+    const claude = checks.find((c) => c.id === 'claude')
+    if (!claude || claude.ok || claude.install !== 'claude') return
+    toast.show('info', '앱 전용 Claude Code를 받는 중입니다 (약 220MB, 1~2분). 그동안에도 편집할 수 있습니다')
+    try {
+      await api.env.install('claude')
+      toast.show('success', '앱 전용 Claude Code를 설치했습니다. Claude 작업은 이제 이 버전으로 돕니다')
+    } catch (e) {
+      void api.log.write('warn', 'claude-install', String(e))
+      toast.show('error', '앱 전용 Claude Code를 받지 못했습니다. 설정 → 환경 점검에서 다시 시도하세요', {
+        label: '설정',
+        run: () => setDialog({ type: 'settings' }),
+      })
+    }
+  }
 
   const onImageFile = async (file: File) => {
     const data = new Uint8Array(await file.arrayBuffer())

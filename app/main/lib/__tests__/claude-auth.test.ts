@@ -3,7 +3,7 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, it } from 'node:test'
-import { claudeEnv, DEFAULT_CLAUDE_MODEL, explainFailure, keySource, resolveAuth } from '../claude-auth.ts'
+import { claudeEnv, DEFAULT_CLAUDE_MODEL, explainFailure, isBlockingFailure, keySource, resolveAuth } from '../claude-auth.ts'
 import { findClaude, runClaude, shellLookup } from '../claude.ts'
 
 const base = {
@@ -131,6 +131,39 @@ echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","permi
   it('자동 요약 반복(thrashing)은 한국어로', () => {
     const raw = 'Autocompact is thrashing: the context refilled to the limit within 3 turns of the previous compact, 3 times in a row.'
     assert.match(explainFailure(raw, 'apiKey', {}), /대화가 너무 길어져 자동 요약을 반복하다 멈췄습니다/)
+  })
+
+  it('게이트웨이가 낮은 Claude Code 버전을 거절하면 앱 전용 설치(또는 앱 업데이트)를 안내한다', () => {
+    const raw = [
+      'API Error: 400 ',
+      '',
+      '너무 낮은 버전의 Claude Code를 사용하고 있습니다. (현재 버전: 2.1.123, 권장 버전: 2.1.292)',
+      '해결 방법: Claude Code를 최신 권장 버전으로 업데이트한 뒤 다시 시도해 주세요. npm install -g @anthropic-ai/claude-code@2.1.292',
+      '',
+      'Your Claude Code version is too old. (current: 2.1.123, recommended: 2.1.292)',
+    ].join('\n')
+    const env = { ANTHROPIC_BASE_URL: 'https://h-chat-api.autoever.com/claude-code/v2' }
+    const pc = explainFailure(raw, 'apiKey', env, { version: '2.1.123 (Claude Code)', managed: false })
+    assert.equal(
+      pc,
+      'h-chat-api.autoever.com가 너무 낮은 버전의 Claude Code라며 거절했습니다 (현재 2.1.123, 권장 2.1.292). 지금은 내 PC에 설치된 claude를 쓰고 있습니다. 설정 → 환경 점검 → Claude Code에서 [앱 전용으로 설치]를 누른 뒤 다시 시도하세요',
+    )
+    assert.match(explainFailure('Your Claude Code version is too old.', 'apiKey', {}, { version: '2.1.278 (Claude Code)', managed: true }), /현재 2\.1\.278\)\. 앱 전용 Claude Code가 게이트웨이 기준보다 낮습니다\. 앱을 새 버전으로 업데이트/)
+  })
+
+  it('다시 해도 같은 오류인지: 원문과 바꾼 문구 모두', () => {
+    for (const text of [
+      'Your Claude Code version is too old.',
+      'API Error: 500 Invalid model: claude-x',
+      'Invalid API key · Fix external API key',
+      'Not logged in · Please run /login',
+      explainFailure('API Error: 400 너무 낮은 버전의 Claude Code를 사용하고 있습니다', 'apiKey', {}),
+      explainFailure('Not logged in · Please run /login', 'login'),
+    ]) {
+      assert.equal(isBlockingFailure(text), true, text)
+    }
+    assert.equal(isBlockingFailure('턴 상한(150턴)에 걸려 멈췄습니다'), false)
+    assert.equal(isBlockingFailure('STG 세션이 만료되었습니다'), false)
   })
 
   it('인증 자동: 키가 있으면 API 키, 없으면 claude.ai 로그인. 기본 모델은 Sonnet 1M', () => {

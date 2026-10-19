@@ -209,6 +209,38 @@ describe('최신화 진행', () => {
     assert.ok(screens.every((s) => s.status === 'cancelled'))
   })
 
+  it('인증·버전처럼 다시 해도 같은 오류면 묻지 않고 멈춘다 (요약 단계)', async () => {
+    const asked: string[] = []
+    const ran: string[] = []
+    const { base, events } = deps({
+      runSpec: async () => {
+        throw new Error('너무 낮은 버전의 Claude Code')
+      },
+      runScreen: async (t) => (ran.push(t), { ok: true, changed: true }),
+      onSpecFailed: async (m) => (asked.push(m), true),
+      isBlocking: (m) => /너무 낮은 버전/.test(m),
+    })
+    const { screens, blocked } = await runRefreshBatch(base)
+    assert.deepEqual(asked, [])
+    assert.deepEqual(ran, [])
+    assert.equal(blocked, '너무 낮은 버전의 Claude Code')
+    assert.ok(screens.every((s) => s.status === 'failed' && s.text === blocked))
+    assert.ok(events.some((e) => e.kind === 'phase' && e.phase === 'done' && /멈췄습니다/.test(e.text)))
+  })
+
+  it('화면 작업이 막히는 오류로 실패하면 남은 화면은 돌리지 않는다', async () => {
+    const ran: string[] = []
+    const { base } = deps({
+      concurrency: 1,
+      runScreen: async (t) => (ran.push(t), { ok: false, changed: false, text: 'API Error: 401 인증 실패' }),
+      isBlocking: (m) => /401/.test(m),
+    })
+    const { screens, blocked } = await runRefreshBatch(base)
+    assert.equal(ran.length, 1)
+    assert.equal(blocked, 'API Error: 401 인증 실패')
+    assert.ok(screens.slice(1).every((s) => s.status === 'failed' && /앞 화면과 같은 이유/.test(s.text ?? '')))
+  })
+
   it('요약 실패 뒤 계속을 고르면 요약 없이 모든 화면을 돌린다', async () => {
     const ran: string[] = []
     const { base, events } = deps({

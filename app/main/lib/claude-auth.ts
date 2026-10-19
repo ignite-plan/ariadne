@@ -61,8 +61,38 @@ export function resolveAuth(setting: ClaudeAuthSetting, base: NodeJS.ProcessEnv,
   return keySource(base, shellVars) ? 'apiKey' : 'login'
 }
 
-export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.ProcessEnv = {}) {
+// 게이트웨이(H-Chat 등)가 Claude Code 버전이 낮다고 거절함. 예: "너무 낮은 버전의 Claude Code를 사용하고 있습니다. (현재 버전: 2.1.123, 권장 버전: 2.1.292)"
+const TOO_OLD = /너무 낮은 버전|version is too old/i
+// 실행 중인 Claude Code. 버전이 낮다는 거절을 받았을 때 무엇을 하라고 할지 정한다
+export interface ClaudeRunner {
+  version: string
+  managed: boolean
+}
+
+function explainTooOld(raw: string, env: NodeJS.ProcessEnv, cli?: ClaudeRunner) {
+  const current = raw.match(/(?:현재 버전|current):\s*([\d.]+)/i)?.[1] ?? cli?.version.match(/[\d.]+/)?.[0]
+  const recommended = raw.match(/(?:권장 버전|recommended):\s*([\d.]+)/i)?.[1]
+  const who = host(env.ANTHROPIC_BASE_URL) ?? 'Claude API'
+  const versions = `${current ? `현재 ${current}` : ''}${current && recommended ? ', ' : ''}${recommended ? `권장 ${recommended}` : ''}`
+  const head = `${who}가 너무 낮은 버전의 Claude Code라며 거절했습니다${versions ? ` (${versions})` : ''}.`
+  if (cli?.managed) return `${head} 앱 전용 Claude Code가 게이트웨이 기준보다 낮습니다. 앱을 새 버전으로 업데이트하고, 계속되면 [문제 신고]로 알려 주세요`
+  return `${head} 지금은 내 PC에 설치된 claude를 쓰고 있습니다. 설정 → 환경 점검 → Claude Code에서 [앱 전용으로 설치]를 누른 뒤 다시 시도하세요`
+}
+
+// 다시 해도 같은 이유로 실패하는 오류 (인증, 모델, Claude Code 버전). 최신화는 이런 오류가 나면 다음 화면으로 넘어가지 않고 멈춘다.
+// 원문과 explainFailure로 바꾼 문구 둘 다 알아본다
+export function isBlockingFailure(text: string) {
+  return (
+    TOO_OLD.test(text) ||
+    /invalid model[:\s]|모델을 받지 않습니다/i.test(text) ||
+    /expired|invalid api key|fix external api key|authentication_error|failed to authenticate|\b401\b|인증하지 못했습니다/i.test(text) ||
+    /not logged in|please run \/login|login required|로그인되어 있지 않습니다/i.test(text)
+  )
+}
+
+export function explainFailure(text: string, auth: ClaudeAuth, env: NodeJS.ProcessEnv = {}, cli?: ClaudeRunner) {
   const raw = text.trim()
+  if (TOO_OLD.test(raw)) return explainTooOld(raw, env, cli)
   const model = raw.match(/invalid model[:\s]+([\w.[\]-]+)/i)?.[1]?.replace(/\.+$/, '')
   if (model) {
     const current = env.ANTHROPIC_MODEL ? ` 지금 ANTHROPIC_MODEL은 ${env.ANTHROPIC_MODEL}입니다.` : ' ANTHROPIC_MODEL이 없어 Claude Code 기본 모델로 요청했습니다.'

@@ -220,9 +220,18 @@ function DraftChecks({
 }) {
   const missingKey = Boolean(check?.claude && check.auth.mode === 'apiKey' && !check.auth.keySource)
   const atlassianOk = check?.atlassian.some((a) => a.connected)
+  // 내 PC의 claude는 버전이 제각각이라 게이트웨이(H-Chat)가 낮은 버전을 거절할 수 있다. 앱 전용 설치를 권한다
+  const pcClaude = Boolean(check?.claude?.installable)
   return (
     <>
-      <CheckRow ok={Boolean(check?.claude) && !missingKey} loading={!check} label="Claude Code" detail={claudeDetail(check)} warn={missingKey} />
+      <CheckRow
+        ok={Boolean(check?.claude) && !missingKey && !pcClaude}
+        loading={!check}
+        label="Claude Code"
+        detail={claudeDetail(check)}
+        warn={missingKey || pcClaude}
+        action={pcClaude ? <InstallClaude onDone={onRecheck} /> : undefined}
+      />
       {confluence && (
         <CheckRow
           ok={Boolean(atlassianOk)}
@@ -245,7 +254,11 @@ function DraftChecks({
 
 function claudeDetail(check?: DraftCheck) {
   if (!check?.claude) return '설치되어 있지 않습니다 (설정 → 환경 점검)'
-  const where = check.claude.managed ? ' (앱 전용)' : ' (내 PC — 설정 → 환경 점검에서 앱 전용 설치 권장)'
+  const where = check.claude.managed
+    ? ' (앱 전용)'
+    : check.claude.installable
+      ? ' (내 PC의 claude — 버전이 낮으면 H-Chat이 거절합니다. 앱 전용으로 설치하세요)'
+      : ' (설정에서 지정한 경로)'
   const auth =
     check.auth.mode === 'login'
       ? 'claude.ai 로그인'
@@ -253,6 +266,34 @@ function claudeDetail(check?: DraftCheck) {
         ? `ANTHROPIC_API_KEY (${check.auth.keySource === 'shell' ? '~/.zshrc' : '앱 환경'})`
         : 'ANTHROPIC_API_KEY 없음 — 설정 → 고급 → Claude 인증 확인'
   return `${check.claude.version}${where} · ${auth}`
+}
+
+// 점검 화면에서 바로 앱 전용 Claude Code 받기 (약 220MB). 끝나면 다시 점검한다
+function InstallClaude({ onDone }: { onDone: () => void }) {
+  const toast = useToast()
+  const [progress, setProgress] = useState<string>()
+  const install = async () => {
+    setProgress('준비 중…')
+    const off = api.on('install-progress', (p) => {
+      if (p.tool !== 'claude') return
+      setProgress(p.phase === 'download' && p.loaded ? `${Math.round(p.loaded / (1 << 20))}MB` : p.phase === 'extract' ? '설치 중…' : '확인 중…')
+    })
+    try {
+      await api.env.install('claude')
+      toast.show('success', '앱 전용 Claude Code를 설치했습니다')
+      onDone()
+    } catch (e) {
+      toast.error(e)
+    } finally {
+      off()
+      setProgress(undefined)
+    }
+  }
+  return (
+    <button className="button small ghost" onClick={() => void install()} disabled={Boolean(progress)}>
+      {progress ? `받는 중 ${progress}` : '앱 전용으로 설치'}
+    </button>
+  )
 }
 
 function confluenceDetail(check: DraftCheck | undefined, rechecking: boolean) {

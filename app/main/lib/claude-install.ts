@@ -3,7 +3,7 @@
 // Electron에 의존하지 않는다 (단위 테스트 대상)
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { chmodSync, createReadStream, createWriteStream, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs'
+import { chmodSync, createReadStream, createWriteStream, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
@@ -12,8 +12,9 @@ import { promisify } from 'node:util'
 
 const run = promisify(execFile)
 
-// 앱이 쓰는 Claude Code 버전. 올릴 때는 앱 옵션(--bare, --strict-mcp-config, --tools, --effort)이 그대로 되는지 확인한다
-export const CLAUDE_CODE_VERSION = '2.1.278'
+// 앱이 쓰는 Claude Code 버전. 올릴 때는 앱 옵션(--bare, --strict-mcp-config, --tools, --effort, --model)이 그대로 되는지 확인한다.
+// H-Chat 게이트웨이는 낮은 버전을 400(너무 낮은 버전)으로 거절한다. 2.1.292는 H-Chat 권장 버전 (2026-10)
+export const CLAUDE_CODE_VERSION = '2.1.292'
 export const CLAUDE_PACKAGE = '@anthropic-ai/claude-code-darwin-arm64'
 
 export const installedClaudePath = (toolsDir: string, version = CLAUDE_CODE_VERSION) => join(toolsDir, 'claude', version, 'claude')
@@ -76,6 +77,10 @@ export async function installClaude(
     renameSync(binary, target)
     const { stdout } = await run(target, ['--version'], { timeout: 30000 })
     if (!stdout.includes(version)) throw new Error(`설치한 Claude Code 버전이 다릅니다: ${stdout.trim()}`)
+    // 고정 버전을 올리면 예전 버전(약 220MB)은 다시 쓰지 않는다
+    for (const old of readdirSync(join(toolsDir, 'claude'))) {
+      if (old !== version) rmSync(join(toolsDir, 'claude', old), { recursive: true, force: true })
+    }
     return { path: target, version: stdout.trim().split('\n')[0] }
   } finally {
     rmSync(work, { recursive: true, force: true })

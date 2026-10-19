@@ -52,9 +52,10 @@
 
 | 증상 | 해결 |
 |---|---|
-| Claude Code를 못 찾음 | 설정 → 환경 점검의 Claude Code에서 **앱 전용으로 설치**(앱이 정한 버전을 받음). 특정 claude를 쓰려면 설정 → 고급 → Claude Code CLI 경로를 지정합니다 |
+| Claude Code를 못 찾음, 점검 화면에서 Claude Code가 노란색 | 설정 → 환경 점검의 Claude Code에서, 또는 Claude 패널 점검 화면에서 **앱 전용으로 설치**(앱이 정한 버전을 받음). 특정 claude를 쓰려면 설정 → 고급 → Claude Code CLI 경로를 지정합니다 |
 | 기획서 근거가 없음, Confluence 연결 없음 | 내 Claude Code에 Atlassian MCP가 연결됐는지 확인합니다(터미널에서 `claude mcp list`) |
 | `ANTHROPIC_API_KEY(…1234)로 인증하지 못했습니다` | `~/.zshrc`의 키가 만료되었거나 무효입니다(끝 4자리로 어느 키인지 확인). 키를 바꾸거나(앱 재시작 불필요), 설정 → 고급 → Claude 인증을 **claude.ai 로그인**으로 바꿉니다 |
 | `ANTHROPIC_AUTH_TOKEN(…1234)로 … 인증하지 못했습니다` | `ANTHROPIC_AUTH_TOKEN`이 있으면 `ANTHROPIC_API_KEY`보다 먼저 쓰입니다. H-Chat 설정 스크립트는 `ANTHROPIC_API_KEY` + `ANTHROPIC_BASE_URL`만 쓰므로, `~/.zshrc`에 남은 `export ANTHROPIC_AUTH_TOKEN`을 지웁니다 |
-| `… 모델을 받지 않습니다` | 게이트웨이(H-Chat 등)가 그 모델을 지원하지 않습니다(예: 4.6 지원 종료). `~/.zshrc`에 `export ANTHROPIC_MODEL="claude-sonnet-5"`처럼 쓸 수 있는 모델을 넣습니다. H-Chat은 Claude Code `2.1.278`(`npm i -g @anthropic-ai/claude-code@2.1.278`)을 씁니다 |
+| `… 모델을 받지 않습니다` | 게이트웨이(H-Chat 등)가 그 모델을 지원하지 않습니다(예: 4.6 지원 종료). `~/.zshrc`에 `export ANTHROPIC_MODEL="claude-sonnet-5"`처럼 쓸 수 있는 모델을 넣습니다 |
+| `너무 낮은 버전의 Claude Code라며 거절했습니다` | H-Chat이 낮은 버전의 Claude Code를 받지 않습니다. 내 PC의 claude를 쓰고 있으면 설정 → 환경 점검 → Claude Code → **앱 전용으로 설치**를 누릅니다(앱은 켤 때 앱 전용 버전이 없으면 알아서 받습니다). 앱 전용 버전인데도 거절되면 앱을 새 버전으로 업데이트합니다 |
 | `claude.ai 로그인으로 인증하지 못했습니다` | 터미널에서 `claude`를 열어 `/login` 하거나, Claude 인증을 **ANTHROPIC_API_KEY**로 바꿉니다 |

@@ -24,7 +24,7 @@ import {
   type ClaudeCli,
   type McpStatus,
 } from './lib/claude.ts'
-import { explainFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
+import { explainFailure, isBlockingFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
 import { MCP_NAME, startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
@@ -86,7 +86,8 @@ export async function checkDraft(
   const cli = await findClaude(claudePath || undefined, refresh, auth)
   const authInfo = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
-  const claude = { path: cli.path, version: cli.version, managed: cli.managed }
+  const installable = !cli.managed && !claudePath && !process.env.ARIADNE_CLAUDE_PATH
+  const claude = { path: cli.path, version: cli.version, managed: cli.managed, installable }
   if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }
   try {
     const { servers, checkedAt } = await mcpServers(cli, refresh)
@@ -261,7 +262,7 @@ function createRunOne(ctx: RunContext, job: Job, onEvent: (event: DraftEvent) =>
         if (guard.stopped) return { ...result, ok: false, text: guard.stopped }
         // 턴 상한에 걸리면 결과 문구가 비어 있다
         if (!result.ok && !result.text.trim() && result.turns) return { ...result, text: `턴 상한(${result.turns}턴)에 걸려 멈췄습니다` }
-        return { ...result, text: result.ok ? result.text : explainFailure(result.text, cli.auth, cli.env) }
+        return { ...result, text: result.ok ? result.text : explainFailure(result.text, cli.auth, cli.env, cli) }
       } catch (error) {
         if (guard.stopped) return { ok: false, text: guard.stopped, denials: [] as string[] }
         throw error
@@ -391,10 +392,12 @@ async function refresh({
         const doc = readSectionDoc(ref, target)
         writeSectionDoc(ref, target, doc.body, { ...doc.meta, refreshedFrom: specRefs(digest) })
       },
+      // 인증·모델·버전 오류는 화면마다 똑같이 실패하므로 묻지 않고 멈춘다
+      isBlocking: isBlockingFailure,
       // 요약이 실패하면 화면별로 퍼지기 전에 묻는다. 중지하면 작업 전체를 취소로 끝낸다
       onSpecFailed: async (message) => {
         const proceed = await ask(
-          `기획서 요약을 만들지 못했습니다 (${message.slice(0, 300)}). 요약 없이 계속하면 화면마다 Claude가 Confluence를 직접 찾아 느리고${scoped ? ', 반영 범위를 정확히 지키기 어렵습니다' : ' 시간이 더 걸립니다'}.`,
+          `기획서 요약을 만들지 못했습니다: ${message.trim()}\n\n요약 없이 계속하면 화면마다 Claude가 Confluence를 직접 찾아 느리고${scoped ? ', 반영 범위를 정확히 지키기 어렵습니다' : ' 시간이 더 걸립니다'}.`,
           onEvent,
         )
         if (!proceed) job.cancelled = true
@@ -475,7 +478,8 @@ async function refresh({
     })
   return refreshResult(ref.manual, batch.screens, batch.digest, summaries, {
     ...cost.sum,
-    failures,
+    // 멈춘 이유는 맨 앞에 한 번만 (화면별 실패 문구는 같은 내용이라 뺀다)
+    failures: batch.blocked ? [batch.blocked] : failures,
     durationMs: Date.now() - started,
     cancelled: job.cancelled,
   })

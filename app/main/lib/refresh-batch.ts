@@ -29,6 +29,8 @@ export interface BatchDeps {
   isCancelled: () => boolean
   // 기획서 요약이 실패했을 때 요약 없이 계속할지 (없으면 경고만 하고 계속)
   onSpecFailed?: (message: string) => Promise<boolean>
+  // 다시 해도 같은 이유로 실패하는 오류인지 (인증, 모델, Claude Code 버전). 그러면 묻지 않고, 남은 화면도 돌리지 않고 멈춘다
+  isBlocking?: (message: string) => boolean
 }
 
 // 화면 파일을 못 읽으면 기록이 없는 것으로 (화면 작업에서 오류가 난다)
@@ -51,10 +53,18 @@ export async function runRefreshBatch(deps: BatchDeps) {
 
   onEvent({ kind: 'phase', phase: 'spec', text: '기획서 요약 중' })
   let digest: SpecDigest | undefined
+  // 멈춘 이유 (막히는 오류)
+  let blocked: string | undefined
+  const stopAll = (message: string) => {
+    for (const target of targets) set(target, { target, status: 'failed', text: message })
+    onEvent({ kind: 'phase', phase: 'done', text: 'Claude를 실행할 수 없어 멈췄습니다' })
+    return { digest: undefined, screens: targets.map((t) => results.get(t)!), blocked: message }
+  }
   try {
     digest = await deps.runSpec()
   } catch (error) {
     const message = (error as Error).message
+    if (deps.isBlocking?.(message)) return stopAll(message)
     if (deps.onSpecFailed && !(await deps.onSpecFailed(message))) {
       for (const target of targets) set(target, { target, status: 'cancelled' })
       onEvent({ kind: 'phase', phase: 'done', text: '기획서 요약 실패로 중지했습니다' })
@@ -81,9 +91,14 @@ export async function runRefreshBatch(deps: BatchDeps) {
         set(target, { target, status: 'cancelled' })
         continue
       }
+      if (blocked) {
+        set(target, { target, status: 'failed', text: `앞 화면과 같은 이유로 실행하지 않았습니다: ${blocked}` })
+        continue
+      }
       set(target, { target, status: 'running' })
       try {
         const run = await deps.runScreen(target, screenBrief(digest, target))
+        if (!run.ok && run.text && deps.isBlocking?.(run.text)) blocked ??= run.text
         if (run.ok && digest && refs.length && !deps.scoped) deps.recordRefresh(target, digest)
         set(target, {
           target,
@@ -98,6 +113,6 @@ export async function runRefreshBatch(deps: BatchDeps) {
     }
   }
   await Promise.all(Array.from({ length: Math.max(1, Math.min(deps.concurrency, queue.length)) }, worker))
-  onEvent({ kind: 'phase', phase: 'done', text: '최신화 끝' })
-  return { digest, screens: targets.map((t) => results.get(t)!) }
+  onEvent({ kind: 'phase', phase: 'done', text: blocked ? 'Claude를 실행할 수 없어 멈췄습니다' : '최신화 끝' })
+  return { digest, screens: targets.map((t) => results.get(t)!), blocked }
 }
