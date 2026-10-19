@@ -6,6 +6,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
+import { deletePassword, GITHUB_TOKEN_SERVICE } from '../main/lib/keychain.ts'
 import { fakeVoiceModel, launchApp, prepareUserData, startFakeBo, stepper } from './harness.ts'
 import { captureAndVideo } from './smoke/capture-video.ts'
 import { claude } from './smoke/claude.ts'
@@ -97,5 +98,7 @@ try {
 } finally {
   await app.close().catch(() => {})
   bo.close()
+  // 설정 단계가 저장한 토큰 (로그인 키체인, account = 이 테스트의 앱 데이터 폴더)
+  deletePassword({ service: GITHUB_TOKEN_SERVICE, account: userData })
   rmSync(temp, { recursive: true, force: true })
 }

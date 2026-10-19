@@ -1,6 +1,6 @@
 // Apple Silicon은 서명이 아예 없는 바이너리를 실행하지 않는다. Developer ID가 없어 Apple 공증은 못 받는다.
 // - 릴리스(CI): 사내 자체 서명 인증서(MAC_SIGN_IDENTITY)로 서명한다. macOS가 앱을 "이 인증서로 서명한 kr.co.ignite.ariadne"로
-//   알아봐서, 업데이트해도 키체인(토큰)·폴더 권한을 다시 묻지 않는다
+//   알아봐서, 업데이트해도 폴더 권한을 다시 묻지 않는다. 키체인은 Team ID가 없어 이걸로 해결되지 않는다 (main/lib/keychain.ts)
 // - 개발 PC: 인증서가 없으면 ad-hoc 서명 (이 경우 macOS는 빌드마다 다른 앱으로 본다)
 const { execFileSync } = require('node:child_process')
 const { join } = require('node:path')

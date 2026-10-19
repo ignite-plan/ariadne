@@ -25,9 +25,12 @@ git tag app-v1.1.0 && git push origin app-v1.1.0
 
 `.github/workflows/release-app.yml`이 테스트 후 dmg를 만들어 Release에 올립니다. 버전은 태그에서 정하고, Release 본문은 `app/INSTALL.md`입니다.
 
-**서명**: 릴리스는 사내 자체 서명 인증서(`Ariadne Code Signing (Ignite)`, 2036-10까지)로 서명합니다. macOS가 앱을 "이 인증서로 서명한 `kr.co.ignite.ariadne`"로 알아봐서, 앱 안 업데이트를 해도 키체인(GitHub 토큰)·폴더 권한을 다시 묻지 않습니다.
-- 인증서는 리포 Secrets `MAC_CERT_P12`(p12, base64)와 `MAC_CERT_PASSWORD`에 있습니다. 없으면 릴리스가 멈춥니다(ad-hoc 빌드가 나가면 모두 권한을 다시 허용해야 하므로).
-- 원본 p12와 비밀번호는 Secrets 밖에도 안전한 곳에 보관합니다. 잃어버려 새 인증서를 만들면 다음 업데이트에서 모두 권한을 한 번 다시 허용해야 합니다.
+**서명**: 릴리스는 사내 자체 서명 인증서(`Ariadne Code Signing (Ignite)`, 2036-10까지)로 서명합니다. macOS가 앱을 "이 인증서로 서명한 `kr.co.ignite.ariadne`"로 알아봐서, 앱 안 업데이트를 해도 폴더 같은 권한(TCC)을 다시 묻지 않습니다.
+- **키체인은 서명으로 해결되지 않습니다.** 앱이 직접 만든 키체인 항목은 서명의 Team ID로 파티션을 정하는데, 자체 서명 인증서에는 Team ID가 없어 빌드마다 바뀌는 cdhash가 파티션이 됩니다. 그래서 Electron `safeStorage`를 쓰면 업데이트마다 키체인 암호를 다시 묻습니다(1.10.2까지).
+- 그래서 GitHub 토큰은 `/usr/bin/security`로 저장합니다(`app/main/lib/keychain.ts`, 항목 `Ariadne GitHub Token`, account = 앱 데이터 폴더). 항목을 여는 것은 Apple이 서명한 `security`라 앱 서명과 상관없이 묻지 않습니다. 예전 `token.bin`은 처음 읽을 때 한 번 묻고 옮긴 뒤 지웁니다.
+- 키체인을 새로 써야 하면 `safeStorage`·`keytar`가 아니라 `lib/keychain.ts`를 씁니다.
+- 인증서는 리포 Secrets `MAC_CERT_P12`(p12, base64)와 `MAC_CERT_PASSWORD`에 있습니다. 없으면 릴리스가 멈춥니다(ad-hoc 빌드가 나가면 모두 폴더 권한을 다시 허용해야 하므로).
+- 원본 p12와 비밀번호는 Secrets 밖에도 안전한 곳에 보관합니다. 잃어버려 새 인증서를 만들면 다음 업데이트에서 모두 폴더 권한을 한 번 다시 허용해야 합니다.
 - 로컬 `pnpm app:dist`는 인증서가 없으면 ad-hoc으로 서명합니다(`app/build/after-pack.cjs`).
 
 ## 구조

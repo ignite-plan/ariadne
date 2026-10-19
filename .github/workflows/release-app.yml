@@ -24,7 +24,7 @@ jobs:
         run: npm pkg set version="${GITHUB_REF_NAME#app-v}"
       - run: pnpm typecheck
       - run: pnpm test
-      # 사내 자체 서명 인증서로 서명한다 (업데이트해도 macOS가 같은 앱으로 알아봐 키체인·폴더 권한이 유지된다).
+      # 사내 자체 서명 인증서로 서명한다 (업데이트해도 macOS가 같은 앱으로 알아봐 폴더 권한이 유지된다. 키체인은 lib/keychain.ts 참고).
       # 인증서가 없으면 ad-hoc 빌드가 나가 사용자들이 권한을 다시 허용해야 하므로 릴리스를 멈춘다
       - name: 서명 인증서 준비
         env:
