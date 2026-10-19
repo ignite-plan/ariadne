@@ -11,6 +11,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - `.capture/<m>/review/<화면>.md.json`: Claude 변경 검토 기준. 최신화가 화면을 고치기 직전 본문을 남기고(이미 있으면 유지), 편집 화면이 지금 본문과 비교해 표시한다(`app/main/lib/review.ts`, 비교는 `app/shared/review-diff.ts`, 미리보기 표시는 `renderer/src/review-marks.ts`). 검토 완료·제출·되돌리기 때 지운다. 본문이 원문과 같아도 지우지 않는다(Claude가 아직 고치는 중일 수 있다)
 - Claude 최신화 대기열은 renderer `tasks.tsx`가 가진다(순수 함수 `app/shared/claude-queue.ts`, 앱을 켜 둔 동안만). main `draft.ts`는 지금처럼 한 번에 하나만 실행하고, 작업이 끝나면 renderer가 세션 확인 뒤 다음 항목을 시작한다. 끝난 작업 후처리는 `useClaudeDone`(상태가 아니라 완료 알림 구독)으로 해야 바로 이어지는 다음 작업에 묻히지 않는다
 - `manuals/bo/reference.docx`: Word 스타일 템플릿 (`pnpm make:reference`로 원본에서 생성)
+- 사용법 문서: `README.md`는 길잡이 표만, 기획자용은 `docs/planner/`(기능별 파일, 목차는 `docs/planner/README.md`), 개발자용은 `docs/developer/`, 작성 규칙은 `docs/writing-rules.md`. 기능을 바꾸면 해당 문서를 고친다
 - `.env`: `DEALERHUB_WEB_DIR`, `BO_BASE_URL`(bo 캡처 주소 덮어쓰기, 선택)
 - `src/core/`: 빌드·캡처·로그인·affected 함수. `root`/`manual`을 인자로 받고 `process.cwd()`·`.env`에 기대지 않는다 (CLI와 데스크톱 앱 공용)
 - `src/cli/`: `pnpm` 명령 진입점. `.env`·인자를 읽어 core를 호출하는 얇은 래퍼
