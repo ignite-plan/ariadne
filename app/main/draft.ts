@@ -27,6 +27,7 @@ import {
 import { explainFailure, isBlockingFailure, type ClaudeAuthSetting } from './lib/claude-auth.ts'
 import type { ClaudeEffort } from '../shared/api.ts'
 import { MCP_NAME, startAriadneMcp, type AriadneMcpDeps } from './lib/mcp.ts'
+import { claudeLoginStatus } from './lib/claude-login.ts'
 import { createRunGuard, type GuardLimits } from './lib/run-guard.ts'
 import {
   bareFlags,
@@ -84,8 +85,10 @@ export async function checkDraft(
   auth: ClaudeAuthSetting = 'auto',
 ): Promise<DraftCheck> {
   const cli = await findClaude(claudePath || undefined, refresh, auth)
-  const authInfo = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
+  const authInfo: DraftCheck['auth'] = { mode: cli?.auth ?? (auth === 'login' ? 'login' : 'apiKey'), keySource: cli?.keySource ?? null }
   if (!cli) return { claude: null, atlassian: [], auth: authInfo }
+  // claude.ai 로그인으로 돌면 로그인되어 있는지 먼저 본다 (안 되어 있으면 점검 화면에서 바로 로그인)
+  if (cli.auth === 'login') authInfo.login = await claudeLoginStatus(cli)
   const installable = !cli.managed && !claudePath && !process.env.ARIADNE_CLAUDE_PATH
   const claude = { path: cli.path, version: cli.version, managed: cli.managed, installable }
   if (!confluence) return { claude, atlassian: [], auth: authInfo, atlassianSkipped: true }

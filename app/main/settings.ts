@@ -1,12 +1,15 @@
-// 앱 설정(userData/settings.json)과 GitHub 토큰(Keychain 암호화, userData/token.bin)
+// 앱 설정(userData/settings.json)과 GitHub 토큰(macOS 키체인, lib/keychain.ts)
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app, safeStorage } from 'electron'
 import type { Settings } from '../shared/api.ts'
 import { DEFAULT_CLAUDE_MODEL, upgradeClaudeModel } from './lib/claude-auth.ts'
+import { deletePassword, GITHUB_TOKEN_SERVICE, readPassword, writePassword } from './lib/keychain.ts'
 
 const file = () => join(app.getPath('userData'), 'settings.json')
-const tokenFile = () => join(app.getPath('userData'), 'token.bin')
+// 1.10.2까지 쓰던 safeStorage 암호문. 처음 읽을 때 키체인으로 옮긴다
+const legacyTokenFile = () => join(app.getPath('userData'), 'token.bin')
+const tokenItem = () => ({ service: GITHUB_TOKEN_SERVICE, account: app.getPath('userData') })
 
 export function defaultSettings(): Settings {
   return {
@@ -48,24 +51,38 @@ export function updateSettings(patch: Partial<Settings>) {
   return next
 }
 
+// 로그를 쓸 때마다 읽으므로 security 실행은 처음 한 번만
+let token: string | null | undefined
+
 export function readToken() {
-  if (!existsSync(tokenFile())) return null
+  if (token !== undefined) return token
+  token = readPassword(tokenItem()) ?? migrateLegacyToken()
+  return token
+}
+
+// 마지막으로 한 번 safeStorage 키체인 암호를 묻고 옮긴다. 못 풀면 다시 입력받는다
+function migrateLegacyToken() {
+  if (!existsSync(legacyTokenFile())) return null
   try {
-    return safeStorage.decryptString(readFileSync(tokenFile()))
+    const legacy = safeStorage.decryptString(readFileSync(legacyTokenFile()))
+    writePassword(tokenItem(), legacy)
+    rmSync(legacyTokenFile(), { force: true })
+    return legacy
   } catch {
-    // 앱을 다시 설치해 Keychain 키가 바뀌면 복호화가 안 된다. 다시 입력받는다
     return null
   }
 }
 
-export function saveToken(token: string) {
-  if (!safeStorage.isEncryptionAvailable()) throw new Error('Keychain을 사용할 수 없어 토큰을 저장하지 못했습니다')
-  mkdirSync(app.getPath('userData'), { recursive: true })
-  writeFileSync(tokenFile(), safeStorage.encryptString(token.trim()))
+export function saveToken(value: string) {
+  writePassword(tokenItem(), value.trim())
+  rmSync(legacyTokenFile(), { force: true })
+  token = value.trim()
 }
 
 export function clearToken() {
-  rmSync(tokenFile(), { force: true })
+  deletePassword(tokenItem())
+  rmSync(legacyTokenFile(), { force: true })
+  token = null
 }
 
 // BO 로그인 세션은 리포가 아니라 사용자별 앱 데이터에 둔다

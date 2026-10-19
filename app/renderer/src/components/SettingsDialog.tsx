@@ -3,6 +3,7 @@ import type { AffectedSection, AuthStatus, ManualConfig, ManualInfo, Settings, U
 import { CODE_PRESETS, VIEWPORTS, viewportKey, type ViewportKey } from '../../../shared/presets.ts'
 import { api } from '../api.ts'
 import { useAsyncAction, useEnvChecks } from '../hooks.ts'
+import { ClaudeLoginRow } from './ClaudeLogin.tsx'
 import { EnvList } from './EnvList.tsx'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
@@ -188,9 +189,10 @@ function AdvancedPane({ settings, update, onReset }: { settings: Settings; updat
             ? '~/.zshrc나 앱 환경에 ANTHROPIC_API_KEY가 있으면 그것을, 없으면 Claude Code의 claude.ai 로그인을 씁니다'
             : settings.claudeAuth === 'apiKey'
             ? '로그인 셸(~/.zshrc)의 ANTHROPIC_API_KEY를 씁니다. 키를 바꾼 뒤 앱을 다시 열 필요는 없습니다'
-            : '키 환경변수를 넘기지 않고 Claude Code의 claude.ai 로그인으로 실행합니다. 터미널에서 claude → /login이 되어 있어야 합니다'}
+            : '키 환경변수를 넘기지 않고 Claude Code의 claude.ai 로그인으로 실행합니다. 아래에서 로그인하면 터미널의 claude와 로그인을 같이 씁니다'}
         </em>
       </label>
+      {settings.claudeAuth === 'login' && <ClaudeLoginRow />}
       <label className="field">
         <span>Claude 생각량 (Claude로 초안·최신화·영상)</span>
         <select value={settings.claudeEffort} onChange={(e) => update({ claudeEffort: e.target.value as Settings['claudeEffort'] })}>

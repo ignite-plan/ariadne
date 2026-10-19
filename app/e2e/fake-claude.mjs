@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // E2E용 가짜 Claude Code CLI. LLM 없이 받은 --mcp-config로 Ariadne MCP 도구를 실제로 부르고 stream-json을 낸다
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
@@ -18,6 +19,34 @@ if (args[0] === '--version') {
 if (args[0] === 'mcp' && args[1] === 'list') {
   console.log('mcp-atlassian-fake: /bin/true - ✔ Connected')
   process.exit(0)
+}
+// claude.ai 로그인 흉내: 주소를 내고 코드(fake-code)를 받으면 로그인 표식을 남긴다
+if (args[0] === 'auth') {
+  const { join: joinPath } = await import('node:path')
+  const state = joinPath(process.env.CLAUDE_CONFIG_DIR ?? tmpdir(), 'fake-claude-login')
+  if (args[1] === 'status') {
+    const loggedIn = existsSync(state)
+    console.log(JSON.stringify(loggedIn ? { loggedIn, authMethod: 'claude.ai', email: 'e2e@example.com' } : { loggedIn }))
+    process.exit(loggedIn ? 0 : 1)
+  }
+  if (args[1] === 'logout') {
+    rmSync(state, { force: true })
+    process.exit(0)
+  }
+  process.stdout.write("Opening browser to sign in…\nIf the browser didn't open, visit: https://claude.com/cai/oauth/authorize?fake=1\nPaste code here if prompted > ")
+  let input = ''
+  process.stdin.setEncoding('utf8').on('data', (chunk) => {
+    input += chunk
+    if (!input.includes('\n')) return
+    if (input.trim() !== 'fake-code') {
+      console.log('Invalid code')
+      process.exit(1)
+    }
+    writeFileSync(state, '1')
+    console.log('Login successful.')
+    process.exit(0)
+  })
+  await new Promise(() => {})
 }
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), '../..')

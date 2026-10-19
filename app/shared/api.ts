@@ -128,11 +128,19 @@ export interface DraftResult {
   denials: string[]
 }
 
+// claude.ai 로그인 상태 (claude auth status). method: claude.ai / api_key 등, account: 이메일 등 (있으면)
+export interface ClaudeLoginStatus {
+  loggedIn: boolean
+  method?: string
+  account?: string
+  error?: string
+}
+
 export interface DraftCheck {
   // managed: 앱 전용으로 설치한 고정 버전. installable: 내 PC의 claude를 쓰는 중이고 경로를 직접 지정하지 않았다 (앱 전용 설치를 권한다)
   claude: { path: string; version: string; managed?: boolean; installable?: boolean } | null
   // 인증 방식과, apiKey일 때 키를 찾은 곳 (값은 담지 않는다)
-  auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null }
+  auth: { mode: 'apiKey' | 'login'; keySource: 'shell' | 'env' | null; login?: ClaudeLoginStatus }
   // detail: 연결 실패 이유
   atlassian: { name: string; connected: boolean; detail?: string }[]
   // claude mcp list 자체가 실패했을 때
@@ -479,6 +487,16 @@ export interface AriadneApi {
     record(id: string, scene: number): Promise<void>
     stopRecord(): Promise<void>
   }
+  // claude.ai 로그인을 앱 안에서 (설정 → 고급, Claude 점검 화면). status가 null이면 Claude Code가 없다
+  claudeLogin: {
+    status(): Promise<ClaudeLoginStatus | null>
+    // 브라우저 로그인을 시작하고 끝날 때까지 기다린다. 주소는 'claude-login-url' 이벤트로 온다
+    start(): Promise<ClaudeLoginStatus>
+    // 브라우저가 앱으로 돌아오지 못하고 코드를 보여 줄 때 붙여 넣은 코드
+    sendCode(code: string): Promise<void>
+    cancel(): Promise<void>
+    logout(): Promise<ClaudeLoginStatus | null>
+  }
   draft: {
     // confluence: 이 작업이 기획서를 쓰는지 (안 쓰면 Atlassian을 확인하지 않는다)
     check(options?: { refresh?: boolean; confluence?: boolean }): Promise<DraftCheck>
@@ -527,6 +545,7 @@ export interface AriadneEvents {
   'install-progress': InstallProgress
   'video-model-progress': VideoModelProgress
   'video-record': VideoRecordEvent
+  'claude-login-url': string
 }
 export type AriadneEvent = keyof AriadneEvents
 
@@ -575,6 +594,7 @@ export const API_METHODS = {
   build: ['docx', 'open'],
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
   video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
+  claudeLogin: ['status', 'start', 'sendCode', 'cancel', 'logout'],
   draft: ['check', 'start', 'cancel', 'decide'],
   affected: ['run'],
   log: ['write', 'reveal'],

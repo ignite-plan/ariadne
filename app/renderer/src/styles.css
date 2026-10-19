@@ -2851,3 +2851,26 @@ fieldset.lock:disabled {
 .notice.queue-notice {
   margin: 0 0 8px;
 }
+
+/* ---------- claude.ai 로그인 ---------- */
+.claude-login-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 14px;
+  font-size: 12px;
+}
+.claude-login-row .ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+.claude-login p {
+  margin: 0 0 10px;
+}
+.claude-login .row {
+  display: flex;
+  gap: 8px;
+}
+.claude-login .row input {
+  flex: 1;
+}

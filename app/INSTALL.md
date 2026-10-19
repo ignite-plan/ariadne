@@ -20,7 +20,7 @@ Dealers 사용자 매뉴얼을 고치고, BO 화면을 캡처하고, Word로 만
    - Resource owner: `ignite-plan`
    - Repository access: **Only select repositories** → `ariadne`
    - Permissions: **Contents** Read and write, **Pull requests** Read and write, **Issues** Read and write (문제 신고)
-   - 만든 토큰(`github_pat_…`)을 붙여 넣습니다. 토큰은 macOS 키체인에 암호화해 저장합니다.
+   - 만든 토큰(`github_pat_…`)을 붙여 넣습니다. 토큰은 macOS 키체인에 저장합니다.
 2. **매뉴얼 내려받기**: 기본 폴더는 `~/Documents/Ariadne`입니다.
 3. **환경 점검**
    - **pandoc**(미리보기·Word 만들기): 없으면 앱이 자동으로 받아 설치합니다 (약 40MB). 설치할 일이 없습니다.
@@ -36,6 +36,7 @@ Dealers 사용자 매뉴얼을 고치고, BO 화면을 캡처하고, Word로 만
 - API 키 방식이면 개인 Claude 설정(내 CLAUDE.md, hooks, 플러그인)은 앱 작업에 섞이지 않습니다. Atlassian MCP 설정만 내 Claude Code에서 가져옵니다.
 
 - 인증은 자동으로 고릅니다: 키가 있으면 API 키, 없으면 claude.ai 로그인
+- claude.ai 로그인은 앱 안에서 합니다: 설정 → 고급 → Claude 인증을 **claude.ai 로그인**으로 고르고 **[claude.ai 로그인]** → 브라우저에서 로그인. 터미널의 claude와 로그인을 같이 씁니다
 - 모델은 기본 `claude-sonnet-5-5[1m]`(Sonnet 5.5, 1M 문맥)입니다 (설정 → 고급 → Claude 모델)
 - 설정 → 환경 점검에서 Claude Code와 Confluence 연결을 확인할 수 있습니다
 

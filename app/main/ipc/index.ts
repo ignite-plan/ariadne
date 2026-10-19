@@ -6,6 +6,7 @@ import { setManagedClaude } from '../lib/claude.ts'
 import { onLockChange, profileHolders } from '../lib/profile-lock.ts'
 import { registerApp } from './app.ts'
 import { registerCapture } from './capture.ts'
+import { registerClaudeLogin } from './claude-login.ts'
 import { send, sessionDir, setWindow, toolsDir } from './context.ts'
 import { registerDraft } from './draft.ts'
 import { registerEnv } from './env.ts'
@@ -37,6 +38,7 @@ export function registerIpc(getWindow: () => BrowserWindow | undefined) {
   registerCapture()
   registerVideo()
   registerDraft()
+  registerClaudeLogin()
   registerReport()
   registerApp()
 }
