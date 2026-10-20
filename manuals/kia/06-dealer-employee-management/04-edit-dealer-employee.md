@@ -3,13 +3,22 @@ title: Edit Dealer Employee
 routes: []
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "196779663"
+    version: 142
+  - page: "537137854"
+    version: 2
 ---
 
 ## Edit Dealer Employee
 
-- Pressing the **\[edit\]** button on the dealer employee view screen takes you to a screen to view the employee information.
+- Pressing the **\[Edit\]** button at the bottom of the dealer employee view screen takes you to a screen to edit the employee information.
 
-![Edit Employee](images/edit-employee.png){width=4.20in}
+
+
+![](images/image-18.png){width=4.2in align=center}
+
+
 
 The dealer employee information edit screen is mostly identical to the dealer creation screen.
 
@@ -37,16 +46,14 @@ ID Not existed
 
 - If you are creating a new ID, **consent for account creation** is required to proceed with generating the ID.
 
-- Below the **Basic Information** title, a notice reads: "Once an ID is created, these fields can only be edited by the employee."
 
-- **First Name / Last Name**: Leading and trailing spaces, special characters, and numbers cannot be entered.
+  - If the employee has an ID, the entire **Basic Information** area (First Name, Last Name, Picture, Account Email, Personal Phone, Language, Date of Birth) cannot be edited. The employee edits this information directly.
 
-- **Picture**: Optional. If no picture is registered, the view screen shows an initials avatar (Latin names: first letters of First Name and Last Name, e.g., Isabel Marant → IM; non-Latin names: first letter of Last Name).
+  - If the employee has no ID and was registered directly by the dealer admin, the **Basic Information** can be edited.
 
-- Account email: Cannot be modified on this screen once registered. The guide text reads "The employee's personal email, used to manage ID and send password reset requests."
+  - Business Phone, Business Email, Start Date, Job, Menu Permission, and Status can still be edited.
 
 - **Password:** The password item is newly viewed. A **\[reset password\]** button is provided, which can reset the account\'s password.
-
   - Clicking the **Change Password** button will send a URL link to the registered email address, allowing the user to set a new password.
 
   - Once the password is successfully updated through the link, the new password will take effect.

@@ -9,11 +9,19 @@ i18nPrefix: []
 
 - Clicking **\[create new\]** at the top of the dealer employee list takes you to a screen to create a dealer employee.
 
-![Create Dealer Employee](images/create-dealer-employee.png){width=4.20in}
+
+
+![](images/image-13.png){width=4.2in}
+
+
 
 In the **Basic Information** area, enter the user\'s basic information:
 
-![Employee - Basic Information](images/employee-basic-information.png){width=4.20in}
+
+
+![](images/image-14.png){width=3.4in}
+
+
 
 - **First name(Required):** Maximum 20 characters. Leading and trailing spaces, special characters and numbers cannot be entered.
 
@@ -103,7 +111,7 @@ In the **Basic Information** area, enter the user\'s basic information:
 
 ![When domain information is present](images/when-domain-information-is-present.png){width=6.79in}
 
-- **Hyundai Start date(Required):** Enter the date when the user started working at Hyundai. The date you open the create screen (the registration date) is entered automatically, and you can select a different date from the calendar.
+- **Kia Start date(Required):** Enter the date when the user started working at Kia. The date you open the create screen (the registration date) is entered automatically, and you can select a different date from the calendar.
 
 **Job & Menu Permission** - In the **Job & Menu Permission** section, you can configure the user\'s permissions.
 
@@ -116,7 +124,6 @@ In the **Basic Information** area, enter the user\'s basic information:
   If the status is Inactive, assigning a job is optional.
 
 - The **Dealer Admin** job title is shown in the list only when the logged-in user is a Dealer Principal or a Dealer Admin.\
-  The number of Dealer Admins per dealer is limited. If the limit is exceeded when you click **\[Create\]**, an alert is displayed and the Job Title field is marked in red with "This job is unavailable. Choose another one."
 
 - **Menu Permission**: This section displays the menu-level permissions mapped to the selected job.
 
@@ -130,7 +137,10 @@ In the **Basic Information** area, enter the user\'s basic information:
 
   - **Read**: Allows the user to view the bulletin board and read the details within the menu area.
 
-![Employee - Role setting](images/employee-role-setting.png){width=6.79in}
+
+
+![](images/image-15.png){width=3.4in align=center}
+
 
 - **How to Grant Permissions**
 
@@ -162,4 +172,5 @@ In the **Basic Information** area, enter the user\'s basic information:
 
 - When an employee who already has an ID is added as an employee of a dealership and an Employee no. is issued, a "dealership added" notification email is sent to that employee's Account Email.
 
-- ![](images/create-dealer-employee-img-5.png){width=4.59in}
+
+![](images/image-16.png){width=4.2in}

@@ -20,7 +20,11 @@ i18nPrefix: []
 
 - Clicking the **\[View List\]** button at the bottom takes you to the **Dealer Employee List** screen.
 
-![View Employee](images/view-employee.png){width=6.27in}
+
+
+![](images/image-17.png){width=4.2in align=center}
+
+
 
 - The dealer employee detail screen provides the following information:
 
@@ -48,7 +52,7 @@ i18nPrefix: []
 
 - **Business Email**
 
-- **Hyundai Start date:** Based on the date when Hyundai work started, the period worked at Hyundai as of today is calculated and displayed.
+- **Kia Start date:** Based on the date when Kia work started, the period worked at Hyundai as of today is calculated and displayed.
 
   - The working period is calculated and displayed with only year and month information.
 

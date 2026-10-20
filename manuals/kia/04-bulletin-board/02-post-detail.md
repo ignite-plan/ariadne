@@ -9,10 +9,18 @@ i18nPrefix: []
 
 - You can view posts registered in the BO.
 
-![Post Detail](images/post-detail.png){width=6.79in}
+
+
+![](images/image-8.png){width=4.2in}
+
+
 
 - **Header:** An example of post header information is as follows.\
-  ![](images/post-detail-img-1.png){width=5.74in}
+  
+
+![](images/image-9.png){width=3.4in}
+
+
 
 Post - Header Area
 
@@ -31,7 +39,11 @@ Post - Header Area
 
 - **Body:** An example of post body information is as follows.
 
-![Post - Body](images/post-body.png){width=3.63in}
+
+
+![](images/image-10.png){width=3.4in}
+
+
 
 - **Image Gallery**
 

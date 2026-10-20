@@ -13,7 +13,6 @@ i18nPrefix: []
 
 - It is possible to set **pop-up notifications** to be displayed for a **specific period** (3 days, 7 days), and it is also possible to set them to always be displayed.
 
-![Notification popup](images/notification-popup.png){width=6.79in}
 
 ![Popup with one button](images/popup-with-one-button.png){width=4.07in}
 

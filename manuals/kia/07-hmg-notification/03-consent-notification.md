@@ -9,7 +9,6 @@ i18nPrefix: []
 
 - In the case of customer **consent notifications**, these are used when customer consent is needed due to policy changes, etc.
 
-![Consent notification](images/consent-notification.png){width=6.36in}
 
 - By clicking the **button**, you can agree or refuse terms and conditions, and navigate to the terms screen.
 

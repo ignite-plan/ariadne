@@ -9,8 +9,12 @@ capture:
 code:
   app: apps/hyundai-fo
 chapters:
+  - title: Login & Logout
+    dir: 01-login-and-logout
+    sections:
+      - 01-login-and-logout.md
   - title: Home
-    dir: 03-home
+    dir: 02-home
     sections:
       - 00-intro.md
       - 01-gnb.md
@@ -22,21 +26,21 @@ chapters:
       - 07-footer.md
       - 08-my-profile.md
   - title: Search Result
-    dir: 04-search-result
+    dir: 03-search-result
     sections:
       - 00-intro.md
   - title: Bulletin Board
-    dir: 05-bulletin-board
+    dir: 04-bulletin-board
     sections:
       - 00-intro.md
       - 01-post-list.md
       - 02-post-detail.md
   - title: Email Notification
-    dir: 06-email-notification
+    dir: 05-email-notification
     sections:
       - 00-intro.md
   - title: Dealer employee management
-    dir: 07-dealer-employee-management
+    dir: 06-dealer-employee-management
     sections:
       - 00-intro.md
       - 01-dealer-employee-list.md
@@ -44,7 +48,7 @@ chapters:
       - 03-view-dealer-employee.md
       - 04-edit-dealer-employee.md
   - title: HMG-Notification
-    dir: 08-hmg-notification
+    dir: 07-hmg-notification
     sections:
       - 00-intro.md
       - 01-page-notification.md

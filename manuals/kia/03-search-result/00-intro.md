@@ -17,7 +17,10 @@ i18nPrefix: []
 
 
 
-![Keyword Search Result](images/keyword-search-result.png){width=4.36in}
+
+
+![](images/image-2.png){width=4.2in}
+
 
 - **Sort Search Results**
 
@@ -45,7 +48,11 @@ Sort Search Result by condition2
 
 - **custom range:** When clicked, the date range function is displayed, allowing you to search by entering a desired period
 
-![Search Result by date range](images/search-result-by-date-range.png){width=4.38in}
+
+
+![](images/image-4.png){width=3.4in}
+
+
 
 - Once you have searched, you can filter the results by selecting one or more boards. Only posts within the selected boards are displayed. If no board is selected, all board results are shown by default.
 
@@ -55,11 +62,19 @@ Select Board
 
 - Search results for posts with attachments or thumbnails are displayed as follows.
 
-![Search Result with attachments](images/search-result-with-attachments.png){width=6.06in}
+
+
+![](images/image-5.png){width=3.4in}
+
+
 
 - Clicking on an attachment allows you to view a **preview.**
 
-![Search Result with a preview](images/search-result-with-a-preview.png){width=5.56in}
+
+
+![](images/image-6.png){width=3.4in}
+
+
 
 - Clicking on the **post title, body, thumbnail**, etc. takes you to the post detail screen.
 

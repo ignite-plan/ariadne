@@ -14,19 +14,25 @@ i18nPrefix: []
 - Email notifications are sent to the target audience 1 hour after the post is published on the front end.
 
   - This is the **general post email** screen:\
-    ![](images/email-notification-img-1.png){width=5.79in}
+
+
+![](images/image-11.png){width=4.2in}
+
+
 
 General Post Email Notification
 
 - **Important notice post email** screen:
 
-![Important Post Email Notification](images/important-post-email-notification.png){width=6.18in}
+
+
+![](images/image-12.png){width=4.2in}
+
+
 
 - The email is composed of Introduction, Body(Board Name, Title, Summary), and Footer.
 
 - The **Intro** displays a greeting and a simple title about the post with a detailed link.
-
-![Email Body](images/email-body.png){width=5.82in}
 
 - The **Body** area displays the Title and Summary up to 500 characters, and shows information such as whether there are attachments in the post.
 
