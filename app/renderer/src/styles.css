@@ -2906,3 +2906,8 @@ fieldset.lock:disabled {
   gap: 6px;
   justify-content: center;
 }
+
+/* Claude에게 요청 (최신화·캡처 정의) */
+.request-field textarea {
+  resize: vertical;
+}

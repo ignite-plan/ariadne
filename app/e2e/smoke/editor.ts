@@ -56,7 +56,8 @@ export async function editor({ page, step, snap, toast, workspace }: Smoke) {
     assert.match(log, /Dealer List View[\s\S]*Ariadne-Record: true/)
     // 기록만 한 변경도 제출 전이라 변경 탭에 남고, 상단에 기록 수가 보인다
     await page.locator('.change-item', { hasText: 'Dealer List View' }).waitFor()
-    await page.locator('.sync-badge', { hasText: '내 PC 기록 1' }).waitFor({ timeout: 30000 })
+    // 동기화 표시는 원격을 받아 온 뒤 바뀐다 (사내망이 느리면 오래 걸린다)
+    await page.locator('.sync-badge', { hasText: '내 PC 기록 1' }).waitFor({ timeout: 90000 })
   })
 
   await step('되돌리기 (기록한 변경도 마지막 제출 상태로)', async () => {

@@ -55,11 +55,22 @@ Weekly Bulletin Summary Email List -- Auto summary Set schedule 2
 
   - If the selected range does **not meet the validation criteria**, the summary cannot be generated.
 
-- **(Default)**: The start and end dates are automatically set to a **3-day range**, ending **one day before today**.
+- **(Default)**: The start and end dates are automatically set to a **3-day range**, ending **one day before today** [(Start Date = today - 4 days, End Date = yesterday).]{.mark}
+
+- [The **Start Date** and **End Date** can be selected independently of each other.]{.mark}
+
+[  - When you change the **Start Date**, the **End Date** is automatically set to **Start Date + 3 days**. If that date is today or later, the End Date is set to **yesterday**.]{.mark}
+
+[  - When you change the **End Date**, the **Start Date** does not change.\]{.mark}
+[    The End Date cannot be earlier than the Start Date, and it must be within 7 days of the Start Date and before today (up to Start Date + 6 days).]{.mark}
+
+[  - If the Start Date is yesterday, the End Date is fixed to yesterday (only 1 day can be selected).]{.mark}
+
+[  - If you try to select a range that exceeds 7 days, a pop-up is displayed. When you click **\[Confirm\]**, the dates are reset to the default.]{.mark}
 
 Date Range Conditions:
 
-- **Today's date cannot be selected** --- only past dates are allowed.
+- **Today's date cannot be selected** --- [only past dates are allowed. Today and future dates are disabled in the calendar, so the latest selectable End Date is yesterday.]{.mark}
 
 - You can select a range of up to **7 days in the past**.
 

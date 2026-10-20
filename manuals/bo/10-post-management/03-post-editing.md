@@ -83,6 +83,28 @@ Editing Post -- Important Notice 1
 
 - Title allows up to 300 characters and Summary up to 50,000 characters. The number of characters entered is displayed.
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2055 FR 영역 상단에 번역 배너가 추가됨 (덮어쓰기 확인 팝업, 인라인 경고, Character Limit Exceeded 팝업도 해당) -->
+
+- **[Translation banner**: A banner is displayed at the top of the FR area. It contains the **\[EN → FR Translate\]** button and the notice "Clicking the left button will translate the English text entered above and display the French translation in the field below." Only EN to FR translation is supported. The banner is displayed only to users with Write permission for creating and editing posts (it is hidden for Read-only users), and it is currently available only for tenants with two languages (EN, FR).]{.mark}
+
+[  - **\[Translate\]** is enabled when the Title or Summary in the EN area has any content. If both are empty, it is disabled.]{.mark}
+
+[  - While translating, a spinner is displayed on the button, the button is disabled, and the Title and Summary fields are read-only. They are released as soon as the translation completes or fails.]{.mark}
+
+[  - Title and Summary are translated together. When the translation completes, the FR area is focused automatically and the fields are replaced with the translation result. Review and edit the translated content before saving.]{.mark}
+
+  - If the FR Title or Body already has content, the popup "Overwrite existing content?" is displayed with the message "The existing content will be replaced. Do you want to continue?" Select **\[Confirm\]** to overwrite the content and move the focus to the translated area, or **\[Cancel\]** to stop.
+
+  - If only some items fail, only the successfully translated items are entered, and the toast "Partial Translation Failure" is displayed with the message "Some items failed to translate. Please check which fields are missing and try again if needed."
+
+  - After a failure, **\[Translate\]** is enabled again and the existing input is kept.
+
+  - If the translated result exceeds the maximum length, it is not truncated and is entered in full. The inline warning "Translated title exceeds the maximum length (300 characters). Please edit before saving." or "Translated summary exceeds the maximum length (50,000 characters). Please edit before saving." is displayed below the field.
+
+  - **\[Save\]** stays enabled when the limit is exceeded. Selecting it displays the popup "Character Limit Exceeded" with the message "The title cannot exceed 300 characters. Please check the length of the translated title and edit it." or "The summary cannot exceed 50,000 characters. Please check the length of the translated summary and edit it." The inline warning remains displayed.
+
+ [ - If only the Title is entered in EN and the Body is empty, only the Title is translated. The existing required-field validation for the summary applies when saving.]{.mark}
+
 - When attaching an image in the editor, only png, jpg, and jpeg files are allowed. For other formats, the popup "Unsupported file format. Accepted formats: png, jpg, jpeg" is displayed; select **\[Confirm\]** to return to the editing screen.
 
 - Attachments (EN/FR):

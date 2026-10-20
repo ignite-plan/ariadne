@@ -49,6 +49,10 @@ export function DraftPanel({
   const [localPhase, setLocalPhase] = useState<'check' | 'ready'>('check')
   const phase: Phase = task?.phase ?? localPhase
   const [force, setForce] = useState(false)
+  // 최신화·캡처 정의: Claude에게 요청 (작업 지시에 "기획자 요청"으로 들어간다)
+  const [request, setRequest] = useState('')
+  const askable = input.mode === 'refresh' || input.mode === 'shots'
+  const withRequest = (): typeof panel => (askable && request.trim() ? { ...panel, input: { ...input, notes: request.trim() } } : panel)
   const [scope, setScope] = useState<{ value?: RefreshScope; error?: string }>({})
   const [check, setCheck] = useState<DraftCheck>()
   // 연결된 결과가 있는 채로 다시 확인하는 중 (시작은 막지 않는다)
@@ -83,7 +87,7 @@ export function DraftPanel({
   const start = async () => {
     if (refresh && scope.error) return toast.show('error', scope.error)
     // 세션은 대기 작업이 시작될 때 확인한다
-    if (canEnqueue) return tasks.enqueueClaude(panel, options())
+    if (canEnqueue) return tasks.enqueueClaude(withRequest(), options())
     // 만료된 세션으로 몇 분씩 돌지 않게 시작 전에 실제로 STG를 열어 본다
     if (tasks.session.exists) {
       setLocalPhase('check')
@@ -97,7 +101,7 @@ export function DraftPanel({
         setLocalPhase('ready')
       }
     }
-    void tasks.startClaude(panel, options())
+    void tasks.startClaude(withRequest(), options())
   }
 
   const close = () => {
@@ -145,6 +149,23 @@ export function DraftPanel({
           <DraftInputList input={input} sceneNo={sceneNo} subject={mode.subject} task={task} queued={queuedItem} />
 
           {refresh && !task && !queued && <RefreshScopeFields force={force} onForce={setForce} onScope={setScope} />}
+          {askable && !task && !queued && (
+            <label className="scope-fields request-field">
+              <b>Claude에게 요청 (선택)</b>
+              <textarea
+                aria-label="Claude에게 요청"
+                rows={3}
+                value={request}
+                onChange={(e) => setRequest(e.target.value)}
+                placeholder={
+                  input.mode === 'shots'
+                    ? '예: 팝업은 Location만, 검색 영역 이미지는 빼기'
+                    : '예: Location 팝업 설명은 건드리지 말 것, 버튼 이름만 확인'
+                }
+              />
+              <em className="hint">먼저 따르지만, 저장·삭제 금지나 근거가 없으면 TODO로 남기는 규칙은 바뀌지 않습니다</em>
+            </label>
+          )}
 
           <span className="spacer" />
           {queued ? (
@@ -439,6 +460,10 @@ function FinishedList({ current }: { current: number }) {
 }
 
 // 작업 대상: 메뉴·장·영상, 위치·대상 화면·반영 범위, STG 경로
+// 시작·대기할 때 붙인 Claude 요청 (장면 채우기의 notes는 따로 보여 준다)
+const requestOf = (input: DraftInput, task?: ClaudeTask, queued?: QueuedDraft) =>
+  input.mode === 'video-scene' ? undefined : (task?.input.notes ?? queued?.input.notes ?? input.notes)?.trim()
+
 function DraftInputList({
   input,
   sceneNo,
@@ -488,6 +513,12 @@ function DraftInputList({
               ? input.chapterDir
               : `새 장 "${input.newChapterTitle ?? input.menu}" · ${input.chapterIndex === undefined ? '맨 뒤' : `${input.chapterIndex + 1}장`}`}
           </dd>
+        </>
+      )}
+      {requestOf(input, task, queued) && (
+        <>
+          <dt>요청</dt>
+          <dd>{requestOf(input, task, queued)}</dd>
         </>
       )}
       {input.path && (

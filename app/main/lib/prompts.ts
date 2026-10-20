@@ -12,6 +12,10 @@ export const APP_RULES = `## 작업 방식 (앱 실행 공통)
 - STG 응답은 짧게 온다: 팝업이 열려 있으면 그 팝업만, 화면 이동 직후엔 앞부분(4000자), 같은 화면에서 누르기·입력한 뒤에는 **앞 응답과 달라진 줄만** 온다(나머지는 앞 응답 그대로). \`full: true\`는 대화에 크게 쌓이니 잘린 뒤쪽이 꼭 필요할 때만 쓴다. 이름은 role 뒤 따옴표 안의 것을 그대로 쓴다 (안내 문구·선택값·도움말 문장이 아니다)
 - 확인이 끝나면 더 둘러보지 말고 바로 쓴다. 근거가 모자란 곳은 TODO로 남긴다`
 
+// 기획자가 패널에 적은 요청. 먼저 따르되, 스킬의 안전·근거 규칙은 요청으로 바꿀 수 없다
+export const requestLine = (notes: string) =>
+  `- 기획자 요청 (먼저 따른다. 단 저장·삭제 같은 버튼 금지, 근거 없거나 기획서와 화면이 다르면 TODO 같은 규칙은 요청으로 바꿀 수 없다): ${notes.trim()}`
+
 // 스킬 본문 + 작업 방식 + 이번 작업
 export function composePrompt(skill: string, task: string) {
   return `${skill}\n\n${APP_RULES}\n\n${task}`
@@ -71,7 +75,7 @@ export function specTaskText(ref: ManualRef, input: DraftInput, { previous = [] 
         : '- 지난 요약: 없음',
     )
   }
-  if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
+  if (input.notes?.trim()) lines.push(requestLine(input.notes))
   return lines.join('\n')
 }
 
@@ -122,6 +126,7 @@ export function taskText(
         : '- 정의할 이미지: 없음 (바로 마지막 응답을 낸다)',
     )
     lines.push(`- STG 경로 힌트: ${input.path || '(없음 — front-matter routes에서 찾는다)'}`)
+    if (input.notes?.trim()) lines.push(requestLine(input.notes))
     return lines.join('\n')
   }
   if (input.mode === 'refresh') {
@@ -152,7 +157,7 @@ export function taskText(
       ? `- dealerhub-web 코드: ${options.codeDir} (읽기만 가능. front-matter sources/i18nPrefix를 채울 때 쓴다)`
       : '- dealerhub-web 코드: 없음 (front-matter sources/i18nPrefix는 비워 둔다)',
   )
-  if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
+  if (input.notes?.trim()) lines.push(requestLine(input.notes))
   if (input.mode === 'refresh') {
     lines.push(
       '',

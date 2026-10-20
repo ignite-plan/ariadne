@@ -45,6 +45,10 @@ Creating Menu -- Display information
    
 <!-- TODO: 모바일웹 설정 기능 화면 캡처 필요-->
 
+<!-- TODO: 확인 필요 - GIDPGRO-436/914 Mobile Display setting 필드와 PC/Mobile 배너는 STG(CA 법인, 모바일웹 OFF)에서 확인되지 않음. 기획서 06월 output·위키 메뉴 관리 문서에는 필드 기술 없고 Mobile Web PC BO 문서 기준 -->
+
+<!-- TODO: 이미지 갱신 필요 - GIDPGRO-436 Display Setting 이미지에 Mobile Display setting·PC/Mobile 배너가 없음 (모바일웹 ON 테넌트) -->
+
 - [**Mobile Display setting (Required field)**: A function to control whether the menu and its sub-menus are displayed on the Mobile Front screen. Only displayed when the tenant's Mobile Web setting is enabled; if the tenant's Mobile Web setting is disabled, this field (and the Mobile status in the banner above) is not shown and only the PC Display setting applies.]{.mark}
 
 
@@ -56,7 +60,7 @@ Creating Menu -- Display information
 
   - [ **(Default) Disabled:** The scheduled menu exposure function is not used. The menu will appear on the Front screen within approximately 1-2 minutes after saving.]{.mark}
 
-  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. Guidance message: "The menu will become visible on the Front screen at the start of the selected date".]{.mark} [\
+  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. Guidance message: "The menu will become visible on the Front screen at the start of the selected date (00:00 EST).".]{.mark} [\
     ]{.mark} ![](images/menu-creation-img-2.png){width=1.39in}
 
 Calendar setting
