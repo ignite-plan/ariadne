@@ -45,6 +45,21 @@ describe('작업 지시', () => {
     assert.equal(skillText(root, 'shots', { 'manual-shots': '---\nname: s\n---\nBUNDLED SHOTS' }), 'BUNDLED SHOTS')
   })
 
+  it('기획자 요청: 최신화 요약·화면 작업, 캡처 정의, 초안에 붙이고 안전 규칙은 못 바꾼다고 적는다', () => {
+    const ref = { root, manual: 'bo' }
+    const notes = 'Location 팝업 설명은 건드리지 말 것'
+    const targets = ['02-dealer/01-list.md']
+    for (const text of [
+      taskText(ref, { mode: 'refresh', menu: 'Dealer', targets, notes }, { brief: 'B' }),
+      taskText(ref, { mode: 'shots', menu: 'Dealer', targets, notes }, { shots: [{ id: 'dealer-list', manual: false }] }),
+      taskText(ref, { mode: 'create', menu: 'Dealer', chapterDir: '02-dealer', notes }),
+      specTaskText(ref, { mode: 'refresh', menu: 'Dealer', targets, notes }),
+    ]) {
+      assert.match(text, /- 기획자 요청 \(먼저 따른다\. 단 저장·삭제 같은 버튼 금지, .*요청으로 바꿀 수 없다\): Location 팝업 설명은 건드리지 말 것/)
+    }
+    assert.doesNotMatch(taskText(ref, { mode: 'refresh', menu: 'Dealer', targets, notes: '  ' }), /기획자 요청/)
+  })
+
   it('최신화 화면 하나: 그 화면만, 기획서 요약을 붙인다', () => {
     const text = taskText(
       { root, manual: 'bo' },

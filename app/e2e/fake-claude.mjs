@@ -99,6 +99,7 @@ if (prompt.includes('자동 캡처 정의를 등록한다')) {
   // 캡처 정의만: 본문 편집 도구가 없고, 정해진 이미지만 정의한다. 첫 이미지는 남기고 둘째는 등록했다가 뺀다
   assert(!args.some((a) => /^(Edit|Write)\(/.test(a)), '캡처 정의는 본문을 고치지 않는다')
   assert(!servers['mcp-atlassian-fake'], '캡처 정의는 기획서를 쓰지 않는다')
+  assert(/- 기획자 요청 \(먼저 따른다.*\): 팝업은 Location만/.test(prompt), '패널에 적은 요청이 작업 지시에 들어간다')
   const ids = prompt.match(/save_shot은 이 id만 받는다\): ([^\n]+)/)[1].split(', ').map((s) => s.replace(/ \(.*\)$/, ''))
   const outside = await call('save_shot', { id: 'dealer-list-zzz', path: '/dealer/company' })
   assert(outside.isError, '이 화면 이미지가 아니면 거절')

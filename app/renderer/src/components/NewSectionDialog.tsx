@@ -150,8 +150,8 @@ export function NewSectionDialog({
             <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="/menu" />
           </label>
           <label className="field">
-            <span>Claude에게 메모</span>
-            <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="예: 메뉴 권한 팝업도 포함" />
+            <span>Claude에게 요청</span>
+            <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="예: 메뉴 권한 팝업도 포함, 삭제 확인 팝업은 빼기" />
           </label>
         </details>
       )}
