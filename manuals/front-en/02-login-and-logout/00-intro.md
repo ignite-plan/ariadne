@@ -45,7 +45,11 @@ Dealer Selection Screen
 
   - Select Logout from this sheet.
 
-![Logout button](images/logout-button.png){width=2.46in}
+
+
+![](images/image.png){width=6.27in}
+
+
 
 - Automatic logout instructions:
 

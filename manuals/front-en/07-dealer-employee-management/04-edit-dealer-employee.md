@@ -9,7 +9,11 @@ i18nPrefix: []
 
 - Pressing the **\[edit\]** button on the dealer employee view screen takes you to a screen to view the employee information.
 
-![Edit Employee](images/edit-employee.png){width=5.24in}
+
+
+![Edit Employee](images/edit-employee-2.png){width=4.2in}
+
+
 
 The dealer employee information edit screen is mostly identical to the dealer creation screen.
 
@@ -27,8 +31,11 @@ The dealer employee information edit screen is mostly identical to the dealer cr
   - **If the ID has not been created:**\
     A message will appear indicating that the status must be set to Active before creating the ID.
 
-![](images/edit-dealer-employee-img-1.png){width=6.79in}
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨이 'ID'로 변경됨 -->
+
+
+![Create ID](images/create-id.png){width=6.27in}
+
+
 
 ID Not existed
 
@@ -38,13 +45,10 @@ ID Not existed
 
 - If you are creating a new ID, **consent for account creation** is required to proceed with generating the ID.
 
-- The field is labeled **ID** (not "HMG Partner ID"). A tooltip explains: "ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services."
 
 <!-- -->
 
 - Below the **Basic Information** title, a notice reads: "Once an ID is created, these fields can only be edited by the employee."
-
-<!-- TODO: STG에 반영 범위 밖 변경 보임 - STG 수정 화면의 Basic Information 제목 아래에 안내 문구("Once an ID is created, these fields can only be edited by the employee.")가 보이지 않음 (기획서는 있음, STG 확인 필요) -->
 
 - **First Name / Last Name**: Leading and trailing spaces, special characters, and numbers cannot be entered.
 

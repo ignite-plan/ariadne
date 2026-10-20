@@ -72,9 +72,10 @@ Using Quick Link from Other Screens**
 
 - This is a popup that appears when you click edit next to Quick link on the home screen, or click **\[Add Quick links\]** at the bottom of the Quick link sheet.
 
-- ![](images/quick-link-img-4.png){width=6.79in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2353 Menu List 상단(검색창 하단)에 가이드 배너 추가 -->
+
+![Quick Link](images/quick-link.png){width=4.2in}
+
 
 Quick Link Setting Popup
 
@@ -87,6 +88,10 @@ Quick Link Setting Popup
 - The banner stays fixed at the top, so it remains visible while scrolling the menu list.
 
 - Clicking the **x** button on the banner closes it, and it is not displayed again once closed. The closed state is saved in the browser's local storage per dealer, so the banner is displayed the first time the same employee accesses a different dealer.
+
+
+![Quick Link](images/quick-link-2.png){width=3.4in}
+
 
 - Add to **Quick Links** is a list of menus added by the user. The first added menu is at the top, and clicking the six-dot drag handle icon on the left allows you to change the order as desired.
 

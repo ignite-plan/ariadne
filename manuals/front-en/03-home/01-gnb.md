@@ -146,17 +146,15 @@ Account
 
 - When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to view Profile, Reset password, and logout.
 
-![Account layer](images/account-layer.png){width=2.78in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 사진 미등록 시 기본 이미지 대신 이니셜 아바타 표시 (gnb-img-10, account-layer) -->
+
+![Account Layer](images/account-layer-2.png){width=6.27in}
 
 **\**
 
 
 
 **Reset Password**
-
-![Reset Password](images/reset-password.png){width=3.03in}
 
 - When you click **Reset Password,** a URL to reset your password will be sent to your registered account email address.
 

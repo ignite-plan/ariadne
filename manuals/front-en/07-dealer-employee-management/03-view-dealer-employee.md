@@ -21,45 +21,39 @@ i18nPrefix: []
 
 - Clicking the **\[View List\]** button at the bottom takes you to the **Dealer Employee List** screen.
 
-![View Employee details](images/view-employee-details.png){width=6.79in}
+
+
+![View Employee](images/view-employee-2.png){width=6.27in}
+
+
+
 
 - The dealer employee detail screen provides the following information:
 
-![Employee details1](images/employee-details1.png){width=6.79in}
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨/뱃지가 'ID'/'ID Required'로 변경됨 -->
-
-- If a dealer employee photo is registered, it provides the photo. If no photo is registered, an initial avatar is automatically displayed instead: for Latin-based names, the first letter of the first name and the first letter of the last name (e.g. Isabel Marant → IM); for non-Latin-based names, only the first letter of the last name (e.g. 이지은 → 이).
-
-  - **User No.**: Once the dealer employee information is registered, a unique employee number is automatically generated and displayed by the Dealers system.
+- If a dealer employee photo is registered, it provides the photo. If no photo is registered, an initial avatar is automatically displayed instead.
 
   - **First name**
 
   - **Last name**
-
-  - **Status**
-
-  - **ID**: If the ID has not been created, a message indicating that creation is required will be displayed. The following description is provided: "Your ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services."
-    <!-- TODO: STG 화면의 ID 필드에서 설명 문구가 접근성 트리에 보이지 않음 (아이콘 툴팁 여부 확인 필요) -->
-
-[\
-]{.mark}![](images/view-dealer-employee-img-1.png){width=5.65in}
-
-![HMG Partner ID Not existed](images/hmg-partner-id-not-existed.png){width=6.79in}
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨이 'ID'로 변경됨 -->
-
-Employee details2
-
-- **Account Email:** The employee's personal email, used to manage ID and send password reset requests.
-
-- **Business Email**
-
-- **Business Phone**
+ 
+  - **Account Email:** The employee's personal email, used to manage ID and send password reset requests.
 
 - **Personal Phone:** If not registered, it is provided as a blank.
 
 - **Language**
 
 - **Age:** Based on the dealer employee\'s birthday information, the age is calculated and displayed on the screen.
+
+
+  - **User No.**: Once the dealer employee information is registered, a unique employee number is automatically generated and displayed by the Dealers system.
+
+
+  - **Status**
+
+  - **ID**: If the ID has not been created, a message indicating that creation is required will be displayed. 
+
+- **Business Phone**
+- **Business Email**
 
 - **Hyundai Start date:** Based on the date when Hyundai work started, the period worked at Hyundai as of today is calculated and displayed.
 
@@ -68,10 +62,6 @@ Employee details2
   - It is calculated as 1 month from the month when work started.
 
 <!-- -->
-
-- **Role & Organization information**
-
-![Employee details3](images/employee-details3.png){width=4.65in}
 
 - **Job title:** Displays the job title assigned to the account.
 

@@ -11,15 +11,13 @@ i18nPrefix: []
 
 - **Clicking \[create new\]** at the top will take you to a screen to create new employee information.
 
-![Employee List](images/employee-list.png){width=6.79in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 목록 컬럼 "Partner ID" → "ID" 라벨 변경 -->
+![Dealer Employee List](images/dealer-employee-list.png){width=4.2in}
+
 
 - You can view the dealer employee list according to employee conditions.
 
 ![Employee List - Search Filter](images/employee-list-search-filter.png){width=6.79in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 검색 기준/목록 컬럼의 "Partner id" → "ID" 라벨 변경 -->
 
 
 - **User Name:** You can search by the user\'s name.

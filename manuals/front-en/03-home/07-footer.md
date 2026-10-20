@@ -8,13 +8,7 @@ i18nPrefix: []
 
 ## Footer
 
-- In the footer area at the very bottom of the Dealers homepage, you can check the Terms, privacy policy, FAQ, Cookie policy and User Manual content.
-
-
-- For HACC (Hyundai and Genesis) on PC, the Terms text and link are not displayed, and the links are displayed in the order Privacy Policy | Cookie Policy | User Manual | FAQ. 
-
-**Service Term**
-
+- In the footer area at the very bottom of the Dealers homepage, you can check privacy policy, FAQ, Cookie policy and User Manual content.
 
 
 **Privacy Policy**
