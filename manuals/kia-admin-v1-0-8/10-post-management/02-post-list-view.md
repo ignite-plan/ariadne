@@ -10,47 +10,32 @@ i18nPrefix: []
 - The selected Bulletin Board Name is displayed at the top.\
   Alongside, the system shows whether the board is mapped to a menu, and displays the description of the board.
 
-- **Board-to-Menu Mapping Status**
+![Status Bar](images/status-bar.png){width=6.27in}
 
+- **Board-to-Menu Mapping Status**
 - If Board-Menu Mapping = Yes:
 
   - A \[Go to Manage Board\] button will appear on the right, depending on the user\'s permissions.
-
   - Clicking this button navigates to the BO Bulletin Board Detail screen (full page).
-
   - [The Menu Path of the mapped menu (all levels, up to 4 depths) is displayed in the header. For the Announcement board, \"-\" is displayed.]{.mark}
-
 - If Board-Menu Mapping = No:
-
   - This indicates that the bulletin board is not mapped to any menu.
   - You can view posts according to specific conditions.
-
 - [**Menu Display Status**: A banner in the header shows whether the menu is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.]{.mark}
-
   - [If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.]{.mark}
-
   - [If Mobile Web is disabled, only a single value (Visible or Not Visible) is shown.]{.mark}
-
   - [Visible is marked with a green dot and Not Visible with a gray dot.]{.mark}
-
   - [Hovering over the info icon shows a tooltip: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
-
 - [\[View Board List\]: Located at the bottom left. Clicking it returns to the board selection screen.]{.mark}
 
-![Post List -- Selecting board(Board-menu mapping= yes)](images/post-list-selecting-board-board-menu-mapping-yes.png){width=6.26in}
+![Post List -- Selecting board(Board-menu mapping= yes)](images/image-24.png){width=6.27in}
 
 - [**Template Management** tab: Users with Write permission see a \[Template Management\] tab next to the Post List tab. Templates help you quickly fill in the title and content when creating a post.]{.mark}
-
   - [The list shows Template Title (truncated after 2 lines), Created By, Created Date (EST), Status (ON/OFF toggle) and \[Delete\].]{.mark}
-
   - [Drag the handle to reorder templates. Changes are saved automatically and a toast message is displayed.]{.mark}
-
   - [Hovering over a template title shows a preview popover with EN and FR tabs.]{.mark}
-
   - [Up to 50 templates can be created. When the limit is reached, \[New Template\] is disabled. Up to 20 templates can be in use (Active) at the same time.]{.mark}
-
   - [Templates cannot be edited.]{.mark}
-
   - [When \[Delete\] is clicked, a confirmation message is displayed: \"Are you sure you want to delete this template? This action cannot be undone.\"]{.mark}
 
 - You can search for posts based on keywords in Title, Author, Post ID.\
@@ -62,36 +47,25 @@ You can search for posts based on Created Date, Updated Date, Posting period.\
 ![](images/post-list-view-img-2.png){width=5.49in}
 
 Post List -- Search filter 2
-
 ![](images/post-list-view-img-3.png){width=6.26in}
-
 Post List -- Search filter 3
 
 - [Date search period: By default, the last 1 year from today is set, and the period can be up to 1 year.]{.mark}
-
   - [Start Date: There is no limit on past dates. When Start Date is selected again, End Date is automatically adjusted to fall within 1 year of the new Start Date.]{.mark}
-
   - [End Date: Only dates from Start Date up to Start Date + 1 year can be selected. Changing End Date does not change Start Date.]{.mark}
-
   - [The date restrictions are explained in a tooltip.]{.mark}
-
 - Created Date: You can search for posts in order of most recent creation date.
-
 - Updated Date: You can search for posts in order of most recent modification date.
-
 - Posting Period: All posts included within the posting period are displayed, sorted by the most recent posting start date. (If the posting start date is the same, those with the most recent posting end date are displayed at the top.)
 
 - If a Search Filter is added to an additional attribute, it becomes searchable.
-
 - As shown in the example below for the Input box (text) type Search Filter, users can directly enter keywords to perform a search.
-
 - \[Reset\]: When clicked, filter conditions are initialized and search results are also reset.
-
 - \[Search\]: When clicked, it displays search results for posts that match the set conditions.
 
 Post List: The list of posts matching the applied search criteria is displayed. You can change the sorting and display options as follows:
 
-![Post List - detail](images/post-list-detail.png){width=6.26in}
+![Post List - Detail](images/image-25.png){width=6.27in}
 
 - Sorting options are available to organize posts by **Date** (latest to oldest) or **Title** (alphabetical ascending or descending).
 

@@ -10,11 +10,11 @@ i18nPrefix: []
 - When you select a **Bulletin Board**, you can check whether it is **linked to a menu**.\
   The attributes of each post are determined based on the **Post Attribute Settings** of the selected bulletin board.
 
-![Post List -- Initial View](images/post-list-initial-view.png){width=4.22in}
+![Bulletin List -- Initial View](images/image-21.png){width=6.27in}
 
-![](images/post-management-img-1.png){width=5.52in}
+![Post List](images/image-23.png){width=6.27in}
 
-Post List -- Selecting board
+**Post List -- Selecting board**
 
 - When you access the **Post Management** menu, the board selection screen opens as a full page with a table of bulletin boards. Click a bulletin board row to open its post list.
 
