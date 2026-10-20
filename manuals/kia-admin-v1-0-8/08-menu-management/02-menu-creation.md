@@ -17,7 +17,7 @@ i18nPrefix: []
 
 - In the Menu Detail screen, you must enter required fields to create a menu.
 
-![Creating Menu](images/creating-menu.png){width=6.26in}
+![Creating Menu](images/image.png){width=6.26in}
 
 **Menu Display Information**\
 ![](images/menu-creation-img-1.png){width=6.20in}
