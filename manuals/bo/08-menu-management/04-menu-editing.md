@@ -9,6 +9,38 @@ i18nPrefix: []
 
 - You can move to each editing screen by clicking the \[Edit\] button in Menu Details and Menu access permission.
 
+**Display setting and Scheduled Display**
+
+- Display setting (PC):
+
+  - When changing the Display setting from Enabled to Disabled on the Menu Edit screen, a confirmation popup is always displayed, regardless of the Scheduled Display status or whether a date has been entered. (The Menu Creation screen has no popup.)
+
+    - Title: "Do you want to hide this menu?"
+
+    - Message: "Turning the Display Setting OFF will hide this menu and its sub-menus, and reset any related scheduled display settings."
+
+    - **\[Cancel\]**: Closes the popup only, and the Display setting stays Enabled.
+
+    - **\[Confirm\]**: Changes the Display setting to Disabled, greys out the whole Schedule Display section, and shows Scheduled Display as Disabled. The scheduled display settings are actually reset (date saved as empty) when \[Save\] is clicked.
+
+  - When changing the Display setting from Disabled to Enabled, Scheduled Display is reset to Disabled even if it was previously Enabled (for example, with a past date), so the menu can be saved immediately without date validation.
+
+<!-- TODO: STG에 반영 범위 밖 변경 보임 - STG 확인 팝업 문구가 "...and reset any related. scheduled display settings."로 표시됨 (기획서 요약은 "related scheduled display settings."). 문구 오탈자 여부 확인 필요 -->
+
+[- Mobile Display setting: If the tenant's Mobile Web setting is enabled, the Mobile Display setting is displayed below the Display setting as a dependent field, and the status banner shows PC and Mobile statuses (PC \[ON\] + Mobile \[ON\] (default) / PC \[ON\] + Mobile \[OFF\] / PC \[OFF\] + Mobile \[OFF\]). If the tenant's Mobile Web setting is disabled, no Mobile status is displayed and only one status based on PC is shown.]{.mark}
+
+[- Scheduled Display date:]{.mark}
+
+[  - When Scheduled Display is switched from Disabled to Enabled, the date is empty (MM/DD/YYYY) and must be entered directly, as on the Menu Creation screen. A previously saved date is not restored, even if Scheduled Display is switched off and on again after saving.]{.mark}
+
+[  - Selectable dates start from the next day. Today and past dates are greyed out.]{.mark}
+
+[  - If only the Menu name, Menu type, description, or permissions are edited without changing the date, no validation error occurs even if the existing Display start date is in the past. If the date is changed, the new date validation is applied.]{.mark}
+
+[  - If the start date of a menu that is currently visible is changed to a future date, the Change Start Date popup is displayed.]{.mark}
+
+[  - If the selected date becomes a past date when saving (midnight boundary), a popup is displayed.]{.mark}
+
 **Menu Access Permissions\**
 ![](images/menu-editing-img-1.png){width=6.27in}
 
