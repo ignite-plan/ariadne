@@ -25,8 +25,6 @@ i18nPrefix: []
 
   - When changing the Display setting from Disabled to Enabled, Scheduled Display is reset to Disabled even if it was previously Enabled (for example, with a past date), so the menu can be saved immediately without date validation.
 
-- [Mobile Display setting: If the tenant's Mobile Web setting is enabled, the Mobile Display setting is displayed below the Display setting as a dependent field, and the status banner shows PC and Mobile statuses (PC \[ON\] + Mobile \[ON\] (default) / PC \[ON\] + Mobile \[OFF\] / PC \[OFF\] + Mobile \[OFF\]). If the tenant's Mobile Web setting is disabled, no Mobile status is displayed and only one status based on PC is shown.]{.mark}
-
 - [Scheduled Display date:]{.mark}
 
   - [When Scheduled Display is switched from Disabled to Enabled, the date is empty (MM/DD/YYYY) and must be entered directly, as on the Menu Creation screen. A previously saved date is not restored, even if Scheduled Display is switched off and on again after saving.]{.mark}

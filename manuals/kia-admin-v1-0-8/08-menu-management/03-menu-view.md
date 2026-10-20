@@ -7,7 +7,8 @@ i18nPrefix: []
 
 ## Menu View
 
-![](images/menu-view-img-1.png){width=5.88in}
+![Menu view](images/menu-view.png){width=6.27in}
+
 
 Menu Detail
 

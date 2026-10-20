@@ -96,11 +96,11 @@ Domain dropdown
 
     - Domain: [https://dealers.kia-corp.io](https://dealers.hyundai-corp.io)
 
-    - Menu URL: /board/238\
+    - Menu URL: /board/5\
    
 
-![Domain, menu URL](images/domain-menu-url-2.png){width=4.2in}
 
+![](images/image-7.png){width=4.2in}
 
 
 
@@ -142,12 +142,18 @@ Menu type -- [Same Tab]{.mark} information3 (Domain: address)
 Menu type -- Bulletin board information 1
 
 - Menu-Baord Mapping(Required field): When selecting a bulletin board from the dropdown, Menu name, Domain, and Menu URL are automatically entered according to the selected board information.\
-  ![](images/menu-creation-img-11.png){width=2.48in}![](images/menu-creation-img-12.png){width=2.42in}
+  ![](images/menu-creation-img-11.png){width=2.48in}![](images/image-8.png){width=3.4in}
+
+
 
 Menu type -- Bulletin board information 2
 
 - Menus and bulletin boards can be mapped 1:1, and only mappable bulletin boards are displayed in the dropdown. Bulletin boards already linked to menus are not displayed in the dropdown.\
-  ![](images/menu-creation-img-13.png){width=4.80in}
+
+
+![](images/image-9.png){width=6.27in}
+
+
 
 Menu type -- Bulletin board information 3
 
