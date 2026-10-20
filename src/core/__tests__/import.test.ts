@@ -115,6 +115,11 @@ describe('BO 원본 가져오기', { skip: (!hasPandoc || !existsSync(BO_SOURCE)
     const imported = loadManual({ root, manual: 'bo' })
     assert.equal(result.files, snapshot.chapters.reduce((n, c) => n + c.sections.length, 0))
     assert.deepEqual(imported.chapters, snapshot.chapters)
+    // 가져오기를 일부러 바꿨으면 UPDATE_IMPORT_SNAPSHOT=1로 본문 해시를 다시 쓴다
+    if (process.env.UPDATE_IMPORT_SNAPSHOT) {
+      for (const path of Object.keys(snapshot.sections)) snapshot.sections[path] = sha(stripFrontMatter(readFileSync(join(root, 'manuals/bo', path), 'utf8')))
+      writeFileSync(resolve('src/core/__tests__/fixtures/bo-import.json'), `${JSON.stringify(snapshot, null, 2)}\n`)
+    }
     for (const [path, hash] of Object.entries(snapshot.sections)) {
       assert.equal(sha(stripFrontMatter(readFileSync(join(root, 'manuals/bo', path), 'utf8'))), hash, path)
     }

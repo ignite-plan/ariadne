@@ -109,7 +109,19 @@ function BuildMenu({ currentChapter, flush }: { currentChapter?: Chapter; flush:
     setBuilding(true)
     try {
       const result = await api.build.docx(chapters)
-      toast.show('success', 'Word 문서를 만들었습니다', { label: '열기', run: () => void api.build.open(result.docx) })
+      const openDocx = { label: '열기', run: () => void api.build.open(result.docx) }
+      if (result.issues.length) {
+        // 굵게·형광펜이 깨져 Word에 ** 등이 글자로 나오는 화면. 자세한 내용은 로그에
+        const names = result.issues.map((i) => i.section.split('/').pop()!.replace(/\.md$/, ''))
+        void api.log.write('warn', 'build', result.issues.map((i) => `${i.section}\n  ${i.issues.join('\n  ')}`).join('\n'))
+        toast.show(
+          'error',
+          `Word 문서를 만들었지만 표기가 글자로 그대로 나오는 화면이 ${names.length}곳 있습니다: ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` 외 ${names.length - 3}` : ''}. 굵게·형광펜 표기를 확인하세요`,
+          openDocx,
+        )
+      } else {
+        toast.show('success', 'Word 문서를 만들었습니다', openDocx)
+      }
       if (result.warnings.trim()) console.warn(result.warnings)
     } catch (e) {
       toast.error(e)

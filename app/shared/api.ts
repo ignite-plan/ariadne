@@ -384,6 +384,8 @@ export type UpdateState =
 export interface BuildResult {
   docx: string
   warnings: string
+  // Word에 Markdown 표기(**, {.mark} 등)가 글자로 그대로 나오는 화면
+  issues: { section: string; issues: string[] }[]
 }
 
 export interface NewSectionInput {

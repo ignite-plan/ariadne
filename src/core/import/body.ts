@@ -1,6 +1,7 @@
 // 장 소개·절 본문을 매뉴얼 Markdown으로 정리하고, 본문의 이미지를 images/에 저장한다
 import { copyFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { repairImportArtifacts } from '../markup-repair.ts'
 import { slugify, uniqueName } from '../naming.ts'
 import { isPng, writeImage, type Drawing } from './docx.ts'
 
@@ -32,6 +33,8 @@ export function createBodyWriter({ imagesDir, drawings, warnings, onImage }: Bod
     return body
       .map((l) => l.replace(/^(> ?)+/, ''))
       .map((l) => l.replace(/\[\]\{#[^}]*\}/g, ''))
+      // Word의 빈 굵게가 남긴 `**\**`, 닫는 별표가 이스케이프된 굵게 (Word에 ** 가 글자로 찍힌다)
+      .map(repairImportArtifacts)
       // Word 노란 형광펜은 본문에 [글자]{.mark}로 남긴다 (Word 빌드에서 다시 형광펜이 된다).
       // 제목 줄, 이미지 캡션 안, 이미지만 감싼·빈 형광펜은 뺀다
       .map((l) => {

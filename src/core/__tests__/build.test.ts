@@ -104,4 +104,37 @@ describe('Word 빌드: 형광펜과 이미지 가운데 정렬', { skip: !hasPan
     assert.ok(/<w:numPr>/.test(imageParas[2]), '목록 안 이미지는 목록 기호를 유지한다')
     assert.doesNotMatch(xml, /align/, '정렬 표기는 Word에 남지 않는다')
   })
+
+  it('TODO 주석은 들여써도 Word에 안 나오고, 표기가 글자로 나오는 곳은 화면별로 알린다', () => {
+    writeFileSync(
+      join(fx.dir, '01-login/00-intro.md'),
+      [
+        '---',
+        'title: Login',
+        '---',
+        '',
+        '## Login',
+        '',
+        '- Item',
+        '',
+        '    <!-- TODO: 확인 필요 - 들여쓴 주석 -->',
+        '',
+        '- **[Domain**: broken highlight]{.mark}',
+        '',
+        '[  - Listed in highlight]{.mark}',
+        '',
+        'Done.**\\**',
+        '',
+      ].join('\n'),
+    )
+    const { docx, issues } = buildDocx({ ...fx.ref, chapters: [1], outDir: join(fx.ref.root, 'dist') })
+    const xml = execFileSync('unzip', ['-p', docx, 'word/document.xml'], { encoding: 'utf8' })
+    assert.doesNotMatch(xml, /TODO|&lt;!--/)
+    assert.equal(issues.length, 1)
+    assert.equal(issues[0].section, '01-login/00-intro.md')
+    assert.ok(issues[0].issues.some((i) => /표기가 글자로 나옴: Domain\*\*:/.test(i)), issues[0].issues.join("\n"))
+    assert.ok(issues[0].issues.some((i) => /형광펜 안에 목록 기호/.test(i)))
+    assert.ok(issues[0].issues.some((i) => /Done\.\*\*\*\*/.test(i)))
+    assert.ok(!issues[0].issues.some((i) => /코드 블록/.test(i)), '주석은 지운 뒤 검사한다')
+  })
 })

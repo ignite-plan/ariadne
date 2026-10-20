@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { chapterNo, loadManual, manualDir, outputName, readSection, stripFrontMatter, type ManualRef } from './manual.ts'
+import { checkSections, stripComments, type SectionIssue } from './word-check.ts'
 
 export interface BuildOptions extends ManualRef {
   // 빌드할 장 번호. 없으면 전체
@@ -19,6 +20,8 @@ export interface BuildResult {
   markdown: string
   // pandoc stderr (이미지 누락 등 경고)
   warnings: string
+  // Word에 Markdown 표기가 글자로 그대로 나오는 화면 (굵게·형광펜이 깨진 곳 등)
+  issues: SectionIssue[]
 }
 
 // 장 제목(H1)을 붙여 섹션을 이어 붙인 Markdown. front-matter는 뺀다
@@ -27,13 +30,18 @@ export function assembleMarkdown(ref: ManualRef, chapters?: number[]) {
   const targets = manual.chapters.filter((chapter) => !chapters || chapters.includes(chapterNo(chapter)))
   if (!targets.length) throw new Error(`빌드할 장이 없습니다: --chapters ${chapters?.join(',')}`)
 
+  const sections: { section: string; body: string }[] = []
   const body = targets
     .map((chapter) => {
-      const sections = chapter.sections.map((file) => stripFrontMatter(readSection(ref, chapter, file)).trim())
-      return [`# ${chapterNo(chapter)}. ${chapter.title}`, ...sections].join('\n\n')
+      const bodies = chapter.sections.map((file) => {
+        const text = stripFrontMatter(readSection(ref, chapter, file)).trim()
+        sections.push({ section: `${chapter.dir}/${file}`, body: text })
+        return text
+      })
+      return [`# ${chapterNo(chapter)}. ${chapter.title}`, ...bodies].join('\n\n')
     })
     .join('\n\n')
-  return { manual, markdown: `---\ntitle: ${manual.title}\n---\n\n${body}\n` }
+  return { manual, markdown: `---\ntitle: ${manual.title}\n---\n\n${body}\n`, sections }
 }
 
 // 원본처럼 스크린샷에 accent1 테두리를 두른다. 인라인 아이콘(1in 미만)은 제외
@@ -72,14 +80,15 @@ return {
 `
 
 export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: BuildOptions): BuildResult {
-  const { manual, markdown } = assembleMarkdown(ref, chapters)
+  const { manual, markdown, sections } = assembleMarkdown(ref, chapters)
   const dir = manualDir(ref)
   const distDir = outDir ?? resolve(ref.root, 'dist')
   mkdirSync(distDir, { recursive: true })
   const suffix = chapters ? `_ch${chapters.join('-')}` : ''
   const merged = join(distDir, `${ref.manual}${suffix}.md`)
   const docx = join(distDir, `${outputName(manual)}${suffix}.docx`)
-  writeFileSync(merged, markdown)
+  // TODO 등 주석은 Word에 넣지 않는다 (들여쓴 주석이 코드 블록이 되어 글자로 찍히지 않게 미리 지운다)
+  writeFileSync(merged, stripComments(markdown))
   // pandoc은 앱(asar) 안 파일을 못 읽으므로 필터를 임시 파일로 쓴다
   const filterDir = mkdtempSync(join(tmpdir(), 'manual-filter-'))
   const filter = join(filterDir, 'center.lua')
@@ -111,5 +120,5 @@ export function buildDocx({ chapters, outDir, pandoc = 'pandoc', ...ref }: Build
   } finally {
     rmSync(work, { recursive: true, force: true })
   }
-  return { docx, markdown: merged, warnings: result.stderr }
+  return { docx, markdown: merged, warnings: result.stderr, issues: checkSections(sections, pandoc) }
 }

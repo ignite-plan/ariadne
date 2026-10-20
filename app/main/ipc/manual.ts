@@ -116,8 +116,8 @@ export function registerManual() {
   })
 
   handle('build:docx', (chapters) => {
-    const { docx, warnings } = buildDocx({ ...ref(), chapters, pandoc: requirePandoc() })
-    return { docx, warnings }
+    const { docx, warnings, issues } = buildDocx({ ...ref(), chapters, pandoc: requirePandoc() })
+    return { docx, warnings, issues }
   })
   handle('build:open', async (path) => {
     const root = requireWorkspace()
