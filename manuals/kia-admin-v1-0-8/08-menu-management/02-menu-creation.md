@@ -20,7 +20,10 @@ i18nPrefix: []
 ![Creating Menu](images/image.png){width=6.26in}
 
 **Menu Display Information**\
-![](images/menu-creation-img-1.png){width=6.20in}
+
+
+![Scheduled Display (Disabled)Default ](images/image-2.png){width=6.27in}
+
 
 Creating Menu -- Display information
 
@@ -42,15 +45,11 @@ Creating Menu -- Display information
 
     - Creation rule: MM DD, YYYY (EST) / ID(employee number)
 
-- [**Mobile Display setting (Required field)**: A function to control whether the menu and its sub-menus are displayed on the Mobile Front screen. Only displayed when the tenant's Mobile Web setting is enabled; if the tenant's Mobile Web setting is disabled, this field (and the Mobile status in the banner above) is not shown and only the PC Display setting applies.]{.mark}
-
 <!-- -->
 
-- \-[**(Default) Enabled**: Can be set to Enabled or Disabled while Display setting is Enabled. Guidance message: "Controls menu and submenu visibility on Mobile. Available only when Display Setting is ON.".]{.mark}
 
-  - [**Disabled**: Automatically set to Disabled and cannot be changed while Display setting is Disabled. Guidance message: "Mobile Display Setting is disabled when this is OFF.".]{.mark}
+![Scheduled Display (Enabled)](images/scheduled-display-enabled.png){width=6.27in}
 
-<!-- -->
 
 - **Scheduled Display**: A function to plan scheduled menu exposure by setting a specific future display start date, allowing the menu to be displayed on the front screen from that date. Scheduled Display is only available while Display setting is Enabled; when Display setting is Disabled, Scheduled Display is forced to Disabled and cannot be changed.
 
@@ -69,14 +68,20 @@ Calendar setting
 
 **Menu Basic Information**
 
-![](images/menu-creation-img-3.png){width=5.31in}
+
+
+![Menu type](images/menu-type.png){width=6.27in}
+
+
 
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
 - **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset. [Menu name, Menu-board mapping, Domain, and Menu URL are reset, while the Menu Permission List is kept as is.]{.mark}\
-  ![](images/menu-creation-img-4.png){width=1.59in}
 
-Menu type
+![Menu type dropdown](images/menu-type-dropdown.png){width=3.4in}
+
+
+
 
 - Domain: A function that specifies which domain the menu operates on. You can select a domain address. The required field input setting for Domain changes according to the Menu type.\
   ![](images/menu-creation-img-5.png){width=2.32in}
@@ -92,7 +97,12 @@ Domain dropdown
     - Domain: [https://dealers.kia-corp.io](https://dealers.hyundai-corp.io)
 
     - Menu URL: /board/238\
-      ![](images/menu-creation-img-6.png){width=3.04in}
+   
+
+![Domain, menu URL](images/domain-menu-url-2.png){width=4.2in}
+
+
+
 
 Linking menu-board mapping - Domain and Menu URL
 
@@ -105,7 +115,8 @@ Linking menu-board mapping - Domain and Menu URL
 - (Default) [Same Tab]{.mark}: When selected, Domain has \"No selection (Directory)\" selected, and Menu name must be entered as required.
 
   - **Purpose**: Used as a general menu type, can be used as a Directory menu or Link page navigation menu.\
-    ![](images/menu-creation-img-7.png){width=3.69in}
+
+![](images/image-3.png){width=6.27in}
 
 Menu type -- [Same Tab]{.mark} information 1
 
@@ -115,7 +126,11 @@ Menu type -- [Same Tab]{.mark} information 1
 Menu type -- [Same Tab]{.mark} information 2(Domain: No selection)
 
 - If you select and save a domain address, clicking the menu on the front screen will navigate to that link address.\
-  ![](images/menu-creation-img-9.png){width=3.34in}
+
+
+![](images/image-4.png){width=6.27in}
+
+
 
 Menu type -- [Same Tab]{.mark} information3 (Domain: address)
 
@@ -141,7 +156,11 @@ Menu type -- Bulletin board information 3
   - **Purpose**: Can be used as an External Link menu that opens in a new tab to domain addresses other than Dealers page addresses.
 
   - Domain becomes a required field, and you can create menus that open in new tabs by selecting addresses registered in Domain.\
-    ![](images/menu-creation-img-14.png){width=5.04in}
+
+
+![](images/image-5.png){width=6.27in}
+
+
 
 Menu type -- [New Tab]{.mark} information 1
 
@@ -161,13 +180,21 @@ Menu type -- [New Tab]{.mark} information 3
 
 - The \[Domain setting\] button is only displayed to users with super administrator permissions, allowing them to manage the Domain List.
 
-![Domain Setting -- List view](images/domain-setting-list-view.png){width=3.79in}
+
+
+![Domain setting list view](images/domain-setting-list-view-2.png){width=4.2in}
+
+
 
 - New domains can be added through the \[+Add\] button, and existing domains can be edited/deleted.
 
 - You can click the domain edit button to enter Domain and SSO callback path.
 
-![](images/menu-creation-img-17.png){width=6.26in}![](images/menu-creation-img-18.png){width=6.26in}
+
+
+![Domain setting add or edit](images/domain-setting-add-or-edit.png){width=4.2in}
+
+
 
 Editing Domain Setting
 
