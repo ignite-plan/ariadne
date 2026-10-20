@@ -11,11 +11,11 @@ refreshedFrom:
 
 ## Dealer Employee Creation
 
+This is the screen for creating a new dealer employee account.
 ![Creating Dealer Employee](images/creating-dealer-employee.png){width=6.25in}
 
-- This is the screen for creating a new dealer employee account.
 
-- **Basic Information**
+**Basic Information**
 
 <!-- TODO: 이미지 갱신 필요 - 생성 화면이 Basic Information / Account Information / Business Information / Job & Menu Permission 4개 섹션으로 바뀜 (STG 세션 만료로 재캡처하지 못함) -->
 
@@ -37,11 +37,8 @@ refreshedFrom:
 
 - **Name:**
 
-<!-- -->
-
-- First name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
-
-- Last name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
+  - First name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
+  - Last name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
 
 - **Language:** Required. Value for setting the dealer employee\'s language.
 
@@ -92,26 +89,17 @@ refreshedFrom:
 - **ID**
 
   - Tooltip: \"ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services.\"
+  - The ID required to access the **Dealers** service.
+  - This is a **mandatory field** when the account is initially **Active**.
+  - Users can **log in to the service** using this ID.
+  - Must create an account with 5-40 characters combining English letters and numbers (placeholder: \"English letters and numbers only (5-40 characters)\").
+  - Account duplication check is required. Click \[Verify ID\] to check; if the ID is a duplicate, \"This ID is already taken. Please try another ID\" is shown. If not duplicated, the button changes to \[Verified\] and becomes disabled. If you edit the ID afterwards, it returns to \[Verify ID\].
+  - Account creation consent is required. If the consent checkbox is not checked, \"Consent is required to create an HMG Partner ID.\" is shown.
 
 <!-- -->
 
-- The ID required to access the **Dealers** service.
+ ![](images/dealer-employee-creation-img-1.png){width=5.18in}
 
-- This is a **mandatory field** when the account is initially **Active**.
-
-- Users can **log in to the service** using this ID.
-
-- Must create an account with 5-40 characters combining English letters and numbers (placeholder: \"English letters and numbers only (5-40 characters)\").
-
-- Account duplication check is required. Click \[Verify ID\] to check; if the ID is a duplicate, \"This ID is already taken. Please try another ID\" is shown. If not duplicated, the button changes to \[Verified\] and becomes disabled. If you edit the ID afterwards, it returns to \[Verify ID\].
-
-- Account creation consent is required. If the consent checkbox is not checked, \"Consent is required to create an HMG Partner ID.\" is shown.
-
-<!-- -->
-
-- ![](images/dealer-employee-creation-img-1.png){width=5.18in}
-
-Already have an account option
 
 - **Already have an account option:**
 
@@ -163,7 +151,7 @@ Status - Inactive
 
   - Search by selecting one of Dealer no. or dealer name, then save the dealership information.
 
-- ![](images/dealer-employee-creation-img-4.png){width=6.27in}
+ ![](images/dealer-employee-creation-img-4.png){width=6.27in}
 
 Search Dealer Popup
 
