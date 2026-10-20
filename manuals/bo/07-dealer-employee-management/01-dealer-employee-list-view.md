@@ -9,11 +9,13 @@ i18nPrefix: []
 
 ![Dealer Employee List](images/dealer-employee-list.png){width=6.27in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 테이블 컬럼 'Partner ID' → 'ID' -->
+
 This is a page where you can create, view, and modify the accounts and information of all users registered in Dealers.
 
 UserNo.: The user\'s No.
 
-Partner ID: The user\'s HMG Partner ID.
+ID: The user\'s ID. If the user has no ID, "-" is displayed.
 
 Name(first name/last name): The user\'s name
 
@@ -43,13 +45,15 @@ Detail: Screen to view detailed information of the employee
 
 ![Dealer Employee - Search](images/dealer-employee-search.png){width=6.27in}
 
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 검색 셀렉트 옵션 'HMG Partner ID' → 'ID' -->
+
 You can search for employees according to specific conditions.
 
 User Name: You can search by the user\'s name
 
 User No.: You can search by the user\'s user No.
 
-Partner ID: You can search by the user\'s Partner ID
+ID: You can search by the user\'s ID
 
 Job title: Select the job title assigned to the user. Multiple selections are possible, and selected items are displayed in the job title area below.
 

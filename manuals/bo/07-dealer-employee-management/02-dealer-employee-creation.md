@@ -1,8 +1,12 @@
 ---
 title: Dealer Employee Creation
-routes: []
+routes:
+  - /dealer/employee/create
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "196779783"
+    version: 167
 ---
 
 ## Dealer Employee Creation
@@ -11,7 +15,9 @@ i18nPrefix: []
 
 - This is the screen for creating a new dealer employee account.
 
-- Basic information
+- **Basic Information**
+
+<!-- TODO: 이미지 갱신 필요 - 생성 화면이 Basic Information / Account Information / Business Information / Job & Menu Permission 4개 섹션으로 바뀜 (STG 세션 만료로 재캡처하지 못함) -->
 
 <!-- -->
 
@@ -20,6 +26,10 @@ i18nPrefix: []
   - Only jpeg(jpg) and png formats are allowed, and a maximum of 20MB can be registered.
 
   - Required for the **Dealer Principal**. If not uploaded, the error \"Please upload a photo\" is shown.
+
+  <!-- TODO: 확인 필요 - 생성 화면의 Job 목록에 Dealer Principal이 없어 이 화면에서 사진 필수가 적용되는 경우 (기획서 요약 미결) -->
+
+
 
   - If no photo is registered, an auto-generated initial avatar is displayed for the employee on the View screen.
 
@@ -33,15 +43,49 @@ i18nPrefix: []
 
 - Last name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
 
-- **Status**: Status value of the dealer account.
+- **Language:** Required. Value for setting the dealer employee\'s language.
 
-- Active: Active state.
+  - Determines the language displayed on the user\'s login screen and the emails sent.
 
-- If the account is initially set to **Active**, an **HMG Partner ID** can be created.
+  - The default is the dealership\'s primary language, and you can choose between the primary and secondary languages (e.g., English and French).
+
+  - If the dealership supports only one language, the select is disabled.
+
+- **Personal Phone**: Optional. Enter the dealer employee\'s personal phone number.
+
+  - Country code must be selected from either +1 or +82, with +1 provided as the default value.
+
+  - Up to 15 characters; only digits and \"-\" are allowed.
+
+- **Date of Birth**: Optional. The dealer employee\'s birthday information. Select it from the calendar (MM-DD-YYYY).
+
+- **Account Email:** Required when creating an ID. Tooltip: \"The employee's personal email, used to manage ID and send password reset requests.\"
+
+  - Up to 50 characters, must include \"@\" and \".\", and the domain must be at least 2 characters.
+
+  - If an **ID** is created, a **URL to set the account password** will be sent to the registered account email address.
+
+  - If the employee later requests a password reset, a **password setup URL** will be sent to the same email address.
+
+  - If the Status is Inactive, the Account Email cannot be entered and the banner \"To proceed, the status field below must be Active\" is displayed.
+
+  - Duplicate values are allowed. For employees of multiple dealerships, changing it is applied to all of them.
 
 <!-- -->
 
-- **New Account** option: Used when creating a new HMG Partner ID.
+- **Account Information**
+
+<!-- -->
+
+- **Status**: Required. Select Active or Inactive. An ID can be created only when the status is Active.
+
+- Active: Active state.
+
+- If the account is initially set to **Active**, an **ID** can be created.
+
+<!-- -->
+
+- **New Account** option: Used when creating a new ID.
 
 ![Status - Active](images/status-active.png){width=6.27in}
 
@@ -57,11 +101,11 @@ i18nPrefix: []
 
 - Users can **log in to the service** using this ID.
 
-- Must create an account with 5-10 digits combining English letters and numbers.
+- Must create an account with 5-40 characters combining English letters and numbers (placeholder: \"English letters and numbers only (5-40 characters)\").
 
-- Account duplication check is required. If not duplicated, the verify ID button changes to \[Verified\].
+- Account duplication check is required. Click \[Verify ID\] to check; if the ID is a duplicate, \"This ID is already taken. Please try another ID\" is shown. If not duplicated, the button changes to \[Verified\] and becomes disabled. If you edit the ID afterwards, it returns to \[Verify ID\].
 
-- Account creation consent is required.
+- Account creation consent is required. If the consent checkbox is not checked, \"Consent is required to create an HMG Partner ID.\" is shown.
 
 <!-- -->
 
@@ -71,15 +115,17 @@ Already have an account option
 
 - **Already have an account option:**
 
-  - Select this when the employee already has an HMG Partner ID created as a member of another dealer and you want to add information for affiliation with an additional dealer.
+  - Select this when the employee already has an ID created as a member of another dealer and you want to add information for affiliation with an additional dealer.
 
-  - Search for the HMG Partner ID previously used by an existing dealer employee.
+  - Search for the ID previously used by an existing dealer employee.
 
-  - When you click the \[Search\] button next to the input field, a popup window will open. In this popup, you can search for the HMG Partner ID.
+  - When you click the \[Search\] button next to the input field, the **Search ID** popup window will open. In this popup, enter the ID (placeholder: \"Enter ID\") and search. \[Search\] is enabled only after at least 5 characters are entered.
 
 ![Search existing HMG PartnerID](images/search-existing-hmg-partnerid.png){width=4.63in}
 
-- When you enter and search for the HMG Partner ID you want to link, some user information will be displayed so you can verify if it is the correct user.
+<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 Search 팝업 타이틀 'Search ID', 필드명 'ID', 힌트 'Enter ID' -->
+
+- When you enter and search for the ID you want to link, some user information will be displayed so you can verify if it is the correct user.
 
 <!-- -->
 
@@ -91,7 +137,7 @@ Search Result
 
   - Name / Email / Language details
 
-  - If you edit this information, the changes will be applied to all employees sharing the same HMG Partner ID.
+  - If you edit this information, the changes will be applied to all employees sharing the same ID.
 
   - **\[Cancel**\]: Cancels this action.
 
@@ -103,37 +149,13 @@ Search Result
 
 Status - Inactive
 
-- If the account is initially set to **Inactive**, **HMG Partner ID creation is not allowed**.
+- If the account is initially set to **Inactive**, **ID creation is not allowed**. Only the message \"To proceed, the status must be Active.\" is shown.
+
+- If you change the selection between **New Account** and **Already have an account** after loading an account or clicking \[Verify ID\], the message \"This action will clear all previously entered data. Do you want to continue?\" is shown. Selecting \[Continue\] clears all entered values.
 
 <!-- -->
 
-- **Account Email:** Required. Tooltip: \"The employee's personal email, used to manage ID and send password reset requests.\"
-
-- If an **HMG Partner ID** is created, a **URL to set the account password** will be sent to the registered account email address.
-
-- If the employee later requests a password reset, a **password setup URL** will be sent to the same email address.
-
-- **Business Phone**: Required. Dealer employee\'s work mobile phone number.
-
-- Country code must be selected from either 1 or 82, with 1 provided as the default value.
-
-- **Personal Phone**: Optional. Enter the dealer employee\'s personal phone number.
-
-- Country code must be selected from either 1 or 82, with 1 provided as the default value.
-
-- **Language:** Required. Value for setting the dealer employee\'s language.
-
-- Determines the language displayed on the user\'s login screen and the emails sent.
-
-- English is selected by default, and you can choose between English and French.
-
-- **Date of Birth**: Optional. The dealer employee\'s birthday information.
-
-- **Hyundai Start Date**: Required. Select the date when the dealer employee started working at Hyundai Motors. Today\'s date is automatically entered when the form is first opened.
-
-<!-- -->
-
-- Role & Organization information
+- **Business Information**
 
 - Dealer: This is the item for selecting the dealership to which the dealer employee belongs.
 
@@ -153,7 +175,33 @@ Search Dealer Popup
 
   - Notification emails for posts published on Dealers will be sent to this email.
 
-- **Job title**: User permissions can be granted through job title.
+  - Disabled until a dealer is selected.
+
+  - The same value as the Account Email is allowed. If the email is already used by another person (based on the HMG Partner ID), \"This email address is already registered.\" is shown.
+
+  - When a domain is provided, the default is the default domain set in Dealer Management (or the first registered domain if none is set). The local part allows up to 20 characters. If the domain does not match, \"Please select a new domain to proceed.\" is shown.
+
+  - If you change the Dealer while a Business Email is already entered, the message \"Changing the dealer information will clear the current Business Email address. Do you want to proceed?\" is shown. Selecting proceed clears the email.
+
+- **Business Phone**: Required. Dealer employee\'s work mobile phone number.
+
+  - Country code must be selected from either +1 or +82, with +1 provided as the default value.
+
+  - Up to 15 characters; only digits and \"-\" are allowed.
+
+- **Hyundai Start Date** (shown as \"{brand} Start Date\"): Required. Select the date when the dealer employee started working at the brand. Today\'s date is automatically entered when the form is first opened, and it can be changed from the calendar. Format: MM-DD-YYYY.
+
+<!-- -->
+
+- **Job & Menu Permission**
+
+- **Job title**: User permissions can be granted through job title. Required when the Status is Active, optional when Inactive. Only active jobs from Job management are listed, and Dealer Principal is not listed.
+
+  - If the Dealer Admin limit for the dealer is exceeded, a modal \"{job name} are limited to a maximum of {n} per dealer\" is shown, the Job select turns red and \"This job is unavailable. Choose another one.\" is displayed.
+
+  - Until a job is selected, the 1st-level menus are collapsed and permissions cannot be granted.
+
+  - Changing the job resets all settings.
 
   - The permissions of the selected **job** are displayed in the **Menu Permission** section below.
 
@@ -206,7 +254,7 @@ Search Dealer Popup
 
 - Pressing the \[Create\] button at the bottom creates the dealer employee account.
 
-- When a dealer employee account is created with an HMG Partner ID, a welcome invitation email is automatically sent to the registered Account Email.
+- When a dealer employee account is created with an ID, a welcome invitation email is automatically sent to the registered Account Email.
 
 - ![](images/dealer-employee-creation-img-9.png){width=4.59in}
 
@@ -222,7 +270,9 @@ From the dealer employee list, you can view detailed information about a dealer 
 
 - If the dealer employee is registered as a **\'dealer principal\'**, a **\'dealer principal\' badge** is displayed at the top.
 
-- If the dealer employee\'s **HMG Partner ID** has not been created, an **\"HMG Partner ID Required\"** badge will be displayed.
+- If the dealer employee\'s ID has not been created, an **\"Account Creation is Required\"** badge will be displayed.
+
+- If registering the employee\'s permissions failed, a **\"Job Assignment Needed\"** badge will be displayed.
 
 <!-- -->
 
@@ -279,6 +329,10 @@ From the dealer employee list, you can view detailed information about a dealer 
   Personal phone: Employee\'s personal phone number
 
   Language: Employee\'s language setting value
+
+  Last Login: The employee\'s last login date and time. Displayed only on the View screen, and only for employees who have an ID. If there is no login history, \"No Login History\" is shown. If the lookup fails, \"Data is temporarily unavailable.\" is shown.
+
+  <!-- TODO: 확인 필요 - Last Login(GIDPDVO-2488) 반영 시점/날짜 (기획서 요약에 날짜 불명확) -->
 
   Age: Displays the age calculated based on the dealer employee\'s birthday information
 
@@ -370,7 +424,7 @@ Initial Active Status applied
 
   - When creating a new account
 
-    - Must create an account with 5-10 digits combining English letters and numbers.
+    - Must create an account with 5-40 characters combining English letters and numbers.
 
 - Account duplication check is required. If not duplicated, the verify ID button changes to \[Verified\].
 

@@ -11,7 +11,11 @@ i18nPrefix: []
 
 - Clicking on a post takes you to the post detail screen.
 
-![](images/search-result-img-1.png){width=4.28in}
+
+
+![](images/image.png){width=4.2in}
+
+
 
 ![Keyword Search Result](images/keyword-search-result.png){width=4.36in}
 
