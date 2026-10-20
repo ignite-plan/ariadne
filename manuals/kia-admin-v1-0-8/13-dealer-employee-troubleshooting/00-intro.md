@@ -3,7 +3,12 @@ title: Dealer Employee Troubleshooting
 routes: []
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "303907333"
+    version: 199
 ---
+
+<!-- TODO: 확인 필요 - STG에서 이 화면의 경로를 찾지 못함 (/troubleshooting, /trubleshooting, /dealer/troubleshooting 모두 404, 사이드 메뉴에도 없음). 라벨·이미지는 기획서 요약 기준으로만 갱신 -->
 
 - **The Dealer Employee Troubleshooting** screen is a Back Office tool for head office operators.
 
@@ -29,17 +34,21 @@ Dealer Employee Troubleshooting
 
   - **Dealer Name (required):** Select the dealer to which the user belongs using a dropdown or auto-complete search.
 
-  - **Partner ID (required):** Enter the Partner ID of the specific dealer employee.
+  - **ID (required):** Enter the ID of the specific dealer employee.
 
-- The **Search** button becomes active only when both Dealer Name and Partner ID are entered.
+- When the screen is first opened, only the search area and the **Search** button are displayed. Until a user is specified, the guide message "Please select a dealer and a user to check the dealer user status." is shown and the Content Status area is hidden.
+
+- The **Search** button becomes active only when both Dealer Name and ID are entered.
 
 ![Dealer User Status](images/dealer-user-status.png){width=6.26in}
 
-- When **Search** is clicked: The system validates that the entered **Dealer Name** and **Partner ID** combination exists.
+- When **Search** is clicked: The system validates that the entered **Dealer Name** and **ID** combination exists.
 
-- If there is no matching user, a help text is displayed.
+- If the ID does not belong to the selected dealer, the help text "No search result. Please enter the exact ID" is displayed before the diagnosis runs.
 
 - If the user is found, the **User Status Summary** table is displayed and the **Content Status** search area below is reset.
+
+- After a search, the **Reset** button is displayed. Clicking **Reset** clears both the top and bottom areas, and the **Reset** button disappears.
 
 **User Status Summary**
 
@@ -50,6 +59,12 @@ Dealer Employee Troubleshooting
   - **User No:** Dealer employee number and account status (Active / Inactive)
 
     - Linked to the Dealer Employee Management detail screen.
+
+  - **ID:** The user's ID
+
+    - The ID status is not displayed.
+
+    - No link is provided.
 
   - **Dealer Info:** Dealer No, Dealer Name, and dealer status
 
@@ -63,13 +78,29 @@ Dealer Employee Troubleshooting
 
     - Linked to the Job Management detail screen.
 
+  - **Last Login:** Date and time of the user's last login, received from HMG Partner ID
+
+    - Format: MM(Alphabet)-DD-YYYY HH:mm:ss {timezone}. The timezone follows the tenant of the dealer being viewed.
+
+    - The value is per tenant, so a user belonging to multiple dealers shows the same value for every dealer in the same tenant.
+
+    - If there is no login information, "No Login History" is displayed.
+
+    - If the lookup fails, an error icon is displayed with the tooltip "Data is temporarily unavailable."
+
+    - No link is provided.
+
 - **Tag color:**
 
   - **Green:** Login possible.
 
   - **Gray:** Login not possible.
 
-- **The Checked Date (MM-DD-YYYY HH:MM, UTC) is displayed to show when the user status was retrieved.**
+- Login is possible when User is Active, Dealer is Active or Under termination, and Job Title is Active. Login is not possible when the Dealer is Terminated or Inactive, the User is Inactive, or the Job Title is Inactive.
+
+- Related error codes: AUTH_404_002 (user or dealer inactive), AUTH_403_005 (Job inactive), COMMON_500 (other external issues).
+
+- **The Checked Date (MM-DD-YYYY HH:MM zzz) is displayed to show when the user status was retrieved. It shows the server response time.**
 
 - **Deep links buttons:**
 
@@ -93,6 +124,8 @@ Dealer Employee Troubleshooting
 
 - This area is available **only** when the Dealer User Status is in a login-available state.
 
+- Guide message: "Please search by menu or Post ID to diagnose the content status."
+
 - **Search type:**
 
   - **Menu (default)**
@@ -115,7 +148,7 @@ Dealer Employee Troubleshooting
 
     - Incentive Board → Outlink menu
 
-  - **When Post is selected:** Post ID (Optional / Input)
+  - **When Post is selected:** Post ID (Input)
 
     - Used when diagnosing visibility of a specific post.
 
@@ -153,7 +186,7 @@ Dealer Employee Troubleshooting
 
   - **Checked Date:**
 
-    - [The date and time (MM-DD-YYYY HH:MM, UTC) when the diagnosis result was retrieved.]{.mark}
+    - [The date and time (MM-DD-YYYY HH:MM zzz) when the diagnosis result was retrieved.]{.mark}
 
 - Typical checks when diagnosing a **menu:**
 
@@ -193,12 +226,20 @@ Dealer Employee Troubleshooting
 
   - Reason: User, Dealer, or Job Title status prevents login.
 
+  - Message: "Please check the dealer user's Access Status. The current Dealer User Status does not allow for system login"
+
 - **User is Super Admin**
 
   - Reason: Super Admins may have exception-based access to all menus and posts, so detailed condition checks in Content Status are not meaningful.
 
+  - Message: "Detailed diagnostic is not available for Super Admin users. Super Admins can access all posts due to administrative privilege exceptions."
+
+  <!-- TODO: 확인 필요 - Super Admin을 진단 대상에서 제외하는 것이 맞는지 기획서에서 미결 상태 -->
+
 - **Other external errors (e.g. COMMON_500)**
 
   - Reason: External system errors prevent status/permissions from being retrieved correctly.
+
+  - Message: "Something Went Wrong ... contact your system administrator."
 
 ![Dealer Employee Troubleshooting -- Content Status (Not visible case)](images/dealer-employee-troubleshooting-content-status-not-visible-case.png){width=6.26in}
