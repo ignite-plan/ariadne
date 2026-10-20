@@ -62,5 +62,3 @@ Dealer Selection Screen
   - If a user returns to the Dealers screen after 60 minutes have passed, they will be automatically logged out.
 
 ![Session End Pop-up](images/session-end-pop-up.png){width=5.88in}
-
-**\**

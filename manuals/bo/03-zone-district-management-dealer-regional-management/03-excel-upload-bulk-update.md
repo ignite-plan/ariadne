@@ -104,5 +104,3 @@ Log creation
 A log entry is created **when processing starts**.
 
 Regardless of success/failure, if processing started, it is stored in **Update Log**.
-
-**\**

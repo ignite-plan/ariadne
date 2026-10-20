@@ -11,7 +11,7 @@ i18nPrefix: []
 
 ![Post Detail](images/post-detail.png){width=6.79in}
 
-- **Header:** An example of post header information is as follows.**\**
+- **Header:** An example of post header information is as follows.
   \
   ![](images/post-detail-img-1.png){width=5.74in}
 
@@ -25,7 +25,7 @@ Post - Header Area
 
   - **Date:** The date when the post was registered is displayed, following the American date format.
 
-    - *[*Edited:** An **Edited** label is displayed in the Date area when the post has been edited in the BO. The post's changed content (title, content, Important Notice setting, additional attributes) is reflected in the post and the post is treated as unread again. Once a post has been edited, the label is always displayed and appears only once, no matter how many times the post is edited. The date is not updated when the post is edited. The label is not added for date changes, permission changes (Target audience, Permission, Dealer, Job), or menu setting changes. A post that becomes visible again after being hidden is labeled Edited, but a post that becomes visible for the first time at its scheduled display time is treated as new and is not labeled.]{.mark}
+    - [**Edited:** An **Edited** label is displayed in the Date area when the post has been edited in the BO. The post's changed content (title, content, Important Notice setting, additional attributes) is reflected in the post and the post is treated as unread again. Once a post has been edited, the label is always displayed and appears only once, no matter how many times the post is edited. The date is not updated when the post is edited. The label is not added for date changes, permission changes (Target audience, Permission, Dealer, Job), or menu setting changes. A post that becomes visible again after being hidden is labeled Edited, but a post that becomes visible for the first time at its scheduled display time is treated as new and is not labeled.]{.mark}
 
   - **Content:** The Content entered in the BO post is displayed. It is displayed according to the styles added in the editor tool, such as text formats, lists, tables, images, icons, etc. entered in the Content.
 
@@ -63,5 +63,3 @@ Post - Header Area
 - **View List:** Clicking takes you to the post list screen.
 
 - **Top:** Clicking takes you to the very top of the post. When scrolling down the post, the Top button appears in the bottom right.
-
-**\**

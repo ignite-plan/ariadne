@@ -24,5 +24,3 @@ i18nPrefix: []
   Clicking the **\[Send\]** button opens the **Bulletin Summary Email** pop-up, where the summary content can be viewed in **English (EN)** and **French (FR)**.
 
 ![Bulletin summary list](images/bulletin-summary-list.png){width=6.27in}
-
-**\**

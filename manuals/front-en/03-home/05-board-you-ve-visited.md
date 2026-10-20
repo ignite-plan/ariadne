@@ -20,5 +20,3 @@ i18nPrefix: []
 - Hovering over a menu name displays the full menu path.
 
 ![Board you\'ve visited on Home Screen](images/board-you-ve-visited-on-home-screen.png){width=3.60in}
-
-**\**

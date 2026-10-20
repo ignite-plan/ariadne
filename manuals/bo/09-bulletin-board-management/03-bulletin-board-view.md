@@ -21,7 +21,7 @@ i18nPrefix: []
 
 Bulletin board detail
 
-**\**
+
 
 - **Board Name (EN, FR Required field):** For Announcement Boards, which are automatically created during tenant setup, the board name (EN/FR) and description **can be modified**. (e.g., EN Default: Announcement, FR Default: Annonce)
 
@@ -41,19 +41,19 @@ Bulletin board detail
 
 -[ When the bulletin board is linked to a menu, a Menu Display Status banner is displayed at the top of the screen. It appears the same way on the view and edit screens.]{.mark}
 
-[  - **Menu-Board Mapping**: YES (green dot) or NO (gray dot).]{.mark}
+  - [**Menu-Board Mapping**: YES (green dot) or NO (gray dot).]{.mark}
 
-[  - **Menu Display Status**: Shows whether the linked menu is displayed, based on the menu\'s own Display Setting & Scheduled Display. What is shown depends on whether Mobile Web is enabled for the tenant.]{.mark}
+  - [**Menu Display Status**: Shows whether the linked menu is displayed, based on the menu\'s own Display Setting & Scheduled Display. What is shown depends on whether Mobile Web is enabled for the tenant.]{.mark}
 
-[    - Mobile Web ON (e.g., HMA): PC and Mobile are shown separately, as **PC : {Visible/Not Visible}  Mobile : {Visible/Not Visible}**.]{.mark}
+    - [Mobile Web ON (e.g., HMA): PC and Mobile are shown separately, as **PC : {Visible/Not Visible}  Mobile : {Visible/Not Visible}**.]{.mark}
 
-[    - Mobile Web OFF (e.g., HACC): Only one value, **{Visible/Not Visible}**, is shown based on PC. The Mobile value is not displayed.]{.mark}
+    - [Mobile Web OFF (e.g., HACC): Only one value, **{Visible/Not Visible}**, is shown based on PC. The Mobile value is not displayed.]{.mark}
 
-[  - The ⓘ tooltip reads: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
+  - [The ⓘ tooltip reads: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
 
-[  - The same banner change applies to the Menu Management and Post Management screens.]{.mark}
+  - [The same banner change applies to the Menu Management and Post Management screens.]{.mark}
 
-[  - The banner is not displayed for Announcement Boards because they are not linked to a menu.]{.mark}
+  - [The banner is not displayed for Announcement Boards because they are not linked to a menu.]{.mark}
 
 <!-- TODO: 확인 필요 - 테넌트 모바일웹 미설정 화면 (기획서에 "디자인 작업 예정"으로 표기됨) -->
 
@@ -63,7 +63,7 @@ Bulletin board detail
 
 - Board Name: The bulletin board name, and when mapped to a menu, the bulletin board name is displayed on the front screen.
 
-- *[*Menu Path**: Displayed directly below Menu-Board Mapping. When the bulletin board is mapped to a menu, the full menu path (1 to 4 levels, all menu names shown, line breaks allowed) is displayed in the format `Sales > Bulletins > 20-General`. If Menu-Board Mapping is NO, or for an Announcement Board, `-` is displayed.]{.mark}
+- [**Menu Path**: Displayed directly below Menu-Board Mapping. When the bulletin board is mapped to a menu, the full menu path (1 to 4 levels, all menu names shown, line breaks allowed) is displayed in the format `Sales > Bulletins > 20-General`. If Menu-Board Mapping is NO, or for an Announcement Board, `-` is displayed.]{.mark}
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2053 Menu Path 필드 추가 (Bulletin board detail -- Basic information) -->
 
@@ -89,7 +89,7 @@ Bulletin board detail
 
 - Values entered during post creation are displayed on the post inquiry screen
 
-- **Posting Period\**
+- **Posting Period**
   ![](images/bulletin-board-view-img-3.png){width=6.48in}
 
 Bulletin board detail -- Post Attribute setting1
@@ -98,17 +98,17 @@ Bulletin board detail -- Post Attribute setting1
 
 Bulletin board detail -- Post Attribute setting2
 
-- **Important Notice\**
+- **Important Notice**
   ![](images/bulletin-board-view-img-5.png){width=3.96in}
 
 Bulletin board detail -- Post Attribute setting3
 
-- **Notification\**
+- **Notification**
   ![](images/bulletin-board-view-img-6.png){width=4.71in}
 
 Bulletin board detail -- Post Attribute setting4
 
-- **Attachments\**
+- **Attachments**
   ![](images/bulletin-board-view-img-7.png){width=4.29in}
 
 Bulletin board detail -- Post Attribute setting5
@@ -117,7 +117,7 @@ Bulletin board detail -- Post Attribute setting5
 
 ![Bulletin board detail -- Post Attribute setting6](images/bulletin-board-detail-post-attribute-setting6.png){width=4.58in}
 
-**\**
+
 
 **Bulletin Board Editing**
 

@@ -75,7 +75,7 @@ Bulletin boards with additional attributes
 
 ![Search - Chip filters](images/search-chip-filters.png){width=6.46in}
 
-**\**
+
 
 **Post Search Results Area**
 
@@ -172,5 +172,3 @@ PDF Header Area
 
 - **Date:** The date when the post was published is displayed, following the American date format.\
   ![](images/post-list-img-28.png){width=1.36in}
-
-**\**

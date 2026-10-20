@@ -31,7 +31,7 @@ i18nPrefix: []
 
   - When entering multiple email addresses, use a **semicolon (;)** to separate each address.
 
-  - The email address must include **@** and follow a valid format.\
+  - The email address must include **\@** and follow a valid format.\
     If any address is invalid, sending will be blocked and an error alert will be shown.
 
   - A maximum of **10 email addresses** can be entered.\
@@ -59,14 +59,14 @@ Weekly Bulletin Summary Email List -- Auto summary Set schedule 2
 
 - [The **Start Date** and **End Date** can be selected independently of each other.]{.mark}
 
-[  - When you change the **Start Date**, the **End Date** is automatically set to **Start Date + 3 days**. If that date is today or later, the End Date is set to **yesterday**.]{.mark}
+  - [When you change the **Start Date**, the **End Date** is automatically set to **Start Date + 3 days**. If that date is today or later, the End Date is set to **yesterday**.]{.mark}
 
-[  - When you change the **End Date**, the **Start Date** does not change.\]{.mark}
+  - [When you change the **End Date**, the **Start Date** does not change.]{.mark}\
 [    The End Date cannot be earlier than the Start Date, and it must be within 7 days of the Start Date and before today (up to Start Date + 6 days).]{.mark}
 
-[  - If the Start Date is yesterday, the End Date is fixed to yesterday (only 1 day can be selected).]{.mark}
+  - [If the Start Date is yesterday, the End Date is fixed to yesterday (only 1 day can be selected).]{.mark}
 
-[  - If you try to select a range that exceeds 7 days, a pop-up is displayed. When you click **\[Confirm\]**, the dates are reset to the default.]{.mark}
+  - [If you try to select a range that exceeds 7 days, a pop-up is displayed. When you click **\[Confirm\]**, the dates are reset to the default.]{.mark}
 
 Date Range Conditions:
 
@@ -88,13 +88,13 @@ Weekly Bulletin Summary Email List -- Manual summary Data range 2
 
 - **Email Send Settings**: Only users with Write permission can send emails.
 
-**\**
+
 
 **Email Input Rules**
 
 - When entering multiple email addresses, use a **semicolon (;)** to separate each address.
 
-- The email address must include **@** and follow a valid format.\
+- The email address must include **\@** and follow a valid format.\
   If any address is invalid, sending will be blocked and an error alert will be shown.
 
 - A maximum of **10 email addresses** can be entered.\

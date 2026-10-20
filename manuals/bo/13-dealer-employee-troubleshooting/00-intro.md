@@ -203,5 +203,3 @@ Dealer Employee Troubleshooting
   - Reason: External system errors prevent status/permissions from being retrieved correctly.
 
 ![Dealer Employee Troubleshooting -- Content Status (Not visible case)](images/dealer-employee-troubleshooting-content-status-not-visible-case.png){width=6.27in}
-
-**\**

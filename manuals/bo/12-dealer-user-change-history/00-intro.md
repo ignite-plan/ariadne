@@ -120,5 +120,3 @@ i18nPrefix: []
     - Job names are displayed as hyperlinks. Clicking opens the Job detail screen in a new tab. If the user lacks view permission, a \"no permission\" message is shown.
 
   - **Updated Date (EST)**: MM-DD-YYYY HH:MM (e.g., Aug-19-2026 23:10).
-
-**\**

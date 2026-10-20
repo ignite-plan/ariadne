@@ -31,5 +31,3 @@ General Post Email Notification
 - The **Body** area displays the Title and Summary up to 500 characters, and shows information such as whether there are attachments in the post.
 
 - The **Footer** area displays guidance text such as the source of the email and contact information.
-
-**\**

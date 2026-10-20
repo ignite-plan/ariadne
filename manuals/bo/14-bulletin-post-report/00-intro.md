@@ -102,5 +102,3 @@ i18nPrefix: []
     - If data loading fails
 
 ![No result case example](images/no-result-case-example.png){width=4.46in}
-
-**\**

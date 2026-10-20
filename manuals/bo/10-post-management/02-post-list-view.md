@@ -32,15 +32,15 @@ i18nPrefix: []
 
 - [**Menu Display Status**: A banner in the header shows whether the menu is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.]{.mark}
 
-[  - If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.]{.mark}
+  - [If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.]{.mark}
 
-[  - If Mobile Web is disabled, only a single value (Visible or Not Visible) is shown.]{.mark}
+  - [If Mobile Web is disabled, only a single value (Visible or Not Visible) is shown.]{.mark}
 
-[  - Visible is marked with a green dot and Not Visible with a gray dot.]{.mark}
+  - [Visible is marked with a green dot and Not Visible with a gray dot.]{.mark}
 
-[  - Hovering over the info icon shows a tooltip: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
+  - [Hovering over the info icon shows a tooltip: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
 
-[- \[View Board List\]: Located at the bottom left. Clicking it returns to the board selection screen.]{.mark}
+- [\[View Board List\]: Located at the bottom left. Clicking it returns to the board selection screen.]{.mark}
 
 ![Post List -- Selecting board(Board-menu mapping= yes)](images/post-list-selecting-board-board-menu-mapping-yes.png){width=6.27in}
 
@@ -48,17 +48,17 @@ i18nPrefix: []
 
 - [**Template Management** tab: Users with Write permission see a \[Template Management\] tab next to the Post List tab. Templates help you quickly fill in the title and content when creating a post.]{.mark}
 
-[  - The list shows Template Title (truncated after 2 lines), Created By, Created Date (EST), Status (ON/OFF toggle) and \[Delete\].]{.mark}
+  - [The list shows Template Title (truncated after 2 lines), Created By, Created Date (EST), Status (ON/OFF toggle) and \[Delete\].]{.mark}
 
-[  - Drag the handle to reorder templates. Changes are saved automatically and a toast message is displayed.]{.mark}
+  - [Drag the handle to reorder templates. Changes are saved automatically and a toast message is displayed.]{.mark}
 
-[  - Hovering over a template title shows a preview popover with EN and FR tabs.]{.mark}
+  - [Hovering over a template title shows a preview popover with EN and FR tabs.]{.mark}
 
-[  - Up to 50 templates can be created. When the limit is reached, \[New Template\] is disabled. Up to 20 templates can be in use (Active) at the same time.]{.mark}
+  - [Up to 50 templates can be created. When the limit is reached, \[New Template\] is disabled. Up to 20 templates can be in use (Active) at the same time.]{.mark}
 
-[  - Templates cannot be edited.]{.mark}
+  - [Templates cannot be edited.]{.mark}
 
-[  - When \[Delete\] is clicked, a confirmation message is displayed: \"Are you sure you want to delete this template? This action cannot be undone.\"]{.mark}
+  - [When \[Delete\] is clicked, a confirmation message is displayed: \"Are you sure you want to delete this template? This action cannot be undone.\"]{.mark}
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-149 Template Management 탭 화면 이미지 없음 -->
 
@@ -78,11 +78,11 @@ Post List -- Search filter 3
 
 - [Date search period: By default, the last 1 year from today is set, and the period can be up to 1 year.]{.mark}
 
-[  - Start Date: There is no limit on past dates. When Start Date is selected again, End Date is automatically adjusted to fall within 1 year of the new Start Date.]{.mark}
+  - [Start Date: There is no limit on past dates. When Start Date is selected again, End Date is automatically adjusted to fall within 1 year of the new Start Date.]{.mark}
 
-[  - End Date: Only dates from Start Date up to Start Date + 1 year can be selected. Changing End Date does not change Start Date.]{.mark}
+  - [End Date: Only dates from Start Date up to Start Date + 1 year can be selected. Changing End Date does not change Start Date.]{.mark}
 
-[  - The date restrictions are explained in a tooltip.]{.mark}
+  - [The date restrictions are explained in a tooltip.]{.mark}
 
   <!-- TODO: 확인 필요 - End Date 자동 설정의 세부 동작 (기획서 요약에 없음) -->
 
@@ -113,7 +113,7 @@ Post List: The list of posts matching the applied search criteria is displayed. 
 
 -[ [When \[New Post\] is selected in the viewed bulletin board, the post writing screen is displayed.]{.mark} \[New Post\] is visible only to users with Write permission, and it can always be used regardless of the menu\'s Mobile Display setting.]{.mark}
 
-**\**
+
 
 - **Post Creation**
 

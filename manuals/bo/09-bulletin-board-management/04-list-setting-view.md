@@ -20,7 +20,7 @@ i18nPrefix: []
 - **Default fields** (e.g., Post ID, Title, Date)
 
   - **Additional attributes** where **Usage Status = ON**\
-    If the field is marked as **required**, an asterisk (**\***) will be shown next to the field name. A field is considered required under the following conditions:
+    If the field is marked as **required**, an asterisk (*) will be shown next to the field name. A field is considered required under the following conditions:
 
   - It is a **default field** (Post ID, Title, Date
 

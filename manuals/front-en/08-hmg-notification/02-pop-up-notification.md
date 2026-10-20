@@ -17,7 +17,7 @@ i18nPrefix: []
 
 ![Popup with one button](images/popup-with-one-button.png){width=4.07in}
 
-**\**
+
 ![](images/pop-up-notification-img-1.png){width=4.10in}
 
 Popup with 2buttons

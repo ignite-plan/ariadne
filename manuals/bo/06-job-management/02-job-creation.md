@@ -93,7 +93,7 @@ i18nPrefix: []
 
 - Clicking the star icon again removes the menu from the Quick Link list.
 
-**\**
+
 
 **Import Job**
 

@@ -17,7 +17,7 @@ i18nPrefix: []
 
 ![Creating Bulletin board](images/creating-bulletin-board.png){width=6.27in}
 
-**\**
+
 
 **Board Basic Information**
 
@@ -33,7 +33,7 @@ i18nPrefix: []
 
 - **Board Description (Admin Use):** The bulletin board description can be up to 200 characters.
 
-**\**
+
 
 **Post Attribute Setting Information**
 
@@ -124,7 +124,7 @@ Creating Bulletin board -- Post attribute setting information1
 
 - The Notification selection UI is not displayed in the post details.
 
-**Attachments\**
+**Attachments**
 ![](images/bulletin-board-creation-img-2.png){width=4.53in}
 
 Creating Bulletin board -- Post attribute setting information5
@@ -362,7 +362,7 @@ Additional attribute setting pop-up -- Required field
 
 - \[**Delete**\]: Cannot be deleted if Usage Status=ON, additional attribute values that have been used in posts cannot be deleted.
 
-**Additional Attribute Modification and Deletion\**
+**Additional Attribute Modification and Deletion**
 ![](images/bulletin-board-creation-img-11.png){width=2.73in}
 
 Editing Additional attribute setting
@@ -384,5 +384,3 @@ Editing Additional attribute setting
 <!-- -->
 
 - \[Cancel\]: When clicked, if there are changes, an alert is displayed indicating that unsaved changes will be deleted, then the previous screen is displayed
-
-**\**

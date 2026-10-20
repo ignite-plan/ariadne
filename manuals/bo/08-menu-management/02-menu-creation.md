@@ -182,27 +182,27 @@ Editing Domain Setting
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2104 Domain/SSO callback path 입력칸의 placeholder·글자수 카운터가 캡처에 없음 -->
 
-- **[Domain**: Placeholder "e.g., https://example.com", with a character counter (n/100) shown below the input. Validated in order, with an inline error for the first rule that fails:]{.mark}
+- [**Domain**: Placeholder "e.g., https://example.com", with a character counter (n/100) shown below the input. Validated in order, with an inline error for the first rule that fails:]{.mark}
 
-[  - Required (e.g., "Domain is required.")]{.mark}
+  - [Required (e.g., "Domain is required.")]{.mark}
 
-[  - Maximum 100 characters (e.g., "Domain Maximum 100 chars.")]{.mark}
+  - [Maximum 100 characters (e.g., "Domain Maximum 100 chars.")]{.mark}
 
-[  - Must start with a scheme (\'http://\' or \'https://\')]{.mark}
+  - [Must start with a scheme (\'http://\' or \'https://\')]{.mark}
 
-[  - Must not end with a trailing \'/\']{.mark}
+  - [Must not end with a trailing \'/\']{.mark}
 
-[  - Must not contain spaces]{.mark}
+  - [Must not contain spaces]{.mark}
 
-[  - Must be a valid URL format]{.mark}
+  - [Must be a valid URL format]{.mark}
 
-[  - Must not contain a query string or fragment]{.mark}
+  - [Must not contain a query string or fragment]{.mark}
 
-[  - Must not duplicate an existing domain]{.mark}
+  - [Must not duplicate an existing domain]{.mark}
 
-[- **SSO callback path** supports SSO that allows movement to all services with just HMG-admin and Dealers system login. Placeholder "e.g., /sso/callback", with a character counter (n/90) shown below the input.]{.mark}
+- [**SSO callback path** supports SSO that allows movement to all services with just HMG-admin and Dealers system login. Placeholder "e.g., /sso/callback", with a character counter (n/90) shown below the input.]{.mark}
 
-[- **SSO callback path input rules**: Up to 90 characters can be entered, starting with \'/\'. Leading/trailing spaces are trimmed automatically. An empty or null value is automatically set to \'/\'. Absolute URLs are not allowed, and a trailing \'/\' is not allowed (except when the value is a single \'/\').]{.mark}
+- [**SSO callback path input rules**: Up to 90 characters can be entered, starting with \'/\'. Leading/trailing spaces are trimmed automatically. An empty or null value is automatically set to \'/\'. Absolute URLs are not allowed, and a trailing \'/\' is not allowed (except when the value is a single \'/\').]{.mark}
 
 - Clicking **\[Save\]** in the Domain Setting popup immediately reflects the change in the Domain List, regardless of whether the menu itself is saved.
 
@@ -216,7 +216,7 @@ Creating Menu -- Basic information 2
 
 - Menu Description (For Admin Use): Menu description entered by operators for internal management purposes, can be entered up to 300 characters.
 
-**Menu Display Information\**
+**Menu Display Information**
 ![](images/menu-creation-img-21.png){width=6.27in}
 
 Creating Menu -- Permission List information 1
