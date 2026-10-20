@@ -28,7 +28,10 @@ On the login screen, proceed with the following steps:
 
 **Back Office Main Screen**
 
-![HMG Admin Head area](images/hmg-admin-head-area.png){width=6.26in}
+
+
+![HMG Admin Head area](images/hmg-admin-head-area-2.png){width=4.2in}
+
 
 - The project name is displayed at the top-right corner of the Back Office.
 
@@ -38,7 +41,10 @@ On the login screen, proceed with the following steps:
 
 - Click Request to add new role to submit a request for additional role permissions.
 
-![HMG Admin role](images/hmg-admin-role.png){width=2.60in}
+
+
+![HMG Admin role](images/hmg-admin-role-2.png){width=3.4in}
+
 
 - The remaining time of the **login session** is displayed. If there is no activity for 60 minutes, the session will be automatically logged out. Click **Login extension** to extend the session by another 60 minutes.
 

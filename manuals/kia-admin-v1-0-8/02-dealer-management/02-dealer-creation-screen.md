@@ -13,149 +13,159 @@ i18nPrefix: []
 
 - During this process, the dealer\'s status becomes \"Draft\", and the dealer will appear in the Dealer List as a draft entry.
 
-![Creating Dealer - Basic Information](images/creating-dealer-basic-information.png){width=6.26in}
+
+
+![Creating Dealer- Basic Information](images/creating-dealer-basic-information-2.png){width=4.2in}
+
+
 
 - Dealer basic information
 
-![Dealer Basic Information1](images/dealer-basic-information1.png){width=6.26in height=1.46in}
+
+
+![Dealer Basic Information1](images/dealer-basic-information1-3.png){width=4.2in}
+
+
 
 - **Dealer name**:
 
-- Required field.
+  - Required field.
+  
+  - Internal name used for management purposes.
+  
+  - Fields available in both English and French.
+  
+  - Maximum 20 characters per language.
 
-- Internal name used for management purposes.
+- **Business No.**:
 
-- Fields available in both English and French.
-
-- Maximum 20 characters per language.
-
-- **DUNS NUMBER**:
-
-- Required field.
-
-- Must consist of 9 numeric digits.
+  - Required field.
+  
+  - Must be an alphanumeric combination (English letters and digits), up to 20 characters.
+  
+  - Must be unique.
 
 - **Company name**:
-
-- Required field.
-
-- Official name of the dealer company.
-
-- This is the name visible to end users on the front-end.
+  
+  - Required field.
+  
+  - Official name of the dealer company.
+  
+  - This is the name visible to end users on the front-end.
 
 - **Email**:
-
-- Optional field.
-
-- Email address of the dealer company.
+  
+  - Optional field.
+  
+  - Email address of the dealer company.
 
 ![Company's Email Domain](images/company-s-email-domain.png){width=5.03in}
 
 - **Company's Email Domain**:
 
-- Optional field, used to manage the dealer\'s **business email domains**.
-
-- Decide whether to use company email domains for this dealer (default: **On**).
-
-- When **On**, register **1--20** domains in **SLD.TLD** format (e.g. canada.ca, max 30 characters) and set **one default**.
-
-- Registered domains are listed; the **default domain** is used in Business Email select boxes for dealer employees.
-
-- When domain usage is turned **Off**, existing domain data is retained and restored when turned back On.
+  - Optional field, used to manage the dealer\'s **business email domains**.
+  
+  - Decide whether to use company email domains for this dealer (default: **On**).
+  
+  - When **On**, register **1--20** domains in **SLD.TLD** format (e.g. canada.ca, max 30 characters) and set **one default**.
+  
+  - Registered domains are listed; the **default domain** is used in Business Email select boxes for dealer employees.
+  
+  - When domain usage is turned **Off**, existing domain data is retained and restored when turned back On.
 
 - **Phone number**:
 
-- Optional field.
-
-- Contact number of the dealer.
-
-- Country code options: 1 (USA/Canada) and 82 (South Korea) are available.
+  - Optional field.
+  
+  - Contact number of the dealer.
+  
+  - Country code options: 1 (USA/Canada) and 82 (South Korea) are available.
 
 - **Founding date:**
 
-- Optional field.
-
-- Founding date of the dealer company.
+  - Optional field.
+  
+  - Founding date of the dealer company.
 
 - **Website**:
 
-- Optional field.
-
-- Official website URL of the dealer.
+  - Optional field.
+  
+  - Official website URL of the dealer.
 
 ![Dealer Basic Information2](images/dealer-basic-information2.png){width=6.26in}
 
 **Location**:
 
-- Optional field.
-
-- Address information of the dealer.
-
-- The address is entered by **searching on Google Maps**.
-
-- Click **\[Search on map\]** to search for the desired address.
+  - Optional field.
+  
+  - Address information of the dealer.
+  
+  - The address is entered by **searching on Google Maps**.
+  
+  - Click **\[Search on map\]** to search for the desired address.
 
 ![Location popup1](images/location-popup1.png){width=4.99in}
 
 ![Location popup2](images/location-popup2.png){width=4.99in}
 
-- The corresponding location is displayed on Google Maps.
-
-- Select the appropriate address from the search results and save it.
-
-- If additional address details are needed, a popup window will appear where extra information can be entered and saved.
-
-- The entered information is reflected on the screen and can still be edited via the input fields even after it is saved.
+ - The corresponding location is displayed on Google Maps.
+  
+  - Select the appropriate address from the search results and save it.
+  
+  - If additional address details are needed, a popup window will appear where extra information can be entered and saved.
+  
+  - The entered information is reflected on the screen and can still be edited via the input fields even after it is saved.
 
 - **Zone / District**
 
-- Optional field.
-
-- Select the Zone and District to which the dealer belongs.
-
-- A District can only be selected after selecting a Zone, as Districts are subordinate to Zones.
-
-- It is also possible to select only a Zone without assigning a District.
+  - Optional field.
+  
+  - Select the Zone and District to which the dealer belongs.
+  
+  - A District can only be selected after selecting a Zone, as Districts are subordinate to Zones.
+  
+  - It is also possible to select only a Zone without assigning a District.
 
 - **Dealer Distribution Group**
 
-- Optional field.
-
-- Select the Dealer Distribution Group(s) the dealer belongs to.
-
-- Multiple groups can be selected.
+  - Optional field.
+  
+  - Select the Dealer Distribution Group(s) the dealer belongs to.
+  
+  - Multiple groups can be selected.
 
 ![Dealer Basic Information3](images/dealer-basic-information3.png){width=6.26in}
 
 - **Holding company**
-
-- Optional field.
-
-- Select the holding company the dealer is affiliated with.
-
-- Only one holding company can be selected.
+  
+  - Optional field.
+  
+  - Select the holding company the dealer is affiliated with.
+  
+  - Only one holding company can be selected.
 
   - **Dealer management type**
-
-- Required field.
-
-- Select the management type of the dealer.
-
-- Only one of the following two options can be selected:
-
-- Official dealer
-
-- Associate dealer
+  
+  - Required field.
+  
+  - Select the management type of the dealer.
+  
+  - Only one of the following two options can be selected:
+  
+  - Official dealer
+  
+  - Associate dealer
 
 - **Dealer type**
 
-- Required field.
-
-- Indicates the type of dealer.
-
-- This field becomes available only after selecting a Dealer management type.
-
-- The options shown in this field will vary depending on the selected management type:
+  - Required field.
+  
+  - Indicates the type of dealer.
+  
+  - This field becomes available only after selecting a Dealer management type.
+  
+  - The options shown in this field will vary depending on the selected management type:
 
 - If **Official dealer** is selected:
 
@@ -173,9 +183,9 @@ i18nPrefix: []
 
 - **Status**
 
-- Indicates the **current status** of the dealer.
+  - Indicates the **current status** of the dealer.
 
-- The status affects service accessibility for users within the dealer organization.
+  - The status affects service accessibility for users within the dealer organization.
 
   - **Active**: The dealer is active. Dealer users **can** access and use services.
 
@@ -231,61 +241,61 @@ i18nPrefix: []
 
   - Select one or more applicable vehicle types:
 
-- Passenger
+      - Passenger
+      
+      - Commercial
 
-- Commercial
-
-  - **Product type**
+- **Product type**
 
   - Required
 
   - **Select one or more product categories:**
 
-- Finished Vehicles
+    - Finished Vehicles
+    
+    - Semi-finished
+    
+    - CPO
+    
+    - EV
 
-- Semi-finished
-
-- CPO
-
-- EV
-
-  - **EV Certification Status**
+- **EV Certification Status**
 
   - Required
 
   - Select the EV certification status:
 
-- Certificated
+    - Certificated
+    
+    - Not Certificated
 
-- Not Certificated
+- **Other Operating Brand**
 
-  - **Other Operating Brand**
+  - Optional
 
-- Optional
+  - Select other brands currently operated by the dealer. Multiple selections allowed.
 
-- Select other brands currently operated by the dealer. Multiple selections allowed.
+- **Business Start Date**
 
-  - **Business Start Date**
+  - Required
+  
+  - Enter the business operation start date
 
-- Required
+- **Business End Date**
+  
+  - Required
+  
+  - Enter the business operation end date
 
-- Enter the business operation start date
+- **Action Buttons**
 
-  - **Business End Date**
-
-- Required
-
-- Enter the business operation end date
-
-  - **Action Buttons**
-
-- **\[cancel\]:** clears all input fields
-
-- **\[previous\]:** returns to the previous step without saving current inputs
-
-- **\[Save Draft\]**: Temporarily saves the information entered so far.
-
-- **\[Next\]**: Proceeds to the next input screen.
+  - **\[cancel\]:** clears all input fields
+  
+  - **\[previous\]:** returns to the previous step without saving current inputs
+  
+  - **\[Save Draft\]**: Temporarily saves the information entered so far.
+  
+  - **\[Next\]**: Proceeds to the next input screen.
 
 - **Facility information**
 
@@ -305,25 +315,25 @@ i18nPrefix: []
 
 - **Facility purpose**
 
-- required
+  - required
+  
+  - Select the intended purpose of the facility
+  
+  - Options are:
+  
+    - Common Assets
+  
+    - Sales Assets
+  
+    - Service Assets
 
-- Select the intended purpose of the facility
+- **Facility type**
 
-- Options are:
-
-  - Common Assets
-
-  - Sales Assets
-
-  - Service Assets
-
-  - **Facility type**
-
-- Required
-
-- Select the facility type
-
-- The next field, facility space type, appears based on this selection
+  - Required
+  
+  - Select the facility type
+  
+  - The next field, facility space type, appears based on this selection
 
   - Options include:
 
@@ -339,15 +349,15 @@ i18nPrefix: []
 
   - Select one value for each of the following categories: Customer Lounge, Gate reception, and Repair Shop
 
-- Standalone
+    - Standalone
+    
+    - Solid-wall
+    
+    - Multi-brand
+    
+    - None
 
-- Solid-wall
-
-- Multi-brand
-
-- None
-
-  - Showroom
+    - Showroom
 
 - Facility space type (for showroom)
 
@@ -357,37 +367,37 @@ i18nPrefix: []
 
   - Select one value for each of the following categories: Showroom
 
-- Standalone
-
-- Solid-wall
-
-- Multi-brand
-
-- None
+    - Standalone
+    
+    - Solid-wall
+    
+    - Multi-brand
+    
+    - None
 
 ![Dealer Facility Information2](images/dealer-facility-information2.png){width=6.26in}
 
 - **Facility name**
 
-- Required
+  - Required
+  
+  - Enter the name of the asset
+  
+  - Both English and French fields must be filled
+  
+  - Maximum 20 characters per language
 
-- Enter the name of the asset
+- **Ownership status**
 
-- Both English and French fields must be filled
-
-- Maximum 20 characters per language
-
-  - **Ownership status**
-
-- required
-
-- Select the ownership type of the asset
-
-- Options are:
-
-  - Owned
-
-  - Leased
+  - required
+  
+  - Select the ownership type of the asset
+  
+  - Options are:
+  
+    - Owned
+  
+    - Leased
 
 ![Dealer Facility Information4](images/dealer-facility-information4.png){width=6.26in}
 
@@ -405,13 +415,13 @@ i18nPrefix: []
 
     - The entered address will appear on screen and can be edited directly afterward
 
-    - **Facility size**
+- **Facility size**
 
     - Optional
 
     - Enter the size of the facility
 
-    - **Vehicle type**
+- **Vehicle type**
 
     - Optional
 
@@ -419,37 +429,37 @@ i18nPrefix: []
 
     - Options are: Passenger, Commercial
 
-    - **Opening time**
+- **Opening time**
 
     - Optional
 
     - Select the opening time of the facility
 
-    - **Closing time**
+- **Closing time**
 
     - Optional
 
     - Select the closing time of the facility
 
-    - **Photo**
+- **Photo**
 
-- Optional
+  - Optional
+  
+  - Upload images of the facility
+  
+  - Up to 10 images can be uploaded
+  
+  - Drag and drop images or click the upload area to select files
 
-- Upload images of the facility
+- **Action Buttons**
 
-- Up to 10 images can be uploaded
-
-- Drag and drop images or click the upload area to select files
-
-  - **Action Buttons**
-
-- \[cancel\] clears all entered data
-
-- \[previous\] returns to the previous step
-
-- **\[Save Draft\]**: Temporarily saves the information entered so far.
-
-- **\[Next\]**: Proceeds to the next input screen.
+  - \[cancel\] clears all entered data
+  
+  - \[previous\] returns to the previous step
+  
+  - **\[Save Draft\]**: Temporarily saves the information entered so far.
+  
+  - **\[Next\]**: Proceeds to the next input screen.
 
 - **Dealer principal information**
 
@@ -457,31 +467,35 @@ i18nPrefix: []
 
 - Enter information about the dealer principal of the new dealer
 
-![Creating Dealer - Dealer Principal](images/creating-dealer-dealer-principal.png){width=6.26in}
+
+![Creating Dealer - Dealer Principal](images/creating-dealer-dealer-principal-2.png){width=6.27in}
+
 
 - On this screen, only the essential information for dealer employees, dealer principal is entered. Account creation for accessing Dealers is not performed on this screen.
 
 - Although an account is not created, the employee information is saved.
 
-![](images/dealer-creation-screen-img-1.png){width=6.14in}
 
-*Dealer - Dealer Principal*
+
+![Dealer Principal Information](images/dealer-principal-information.png){width=4.2in}
+
+
+
 
 - **Photo**
 
-- Required (GIDPDVO-2350).
+  - Required.
 
-- Upload a photo of the dealer principal. Supported formats: JPEG (JPG) or PNG, up to 20MB in size.
+  - Upload a photo of the dealer principal. Supported formats: JPEG (JPG) or PNG, up to 20MB in size.
 
-- If no photo is registered when creating or changing the dealer principal, a blocking confirmation modal appears with **\[Confirm\]** and **\[Edit Employee\]** buttons, and the form cannot be saved until a photo is uploaded.
 
 - **Name**
 
-- Required
-
-- First name: Maximum 20 characters
-
-- Last name: Maximum 20 characters
+  - Required
+  
+  - First name: Maximum 20 characters
+  
+  - Last name: Maximum 20 characters
 
 - **Language**
 
@@ -503,31 +517,30 @@ i18nPrefix: []
 
 - **Business Email**
 
-- Required notification email address for the dealer principal.
+  - Required notification email address for the dealer principal.
 
-- If **Company's Email Domain is enabled** in Dealer Basic Information:
+  - If **Company's Email Domain is enabled** in Dealer Basic Information:
+  
+    - Business Email is entered as **local-part + domain select box**.
+  
+    - The **default domain** is preselected. If no default is set, the **first registered domain** is preselected.
+  
 
-  - Business Email is entered as **local-part + domain select box**.
-
-  - The **default domain** is preselected. If no default is set, the **first registered domain** is preselected.
-
-  - The local-part can contain up to **20 characters**, and the domain part is shown in the selector as **\@{domain}**.
-
-- If **Company's Email Domain is disabled**:
-
-  - Business Email is provided as a **free-text email field**.
-
-  - Email format is validated and up to **50 characters** can be entered.
-
-- When toggling Company's Email Domain usage **during dealer creation**:
-
-  - If an existing email contains @ and the local-part length is **20 characters or less**, the local-part is preserved and the domain is reset to the **default** (or first registered) domain.
-
-  - If the existing local-part length is **greater than 20 characters**, the local-part is cleared.
+  - If **Company's Email Domain is disabled**:
+  
+    - Business Email is provided as a **free-text email field**.
+  
+    - Email format is validated and up to **50 characters** can be entered.
+  
+  - When toggling Company's Email Domain usage **during dealer creation**:
+  
+    - If an existing email contains @ and the local-part length is **20 characters or less**, the local-part is preserved and the domain is reset to the **default** (or first registered) domain.
+  
+    - If the existing local-part length is **greater than 20 characters**, the local-part is cleared.
 
 ![](images/dealer-creation-screen-img-2.png){width=6.26in}
 
-*Business Email with domain selector*
+
 
 - **Kia Start date**
 
@@ -549,17 +562,17 @@ i18nPrefix: []
 
 - **Dealer Creation Consent Items**
 
-- As the final step to create a dealer, consent must be given to register dealer information in HMG Partner.
+  - As the final step to create a dealer, consent must be given to register dealer information in HMG Partner.
 
-  - **Action Buttons**
+- **Action Buttons**
 
-- \[cancel\] clears all entered data
-
-- \[Save Draft\] Saves the currently entered items.
-
-- \[Previous\] returns to the previous screen
-
-- \[Create\] finalizes and creates both the dealer and the dealer principal account
+  - \[cancel\] clears all entered data
+  
+  - \[Save Draft\] Saves the currently entered items.
+  
+  - \[Previous\] returns to the previous screen
+  
+  - \[Create\] finalizes and creates both the dealer and the dealer principal account
 
 - **Dealer Information Creation Process**
 
@@ -571,13 +584,16 @@ i18nPrefix: []
 
     - **\[Review Fields\]:** Returns to the first screen with missing required information. On that screen, any required fields will be highlighted in red.
 
-- ![](images/dealer-creation-screen-img-3.png){width=4.16in}
+ ![](images/dealer-creation-screen-img-3.png){width=4.16in align=center}
 
-Dealer Creation Failed
+
 
 - **When dealer creation succeeds**
 
-![Dealer Registration Notice](images/dealer-registration-notice.png){width=3.12in}
+
+
+![Dealer Registration Notice](images/dealer-registration-notice-2.png){width=4.2in align=center}
+
 
 - Once the **dealer creation** is complete, a confirmation message will be displayed, prompting you to proceed with the creation of the **Dealer Principal's HMG Partner ID**.
 
@@ -591,6 +607,6 @@ Dealer Creation Failed
 
   - The Dealer Principal's information will also be registered under **Dealer Employee Information**.
 
-- \[Create HMG Partner ID\]**: Navigates to the** Dealer Employee Management **screen to create the Dealer Principal's** HMG Partner ID**.**
+- \[Create ID\]**: Navigates to the** Dealer Employee Management **screen to create the Dealer Principal's** HMG Partner ID**.**
 
   - information and Dealer Principal's information have already been successfully saved. Even after navigating to another screen, both the dealer information and Dealer Principal's information have already been successfully saved.

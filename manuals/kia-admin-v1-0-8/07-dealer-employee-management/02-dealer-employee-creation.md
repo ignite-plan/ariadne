@@ -1,19 +1,29 @@
 ---
 title: Dealer Employee Creation
-routes: []
+routes:
+  - /dealer/employee/create
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "537137854"
+    version: 2
 ---
 
 ## Dealer Employee Creation
 
-This is the screen for creating a new dealer employee account. ![Creating Dealer Employee](images/creating-dealer-employee.png){width=6.25in}
+This is the Create Dealer Employee screen for creating a new dealer employee account. Click \[Create New\] on the dealer employee list to open it. Dealer employees cannot be deleted. 
+
+
+
+![Creating Dealer Employee](images/creating-dealer-employee-2.png){width=6.27in}
+
+
 
 **Basic Information**
 
-- **Photo**: Optional. Register one photo of the dealer employee.
+- **Photo**:
 
-  - Only jpeg(jpg) and png formats are allowed, and a maximum of 20MB can be registered.
+  - Optional. Register one photo of the dealer employee.
 
   - Required for the **Dealer Principal**. If not uploaded, the error \"Please upload a photo\" is shown.
 
@@ -24,13 +34,13 @@ This is the screen for creating a new dealer employee account. ![Creating Dealer
   - First name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
   - Last name: Required. 20 characters allowed. Leading/trailing spaces and special characters or digits are not allowed.
 
-- **Language:** Required. Value for setting the dealer employee\'s language.
+- **Language:**
+
+  - Required. Value for setting the dealer employee\'s language.
 
   - Determines the language displayed on the user\'s login screen and the emails sent.
 
-  - The default is the dealership\'s primary language, and you can choose between the primary and secondary languages (e.g., English and French).
-
-  - If the dealership supports only one language, the select is disabled.
+  - Select English or French. The default is English.
 
 - **Personal Phone**: Optional. Enter the dealer employee\'s personal phone number.
 
@@ -38,31 +48,34 @@ This is the screen for creating a new dealer employee account. ![Creating Dealer
 
   - Up to 15 characters; only digits and \"-\" are allowed.
 
-- **Date of Birth**: Optional. The dealer employee\'s birthday information. Select it from the calendar (MM-DD-YYYY).
+- **Date of Birth**:
 
-- **Account Email:** Required when creating an ID. Tooltip: \"The employee's personal email, used to manage ID and send password reset requests.\"
+  -  Optional.
+  -  The dealer employee\'s birthday information. Select it from the calendar (MM-DD-YYYY).
+
+- **Account Email:**
+
+  -  Required when creating an ID.
+ 
+  -  Tooltip: \"This email is used to manage HMG Partner ID, including sending password reset requests.\"
 
   - Up to 50 characters, must include \"@\" and \".\", and the domain must be at least 2 characters.
 
-  - If an **ID** is created, a **URL to set the account password** will be sent to the registered account email address.
-
-  - If the employee later requests a password reset, a **password setup URL** will be sent to the same email address.
-
-  - If the Status is Inactive, the Account Email cannot be entered and the banner \"To proceed, the status field below must be Active\" is displayed.
-
-  - Duplicate values are allowed. For employees of multiple dealerships, changing it is applied to all of them.
-
-- **Account Information**
+ **Account Information**
 
 - **Status**: Required. Select Active or Inactive. An ID can be created only when the status is Active.
 
-- Active: Active state.
-
-- If the account is initially set to **Active**, an **ID** can be created.
+  - Active: Active state.
+  
+  - If the account is initially set to **Active**, an **ID** can be created.
 
 - **New Account** option: Used when creating a new ID.
 
-![Status - Active](images/status-active.png){width=6.26in}
+
+
+![Status - Active](images/status-active-2.png){width=6.27in}
+
+
 
 - **ID**
 
@@ -70,11 +83,14 @@ This is the screen for creating a new dealer employee account. ![Creating Dealer
   - The ID required to access the **Dealers** service.
   - This is a **mandatory field** when the account is initially **Active**.
   - Users can **log in to the service** using this ID.
-  - Must create an account with 5-40 characters combining English letters and numbers (placeholder: \"English letters and numbers only (5-40 characters)\").
-  - Account duplication check is required. Click \[Verify ID\] to check; if the ID is a duplicate, \"This ID is already taken. Please try another ID\" is shown. If not duplicated, the button changes to \[Verified\] and becomes disabled. If you edit the ID afterwards, it returns to \[Verify ID\].
+  - Must create an account with 5-40 characters combining English letters and numbers
+  - Account duplication check is required. 
   - Account creation consent is required. If the consent checkbox is not checked, \"Consent is required to create an HMG Partner ID.\" is shown.
 
-![](images/dealer-employee-creation-img-1.png){width=5.18in}
+
+
+![Already have an account option](images/already-have-an-account-option.png){width=4.2in align=center}
+
 
 - **Already have an account option:**
 
@@ -82,14 +98,16 @@ This is the screen for creating a new dealer employee account. ![Creating Dealer
 
   - Search for the ID previously used by an existing dealer employee.
 
-  - When you click the \[Search\] button next to the input field, the **Search ID** popup window will open. In this popup, enter the ID (placeholder: \"Enter ID\") and search. \[Search\] is enabled only after at least 5 characters are entered.
+  - When you click the \[Search\] button next to the input field, the **Search HMG Partner ID** popup window will open.
 
 ![Search existing HMG PartnerID](images/search-existing-hmg-partnerid.png){width=4.63in}
 
 - When you enter and search for the ID you want to link, some user information will be displayed so you can verify if it is the correct user.
-- ![](images/dealer-employee-creation-img-2.png){width=4.60in}
+- For privacy, the last character of the name and the last 2 characters of the email's local part are masked with \*.
 
-Search Result
+ ![](images/dealer-employee-creation-img-2.png){width=4.60in align=center}
+
+
 
 - **\[Save\]**: some information for the employee will be imported:
 
@@ -101,41 +119,43 @@ Search Result
 
 - Inactive: Inactive state.
 
-- ![](images/dealer-employee-creation-img-3.png){width=6.26in}
 
-Status - Inactive
 
-- If the account is initially set to **Inactive**, **ID creation is not allowed**. Only the message \"To proceed, the status must be Active.\" is shown.
 
-- If you change the selection between **New Account** and **Already have an account** after loading an account or clicking \[Verify ID\], the message \"This action will clear all previously entered data. Do you want to continue?\" is shown. Selecting \[Continue\] clears all entered values.
 
-- **Business Information**
+![Status - Inactive](images/status-inactive-2.png){width=4.2in}
+
+
+
+- If the account is initially set to **Inactive**, **ID creation is not allowed**. 
+
+
+
+ **Business Information**
+
+
+![Business Information](images/business-information.png){width=4.2in}
+
 
 - Dealer: This is the item for selecting the dealership to which the dealer employee belongs.
 
-  - When you click the \[Search\] button, a popup is created where you can search for the dealership to which the dealer employee will belong.
-
-  - Search by selecting one of Dealer no. or dealer name, then save the dealership information.
 
 ![](images/dealer-employee-creation-img-4.png){width=6.26in}
 
-Search Dealer Popup
+  -  When you click the \[Search\] button, a popup is created where you can search for the dealership to which the dealer employee will belong.
+    
 
-- Business Email: required.
+ 
+**  ** - Business Email:****
+  
 
-  - The business email address of the employee.
-
+- Required. The business email address of the employee.
   - If a company\'s email domain is registered for the selected dealer, the available domains are provided as a dropdown for selection.
-
   - Notification emails for posts published on Dealers will be sent to this email.
+   - Disabled until a dealer is selected.
+  -  When a domain is provided, the default is the default domain set in Dealer Management. The local part allows up to 20 characters.
 
-  - Disabled until a dealer is selected.
 
-  - The same value as the Account Email is allowed. If the email is already used by another person (based on the HMG Partner ID), \"This email address is already registered.\" is shown.
-
-  - When a domain is provided, the default is the default domain set in Dealer Management (or the first registered domain if none is set). The local part allows up to 20 characters. If the domain does not match, \"Please select a new domain to proceed.\" is shown.
-
-  - If you change the Dealer while a Business Email is already entered, the message \"Changing the dealer information will clear the current Business Email address. Do you want to proceed?\" is shown. Selecting proceed clears the email.
 
 - **Business Phone**: Required. Dealer employee\'s work mobile phone number.
 
@@ -143,13 +163,23 @@ Search Dealer Popup
 
   - Up to 15 characters; only digits and \"-\" are allowed.
 
-- **Kia Start Date** (shown as \"{brand} Start Date\"): Required. Select the date when the dealer employee started working at the brand. Today\'s date is automatically entered when the form is first opened, and it can be changed from the calendar. Format: MM-DD-YYYY.
+- **Kia Start Date** :
+
+  - Required. Select the date when the dealer employee started working at the brand.
+  - Today\'s date is automatically entered when the form is first opened, and it can be changed from the calendar. 
 
 - **Job & Menu Permission**
 
-- **Job title**: User permissions can be granted through job title. Required when the Status is Active, optional when Inactive. Only active jobs from Job management are listed, and Dealer Principal is not listed.
 
-  - If the Dealer Admin limit for the dealer is exceeded, a modal \"{job name} are limited to a maximum of {n} per dealer\" is shown, the Job select turns red and \"This job is unavailable. Choose another one.\" is displayed.
+
+![Job & Menu permission](images/job-and-menu-permission.png){width=4.2in align=center}
+
+
+
+- **Job title**: User permissions can be granted through job title.
+
+  - Required when the Status is Active, optional when Inactive. Only active jobs from Job management are listed, and Dealer Principal is not listed.
+
 
   - Until a job is selected, the 1st-level menus are collapsed and permissions cannot be granted.
 
@@ -162,6 +192,8 @@ Search Dealer Popup
 ![Menu Permission](images/menu-permission.png){width=6.26in}
 
 - This section displays the menu-level permissions mapped to the selected job.
+
+- Use the menu search box to find a menu by name. If nothing matches, \"No results found. Try different search terms.\" is shown.
 
 - In addition to the permissions granted via the job, individual permissions can also be added manually if necessary.
 
@@ -177,16 +209,16 @@ Search Dealer Popup
 
 - How to Grant Permissions
 
-- You must have at least Access permission for a 1st-level menu in order to assign permissions to its 2nd-level menus.
-
-- If a 2nd-level menu has existing permissions, you cannot remove all permissions from its parent 1st-level menu.
-
-- Access permission is required before Read permission can be granted.\
-  Similarly, Read permission is required before Write permission can be granted.
-
-- If both Access and Read permissions are granted, you cannot uncheck only Access.
-
-- Unchecking Access will also remove Read permission.
+  - You must have at least Access permission for a 1st-level menu in order to assign permissions to its 2nd-level menus.
+  
+  - If a 2nd-level menu has existing permissions, you cannot remove all permissions from its parent 1st-level menu.
+  
+  - Access permission is required before Read permission can be granted.\
+    Similarly, Read permission is required before Write permission can be granted.
+  
+  - If both Access and Read permissions are granted, you cannot uncheck only Access.
+  
+  - Unchecking Access will also remove Read permission.
 
 - ![](images/dealer-employee-creation-img-5.png){width=0.41in}: Indicates a permission **defined by the job**. It **cannot be modified**.
 
@@ -198,62 +230,61 @@ Search Dealer Popup
 
 - Action buttons are provided at the bottom.
 
-- Pressing the \[Create\] button at the bottom creates the dealer employee account.
+- Pressing the \[Create\] button at the bottom checks the entered values and creates the dealer employee account.
 
-- When a dealer employee account is created with an ID, a welcome invitation email is automatically sent to the registered Account Email.
+- On success, the screen returns to the list.
 
-- ![](images/dealer-employee-creation-img-9.png){width=4.59in}
 
-Welcome invitation email
+- When a dealer employee account is created with a new ID, a welcome invitation email is automatically sent to the registered Account Email
 
-- Dealer Employee View
 
-![](images/dealer-employee-creation-img-10.png){width=5.04in}
+![Welcome Invitaiton Email](images/welcome-invitaiton-email.png){width=6.27in}
 
-Dealer Employee Detail
 
-From the dealer employee list, you can view detailed information about a dealer employee by clicking on their ID or name.
+
+
+****Dealer Employee View****
+
+- From the dealer employee list, you can view detailed information about a dealer employee by clicking on their ID or name.
+
+
+![Dealer Employee Detail](images/dealer-employee-detail.png){width=6.27in}
+
+
 
 - If the dealer employee is registered as a **\'dealer principal\'**, a **\'dealer principal\' badge** is displayed at the top.
 
-- If the dealer employee\'s ID has not been created, an **\"Account Creation is Required\"** badge will be displayed.
+- If the dealer employee\'s ID has not been created, an **\" ID Required\"** badge will be displayed.
 
 - If registering the employee\'s permissions failed, a **\"Job Assignment Needed\"** badge will be displayed.
 
 - **Basic information**
 
-  - User No.: A system-generated user number.
+- User No.: A system-generated user number.
 
-  <!-- -->
+<!-- -->
 
-  - Name: Employee\'s name information is displayed
+- Name: Employee\'s name information is displayed
 
-    First name
 
-    Last name
+-    Status: The status of the account
 
-    Status: The status of the account
+-   ID
 
-    ID
+  -   If not created: The message \"Account creation is required\" will be displayed.
+    
+  -   If created: The ID will be displayed.
+  
+-    Resend Invitation
+  
+  -  Resends the account activation email to employees who have not completed registration.
+  -  Displayed when the employee has an ID and is in Not Registered status.
+  -   The system checks the employee\'s current registration status via the ID.
+-       - If still Not Registered → requests HMG Notification to resend the email
+     - If already Registered → hides the Resend Invitation and Resend Invitation Log buttons.
 
-  1.  If not created: The message \"Account creation is required\" will be displayed.
-
-  2.  If created: The ID will be displayed.
-
-  3.  Resend Invitation
-
-  4.  Resends the account activation email to employees who have not completed registration.
-
-  5.  Displayed when the employee has an ID and is in Not Registered status.
-
-  6.  The system checks the employee\'s current registration status via the ID.
-
-      - If still Not Registered → requests HMG Notification to resend the email
-
-      - If already Registered → hides the Resend Invitation and Resend Invitation Log buttons.
-
-  7.  Resend Invitation Log
-
+**    Resend Invitation Log
+**
 - Shows a list of successful manual resend attempts only.
 
 - Available only while the employee has not completed registration.
@@ -262,31 +293,29 @@ From the dealer employee list, you can view detailed information about a dealer 
 
 <!-- -->
 
-- Password:
+**- Password:
+**  
+  -   Provides a \[Reset Password\] button to reset the password.
+  
+  - sending a **URL to set a new password** to the registered email address.
 
-  Provides a \[Reset Password\] button to reset the password.
+-   **Account Email:**  Employee\'s email information. The email address linked to the HMG Partner ID.
 
-  Clicking the corresponding button will send a **URL to set a new password** to the registered email address.
+-   Business phone: Employee\'s work phone number
 
-  **Account Email:** Employee\'s email information. The email address linked to the HMG Partner ID.
+-   Personal phone: Employee\'s personal phone number
 
-  Business phone: Employee\'s work phone number
+-   Language: Employee\'s language setting value
 
-  Personal phone: Employee\'s personal phone number
-
-  Language: Employee\'s language setting value
-
-  Last Login: The employee\'s last login date and time. Displayed only on the View screen, and only for employees who have an ID. If there is no login history, \"No Login History\" is shown. If the lookup fails, \"Data is temporarily unavailable.\" is shown.
-
-  Age: Displays the age calculated based on the dealer employee\'s birthday information
+-   Age: Displays the age calculated based on the dealer employee\'s birthday information
 
   **Kia Start Date:** Displays the period calculated based on the date the employee started working at Kia up to today.
 
-  The working period is displayed by calculating only the year and month information.
+  -   The working period is displayed by calculating only the year and month information.
 
-  Calculated as 1 month from the month when employment began.
+  -   Calculated as 1 month from the month when employment began.
 
-  1.  **Year of CEO Enrollment:** The year the CEO began working at the dealership. This column is displayed only for the Dealer Principal.
+-     **Year of CEO Enrollment:** The year the CEO began working at the dealership. This column is displayed only for the Dealer Principal.
 
 <!-- -->
 
@@ -346,12 +375,14 @@ If the change was made from the **BO (Back Office)**, the **Login ID** will be s
 
 - Dealer Employee Editing
 
-![Editing Dealer Employee](images/editing-dealer-employee.png){width=6.26in}
+
+
+![Editing Dealer Employee](images/editing-dealer-employee-2.png){width=6.27in}
+
 
 When modifying dealer information, the screen displays the fields entered during dealer creation, and most are provided in a form that can be modified.
 
 - If the HMG Partner ID has not been created, changing the status to Active will enable HMG Partner ID creation.
-- ![](images/dealer-employee-creation-img-11.png){width=6.26in}
 
 Initial Active Status applied
 
@@ -381,7 +412,8 @@ Initial Active Status applied
 
 - The \[Reset Password\] function is also available on the Dealer Modification screen.
 
-- **Role & Organization Information**
+- **Business Information**
+
 
   - Dealer: You can change the dealer the employee is affiliated with.
 
@@ -390,6 +422,9 @@ Initial Active Status applied
     - If the dealership affiliation changes, the Business Email must be re-entered.
 
     - Dealer Principals and Super Admins cannot change their dealership directly. They must modify their Job first to change the dealership information.
+
+
+- **Job & Menu Permission**
 
   - Job Title: You can change the employee's assigned job.
 

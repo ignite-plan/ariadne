@@ -13,15 +13,21 @@ i18nPrefix: []
 
 - Each tab can be edited separately depending on the type of information.
 
-![Dealer Detail - Basic Information](images/dealer-detail-basic-information.png){width=5.89in}
+
+
+![Dealer Detail - Basic Information](images/dealer-detail-basic-information-3.png){width=6.27in align=center}
+
 
 - **Dealer basic information**
 
-![Dealer Basic Information1](images/dealer-basic-information1-2.png){width=6.26in}
+
+
+![Dealer Basic Information1](images/dealer-basic-information1-6.png){width=6.27in align=center}
+
 
 - **Dealer name**: Internally managed name.
 
-- **DUNS Number:** The DUNS number assigned to the dealer.
+- **Business No:** The Business No assigned to the dealer.
 
 - **Company name**: Official name of the dealership.
 
@@ -99,13 +105,13 @@ i18nPrefix: []
 
 ![Dealer Change History Detail](images/dealer-change-history-detail.png){width=3.62in}
 
-**Change Date**: The date and time when the change occurred.
-
-**Change Info**: The specific field or item that was modified.
-
-**Change Details**: Displays the value **before** and **after** the change.
-
-**Updated By**: The employee number of the user who made the change.
+- **Change Date**: The date and time when the change occurred.
+  
+- **Change Info**: The specific field or item that was modified.
+  
+- **Change Details**: Displays the value **before** and **after** the change.
+  
+- **Updated By**: The employee number of the user who made the change.
 
 - **Action buttons**
 
@@ -117,7 +123,10 @@ i18nPrefix: []
 
 - Clicking the \[edit\] button from the basic info screen switches the view into edit mode.
 
-- ![](images/dealer-detail-view-edit-screen-img-1.png){width=6.26in}
+
+
+![Edit Basic Info](images/edit-basic-info.png){width=6.27in}
+
 
 Editing Dealer - Basic Information
 
@@ -169,51 +178,51 @@ This screen can be accessed by clicking the Business Info tab.
 
 <!-- -->
 
-- Brands other than Kia currently handled by the dealership
+  - - Brands other than Kia currently handled by the dealership
 
-  Business start date
+-   Business start date
 
-  Start date of this business activity
+    -   Start date of this business activity
 
-  Business end date
+-   Business end date
 
-  End date of this business activity
+    -   End date of this business activity
 
-  If only one business entry is registered, an \[add business\] button appears.
-
-  You can register a new business directly from this screen.
-
-  Each business entry has its own \[edit\] button.
-
-  If a business entry has an edit history, a "change history" column is displayed.
-
-  Clicking \[detail\] opens a popup showing edit history.
+-   If only one business entry is registered, an \[add business\] button appears.
+  
+-   You can register a new business directly from this screen.
+  
+-   Each business entry has its own \[edit\] button.
+  
+-   If a business entry has an edit history, a "change history" column is displayed.
+  
+-   Clicking \[detail\] opens a popup showing edit history.
 
 ![Business Change History](images/business-change-history.png){width=4.82in}
 
 - The popup displays the following information:
 
-- Updated Date: The date when the change was made.
-
-- Updated By: The employee number of the person who made the change.
-
-- Change: The field or item that was modified.
-
-- Details: Shows the value before and after the change.
+  - Updated Date: The date when the change was made.
+  
+  - Updated By: The employee number of the person who made the change.
+  
+  - Change: The field or item that was modified.
+  
+  - Details: Shows the value before and after the change.
 
 <!-- -->
 
 - Add New Business
 
-  Clicking \[add business\] generates a new input section at the top of the screen.
+-   Clicking \[add business\] generates a new input section at the top of the screen.
 
-  All fields and rules are the same as in the business creation screen (refer to dealer creation screen).
+-   All fields and rules are the same as in the business creation screen (refer to dealer creation screen).
 
 ![Adding Business Information](images/adding-business-information.png){width=6.26in}
 
-Clicking \[cancel\] cancels the new entry.
-
-Clicking \[save\] registers the new business information.
+- Clicking \[cancel\] cancels the new entry.
+  
+- Clicking \[save\] registers the new business information.
 
 **Edit Existing Business**
 
@@ -261,42 +270,42 @@ Clicking \[save\] registers the new business information.
 
 - Facility purpose
 
-- Common Assets
-
-- Sales Assets
-
-- Service Assets
+  - Common Assets
+  
+  - Sales Assets
+  
+  - Service Assets
 
 - Facility type
 
   - Training Center
 
-- Facility space type column is not provided.
+    - Facility space type column is not provided.
 
   - Workshop
-  - Facility space type column is provided.
+    - Facility space type column is provided.
 
-- Provides one value corresponding to each item: Customer Lounge, Gate Reception, Repair Shop
+    - Provides one value corresponding to each item: Customer Lounge, Gate Reception, Repair Shop
 
-  - Standalone
-
-  - Solid-wall
-
-  - Multi-brand
-
-  - None
+      - Standalone
+    
+      - Solid-wall
+    
+      - Multi-brand
+    
+      - None
 
   - Showroom
 
     - Facility space type column is provided.
 
-  - Provides one value corresponding to the item: showroom
+    - Provides one value corresponding to the item: showroom
 
-  - Solid-wall
-
-  - Multi-brand
-
-  - None
+      - Solid-wall
+    
+      - Multi-brand
+    
+      - None
 
   - Facility name: the name of an asset entered in English and French.
 
@@ -312,11 +321,11 @@ Clicking \[save\] registers the new business information.
 
 - Vehicle type
 
-- The type of vehicle managed at this asset.
-
-  - Passenger
-
-  - Commercial
+  - The type of vehicle managed at this asset.
+  
+    - Passenger
+  
+    - Commercial
 
 - Opening time: The time when operations begin.
 
@@ -350,7 +359,10 @@ Clicking \[save\] registers the new business information.
 
 **Dealer principal information View**
 
-![Dealer Detail - Dealer Principal](images/dealer-detail-dealer-principal.png){width=6.26in}
+
+
+![Dealer Detail - Dealer Principal](images/dealer-detail-dealer-principal-2.png){width=6.27in}
+
 
 **Dealer principal information**
 
@@ -394,8 +406,6 @@ Search User Popup
 - The dealer principal can only be selected from among dealer employees belonging to that dealership.
 
 - Enter the user No of the user you want to newly designate and press assign.
-
-- Only a dealer employee with a profile photo registered can be assigned as Dealer Principal. If the selected employee has no profile photo, clicking \[Assign\] shows a \'Reassignment Failed\' pop-up with the message: \"A profile photo has not been registered. A photo is required to assign this employee as Dealer Principal.\" Clicking **\[Confirm\]** closes the pop-up and reverts the change; clicking **\[Edit Employee\]** moves to that employee's edit screen.
 
 - When the **Dealer Principal** is changed, the **job** of the newly assigned Dealer Principal is automatically updated to **Dealer Principal**.
 
