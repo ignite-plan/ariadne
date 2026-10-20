@@ -15,7 +15,9 @@ i18nPrefix: []
 
 - Default values are selected in the Post attribute setting.
 
-![Creating Bulletin board](images/creating-bulletin-board.png){width=6.26in}
+![Creating Bulletin board](images/image-10.png){width=6.27in}
+
+
 
 **Board Basic Information**
 
@@ -218,23 +220,18 @@ Additional attribute setting pop-up -- Display format 2
 - [For dropdowns, up to 40 entries are possible; for radio buttons, up to 5 entries are possible. The guidance below the Display Values list reads "You can add up to 40 items for dropdowns and 5 for radio buttons."]{.mark}
 
 - Display Values List
-
-- **NO.:** Display Values order
-
-- **En:** Display Values English input field displayed
-
-- **Fr:** Display Values French input field displayed
-
-- **Detail:** Delete, move icons displayed
-
+  - **NO.:** Display Values order
+  - **En:** Display Values English input field displayed
+  - **Fr:** Display Values French input field displayed
+  - **Detail:** Delete, move icons displayed
 - Add button displayed in the bottom right
-
 - **Scroll:** Right scroll is created when there are 5 or more Display Values
 
-![Additional attribute setting pop-up -- Display values setting 1](images/additional-attribute-setting-pop-up-display-values-setting-1.png){width=4.97in}
+![Additional attribute setting pop-up -- Display values setting 1](images/image-11.png){width=4.2in}
 
 - Example of screen display when there are 5 or more display values (a scroll is created on the right.)\
-  ![](images/bulletin-board-creation-img-7.png){width=4.26in}
+[![Additional attribute example](images/image-12.png){width=6.27in}]{.mark}
+
 
 Additional attribute setting pop-up -- Display values setting 2
 
@@ -336,9 +333,11 @@ Additional attribute setting pop-up -- Required field
 
 - \[**Delete**\]: Cannot be deleted if Usage Status=ON, additional attribute values that have been used in posts cannot be deleted.
 
-**Additional Attribute Modification and Deletion** ![](images/bulletin-board-creation-img-11.png){width=2.73in}
+**Additional Attribute Modification and Deletion** 
 
-Editing Additional attribute setting
+![](images/image-14.png){width=3.4in}
+
+**Editing Additional attribute setting**
 
 - Usage status toggle: When ON is clicked, if the number of uses exceeds 5, a popup indicating it is unavailable is displayed
 

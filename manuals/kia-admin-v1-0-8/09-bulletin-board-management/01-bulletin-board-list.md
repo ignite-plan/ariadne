@@ -25,7 +25,11 @@ i18nPrefix: []
 
     - The following attributes are **Disabled**: Post Target and Additional Properties.
 
-![Bulletin board List](images/bulletin-board-list.png){width=6.26in}
+
+
+![Bulletin board list](images/bulletin-board-list-2.png){width=6.27in}
+
+
 
 **Bulletin Board Search & Result**
 

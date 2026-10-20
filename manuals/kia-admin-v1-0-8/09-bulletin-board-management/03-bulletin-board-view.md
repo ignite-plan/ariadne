@@ -11,9 +11,9 @@ i18nPrefix: []
 - You can access through the view button in the Board Name or Details column within the bulletin board list view results.
 - Basic board data such as Board ID, Name, Description are displayed at the top. The Post Attribute Setting that specifies the attributes of posts connected to the bulletin board is displayed at the bottom.
 
-![](images/bulletin-board-view-img-1.png){width=4.82in}
+![Bulletin board view](images/bulletin-board-view.png){width=6.27in}
 
-Bulletin board detail
+**Bulletin board detail**
 
 - **Board Name (EN, FR Required field):** For Announcement Boards, which are automatically created during tenant setup, the board name (EN/FR) and description **can be modified**. (e.g., EN Default: Announcement, FR Default: Annonce)
 
@@ -27,19 +27,13 @@ Bulletin board detail
 
 - **Board Basic Information**
 
-![Bulletin board detail -- Basic information](images/bulletin-board-detail-basic-information.png){width=6.26in}
+![Bulletin board detail -- Basic information](images/image-16.png){width=6.27in}
 
 \-[When the bulletin board is linked to a menu, a Menu Display Status banner is displayed at the top of the screen. It appears the same way on the view and edit screens.]{.mark}
 
 - [**Menu-Board Mapping**: YES (green dot) or NO (gray dot).]{.mark}
 
 - [**Menu Display Status**: Shows whether the linked menu is displayed, based on the menu\'s own Display Setting & Scheduled Display. What is shown depends on whether Mobile Web is enabled for the tenant.]{.mark}
-
-  - [Mobile Web ON (e.g., HMA): PC and Mobile are shown separately, as **PC : {Visible/Not Visible} Mobile : {Visible/Not Visible}**.]{.mark}
-
-  - [Mobile Web OFF (e.g., HACC): Only one value, **{Visible/Not Visible}**, is shown based on PC. The Mobile value is not displayed.]{.mark}
-
-- [The ⓘ tooltip reads: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
 
 - [The same banner change applies to the Menu Management and Post Management screens.]{.mark}
 
@@ -67,9 +61,7 @@ Bulletin board detail
 
   - For detailed explanation, refer to the \'Post Creation \> Post Attribute setting information\' section above
 
-![](images/bulletin-board-view-img-2.png){width=5.67in}
-
-![Bulletin board detail -- Post Attribute setting](images/bulletin-board-detail-post-attribute-setting.png){width=6.21in}
+![Bulletin board detail -- Post Attribute setting](images/image-18.png){width=6.27in}
 
 - Values entered during post creation are displayed on the post inquiry screen
 
@@ -77,7 +69,9 @@ Bulletin board detail
 
 Bulletin board detail -- Post Attribute setting1
 
-- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)![](images/bulletin-board-view-img-4.png){width=5.79in}
+- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)![](images/image-19.png){width=6.27in}
+
+
 
 Bulletin board detail -- Post Attribute setting2
 
@@ -120,9 +114,12 @@ Bulletin board detail -- Post Attribute setting5
 <!-- -->
 
 - Bulletin board attribute values can be freely changed, but they are reflected in the post management screen according to the bulletin board attribute modification policy below.\
-  ![](images/bulletin-board-view-img-8.png){width=3.63in}
 
-Editing Bulletin Board
+![](images/image-20.png){width=6.27in}
+
+
+
+**Editing Bulletin Board**
 
 - **The bulletin board/post display policy according to bulletin board attribute modification is as follows:**
 
