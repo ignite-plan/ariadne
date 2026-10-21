@@ -15,9 +15,9 @@ i18nPrefix: []
 
 - The service logo is displayed at the top left, and clicking on the logo will take you to the home screen.
 
-- ![](images/gnb-img-1.png){width=6.79in}
+- ![Logo image](images/gnb-img-1.png){width=6.79in}
 
-Logo image
+
 
 - **Search Bar**
 
