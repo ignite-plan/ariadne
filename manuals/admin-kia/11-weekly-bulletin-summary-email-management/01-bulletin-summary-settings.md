@@ -11,13 +11,13 @@ i18nPrefix: []
 
 - The Manual Summary section is only visible to users with the appropriate permissions.
 
-![Weekly Bulletin Summary Email List - Settings](images/weekly-bulletin-summary-email-list-settings.png){width=6.26in}
+  ![Weekly Bulletin Summary Email List - Settings](images/weekly-bulletin-summary-email-list-settings.png){width=6.26in}
 
 - **Auto Summary (Weekly)**:\
   This feature automatically sends a weekly bulletin summary email to designated recipients.\
   When you click **\[Set Schedule\]**, a **Set Schedule** pop-up will appear, allowing you to modify the Auto Summary schedule and Email address.
 
-![Weekly Bulletin Summary Email List -- Auto summary](images/weekly-bulletin-summary-email-list-auto-summary.png){width=4.27in}
+  ![Weekly Bulletin Summary Email List -- Auto summary](images/weekly-bulletin-summary-email-list-auto-summary.png){width=4.27in}
 
 - By default, the **Weekly Bulletin Summary** is generated every **Monday at 8:00 AM**.\
   Each summary includes posts from the **previous Monday at 00:00** to **Sunday at 11:59 PM**.
@@ -37,15 +37,13 @@ i18nPrefix: []
   - A maximum of **10 email addresses** can be entered.\
     Once 10 addresses have been entered, further semicolon inputs will be disabled.
 
-![](images/bulletin-summary-settings-img-1.png){width=4.59in}\
-![](images/bulletin-summary-settings-img-2.png){width=4.59in}
+  ![Weekly Bulletin Summary Email List -- Auto summary Set schedule ](images/bulletin-summary-settings-img-1.png){width=4.59in}
 
-Weekly Bulletin Summary Email List -- Auto summary Set schedule 1
+  ![Weekly Bulletin Summary Email List -- Auto summary Set schedule 1](images/bulletin-summary-settings-img-2.png){width=4.59in}
 
 - The currently selected schedule day is displayed, and the delivery **schedule can be changed to any day from Monday to Sunday.**\
-  ![](images/bulletin-summary-settings-img-3.png){width=5.09in}
 
-Weekly Bulletin Summary Email List -- Auto summary Set schedule 2
+  ![Weekly Bulletin Summary Email List -- Auto summary Set schedule 2](images/bulletin-summary-settings-img-3.png){width=5.09in}
 
 - Manual Summary: You can generate a **Bulletin Summary** by selecting a date range of up to **7 days**.
 
@@ -75,16 +73,14 @@ Date Range Conditions:
 - You can select a range of up to **7 days in the past**.
 
 - **Future dates are not allowed**, including today, to prevent exceptions.\
-  ![](images/bulletin-summary-settings-img-4.png){width=2.21in}
 
-Weekly Bulletin Summary Email List -- Manual summary Data range 1
+  ![Weekly Bulletin Summary Email List -- Manual summary Data range 1](images/bulletin-summary-settings-img-4.png){width=2.21in}
 
 \[Generate\] Button Activation Conditions
 
 - If the **total number of posts** within the selected date range is **100 or more**, or **zero**, an alert message will be displayed and the **\[Generate\]** button will be **disabled**.\
-  ![](images/bulletin-summary-settings-img-5.png){width=4.56in}
 
-Weekly Bulletin Summary Email List -- Manual summary Data range 2
+  ![Weekly Bulletin Summary Email List -- Manual summary Data range 2](images/bulletin-summary-settings-img-5.png){width=4.56in}
 
 - **Email Send Settings**: Only users with Write permission can send emails.
 
@@ -98,11 +94,8 @@ Weekly Bulletin Summary Email List -- Manual summary Data range 2
 - A maximum of **10 email addresses** can be entered.\
   Once 10 addresses have been entered, further semicolon inputs will be disabled.
 
-  - ![](images/bulletin-summary-settings-img-6.png){width=3.64in}
-
-Weekly Bulletin Summary Email List -- Email send setting 1
+   ![Weekly Bulletin Summary Email List -- Email send setting 1](images/bulletin-summary-settings-img-6.png){width=3.64in}
 
 - For users with **Read** permission, only the **Bulletin Summary content area** is displayed.\
-  ![](images/bulletin-summary-settings-img-7.png){width=4.01in}
 
-Weekly Bulletin Summary Email List -- Email send setting 2
+  ![Weekly Bulletin Summary Email List -- Email send setting 2](images/bulletin-summary-settings-img-7.png){width=4.01in}

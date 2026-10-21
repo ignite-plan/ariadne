@@ -7,9 +7,9 @@ i18nPrefix: []
 
 ## List Setting Editing
 
-![](images/list-setting-editing-img-1.png){width=5.14in}
+![Editing List setting](images/list-setting-editing-img-1.png){width=5.14in}
 
-*Editing List setting*
+
 
 - **Order**: You can rearrange the order of **Field Names** by pressing and holding the icon for more than **1 second**, then using **drag & drop** to reorder the fields.
 
@@ -29,14 +29,14 @@ i18nPrefix: []
 
     - For additional attributes with Required Field = OFF: Toggle is OFF and editable.
 
-Action Buttons
+**Action Buttons**
 
 - **\[Cancel\]**: Clicking this button will show a warning message if there are unsaved changes.\
   Proceeding will discard all unsaved edits.
 
 - **\[Save\]**: Saves the list settings according to the configured **order** and **toggle display status**.
 
-After Saving
+**After Saving**
 
 - Fields with the toggle set to **ON** will move to the top of the list.
 
@@ -45,6 +45,4 @@ After Saving
 - The saved list settings will define the **column headers** shown in the **front-end bulletin board list**, as in the example below:\
   (The screen below is an example of the actual front-end view based on the List Setting configuration.)
 
-![](images/list-setting-editing-img-2.png){width=6.26in}
-
-*Listing setting detail -- Post List Example*
+  ![Listing setting detail -- Post List Example](images/list-setting-editing-img-2.png){width=6.26in}

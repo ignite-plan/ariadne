@@ -40,9 +40,9 @@ i18nPrefix: []
 - The descriptions of each post attribute information are as follows:
 
 **Posting Period**\
-![](images/bulletin-board-creation-img-1.png){width=6.26in}
 
-Creating Bulletin board -- Post attribute setting information1
+![Creating Bulletin board -- Post attribute setting information1](images/bulletin-board-creation-img-1.png){width=6.26in}
+
 
 - **Enabled(Default):** This is a function that allows you to set the posting period for posts, enabling features like scheduled posting.
 
@@ -80,6 +80,7 @@ Creating Bulletin board -- Post attribute setting information1
 
 - If the bulletin board is linked to a menu, posts are displayed to all users who can access the menu.
 
+
 **Important Notice**
 
 ![Creating Bulletin board -- Post attribute setting information3](images/creating-bulletin-board-post-attribute-setting-information3.png){width=4.90in}
@@ -94,6 +95,7 @@ Creating Bulletin board -- Post attribute setting information1
 
 - If there is an important notice post that has already been set and the attribute value is changed, it can be fixed at the top for the set period.
 
+
 **Notification**
 
 ![Creating Bulletin board -- Post attribute setting information4](images/creating-bulletin-board-post-attribute-setting-information4.png){width=5.31in}
@@ -105,6 +107,7 @@ Creating Bulletin board -- Post attribute setting information1
 - **Disabled:** You cannot set notifications.
 
 - The Notification selection UI is not displayed in the post details.
+
 
 **Attachments**
 
@@ -119,6 +122,7 @@ Creating Bulletin board -- Post attribute setting information1
 - **Disabled:** You cannot attach files.
 
 - The attachment UI is not displayed in the post details. If there are already attached files, they remain displayed in the post list.
+
 
 **Additional Attribute**
 
@@ -176,9 +180,10 @@ Creating Bulletin board -- Post attribute setting information1
 
 ![Additional attribute setting pop-up](images/additional-attribute-setting-pop-up.png){width=5.17in}
 
-![](images/bulletin-board-creation-img-4.png){width=2.50in}![](images/bulletin-board-creation-img-5.png){width=2.71in}
+![Additional attribute setting pop-up - Display format1](images/bulletin-board-creation-img-4.png){width=2.50in}
 
-*Additional attribute setting pop-up - Display format*
+![Additional attribute setting pop-up - Display format2](images/bulletin-board-creation-img-5.png){width=2.71in}
+
 
 **Field Name (Required field)**
 
@@ -205,9 +210,10 @@ Creating Bulletin board -- Post attribute setting information1
 - **Date (MM-DD-YYYY):** Displayed as a calendar UI, date selection is possible
 
 - **Input box(text):** Displayed as a text input field where users can directly enter text values.\
-  ![](images/bulletin-board-creation-img-6.png){width=4.33in}
 
-*Additional attribute setting pop-up -- Display format 2*
+  
+  ![Additional attribute setting pop-up -- Display format 2](images/bulletin-board-creation-img-6.png){width=4.33in}
+
 
 **Display Values (Required field for dropdowns, radio buttons)**
 
@@ -233,9 +239,9 @@ Creating Bulletin board -- Post attribute setting information1
 ![Additional attribute setting pop-up -- Display values setting 1](images/additional-attribute-setting-pop-up-display-values-setting-1.png){width=4.20in}
 
 - Example of screen display when there are 5 or more display values (a scroll is created on the right.)\
-  ![Additional attribute example](images/additional-attribute-example.png){width=6.26in}
 
-*Additional attribute setting pop-up -- Display values setting 2*
+  ![Additional attribute setting pop-up -- Display values setting 2](images/additional-attribute-example.png){width=6.26in}
+
 
 - When **the \[+Add\] button** is clicked, EN and FR input field UIs are displayed as a pair at the bottom, and you can add up to 40 for Dropdowns and up to 5 for Radio buttons.
 
@@ -247,9 +253,11 @@ Creating Bulletin board -- Post attribute setting information1
 
 **Description (Required field for dropdowns)**
 
-- Used as placeholder text and is the text displayed in the BO post select box when dropdown is selected in the display format. ![](images/bulletin-board-creation-img-7.png){width=4.91in}
+- Used as placeholder text and is the text displayed in the BO post select box when dropdown is selected in the display format.
 
-*Additional attribute setting pop-up -- Description*
+
+  ![Additional attribute setting pop-up -- Description](images/bulletin-board-creation-img-7.png){width=4.91in}
+
 
 **Usage Status (Required field)**
 
@@ -261,9 +269,8 @@ Creating Bulletin board -- Post attribute setting information1
 
 - **Note:** When Usage status is OFF, the Additional attribute cannot be set in BO Post management and is not displayed in the BO Bulletin board \> List setting area. The value is also not displayed on the FO screen.
 
-![](images/bulletin-board-creation-img-8.png){width=5.42in}
+![Additional attribute setting pop-up -- Usage status](images/bulletin-board-creation-img-8.png){width=5.42in}
 
-*Additional attribute setting pop-up -- Usage status*
 
 **Required Field (Required field)**
 
@@ -271,9 +278,10 @@ Creating Bulletin board -- Post attribute setting information1
 
 - The (Default) value is set to OFF, and ON/OFF settings can be configured.
 
-- Note: When Required field is ON, the Additional attribute value is marked as required (\*) in BO Post management and is also displayed as required in the BO Bulletin board \> List setting area. When Required field is OFF, it can be used as an optional value.![](images/bulletin-board-creation-img-9.png){width=5.14in}
+- Note: When Required field is ON, the Additional attribute value is marked as required (\*) in BO Post management and is also displayed as required in the BO Bulletin board \> List setting area. When Required field is OFF, it can be used as an optional value.
 
-*Additional attribute setting pop-up -- Required field*
+![Additional attribute setting pop-up -- Required field](images/bulletin-board-creation-img-9.png){width=5.14in}
+
 
 **Search Filter**
 
@@ -335,11 +343,11 @@ Creating Bulletin board -- Post attribute setting information1
 
 - \[**Delete**\]: Cannot be deleted if Usage Status=ON, additional attribute values that have been used in posts cannot be deleted.
 
+
 **Additional Attribute Modification and Deletion**
 
-![](images/bulletin-board-creation-img-10.png){width=3.40in}
+![Editing Additional attribute setting](images/bulletin-board-creation-img-10.png){width=3.40in}
 
-**Editing Additional attribute setting**
 
 - Usage status toggle: When ON is clicked, if the number of uses exceeds 5, a popup indicating it is unavailable is displayed
 

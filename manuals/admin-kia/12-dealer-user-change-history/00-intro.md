@@ -77,7 +77,7 @@ i18nPrefix: []
 
 **Result Area**
 
-![Result Area](images/result-area.png){width=6.26in}
+  ![Result Area](images/result-area.png){width=6.26in}
 
 - Total record count, sort order, records per page, and pagination are displayed above the result table.
 
@@ -90,19 +90,12 @@ i18nPrefix: []
   - **Updated By (ID):** HMG Partner ID (Front Office) or HMG SSO ID (Back Office).
 
   - **Updated By (Name):** {First name}{Last name} (Front Office) or HMG SSO registered name (Back Office).
-
   - **User No.:** Employee number assigned by the dealer.
-
   - **ID**: ID of the target employee.
-
   - **Name**: First name Last name.
-
   - **Dealer**: Dealer Name
-
   - **Zone / District**: Zone and District of the dealer.
-
   - **Change Source**: Employee management / Job Management / Menu Management.
-
   - **Change Type**: Creation / Modification / Deletion / Activation / Deactivation.
 
     - When a Job is activated or deactivated, the detailed permissions of that Job use the same Change Type.

@@ -22,4 +22,4 @@ i18nPrefix: []
 
 - When deleting a menu with mapped bulletin boards, the Menu-Board mapping is released and only the menu can be deleted.
 
-- ![](images/menu-deletion-img-2.png){width=3.70in}
+   ![Menu delete confirmation pop-up](images/menu-deletion-img-2.png){width=3.70in}

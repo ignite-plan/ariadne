@@ -25,7 +25,7 @@ i18nPrefix: []
 
     - The following attributes are **Disabled**: Post Target and Additional Properties.
 
-![Bulletin board list](images/bulletin-board-list.png){width=6.26in}
+  ![Bulletin board list](images/bulletin-board-list.png){width=6.26in}
 
 **Bulletin Board Search & Result**
 
@@ -55,4 +55,4 @@ i18nPrefix: []
 
   - If a value is longer than the column width, it is truncated with \..., and the full text is displayed as a tooltip when you hover over it.
 
-![Bulletin board List 1](images/bulletin-board-list-1.png){width=6.26in}
+  ![Bulletin board List 1](images/bulletin-board-list-1.png){width=6.26in}

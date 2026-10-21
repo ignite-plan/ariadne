@@ -18,14 +18,14 @@ i18nPrefix: []
 ![Menu List -- initial view](images/menu-list-initial-view.png){width=5.37in}
 
 - When hovering over a created menu, you can create sub-menus or delete that menu.\
-  ![](images/menu-list-view-img-1.png){width=5.84in}
 
-Menu and sub-menu - hovering status
+  ![Menu and sub-menu - hovering status](images/menu-list-view-img-1.png){width=5.84in}
+
 
 - You can move menus within the same menu level by clicking and holding for 1 second, then drag & drop.\
-  ![](images/menu-list-view-img-2.png){width=1.99in}
 
-Menu re-ordering
+  ![Menu re-ordering](images/menu-list-view-img-2.png){width=1.99in}
+
 
 **Menu Search & Results**
 
@@ -41,4 +41,4 @@ Menu re-ordering
 
   - If there are no search results, a \"no search results\" message is displayed.
 
-![Menu List - Search](images/menu-list-search.png){width=6.26in}
+  ![Menu List - Search](images/menu-list-search.png){width=6.26in}

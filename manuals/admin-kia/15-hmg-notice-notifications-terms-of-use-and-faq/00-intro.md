@@ -23,7 +23,7 @@ i18nPrefix: []
 
 - Remarks
 
-![HMG Notice -Terms creation](images/hmg-notice-terms-creation.png){width=4.26in}
+  ![HMG Notice -Terms creation](images/hmg-notice-terms-creation.png){width=4.26in}
 
 - Page Title: Provided as the main title on the Dealers\' terms of use screen.
 
@@ -31,4 +31,4 @@ i18nPrefix: []
 
 - Content written in the editor body is displayed as content on the front screen.
 
-![Privacy Policy Screen](images/privacy-policy-screen.png){width=4.79in}
+  ![Privacy Policy Screen](images/privacy-policy-screen.png){width=4.79in}
