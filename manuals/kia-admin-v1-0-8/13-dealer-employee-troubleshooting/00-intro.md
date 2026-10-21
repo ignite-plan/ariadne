@@ -123,25 +123,15 @@ Dealer Employee Troubleshooting
 - Guide message: "Please search by menu or Post ID to diagnose the content status."
 
 - **Search type:**
-
   - **Menu (default)**
-
   - **Post**
-
 - **Search conditions:**
-
   - **When Menu is selected:** Menu Name (Required / Auto-complete)
-
     - **All menu types can be selected:** General, Bulletin board, Outlink.
-
     - Menu items are displayed in newest-created order.
-
     - Display format examples:
-
     - Sales board(12345) → bulletin board menu (Board ID displayed)
-
     - Sales → General menu (no Board ID)
-
     - Incentive Board → Outlink menu
 
   - **When Post is selected:** Post ID (Input)
@@ -160,9 +150,9 @@ Dealer Employee Troubleshooting
 
     - Clears the current search conditions and diagnostic result, and returns the Content Status area to the default state.
 
-![Dealer Employee Troubleshooting -- Content Status(menu)](images/dealer-employee-troubleshooting-content-status-menu.png){width=6.26in}
+![Dealer Employee Troubleshooting -- Content Status(menu)](images/image-48.png){width=6.27in}
 
-![Dealer Employee Troubleshooting -- Content Status(post)](images/dealer-employee-troubleshooting-content-status-post.png){width=6.26in}
+![Dealer Employee Troubleshooting -- Content Status(post)](images/image-49.png){width=6.27in}
 
 **Diagnostic Result**
 
