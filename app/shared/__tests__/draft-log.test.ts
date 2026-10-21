@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import type { DraftEvent } from '../api.ts'
-import { applyDraftEvent, applyTaskEvent, isDraftTarget, screenLabel, screenProgress, type ClaudeTask } from '../draft-log.ts'
+import { applyDraftEvent, applyTaskEvent, isDraftTarget, screenLabel, screenProgress, taskLogText, type ClaudeTask } from '../draft-log.ts'
 import { DRAFT_MODES, draftLabel } from '../draft-mode.ts'
 
 const task = (): ClaudeTask => ({ input: { mode: 'refresh', menu: 'Menu' }, panel: 1, phase: 'running', log: [], screens: {}, error: '', startedAt: 0, seq: 1 })
@@ -66,5 +66,25 @@ describe('Claude 작업 진행 기록', () => {
     assert.equal(draftLabel({ mode: 'video-scene' }), '장면 채우기')
     assert.equal(DRAFT_MODES.refresh.done(0), '바꿀 곳이 없었습니다')
     assert.match(DRAFT_MODES['video-scene'].about(3), /장면 3의/)
+  })
+
+  it('로그 저장: 작업 정보, 요청, 도구 입력·결과, 마지막 응답', () => {
+    const events: DraftEvent[] = [
+      { kind: 'status', text: '시작' },
+      { kind: 'claude', event: { kind: 'tool', id: 't1', name: 'mcp__ariadne__video_save', label: '영상 저장', key: '{"yaml":"title: X"}' } },
+      { kind: 'claude', event: { kind: 'tool_result', id: 't1', isError: false, text: '저장함\n장면 3개' } },
+      { kind: 'claude', event: { kind: 'tool', id: 't2', name: 'mcp__ariadne__video_check', label: '실행해 보기' } },
+      { kind: 'claude', event: { kind: 'tool_result', id: 't2', isError: true, text: '장면 2 실패' } },
+    ]
+    const base = { ...task(), input: { mode: 'video' as const, menu: 'Post', video: 'post', notes: '장면 1\n- 단계' }, startedAt: Date.UTC(2026, 9, 21), endedAt: Date.UTC(2026, 9, 21, 0, 3) }
+    const t = { ...events.reduce(applyTaskEvent, base), phase: 'done' as const, result: { manual: 'bo', ok: true, text: '끝냈습니다', denials: [], costUsd: 0.5 } }
+    const text = taskLogText(t, '1.13.7')
+    assert.match(text, /^# Claude 영상 초안 로그\n/)
+    assert.match(text, /- 영상: post\n/)
+    assert.match(text, /- 앱 버전: 1\.13\.7/)
+    assert.match(text, /## 요청\n\n장면 1\n- 단계\n/)
+    assert.match(text, /- \[도구\] 영상 저장\n  - 입력: \{"yaml":"title: X"\}\n  - 결과: 저장함\n    장면 3개\n/)
+    assert.match(text, /- \[도구 실패\] 실행해 보기 — 장면 2 실패\n/)
+    assert.match(text, /- 비용: \$0\.50\n\n### 마지막 응답\n\n끝냈습니다\n$/)
   })
 })

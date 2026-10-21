@@ -1,7 +1,7 @@
 // IPC 핸들러가 같이 쓰는 것: 핸들러 등록, 창으로 이벤트 보내기, 지금 매뉴얼, 토큰·사용자, 도구 위치, 전제 조건 확인
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { app, BrowserWindow, dialog, ipcMain, net, type OpenDialogOptions } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, net, type OpenDialogOptions, type SaveDialogOptions } from 'electron'
 import { loadManual, type ManualRef } from '../../../src/core/manual.ts'
 import { sessionInfo } from '../../../src/core/session.ts'
 import type { AriadneEvent, AriadneEvents, Channel, ChannelHandler, GithubUser, WorkspaceState } from '../../shared/api.ts'
@@ -31,6 +31,13 @@ export async function pickPath(options: OpenDialogOptions) {
   const window = windowRef()
   const result = window ? await dialog.showOpenDialog(window, options) : await dialog.showOpenDialog(options)
   return result.canceled ? null : result.filePaths[0]
+}
+
+// 저장할 곳 고르기. 고르지 않으면 null
+export async function pickSavePath(options: SaveDialogOptions) {
+  const window = windowRef()
+  const result = window ? await dialog.showSaveDialog(window, options) : await dialog.showSaveDialog(options)
+  return result.canceled || !result.filePath ? null : result.filePath
 }
 
 export function send<E extends AriadneEvent>(event: E, payload: AriadneEvents[E]) {

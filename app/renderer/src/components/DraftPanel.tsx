@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { DraftCheck, DraftInput, RefreshScope } from '../../../shared/api.ts'
 import { canQueue, queuePosition, type QueuedDraft } from '../../../shared/claude-queue.ts'
-import { screenLabel, screenName, type ClaudeTask } from '../../../shared/draft-log.ts'
+import { screenLabel, screenName, taskLogText, type ClaudeTask } from '../../../shared/draft-log.ts'
 import { checkScope, DRAFT_MODES, draftLabel, draftMode, isVideoDraft, needsConfluence, parseTickets, scopeLabel } from '../../../shared/draft-mode.ts'
 import { formatAge } from '../../../shared/format.ts'
 import { api } from '../api.ts'
@@ -10,6 +10,7 @@ import { useTasks, type DraftPanelState } from '../tasks.tsx'
 import { ClaudeLoginDialog, loginLabel } from './ClaudeLogin.tsx'
 import { DraftSummaryCard } from './DraftSummaryCard.tsx'
 import { Icon } from './Icon.tsx'
+import { RequestTextarea } from './RequestTextarea.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
 
@@ -104,6 +105,18 @@ export function DraftPanel({
     void tasks.startClaude(withRequest(), options())
   }
 
+  // 진행 로그를 파일로 (화면에 안 보이는 도구 입력·결과 포함). 작업 중에도 그때까지 저장한다
+  const saveLog = async (task: ClaudeTask) => {
+    try {
+      const at = new Date(task.startedAt).toLocaleString('sv-SE').replace(' ', '_').replace(/:/g, '').slice(0, 15)
+      const name = `claude-${input.mode ?? 'create'}-${input.video ?? input.menu.replace(/[^\w-]+/g, '-')}-${at}.md`
+      const file = await api.draft.saveLog(name, taskLogText(task, await api.app.version()))
+      if (file) toast.show('success', `로그를 저장했습니다: ${file}`)
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
   const close = () => {
     if (phase === 'running' || queued) return tasks.hideDraft()
     if (phase === 'done') return onDone(input, Boolean(task?.result))
@@ -153,11 +166,11 @@ export function DraftPanel({
             {askable && !task && !queued && (
               <label className="scope-fields request-field">
                 <b>Claude에게 요청 (선택)</b>
-                <textarea
+                <RequestTextarea
                   aria-label="Claude에게 요청"
-                  rows={3}
+                  rows={6}
                   value={request}
-                  onChange={(e) => setRequest(e.target.value)}
+                  onChange={setRequest}
                   placeholder={
                     input.mode === 'shots'
                       ? '예: 팝업은 Location만, 검색 영역 이미지는 빼기'
@@ -198,6 +211,11 @@ export function DraftPanel({
           ) : (
             <button className="button primary block" disabled={phase !== 'ready' || !check?.claude || needsLogin(check)} onClick={start}>
               <Icon name={mode.startIcon} /> {canEnqueue ? `대기에 추가 (${tasks.queue.items.length + 1}번째)` : mode.start}
+            </button>
+          )}
+          {task && (
+            <button className="button block" onClick={() => void saveLog(task)}>
+              <Icon name="download" /> 로그 저장
             </button>
           )}
           <p className="hint">{mode.duration} 걸리고, 내 Claude 사용량을 씁니다.</p>

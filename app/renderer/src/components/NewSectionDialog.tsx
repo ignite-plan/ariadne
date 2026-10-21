@@ -4,6 +4,7 @@ import { slugify as slug } from '../../../../src/core/naming.ts'
 import { api } from '../api.ts'
 import { useAsyncAction } from '../hooks.ts'
 import { Modal } from './Modal.tsx'
+import { RequestTextarea } from './RequestTextarea.tsx'
 
 const NEW_CHAPTER = '__new__'
 const END = -1
@@ -151,7 +152,7 @@ export function NewSectionDialog({
           </label>
           <label className="field">
             <span>Claude에게 요청</span>
-            <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="예: 메뉴 권한 팝업도 포함, 삭제 확인 팝업은 빼기" />
+            <RequestTextarea rows={4} value={notes} onChange={setNotes} placeholder="예: 메뉴 권한 팝업도 포함, 삭제 확인 팝업은 빼기" />
           </label>
         </details>
       )}

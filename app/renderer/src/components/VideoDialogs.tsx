@@ -6,6 +6,7 @@ import { useAsyncAction } from '../hooks.ts'
 import { findSection } from '../manual-tree.ts'
 import { Icon } from './Icon.tsx'
 import { Modal } from './Modal.tsx'
+import { RequestTextarea } from './RequestTextarea.tsx'
 import { SectionsSelect } from './SectionSelect.tsx'
 
 export function CreateVideoDialog({
@@ -101,11 +102,11 @@ export function SceneDraftDialog({
     >
       <label className="field">
         <span>이 장면에서 보여 줄 것 (한국어로 써도 됩니다)</span>
-        <textarea
-          rows={4}
+        <RequestTextarea
+          rows={6}
           value={notes}
           autoFocus
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={setNotes}
           placeholder="예: Menu Access Permission > Job title에서 Edit을 눌러 나오는 팝업에서 체크박스를 체크하는 화면"
         />
       </label>

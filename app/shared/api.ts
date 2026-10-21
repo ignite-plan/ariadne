@@ -534,6 +534,8 @@ export interface AriadneApi {
     cancel(): Promise<void>
     // ask 이벤트에 답한다 (proceed: 계속 / 중지)
     decide(id: string, proceed: boolean): Promise<void>
+    // 진행 로그를 고른 곳에 파일로 저장한다. 저장한 경로 (취소하면 null)
+    saveLog(fileName: string, text: string): Promise<string | null>
   }
   affected: {
     run(base: string, head: string): Promise<{ range: string; affected: AffectedSection[] }>
@@ -626,7 +628,7 @@ export const API_METHODS = {
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
   video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
   claudeLogin: ['status', 'start', 'sendCode', 'cancel', 'logout'],
-  draft: ['check', 'start', 'cancel', 'decide'],
+  draft: ['check', 'start', 'cancel', 'decide', 'saveLog'],
   affected: ['run'],
   log: ['write', 'reveal'],
   report: ['preview', 'submit'],

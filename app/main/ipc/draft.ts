@@ -1,4 +1,7 @@
 // Claude로 초안·최신화·영상 시나리오, 변경 영향(개발자용)
+import { writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { app } from 'electron'
 import { findAffected } from '../../../src/core/affected.ts'
 import { draftLabel } from '../../shared/draft-mode.ts'
 import { cancelDraft, checkDraft, decideDraft, startDraft } from '../draft.ts'
@@ -7,7 +10,7 @@ import { log } from '../log.ts'
 import { hostTab } from '../lib/browser-host.ts'
 import { withShared } from '../lib/profile-lock.ts'
 import { getSettings } from '../settings.ts'
-import { captureBaseUrl, claudeDataDir, handle, recordAuthor, ref, requireWorkspace, send, sessionDir } from './context.ts'
+import { captureBaseUrl, claudeDataDir, handle, pickSavePath, recordAuthor, ref, requireWorkspace, send, sessionDir } from './context.ts'
 
 export function registerDraft() {
   handle('draft:check', (options) => checkDraft(getSettings().claudePath, options, getSettings().claudeAuth))
@@ -41,6 +44,11 @@ export function registerDraft() {
   })
   handle('draft:cancel', () => cancelDraft())
   handle('draft:decide', (id, proceed) => decideDraft(id, proceed))
+  handle('draft:saveLog', async (fileName, text) => {
+    const file = await pickSavePath({ defaultPath: join(app.getPath('downloads'), fileName), filters: [{ name: 'Markdown', extensions: ['md'] }] })
+    if (file) await writeFile(file, text, 'utf8')
+    return file
+  })
 
   handle('affected:run', (base, head) => {
     const { dealerhubWebDir } = getSettings()

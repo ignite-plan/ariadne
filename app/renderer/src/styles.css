@@ -2059,6 +2059,8 @@ details.advanced summary {
   margin: 0;
   min-width: 0;
   word-break: break-word;
+  /* 여러 줄 요청의 줄바꿈 */
+  white-space: pre-wrap;
 }
 .draft-input .clamped {
   display: -webkit-box;
@@ -2934,7 +2936,7 @@ fieldset.lock:disabled {
   justify-content: center;
 }
 
-/* Claude에게 요청 (최신화·캡처 정의) */
+/* Claude에게 요청 (최신화·캡처 정의·영상 초안) */
 .request-field textarea {
   resize: vertical;
 }

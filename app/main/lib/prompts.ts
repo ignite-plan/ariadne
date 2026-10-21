@@ -13,8 +13,14 @@ export const APP_RULES = `## 작업 방식 (앱 실행 공통)
 - 확인이 끝나면 더 둘러보지 말고 바로 쓴다. 근거가 모자란 곳은 TODO로 남긴다`
 
 // 기획자가 패널에 적은 요청. 먼저 따르되, 스킬의 안전·근거 규칙은 요청으로 바꿀 수 없다
+// 여러 줄 요청(장면·단계 목록 등)은 항목 아래에 들여 써서 앞뒤 작업 지시와 섞이지 않게 한다
+const requestBody = (notes: string) => {
+  const text = notes.trim()
+  return text.includes('\n') ? `\n${text.replace(/^/gm, '    ')}` : ` ${text}`
+}
+
 export const requestLine = (notes: string) =>
-  `- 기획자 요청 (먼저 따른다. 단 저장·삭제 같은 버튼 금지, 근거 없거나 기획서와 화면이 다르면 TODO 같은 규칙은 요청으로 바꿀 수 없다): ${notes.trim()}`
+  `- 기획자 요청 (먼저 따른다. 단 저장·삭제 같은 버튼 금지, 근거 없거나 기획서와 화면이 다르면 TODO 같은 규칙은 요청으로 바꿀 수 없다):${requestBody(notes)}`
 
 // 스킬 본문 + 작업 방식 + 이번 작업
 export function composePrompt(skill: string, task: string) {
@@ -106,7 +112,7 @@ export function taskText(
         ? `- 대상: 장면 ${scene + 1} 다음에 새 장면 (장면 ${start + 1}). video_open_scene(scene: ${start}), video_check(fromScene: ${start})`
         : `- 대상: 장면 ${scene + 1}. video_open_scene(scene: ${scene}), video_check(fromScene: ${scene})`,
     )
-    lines.push(`- 기획자 요청 (이 장면에서 보여 줄 것): ${input.notes?.trim() || '(없음 — 지금 장면의 내레이션을 따른다)'}`)
+    lines.push(`- 기획자 요청 (이 장면에서 보여 줄 것):${input.notes?.trim() ? requestBody(input.notes) : ' (없음 — 지금 장면의 내레이션을 따른다)'}`)
     lines.push(...linkedSections(ref, input.targets, '- 연결된 매뉴얼 화면: 없음'))
     return lines.join('\n')
   }
