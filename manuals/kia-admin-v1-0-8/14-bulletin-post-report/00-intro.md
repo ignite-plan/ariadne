@@ -66,7 +66,7 @@ i18nPrefix: []
 
 - Displays the user list for the selected post.
 
-  - **1 row = 1 Partner ID (unique user)**.
+  - **1 row = 1 ID (unique user)**.
 
   - Read status is determined **per user**: if a user read the post in **any affiliated dealership context**, they are marked as **Read = Yes**.
 
@@ -78,7 +78,7 @@ i18nPrefix: []
 
   - Filters apply **within the selected post\'s user list**.
 
-  - Filter fields: **Dealer Name**, **HMG Partner ID**, **Read Status** (All/Read/Unread), **Zone**, **District** (enabled after Zone selection).
+  - Filter fields: **Dealer Name**, **ID**, **Read Status** (All/Read/Unread), **Zone**, **District** (enabled after Zone selection).
 
   - [**\[Search\]** applies filters; **\[Reset\]** restores defaults.]{.mark}
 
