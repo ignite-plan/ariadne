@@ -37,9 +37,10 @@ i18nPrefix: []
 
   - [If the selected date becomes a past date when saving (midnight boundary), a popup is displayed.]{.mark}
 
-**Menu Access Permissions** ![](images/menu-editing-img-1.png){width=6.26in}
 
-*Menu access permissions List*
+**Menu Access Permissions** 
+
+  ![Menu access permissions List](images/menu-editing-img-1.png){width=6.26in}
 
 - When clicking the \[Edit\] button in Menu access permission, [the conditions are checked in the following four steps, and a pop-up is displayed according to the first condition that applies. The same steps apply to both the Job title tab and the User name tab, and also to the first access right after a menu is created.]{.mark}
 
@@ -77,16 +78,14 @@ i18nPrefix: []
 
 - After clicking **\[Later\]**, clicking \[Edit\] again starts again from step 1. If the condition is not resolved, the same pop-up is displayed again.
 
-![](images/menu-editing-img-2.png){width=2.99in}
-
-*Menu access permissions List -- Import Job title pop-up*
+![Menu access permissions List -- Import Job title pop-up](images/menu-editing-img-2.png){width=2.99in}
 
 - In the Menu Access Permission pop-up, the Job title popup shows the Job titles that the User belongs to even if that User has permissions (Job and User permissions can overlap). The User name pop-up does not show Users who are already included in a selected Job title.
 
 - A permission cannot be removed on the Job title tab if a sub-menu has the Job-access permission, and on the User name tab if a sub-menu has the User-access permission.
 
-![](images/menu-editing-img-3.png){width=2.94in} ![](images/menu-editing-img-4.png){width=2.94in}
+![Menu access permissions pop-up detail1](images/menu-editing-img-3.png){width=2.94in} 
 
-*Menu access permissions pop-up detail*
+![Menu access permissions pop-up detail2](images/menu-editing-img-4.png){width=2.94in}
 
 - If there are modified permissions, saving is possible, and a permission change notification popup is displayed.

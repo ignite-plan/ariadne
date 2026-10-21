@@ -35,7 +35,7 @@ Dealer Employee Troubleshooting
 
 - The **Search** button becomes active only when both Dealer Name and ID are entered.
 
-![Dealer User Status](images/dealer-user-status.png){width=6.26in}
+  ![Dealer User Status](images/dealer-user-status.png){width=6.26in}
 
 - When **Search** is clicked: The system validates that the entered **Dealer Name** and **ID** combination exists.
 
@@ -45,6 +45,7 @@ Dealer Employee Troubleshooting
 
 - After a search, the **Reset** button is displayed. Clicking **Reset** clears both the top and bottom areas, and the **Reset** button disappears.
 
+
 **User Status Summary**
 
 - **The User Status Summary table** displays the basic login-related status of the dealer employee.
@@ -52,31 +53,21 @@ Dealer Employee Troubleshooting
 - **Main items:**
 
   - **User No:** Dealer employee number and account status (Active / Inactive)
-
     - Linked to the Dealer Employee Management detail screen.
-
   - **ID:** The user's ID
-
     - The ID status is not displayed.
-
     - No link is provided.
 
   - **Dealer Info:** Dealer No, Dealer Name, and dealer status
-
     - Status: Active / Under termination / Terminated / Inactive
-
     - Linked to the Dealer Management detail screen**.**
 
   - **Job Title:** Job title assigned to the user and its status
-
     - Status: Active / Inactive
-
     - Linked to the Job Management detail screen.
 
 - **Tag color:**
-
   - **Green:** Login possible.
-
   - **Gray:** Login not possible.
 
 - Login is possible when User is Active, Dealer is Active or Under termination, and Job Title is Active. Login is not possible when the Dealer is Terminated or Inactive, the User is Inactive, or the Job Title is Inactive.
@@ -100,6 +91,7 @@ Dealer Employee Troubleshooting
   - **If User, Dealer, and Job Title are all in a login-available state, the dealer employee is treated as able to log in, and the Content Status area becomes enabled.**
 
   - **If any of these is in a login-not-available state, the dealer employee is treated as unable to log in, and the Content Status search area is disabled with a guidance message.**
+
 
 **Content Status**
 
@@ -166,33 +158,21 @@ Dealer Employee Troubleshooting
     - [The date and time (MM-DD-YYYY HH:MM zzz) when the diagnosis result was retrieved.]{.mark}
 
 - Typical checks when diagnosing a **menu:**
-
   - Parent menu display status (conditional)
-
   - Menu display status
-
   - Menu access permission (Job Title-based)
-
   - Menu--board mapping (for bulletin board type menus)
-
 - Typical checks when diagnosing a **post:**
-
   - Menu-related checks (if the post is linked to a menu)
-
   - Post display status (Display ON/OFF, posting period)
-
   - Post Target Audience matching:
-
     - Compares Job Title, Dealer, Dealer Distribution Group, Zone, and District with the post's targeting conditions.
 
 - **[\[Go to Setting\] behavior:]{.mark}**
 
   - Menu-related steps: open the **Menu Management detail** or access-permission screen.
-
   - Board-related steps: open the **Bulletin Board Management** detail screen.
-
   - Post-related steps: open the **Post Management detail** screen.
-
   - After changes are made, operators can return to the Troubleshooting screen and click **Search** again to confirm that the Result changes to Success.
 
 **Cases Where Diagnosis Is Not Available**
@@ -200,21 +180,16 @@ Dealer Employee Troubleshooting
 - In the following cases, the **Content Status** search area is disabled and only a guide message is shown.
 
 - **User cannot log in**
-
   - Reason: User, Dealer, or Job Title status prevents login.
-
   - Message: "Please check the dealer user's Access Status. The current Dealer User Status does not allow for system login"
 
 - **User is Super Admin**
 
   - Reason: Super Admins may have exception-based access to all menus and posts, so detailed condition checks in Content Status are not meaningful.
-
   - Message: "Detailed diagnostic is not available for Super Admin users. Super Admins can access all posts due to administrative privilege exceptions."
 
 - **Other external errors (e.g. COMMON_500)**
-
   - Reason: External system errors prevent status/permissions from being retrieved correctly.
-
   - Message: "Something Went Wrong ... contact your system administrator."
 
-![Content Status Not Visible Case](images/content-status-not-visible-case.png){width=6.26in}
+  ![Content Status Not Visible Case](images/content-status-not-visible-case.png){width=6.26in}

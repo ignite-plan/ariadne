@@ -56,15 +56,16 @@ i18nPrefix: []
 - [When \[Delete\] is clicked, a confirmation message is displayed: \"Are you sure you want to delete this template? This action cannot be undone.\"]{.mark}
 
 - You can search for posts based on keywords in Title, Author, Post ID.\
-  ![](images/post-list-view-img-1.png){width=3.62in}
 
-Post List -- Search filter 1
+    ![Post List -- Search filter 1](images/post-list-view-img-1.png){width=3.62in}
+
 
 You can search for posts based on Created Date, Updated Date, Posting period.
 
-![](images/post-list-view-img-2.png){width=4.20in}
+![Post List -- Search filter 2](images/post-list-view-img-2.png){width=4.20in}
 
-*Post List -- Search filter 2* ![](images/post-list-view-img-3.png){width=6.26in} *Post List -- Search filter 3*
+![Post List -- Search filter 3](images/post-list-view-img-3.png){width=6.26in} 
+
 
 - [Date search period: By default, the last 1 year from today is set, and the period can be up to 1 year.]{.mark}
 
@@ -88,13 +89,15 @@ You can search for posts based on Created Date, Updated Date, Posting period.
 
 Post List: The list of posts matching the applied search criteria is displayed. You can change the sorting and display options as follows:
 
-![Post List - Detail](images/post-list-detail.png){width=6.26in}
+  ![Post List - Detail](images/post-list-detail.png){width=6.26in}
 
 - Sorting options are available to organize posts by **Date** (latest to oldest) or **Title** (alphabetical ascending or descending).
 
 - By default, **20 posts** are displayed, and you can select up to 50 posts to display from the bottom left.
 
 - The post list includes a **pagination** feature that allows you to navigate between page groups using the **\< and \> buttons,** move to the first page using **\<\<,** and move to the last page using **\>\>.**\
+
+
   ![](images/post-list-view-img-4.png){width=3.72in}
 
 - [When \[New Post\] is selected in the viewed bulletin board, the post writing screen is displayed. \[New Post\] is visible only to users with Write permission, and it can always be used regardless of the menu\'s Mobile Display setting.]{.mark}
@@ -105,7 +108,7 @@ Post List: The list of posts matching the applied search criteria is displayed. 
   - The post writing screen allows input of title, content, attachments, etc.
   - Additional input attributes may be displayed differently depending on the bulletin board attribute settings.
 
-![Creating Post](images/creating-post.png){width=4.20in}
+  ![Creating Post](images/creating-post.png){width=4.20in}
 
 There are required and optional values for post creation.
 
@@ -114,15 +117,10 @@ There are required and optional values for post creation.
 ![Creating Post -- Board name](images/creating-post-board-name.png){width=6.26in}
 
 - **Display Setting (Required Field):** This setting determines whether the post will be displayed or not.
-
 - **(Default) ON:** The post will be displayed once the posting period begins.
-
 - **OFF:** The post will not be displayed, regardless of the posting period.
-
   - When Display setting = OFF, the following fields become **read-only** (values are retained):
-
   - Posting period, Important Notice, Notification
-
   - The help text is replaced with the **Display OFF** guidance message.
 
 ![Creating Post -- Display setting](images/creating-post-display-setting.png){width=6.26in}
@@ -143,28 +141,21 @@ There are required and optional values for post creation.
 
 - The posting start time setting cannot exceed the posting end date, and the posting end time cannot be set before the posting start date and time.
 
-- ![](images/post-list-view-img-5.png){width=2.03in} ![](images/post-list-view-img-6.png){width=2.73in}
+   ![Calendar setting feature1](images/post-list-view-img-5.png){width=2.03in}
 
-Calendar setting feature
+   ![Calendar setting feature2](images/post-list-view-img-6.png){width=2.73in}
 
 - **Target Audience:** Selected publishing targets are published under AND conditions.
-
   - Selected values are displayed as chip filters.
-
   - (Default)Initial settings are displayed with all publishing targets selected, and the post is targeted at dealers belonging to the current publishing target group.
 
 - **Job title**: Job title (information entered in Job Management)
-
-  - Job title Display conditions
-
+  - Job title Display condition
     - Such bulletin board must be linked to a menu
-
     - The linked menu should have at least one permission applied (access/read) 
-
     - The Job Title should have saved at least one permission(access/read) of the linked menu. 
-
     - The Job Title status must be \'Active\' in DEALERS BO Job Management screen
-
+ 
 - **Dealer Distribution Group:** Dealer group (information entered in Dealer Group Management)
 
 - **Dealer:** Dealership (information entered in Dealer Management)
@@ -173,38 +164,28 @@ Calendar setting feature
 
 - **District:** Location information (information entered in Dealer Zone/District Management), regional information under Zone (when Zone is clicked, Districts belonging under Zone are displayed)
 
-- ![](images/post-list-view-img-7.png){width=6.26in}
-
-Creating Post -- Target Audience
+   ![Creating Post -- Target Audience](images/post-list-view-img-7.png){width=6.26in}
 
 - When each publishing target input field is clicked, option values are displayed, and option values can be searched in the input field. (Like search)
-
 - You can select publishing targets with checkboxes, and when the cursor moves, the selected publishing target option values are displayed in chip filter form below the input box. You can remove the publishing target option by pressing the X button on the chip filter.
-
 - Specific job titles(Dealer Principal, Dealer Admin) in the Job Title field are automatically displayed as fixed by the system and cannot be deselected by operators.\
-  ![](images/post-list-view-img-8.png){width=3.37in}
 
-Target Audience -- dropdown setting
+  ![Target Audience -- dropdown setting](images/post-list-view-img-8.png){width=3.37in}
 
 - **Important Notice**: This is a value for setting important notices.
 
   - When Enabled is selected, you can select the period to post as an important notice, and it is fixed at the top of the post list during the set period.
-
   - (Default) Disabled is selected as the initial setting.
-
 - Note) The Bulletin Highlight on the home screen shows a collection of important notice posts set in each bulletin board.
-
   - When the Important Notice period ends, only the **pinned/important effect** ends. Post visibility still follows Display setting and Posting period rules.
-
   - Notification is automatically synced with Important Notice changes.\
-    ![](images/post-list-view-img-9.png){width=5.67in}
 
-Creating Post- Important notice 1
+    ![Creating Post- Important notice 1](images/post-list-view-img-9.png){width=5.67in}
 
 - Enabled selection screen\
-  ![](images/post-list-view-img-10.png){width=5.67in}
 
-Creating Post- Important notice 2
+    ![Creating Post- Important notice 2](images/post-list-view-img-10.png){width=5.67in}
+
 
 - You can set the important notice posting period. When you click on the calendar input field, you can select the important notice posting period (date and time).
 
@@ -260,19 +241,19 @@ Creating Post- Important notice 2
 
 - After applying, you can freely edit the content. Settings other than Title and Summary are not changed.
 
-![Creating Post --Contents Template](images/creating-post-contents-template.png){width=4.20in}
+  ![Creating Post --Contents Template](images/creating-post-contents-template.png){width=4.20in}
 
 - You can use the editing tools provided by the editor tool.
 
-![Creating Post -- Title/Contents2](images/creating-post-title-contents2.png){width=5.71in}
+  ![Creating Post -- Title/Contents2](images/creating-post-title-contents2.png){width=5.71in}
 
 - When writing text content, character count is possible.
 
-![Creating Post -- Title/Contents3](images/creating-post-title-contents3.png){width=3.01in}
+  ![Creating Post -- Title/Contents3](images/creating-post-title-contents3.png){width=3.01in}
 
-- **Attachments:** You can attach files in English/French versions.![](images/post-list-view-img-11.png){width=5.76in}
+- **Attachments:** You can attach files in English/French versions.
 
-Creating Post -- Attachments 1
+  ![Creating Post -- Attachments 1](images/post-list-view-img-11.png){width=5.76in}
 
 - When Select File is clicked, a file upload window appears, and PDF format files can be attached.
 
@@ -283,9 +264,9 @@ Creating Post -- Attachments 1
 - If a file is attached, the number of attached files is displayed at the top.
 
 - When the file icon is clicked, preview is possible.\
-  ![](images/post-list-view-img-12.png){width=3.51in}
 
-Creating Post -- Attachments 2(PDF)
+  ![Creating Post -- Attachments 2(PDF)](images/post-list-view-img-12.png){width=3.51in}
+
 
 - Additional Attribute: If additional attribute values have been added in the bulletin board management menu, the additional attribute field name is displayed.
 
@@ -323,23 +304,22 @@ Creating Post -- Attachments 2(PDF)
 
 - For required fields, a value must be selected in order to save the post.
 
-- ![](images/post-list-view-img-13.png){width=6.16in}
+   ![Creating Post -- Additional attribute example 3-1](images/post-list-view-img-13.png){width=6.16in}
 
-Creating Post -- Additional attribute example 3-1
 
 - Since EN items and FR items form a pair, if you select one display value, the display value of the other language is also selected simultaneously. When changing, EN corresponds.
 
-![Creating Post -- Additional attribute example 3-2](images/creating-post-additional-attribute-example-3-2.png){width=5.84in}
+  ![Creating Post -- Additional attribute example 3-2](images/creating-post-additional-attribute-example-3-2.png){width=5.84in}
 
 - Multi Selection (dropdowns): A dropdown box is displayed, showing the values entered in the bulletin board additional attributes. Detailed content search is possible, and multiple values can be selected.
 
-![Creating Post -- Additional attribute example 4-1](images/creating-post-additional-attribute-example-4-1.png){width=5.84in}
+  ![Creating Post -- Additional attribute example 4-1](images/creating-post-additional-attribute-example-4-1.png){width=5.84in}
 
 - When multiple display values are selected, the selected display values are displayed as chip filters, and they can be deleted by clicking the X button on the chip filter.
 
 - Since EN and FR items form a pair, when clicking on the EN display value, the corresponding EN display value is automatically selected.
 
-![Creating Post -- Additional attribute example 4-2](images/creating-post-additional-attribute-example-4-2.png){width=5.64in}
+  ![Creating Post -- Additional attribute example 4-2](images/creating-post-additional-attribute-example-4-2.png){width=5.64in}
 
 - Single Selection (Radio button): The display values entered in the bulletin board additional attributes are displayed in radio buttons.
 
@@ -347,7 +327,7 @@ Creating Post -- Additional attribute example 3-1
 
   - If a required value is selected, at least one option value must be selected to be saved.
 
-![Creating Post -- Additional attribute example 5-1](images/creating-post-additional-attribute-example-5-1.png){width=6.26in}
+  ![Creating Post -- Additional attribute example 5-1](images/creating-post-additional-attribute-example-5-1.png){width=6.26in}
 
 - Input box (text): An input box is displayed, allowing users to manually enter text. This feature is primarily used to manage official document numbers linked to attachments or to track document IDs within posts.
 
@@ -355,25 +335,19 @@ Creating Post -- Additional attribute example 3-1
 
   - Input character limitations:\
     Up to 25 characters can be entered according to the following rules:
-
     - Text: English and French letters (uppercase/lowercase) are allowed
-
     - Spaces: Not allowed
-
     - Numbers: 0--9
-
     - Special characters: Only \* \# ; - \_ \' / ( ) . , ! are allowed
-
   - Duplicate input rules:\
     Duplicate values for the same Field Name within the same board are not allowed. However, the same value can be entered if either the Field Name or the Board is different.\
     When a duplicate occurs, an alert message is displayed and saving is not allowed.
 
-![Creating Post -- Additional attribute example 6-1](images/creating-post-additional-attribute-example-6-1.png){width=6.26in}
+  ![Creating Post -- Additional attribute example 6-1](images/creating-post-additional-attribute-example-6-1.png){width=6.26in}
 
-![Figure 184 Creating Post -- Additional attribute example 6-2](images/figure-184-creating-post-additional-attribute-example-6-2.png){width=5.81in}
+  ![Creating Post -- Additional attribute example 6-2](images/figure-184-creating-post-additional-attribute-example-6-2.png){width=5.81in}
 
 - Duplicate examples:
-
   - Same board + same Field Name + same value → Not allowed (e.g. (Board A) doc id = 10-10-2025 already exists → entering the same value again is not allowed.)\
     ![](images/post-list-view-img-14.png){width=4.28in}
 
@@ -385,11 +359,11 @@ Creating Post -- Additional attribute example 3-1
 
   - \[Post Preview\]: When clicking on post preview, a post preview screen similar to the front screen is displayed, and you can check both EN and FR versions.
 
-![Creating Post -- Post preview 1](images/creating-post-post-preview-1.png){width=5.08in}
+  ![Creating Post -- Post preview 1](images/creating-post-post-preview-1.png){width=5.08in}
 
-- \[Cancel\]: When clicking on exit without saving the post, an alert popup is displayed.
+- \[**Cancel**\]: When clicking on exit without saving the post, an alert popup is displayed.
 
-- \[Save\]: When clicking on save post, it verifies validity and displays popups according to the conditions below.
+- \[**Save**\]: When clicking on save post, it verifies validity and displays popups according to the conditions below.
 
 - If required values are not entered, the post cannot be saved.
 

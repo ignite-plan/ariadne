@@ -37,10 +37,11 @@ i18nPrefix: []
 - **Post status**: The posting status is displayed according to the posting period of the post.
   - **Visible**: Currently posted (when the current time is within the posting period), if it\'s currently being posted, the dot color in front of the posting status changes to green.
   - **Not visible**: The post is currently not visible. Awaiting posting (when the posting start date has not arrived) or Posting ended (when the current time is after the posting end date) -\*\* Display setting\*\*: The display setting for the post is shown.
-- **Post Attribute Information**\
-  ![](images/post-view-img-5.png){width=6.26in}
 
-**Post Detail** -- Post Attribute information
+
+- **Post Attribute Information**\
+
+    ![Post Detail -- Post Attribute information](images/post-view-img-5.png){width=6.26in}
 
 - **Posting Period**: The set posting period is shown.
 
@@ -84,31 +85,31 @@ i18nPrefix: []
 
 - Attachments (EN/FR): Attached PDF files are displayed, and when the attached file icon or file name is clicked, file preview is possible.
 
-- ![](images/post-view-img-6.png){width=6.26in}
-
-Post Detail -- Attachments 1
+   ![Post Detail -- Attachments 1](images/post-view-img-6.png){width=6.26in}
 
 - The total number of attached files is displayed in the upper left of the file, and the file size and download button are displayed to the right of the attached file.
 
 ![Post Detail -- Attachments 2](images/post-detail-attachments-2.png){width=3.44in}
 
 - When the file icon and file name are clicked, a file preview popup is displayed, and watermarks are displayed on each page of the PDF file.\
-  ![](images/post-view-img-7.png){width=4.33in}
 
-*Post Detail -- Attachments preview pop-up*
+    ![Post Detail -- Attachments preview pop-up](images/post-view-img-7.png){width=4.33in}
+
 
 - The file name and extension are displayed in the upper left of the popup window, and the full-screen view button and close button can be clicked in the upper right.
 
-![](images/post-view-img-8.png){width=5.55in}
-
-*Post Detail -- Attachments preview pop-up1*
+  ![Post Detail -- Attachments preview pop-up1](images/post-view-img-8.png){width=5.55in}
 
 - Clicking on icons from the left operates as follows:
 
-![](images/post-view-img-9.png){width=0.63in} ![](images/post-view-img-10.png){width=0.56in}\
-![](images/post-view-img-11.png){width=2.33in}![](images/post-view-img-12.png){width=2.63in}
+![](images/post-view-img-9.png){width=0.63in}
+![](images/post-view-img-10.png){width=0.56in}\
 
-**Post Detail** -- Attachments preview pop-up2 - View settings: Thumbnail preview view setting/Normal page view setting\
+  ![](images/post-view-img-11.png){width=2.33in align=center}
+  
+  ![Post Detail-- Attachments preview pop-up2](images/post-view-img-12.png){width=2.63in}
+
+- View settings: Thumbnail preview view setting/Normal page view setting\
 ![](images/post-view-img-13.png){width=1.15in} - View current page number/total page number, possible to view page by entering desired page number
 
 ![](images/post-view-img-14.png){width=1.72in}
@@ -128,11 +129,11 @@ Post Detail -- Attachments 1
 
 - Page rotation: 90 degrees rotation to the left
 
-- ![](images/post-view-img-21.png){width=0.75in}
+     ![](images/post-view-img-21.png){width=0.75in}
 
 - When the download button is clicked, it moves to the PDF file download page, and the file with watermark can be downloaded
 
-  - ![](images/post-view-img-22.png){width=0.56in}
+       ![](images/post-view-img-22.png){width=0.56in}
 
   - When the print button is clicked, the print settings page is displayed, and the file with watermark can be printed
 
@@ -146,7 +147,7 @@ Post Detail -- Attachments 1
 
   - If the Search Availability value is OFF, the Dot is displayed in gray and the search filter is not displayed.
 
-![Post Detail -- Attachments preview pop-up](images/post-detail-attachments-preview-pop-up.png){width=6.26in}
+  ![Post Detail -- Attachments preview pop-up](images/post-detail-attachments-preview-pop-up.png){width=6.26in}
 
 - If the additional attribute value is period or date selection, the selected period and date are shown.
 
@@ -177,24 +178,26 @@ Post Detail -- Attachments 1
   - **User ID**: Displays the name and User ID (employee number) of the user who performed the action
     - **Auto Status Update**: If automatically changed by the system due to set time or trigger, it is marked as \'Auto Status Update\'
 
-![Post Detail -- Change history](images/post-detail-change-history.png){width=5.81in}
+  ![Post Detail -- Change history](images/post-detail-change-history.png){width=5.81in}
 
 - **Comments**: Comments on the post are viewed.
 
-![Post Detail -- Comments 1](images/post-detail-comments-1.png){width=6.26in}
+  ![Post Detail -- Comments 1](images/post-detail-comments-1.png){width=6.26in}
 
 - Name, employee number, and author display are shown, and when you write a comment and click the Save button, the comment is registered.
 
-- When a comment is registered, the total number of comments is displayed to the right of the Comments title. ![Post Detail -- Comments 2](images/post-detail-comments-2.png){width=6.04in}
+- When a comment is registered, the total number of comments is displayed to the right of the Comments title.
+
+  ![Post Detail -- Comments 2](images/post-detail-comments-2.png){width=6.04in}
 
 - For comments you wrote yourself, a more options display appears on the right, and when clicked, you can edit and delete the comment.
 
 - Bottom action buttons are provided.
 
-- \[View List\]: Move to list
+- \[**View List**\]: Move to list
 
-- \[Delete\]: The delete button is only displayed for posts that have never been published, and when the button is clicked, permissions are verified and deletion is only possible if you have permission to write posts.
+- \[**Delete**\]: The delete button is only displayed for posts that have never been published, and when the button is clicked, permissions are verified and deletion is only possible if you have permission to write posts.
 
   - Deletion is only possible if you have permission
 
-- \[Edit\]: After checking if you have permission to modify the post at the time of clicking, if you have permission, you enter the modification screen.
+- **\[Edit\]**: After checking if you have permission to modify the post at the time of clicking, if you have permission, you enter the modification screen.

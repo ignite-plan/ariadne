@@ -9,32 +9,25 @@ i18nPrefix: []
 
 • You can edit the content of existing posts or change posting conditions.
 
-Editing Post -- post attribute information 1
+   ![Editing Post -- post attribute information 1](images/editing-post-basic.png){width=4.20in} 
 
-![Editing Post - Basic](images/editing-post-basic.png){width=4.20in}
+  ![Editing Post -- post attribute information 2](images/editing-post-contents.png){width=4.20in} 
 
-![Editing Post - Contents](images/editing-post-contents.png){width=4.20in}
+![Editing Post -- post attribute information3](images/editing-post-post-attribute-information-1.png){width=4.20in}
 
-Editing Post -- post attribute information 2
-
-![Editing Post -- post attribute information 1](images/editing-post-post-attribute-information-1.png){width=4.20in}
-
-Editing Post -- post attribute information3
 
 - **Menu Display Status**: Shows whether the menu linked to the board is visible on the front-end screen.
 
-![](images/post-editing-img-1.png){width=6.26in}
+![Menu Display Status](images/post-editing-img-1.png){width=6.26in}
 
 - When the tenant's mobile web is ON, both values are shown (for example, "PC: Visible \| Mobile: Not Visible"). When it is OFF, only one value (Visible / Not Visible) is shown.
 
-• When modifying the posting period, the following policy applies: ![](images/post-editing-img-2.png){width=6.26in}
+• When modifying the posting period, the following policy applies:
 
-Editing Post -- Posting period 1
+  ![Editing Post -- Posting period 1](images/post-editing-img-2.png){width=6.26in}
 
 - When the posting period is modified, it changes to the modified posting period.
-
 - The posting start date and time cannot be modified to a past time from the current point.
-
 - When modifying the posting period of an important notice post, the following policy applies:
 
 ![Editing Post -- Important Notice 1](images/editing-post-important-notice-1.png){width=4.88in}
@@ -63,15 +56,15 @@ Editing Post -- Posting period 1
 
 - The entered values for Title/Content (EN/FR) are displayed.
 
-![Editing Post -- Contents 1](images/editing-post-contents-1.png){width=6.26in}
+  ![Editing Post -- Contents 1](images/editing-post-contents-1.png){width=6.26in}
 
 - **\[Load Template\]**: Fills the Title and Summary (EN/FR) with a saved template.
 
-![Template overwrite pop-up](images/template-overwrite-pop-up.png){width=3.40in}
+  ![Template overwrite pop-up](images/template-overwrite-pop-up.png){width=3.40in}
 
 - On the edit screen, a confirmation popup always appears first. Select **\[Confirm\]** to continue or **\[Cancel\]** to stop. (On the Post Details screen for a new post, this popup appears only when something has already been entered.)
 
-- [**Translation banner**: A banner is displayed at the top of the FR area. It contains the **\[EN → FR Translate\]** button and the notice "Clicking the left button will translate the English text entered above and display the French translation in the field below." Only EN to FR translation is supported. The banner is displayed only to users with Write permission for creating and editing posts (it is hidden for Read-only users), and it is currently available only for tenants with two languages (EN, FR).]{.mark}
+- [**Translation banner**: This is a Tenant Feature. A banner is displayed at the top of the FR area. It contains the **\[EN → FR Translate\]** button and the notice "Clicking the left button will translate the English text entered above and display the French translation in the field below." Only EN to FR translation is supported. The banner is displayed only to users with Write permission for creating and editing posts (it is hidden for Read-only users), and it is currently available only for tenants with two languages (EN, FR).]{.mark}
 
   - [**\[Translate\]** is enabled when the Title or Summary in the EN area has any content. If both are empty, it is disabled.]{.mark}
 
