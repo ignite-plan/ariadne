@@ -563,11 +563,15 @@ i18nPrefix: []
 
     - **\[Review Fields\]:** Returns to the first screen with missing required information. On that screen, any required fields will be highlighted in red.
 
-![](images/dealer-creation-screen-img-2.png){width=4.16in}
+![Failed notice](images/dealer-creation-screen-img-2.png){width=4.16in}
+
 
 - **When dealer creation succeeds**
 
-![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in}
+
+![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in} 
+
+
 
 - Once the **dealer creation** is complete, a confirmation message will be displayed, prompting you to proceed with the creation of the **Dealer Principal's ID**.
 

@@ -13,11 +13,13 @@ i18nPrefix: []
 
 - Each tab can be edited separately depending on the type of information.
 
-![Dealer Detail - Basic Information](images/dealer-detail-basic-information.png){width=6.26in}
+ ![Dealer Detail - Basic Information](images/dealer-detail-basic-information.png){width=6.26in} 
+
 
 - **Dealer basic information**
 
-![Dealer Basic Information1](images/dealer-basic-information1-2.png){width=6.26in}
+ ![Dealer Basic Information1](images/dealer-basic-information1-2.png){width=6.26in} 
+
 
 - **Dealer name**: Internally managed name.
 
@@ -384,9 +386,9 @@ This screen can be accessed by clicking the Business Info tab.
 - **Change Dealer Principal**:\
   Clicking the **\[Reassign Dealer Principal\]** button next to the **User No.** opens a pop-up where you can change the Dealer Principal.
 
-![](images/dealer-detail-view-edit-screen-img-2.png){width=5.65in}
+![Search User Popup](images/dealer-detail-view-edit-screen-img-2.png){width=5.65in}
 
-Search User Popup
+
 
 - The dealer principal can only be selected from among dealer employees belonging to that dealership.
 
