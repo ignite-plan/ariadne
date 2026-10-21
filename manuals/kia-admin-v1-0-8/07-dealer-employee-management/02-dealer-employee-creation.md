@@ -243,7 +243,7 @@ This is the Create Dealer Employee screen for creating a new dealer employee acc
 
 
 
-****Dealer Employee View****
+**Dealer Employee View**
 
 - From the dealer employee list, you can view detailed information about a dealer employee by clicking on their ID or name.
 
@@ -258,33 +258,34 @@ This is the Create Dealer Employee screen for creating a new dealer employee acc
 
 - If registering the employee\'s permissions failed, a **\"Job Assignment Needed\"** badge will be displayed.
 
-- **Basic information**
+**Basic information**
 
-- User No.: A system-generated user number.
+  - User No.: A system-generated user number.
+  
+  <!-- -->
+  
+  - Name: Employee\'s name information is displayed
+  
+  -    Status: The status of the account
+  
+  -   ID
 
-<!-- -->
-
-- Name: Employee\'s name information is displayed
-
-
--    Status: The status of the account
-
--   ID
-
-  -   If not created: The message \"Account creation is required\" will be displayed.
-    
-  -   If created: The ID will be displayed.
+      -   If not created: The message \"Account creation is required\" will be displayed.
+        
+      -   If created: The ID will be displayed.
   
 -    Resend Invitation
   
-  -  Resends the account activation email to employees who have not completed registration.
-  -  Displayed when the employee has an ID and is in Not Registered status.
-  -   The system checks the employee\'s current registration status via the ID.
--       - If still Not Registered → requests HMG Notification to resend the email
-     - If already Registered → hides the Resend Invitation and Resend Invitation Log buttons.
+      -  Resends the account activation email to employees who have not completed registration.
+      -  Displayed when the employee has an ID and is in Not Registered status.
+      -   The system checks the employee\'s current registration status via the ID.
 
-**    Resend Invitation Log
-**
+      - If still Not Registered → requests HMG Notification to resend the email
+     
+       - If already Registered → hides the Resend Invitation and Resend Invitation Log buttons.
+
+ Resend Invitation Log
+
 - Shows a list of successful manual resend attempts only.
 
 - Available only while the employee has not completed registration.
@@ -293,13 +294,12 @@ This is the Create Dealer Employee screen for creating a new dealer employee acc
 
 <!-- -->
 
-**- Password:
-**  
-  -   Provides a \[Reset Password\] button to reset the password.
+- Password:
+  -  Provides a \[Reset Password\] button to reset the password.
   
   - sending a **URL to set a new password** to the registered email address.
 
--   **Account Email:**  Employee\'s email information. The email address linked to the HMG Partner ID.
+-   Account Email:  Employee\'s email information. The email address linked to the ID.
 
 -   Business phone: Employee\'s work phone number
 
@@ -309,35 +309,35 @@ This is the Create Dealer Employee screen for creating a new dealer employee acc
 
 -   Age: Displays the age calculated based on the dealer employee\'s birthday information
 
-  **Kia Start Date:** Displays the period calculated based on the date the employee started working at Kia up to today.
+-   Kia Start Date: Displays the period calculated based on the date the employee started working at Kia up to today.
 
-  -   The working period is displayed by calculating only the year and month information.
+    -   The working period is displayed by calculating only the year and month information.
 
-  -   Calculated as 1 month from the month when employment began.
+    -   Calculated as 1 month from the month when employment began.
 
--     **Year of CEO Enrollment:** The year the CEO began working at the dealership. This column is displayed only for the Dealer Principal.
+- Year of CEO Enrollment: The year the CEO began working at the dealership. This column is displayed only for the Dealer Principal.
 
 <!-- -->
 
-- **Role & organization information**
+**Business information**
 
 <!-- -->
 
 - Dealer: The name of the dealership to which the employee belongs is indicated.
 
-  Business Email: The business email address of the employee. Notification emails for posts published on Dealers will be sent to this email.
+-   Business Email: The business email address of the employee. Notification emails for posts published on Dealers will be sent to this email.
 
-  Job title: Displays the job title assigned to the account.
+
 
 <!-- -->
 
-- **Menu Permission**
-
+- **Job & Menu Permission**
+-   Job title: Displays the job title assigned to the account.
 <!-- -->
 
 - Displays the menu-level permissions granted through the employee's job assignment as well as any individually added permissions.
 
-  Only the menus and permissions assigned to the employee will be shown.
+-   Only the menus and permissions assigned to the employee will be shown.
 
 <!-- -->
 
@@ -351,17 +351,17 @@ This is the Create Dealer Employee screen for creating a new dealer employee acc
 
 ![Change History Popup](images/change-history-popup-2.png){width=6.26in}
 
-**Change Date**: The date and time when the change occurred.
+- **Change Date**: The date and time when the change occurred.
+  
+- **Change Info**: The specific field that was updated.
+ 
+- **Change Details**: Detailed information about what was changed.
+ 
+- **Updated By**: The **User ID** of the person who made the change.
+ 
+  - If the change was made from the **FO (Front Office)**, the ** ID** will be shown.
 
-**Change Info**: The specific field that was updated.
-
-**Change Details**: Detailed information about what was changed.
-
-**Updated By**: The **User ID** of the person who made the change.
-
-If the change was made from the **FO (Front Office)**, the **HMG Partner ID** will be shown.
-
-If the change was made from the **BO (Back Office)**, the **Login ID** will be shown.
+  - If the change was made from the **BO (Back Office)**, the **Login ID** will be shown.
 
 - Action buttons are provided at the bottom
 
@@ -373,7 +373,7 @@ If the change was made from the **BO (Back Office)**, the **Login ID** will be s
 
 <!-- -->
 
-- Dealer Employee Editing
+**Dealer Employee Editing**
 
 
 
@@ -382,11 +382,11 @@ If the change was made from the **BO (Back Office)**, the **Login ID** will be s
 
 When modifying dealer information, the screen displays the fields entered during dealer creation, and most are provided in a form that can be modified.
 
-- If the HMG Partner ID has not been created, changing the status to Active will enable HMG Partner ID creation.
+- If the HMG Partner ID has not been created, changing the status to Active will enable ID creation.
 
 Initial Active Status applied
 
-- As shown on the creation screen, you can either create a new HMG Partner ID or link a user who already has an existing HMG Partner ID.
+- As shown on the creation screen, you can either create a new  ID or link a user who already has an existing  ID.
 
 - The account creation process will follow the **same flow as in the Dealer Employee Creation** screen.
 
@@ -394,7 +394,7 @@ Initial Active Status applied
 
   - If the user is associated with multiple dealers,
 
-    - editing this information will also update the data for all employees sharing the same HMG Partner ID.
+    - editing this information will also update the data for all employees sharing the same ID.
 
     - Name (First/Last Name)
 
@@ -421,7 +421,7 @@ Initial Active Status applied
 
     - If the dealership affiliation changes, the Business Email must be re-entered.
 
-    - Dealer Principals and Super Admins cannot change their dealership directly. They must modify their Job first to change the dealership information.
+    - Dealer Principals cannot change their dealership directly. They must modify their Job first to change the dealership information.
 
 
 - **Job & Menu Permission**
