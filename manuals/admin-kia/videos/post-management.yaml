@@ -1,0 +1,466 @@
+title: Post Management
+intro: This video shows how to find boards, manage posts, create a new post, and
+  use templates in Post Management.
+sections:
+  - 10-post-management/00-intro.md
+maskPersonal: true
+scenes:
+  - say: Post Management is where you create and manage posts for each bulletin
+      board.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          text: Dealer Management
+      - click:
+          role: link
+          name: Post Management
+      - waitFor:
+          text: Board ID / Board Name
+      - highlight:
+          target:
+            role: heading
+            name: Post Management
+          ms: 2000
+  - say: The list shows every board with its ID, name, menu mapping, menu path, and
+      who created or updated it. System boards like Announcement are marked with
+      a System badge.
+    steps:
+      - highlight:
+          target:
+            text: Total
+          ms: 1500
+      - highlight:
+          target:
+            text: System
+          ms: 1500
+  - say: Search by board name or board ID.
+    steps:
+      - click:
+          role: combobox
+          name: Board Name
+      - pause: 1500
+      - click:
+          role: option
+          name: Board Name
+      - type:
+          target:
+            placeholder: Please enter the board name
+          text: General
+      - click:
+          role: button
+          name: Search
+      - pause: 2000
+  - say: You can also search by who created or last updated the board.
+    steps:
+      - click:
+          role: combobox
+          name: Created By
+      - pause: 1500
+      - click:
+          role: option
+          name: Created By
+      - highlight:
+          target:
+            placeholder: Please enter the user name or ID
+          ms: 1500
+  - say: Filter by created or updated date range.
+    steps:
+      - click:
+          role: combobox
+          name: All
+      - pause: 1500
+      - click:
+          role: option
+          name: All
+  - say: By default, only boards mapped to a menu are shown. Choose All or No to see
+      the others.
+    steps:
+      - highlight:
+          target:
+            text: Menu-Board Mapping
+          ms: 2000
+  - say: You can also narrow the list by the menu each board belongs to.
+    steps:
+      - click:
+          placeholder: Please select the menu
+      - pause: 2000
+      - click:
+          role: heading
+          name: Post Management
+  - say: Click Reset to clear all filters.
+    steps:
+      - click:
+          role: button
+          name: Reset
+      - pause: 1500
+  - say: Click a board name to open its post list.
+    steps:
+      - click:
+          role: row
+          name: General Board - 20 Yes Bulletin Board
+      - waitFor:
+          text: Go to Manage Board
+      - pause: 2000
+  - say: At the top, check whether the board is mapped to a menu and whether that
+      menu is visible on the front end.
+    steps:
+      - highlight:
+          target:
+            text: Menu-Board Mapping
+          ms: 1500
+      - highlight:
+          target:
+            text: Menu Display Status
+          ms: 2000
+  - say: To change board settings, use Go to Manage Board.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Manage Board
+          ms: 1500
+  - say: "This page has two tabs: Post List and Template Management."
+    steps:
+      - highlight:
+          target:
+            role: tab
+            name: Post List
+          ms: 1500
+      - highlight:
+          target:
+            role: tab
+            name: Template Management
+          ms: 1500
+  - say: Search posts by title, author, or post ID.
+    steps:
+      - click:
+          role: combobox
+          name: Title
+      - pause: 1500
+      - click:
+          role: option
+          name: Title
+  - say: Enter a keyword and click Search.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the title.
+          text: Marketing
+      - click:
+          role: button
+          name: Search
+      - pause: 2000
+  - say: "Filter by display setting: all posts, only ON, or only OFF."
+    steps:
+      - highlight:
+          target:
+            text: Display setting
+          ms: 1500
+  - say: Filter by created date, updated date, or posting period. The default range
+      is the past year, in EST.
+    steps:
+      - click:
+          role: combobox
+          name: Updated date
+          nth: 0
+      - pause: 1500
+      - click:
+          role: option
+          name: Updated date
+  - say: Each row shows the post ID, title, author, attachments, dates, posting
+      period, display setting, post status, and comment count. A pin icon marks
+      an important notice.
+    steps:
+      - highlight:
+          target:
+            text: Total
+          ms: 1500
+      - pause: 2000
+  - say: Change the sort order by date or title.
+    steps:
+      - click:
+          text: Updated date Latest
+      - pause: 2000
+      - click:
+          role: option
+          name: Updated date Latest
+  - say: Choose how many posts to show per page.
+    steps:
+      - click:
+          text: 20 per page
+      - pause: 1500
+      - click:
+          role: option
+          name: "20"
+  - say: You can turn a post's display setting on or off directly from the list.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Display Setting
+          ms: 2000
+  - say: Click a post title to see its details.
+    steps:
+      - click:
+          role: link
+          name: 2026 Marketing Support Program
+      - waitFor:
+          text: Post Status Information
+      - pause: 1500
+  - say: Post Status Information shows the board and whether the menu is visible on
+      PC and mobile. If the parent menu is hidden, the post won't appear either.
+    steps:
+      - highlight:
+          target:
+            text: Post Status Information
+          ms: 1500
+      - highlight:
+          target:
+            text: Menu Display Status
+          ms: 2000
+  - say: Each post has a unique ID. Click Copy Front-end URL to share a direct link.
+    steps:
+      - click:
+          role: button
+          name: Copy Front-end URL
+      - pause: 1500
+  - say: Post Status shows whether the post is currently visible. Display Setting ON
+      means it's visible during the posting period, and OFF means it's always
+      hidden.
+    steps:
+      - highlight:
+          target:
+            text: Shows if the post is visible on the frontend
+          ms: 1500
+      - highlight:
+          target:
+            text: "Display setting: ON = visible during posting period"
+          ms: 1500
+  - say: Post Attribute Information shows the posting period and the target audience
+      by job title, distribution group, dealer, zone, and district.
+    steps:
+      - highlight:
+          target:
+            text: Posting Period
+          ms: 1500
+      - highlight:
+          target:
+            text: Target Audience
+          ms: 2000
+  - say: Important Notice pins the post to the top for a set period. Notification
+      sends an email to the target audience when posting starts.
+    steps:
+      - highlight:
+          target:
+            text: Important Notice
+          ms: 1500
+      - highlight:
+          target:
+            text: Notifications are sent to the target audience
+          ms: 1500
+  - say: Below are the title, summary, and attachments.
+    steps:
+      - highlight:
+          target:
+            text: No attachments available.
+          ms: 1500
+  - say: Change History records every update to the post.
+    steps:
+      - highlight:
+          target:
+            text: Change History
+          ms: 1500
+  - say: Admins can view and leave comments here.
+    steps:
+      - highlight:
+          target:
+            placeholder: Please write a comment.
+          ms: 1500
+  - say: Click Edit to update the post. The edit form is the same as the new post
+      form, with current values filled in.
+    steps:
+      - click:
+          role: button
+          name: Edit
+      - pause: 2000
+      - click:
+          role: button
+          name: Cancel
+      - waitFor:
+          text: Post Status Information
+      - pause: 1500
+  - say: You can delete a post only before its posting period starts. Once a post
+      has started, the Delete button is no longer shown.
+    steps:
+      - highlight:
+          target:
+            text: Posting Period
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: Edit
+          ms: 1500
+  - say: To create a post, go back to the list and click New Post.
+    steps:
+      - click:
+          role: button
+          name: View List
+      - waitFor:
+          text: Go to Manage Board
+      - click:
+          role: button
+          name: New Post
+      - waitFor:
+          text: Load Template
+      - pause: 1500
+  - say: Set Display Setting to ON to show the post during its posting period.
+    steps:
+      - highlight:
+          target:
+            text: Display Setting
+          ms: 1500
+  - say: The start time defaults to now. Uncheck No End Date to set an end date.
+    steps:
+      - click:
+          role: checkbox
+          name: No End Date
+      - pause: 1500
+      - click:
+          role: checkbox
+          name: No End Date
+  - say: Choose who can see the post. Each field defaults to All, or you can pick
+      specific job titles, groups, dealers, zones, or districts.
+    steps:
+      - click:
+          placeholder: Select
+          nth: 0
+      - pause: 2000
+  - say: Enable Important Notice to pin the post to the top, then set the pin
+      period.
+    steps:
+      - click:
+          role: radio
+          name: ENABLED
+          nth: 0
+      - pause: 2000
+  - say: Enable Notification to send email and notifications to the target audience
+      when posting starts.
+    steps:
+      - click:
+          role: radio
+          name: ENABLED
+          nth: 1
+      - pause: 2000
+  - say: Enter the title in English, up to 300 characters.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the post title (max 300 characters).
+            nth: 0
+          text: Sample Post
+  - say: Write the summary with the editor. You can format text and insert links,
+      images, and tables.
+    steps:
+      - highlight:
+          target:
+            text: Summary(EN)
+          ms: 1500
+      - pause: 2000
+  - say: Enter the French title and summary in the same way.
+    steps:
+      - highlight:
+          target:
+            text: Title(FR)
+          ms: 1500
+  - say: Click Load Template to fill in the title and content from a saved template.
+    steps:
+      - click:
+          role: button
+          name: Load Template
+      - pause: 3000
+      - click:
+          role: button
+          name: Cancel
+          within:
+            role: dialog
+  - say: Attach up to five files per language, up to 100MB each, or use the same
+      files for both languages.
+    steps:
+      - highlight:
+          target:
+            text: Attachments(EN)
+          ms: 1500
+      - highlight:
+          target:
+            text: Use same attachments for both English and French
+          ms: 1500
+  - say: Click Post Preview to check how the post will look in English and French.
+    steps:
+      - click:
+          role: button
+          name: Post Preview
+      - waitFor:
+          text: Please note that this is for reference only
+      - pause: 1500
+      - click:
+          role: tab
+          name: French
+      - pause: 1500
+      - click:
+          role: button
+          name: 닫기
+  - say: " If you cancel, you'll be asked to confirm. Click Discard to leave without
+      saving."
+    steps:
+      - click:
+          role: button
+          name: Cancel
+      - waitFor:
+          text: Leave without saving?
+      - pause: 1500
+      - highlight:
+          target:
+            role: button
+            name: Discard
+          ms: 1500
+  - say: Templates help you fill in posts quickly. Only active templates, up to 20,
+      are available when writing a post.
+    steps:
+      - open: /board/5/post
+      - waitFor:
+          text: Go to Manage Board
+      - click:
+          role: tab
+          name: Template Management
+      - waitFor:
+          text: New Template
+      - highlight:
+          target:
+            text: Templates help you quickly fill
+          ms: 2500
+  - say: Click New Template, set its status to Active or Inactive, and enter the
+      title and summary in English and French.
+    steps:
+      - click:
+          role: button
+          name: New Template
+      - waitFor:
+          text: Status
+      - highlight:
+          target:
+            text: Status
+          ms: 1500
+      - highlight:
+          target:
+            role: tab
+            name: EN
+          ms: 1500
+      - highlight:
+          target:
+            role: tab
+            name: FR
+          ms: 1500
+      - click:
+          role: button
+          name: Cancel
