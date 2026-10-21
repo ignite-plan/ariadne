@@ -40,7 +40,8 @@ export async function manuals({ app, page, step, snap, toast, workspace }: Smoke
     await page.keyboard.press('Escape')
 
     await page.locator('.manual-switch').click()
-    await page.locator('.menu button', { hasText: 'Dealers Admin User Manual' }).click()
+    // 제목이 비슷한 매뉴얼(…-KIA 등)이 있어 id로 고른다
+    await page.locator('.manual-row').filter({ has: page.locator('span', { hasText: /^bo · v/ }) }).locator('button').first().click()
     await page.locator('.manual-switch', { hasText: 'Dealers Admin User Manual' }).waitFor()
     await page.getByRole('tab', { name: /변경/ }).click()
     await page.getByRole('button', { name: '모두 되돌리기' }).click()
