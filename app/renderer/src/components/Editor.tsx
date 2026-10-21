@@ -20,6 +20,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { MARK_RE, toggleCenter, toggleMark } from '../../../shared/markdown-edit.ts'
 import type { ReviewHunk } from '../../../shared/review-diff.ts'
 import { editorSearch, openSearch } from '../editor-search.ts'
+import { imageToInsert } from '../paste.ts'
 
 // Claude가 바꾼 줄 왼쪽에 막대를 그린다 (본문에는 아무것도 넣지 않는다). 줄 번호는 지금 본문 기준
 function reviewLines(hunks: ReviewHunk[]) {
@@ -217,15 +218,16 @@ export const Editor = forwardRef<
           if (u.docChanged) callbacks.current.onChange(u.state.doc.toString())
         }),
         EditorView.domEventHandlers({
+          // 글자가 있으면 글자로 (Word에서 복사한 문장에 같이 들어 있는 그림은 무시), 그림만 있을 때 이미지 넣기
           paste(event) {
-            const file = [...(event.clipboardData?.files ?? [])].find((f) => f.type.startsWith('image/'))
+            const file = imageToInsert(event.clipboardData)
             if (!file) return false
             event.preventDefault()
             callbacks.current.onImageFile(file)
             return true
           },
           drop(event) {
-            const file = [...(event.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/'))
+            const file = imageToInsert(event.dataTransfer)
             if (!file) return false
             event.preventDefault()
             callbacks.current.onImageFile(file)

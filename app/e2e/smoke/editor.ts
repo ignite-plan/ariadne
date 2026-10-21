@@ -107,6 +107,35 @@ export async function editor({ page, step, snap, toast, workspace }: Smoke) {
     assert.equal(readFileSync(sectionFile, 'utf8'), original)
   })
 
+  await step('붙여넣기: Word 글자(글자 + 그림)는 글자로, 그림만 있으면 이미지 넣기', async () => {
+    await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.cm-content').click()
+    await page.keyboard.press('Meta+ArrowDown')
+    // Word처럼 글자와 그 부분을 찍은 그림을 같이 넣은 클립보드
+    const paste = (text: string) =>
+      page.evaluate((text) => {
+        // 앱 CSP가 data: fetch를 막으므로 1x1 PNG 바이트를 직접 만든다
+        const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0))
+        const data = new DataTransfer()
+        if (text) data.setData('text/plain', text)
+        data.items.add(new File([png], 'image.png', { type: 'image/png' }))
+        document.querySelector('.cm-content')!.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }))
+      }, text)
+    await paste('\n- Pasted from Word E2E')
+    await page.locator('.cm-content', { hasText: 'Pasted from Word E2E' }).waitFor()
+    assert.equal(await page.getByRole('dialog', { name: '이미지 넣기' }).count(), 0, 'Word 글자는 이미지 넣기 창을 열지 않는다')
+    // 그림만 있으면 지금처럼 이미지 넣기
+    await paste('')
+    await page.getByRole('dialog', { name: '이미지 넣기' }).waitFor()
+    await page.getByRole('dialog', { name: '이미지 넣기' }).getByRole('button', { name: '취소' }).click()
+    // 붙여 넣은 글자를 되돌려 원래대로
+    await page.getByTitle('되돌리기 (⌘Z)').click()
+    await page.waitForFunction(() => !document.querySelector('.cm-content')?.textContent?.includes('Pasted from Word E2E'))
+    await page.waitForFunction(() => document.querySelector('.save-state')?.textContent === '저장됨')
+    await page.waitForTimeout(1500)
+    assert.equal(readFileSync(sectionFile, 'utf8'), original)
+  })
+
   await step('미리보기 범위: 전체(Word와 같은 내용) → 이 장 → 다른 화면 편집 → Word 메뉴의 만들기 전 전체 보기', async () => {
     const bar = page.locator('.preview-bar')
     await bar.getByRole('button', { name: '전체', exact: true }).click()
