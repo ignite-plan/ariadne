@@ -3036,3 +3036,32 @@ fieldset.lock:disabled {
   outline: 2px solid var(--danger);
   background: var(--danger-soft);
 }
+
+/* 매뉴얼 메뉴: 줄마다 삭제 버튼 (마우스를 올리면 보인다) */
+.menu .manual-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.menu .manual-row > button:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.menu .manual-row .manual-delete {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  color: var(--text-3);
+}
+.menu .manual-row:hover .manual-delete,
+.menu .manual-delete:focus-visible {
+  opacity: 1;
+}
+.menu .manual-row .manual-delete:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}

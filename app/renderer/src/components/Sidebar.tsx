@@ -283,9 +283,10 @@ function ChangesTab({
               title={c.path}
             >
               {c.kind === 'image' && <Icon name="image" size={13} />}
+              {c.kind === 'manual-removed' && <Icon name="trash" size={13} />}
               {c.label}
             </button>
-            {c.kind !== 'image' && (
+            {c.kind !== 'image' && c.kind !== 'manual-removed' && (
               <button className="icon-button small" title="변경 보기" onClick={() => onDiff(c)}>
                 <Icon name="diff" size={13} />
               </button>

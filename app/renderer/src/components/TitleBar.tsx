@@ -1,6 +1,6 @@
 // 편집 화면 상단 바: 매뉴얼 고르기, 동기화, 작업 표시, 캡처·영상·Word 만들기·제출·설정
 import { useState } from 'react'
-import type { ManualTree, SyncState } from '../../../shared/api.ts'
+import type { ManualInfo, ManualTree, SyncState } from '../../../shared/api.ts'
 import { api } from '../api.ts'
 import { useTasks } from '../tasks.tsx'
 import { Icon, type IconName } from './Icon.tsx'
@@ -28,6 +28,7 @@ export function TitleBar({
   onSync,
   onSwitchManual,
   onImport,
+  onManualDeleted,
   onCapture,
   onPreviewAll,
   onSubmit,
@@ -43,6 +44,7 @@ export function TitleBar({
   onSync: () => void
   onSwitchManual: (id: string) => void
   onImport: () => void
+  onManualDeleted: (manual: ManualInfo) => void
   onCapture: () => void
   // Word 만들기 전 전체 보기 (미리보기를 전체 범위로)
   onPreviewAll: () => void
@@ -67,7 +69,7 @@ export function TitleBar({
           <span className="brand-mark" />
           Ariadne
         </div>
-        <ManualSwitcher current={tree?.manual} title={tree?.title} version={tree?.version} onSwitch={onSwitchManual} onImport={onImport} />
+        <ManualSwitcher current={tree?.manual} title={tree?.title} version={tree?.version} onSwitch={onSwitchManual} onImport={onImport} onDeleted={onManualDeleted} />
         {sync && syncInfo && (
           <button className={`sync-badge ${sync.status}`} onClick={onSync} disabled={syncing} title={sync.message || '원격에서 받아오기'}>
             <Icon name={syncing ? 'sync' : syncInfo.icon} size={13} className={syncing ? 'spin' : ''} />

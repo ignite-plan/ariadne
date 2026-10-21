@@ -50,6 +50,34 @@ export async function manuals({ app, page, step, snap, toast, workspace }: Smoke
     await page.getByRole('tab', { name: '목차' }).click()
   })
 
+  await step('매뉴얼 삭제: 다른 매뉴얼 지우기 → 변경 탭에 한 줄 → 되돌리면 복구', async () => {
+    const target = join(workspace, 'manuals/front-en')
+    assert.ok(existsSync(join(target, 'manual.yaml')), 'FO 매뉴얼이 리포에 있다')
+    await page.locator('.manual-switch').click()
+    // 지금 매뉴얼(BO)에는 삭제 버튼이 없다
+    const current = page.locator('.manual-row', { has: page.locator('button.current') })
+    assert.equal(await current.locator('.manual-delete').count(), 0)
+    const row = page.locator('.manual-row', { hasText: 'front-en ·' })
+    await row.hover()
+    await row.locator('.manual-delete').click()
+    const dialog = page.getByRole('dialog', { name: '매뉴얼 삭제' })
+    // id를 입력해야 지울 수 있다
+    assert.ok(await dialog.getByRole('button', { name: '삭제' }).isDisabled())
+    await dialog.getByLabel('매뉴얼 id 확인').fill('front-en')
+    await dialog.getByRole('button', { name: '삭제' }).click()
+    await toast(/매뉴얼을 지웠습니다/).waitFor()
+    assert.ok(!existsSync(target))
+    const item = page.locator('.change-item', { hasText: /매뉴얼 삭제: front-en \(파일 \d+개\)/ })
+    await item.waitFor({ timeout: 15000 })
+    assert.equal(await page.locator('.change-item').count(), 1, '파일 수백 개가 아니라 한 줄')
+    await snap('10b-delete-manual')
+    await item.getByTitle('변경 되돌리기').click()
+    await page.getByRole('dialog').getByRole('button', { name: '되돌리기' }).click()
+    await page.locator('.empty', { hasText: '제출할 변경이 없습니다' }).waitFor({ timeout: 30000 })
+    assert.ok(existsSync(join(target, 'manual.yaml')), '되돌리면 매뉴얼이 돌아온다')
+    await page.getByRole('tab', { name: '목차' }).click()
+  })
+
   await step('목차 끌어 놓기로 장 순서 바꾸기 → 되돌리기', async () => {
     const titles = () => page.locator('.toc-chapter-title .ellipsis').allTextContents()
     const before = await titles()

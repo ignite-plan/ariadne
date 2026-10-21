@@ -34,6 +34,28 @@ export function listManuals(root: string) {
     .map((d) => d.name)
 }
 
+// 매뉴얼 하나의 화면·이미지 수 (매뉴얼 목록, 삭제 확인)
+export function manualStats(root: string, id: string) {
+  const manual = loadManual({ root, manual: id })
+  const imagesDir = join(root, 'manuals', id, 'images')
+  return {
+    sections: manual.chapters.reduce((n, c) => n + c.sections.length, 0),
+    images: existsSync(imagesDir) ? readdirSync(imagesDir).filter((f) => !f.startsWith('.')).length : 0,
+  }
+}
+
+// 매뉴얼 하나를 통째로 지운다 (manuals/<id>/ 전체와 내 PC의 캡처 기록 .capture/<id>).
+// 지금 열린 매뉴얼과 마지막 하나는 지우지 않는다. 제출 전에는 변경 탭에서 되돌릴 수 있다
+export function deleteManual(root: string, id: string, current: string) {
+  if (!ID_PATTERN.test(id)) throw new Error(`매뉴얼 id는 ${ID_RULE}`)
+  const manuals = listManuals(root)
+  if (!manuals.includes(id)) throw new Error(`매뉴얼이 없습니다: ${id}`)
+  if (id === current) throw new Error('지금 열린 매뉴얼은 지울 수 없습니다. 다른 매뉴얼로 바꾼 뒤 지우세요')
+  if (manuals.length <= 1) throw new Error('매뉴얼이 하나뿐이라 지울 수 없습니다')
+  rmSync(join(root, 'manuals', id), { recursive: true, force: true })
+  rmSync(join(root, '.capture', id), { recursive: true, force: true })
+}
+
 // manual.yaml에 등록된 섹션만 연다 (<chapter dir>/<file>)
 function sectionFile(ref: ManualRef, path: string, manual = loadManual(ref)) {
   const [dir, file, ...rest] = path.split('/')

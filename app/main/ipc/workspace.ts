@@ -1,7 +1,7 @@
 // 작업 폴더(매뉴얼 리포): 내려받기, 동기화, 바뀐 파일, 제출
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { shell } from 'electron'
-import { describeChanges } from '../lib/changes.ts'
+import { describeChanges, expandRevertPaths } from '../lib/changes.ts'
 import * as gitOps from '../lib/git.ts'
 import { createPullRequest } from '../lib/github.ts'
 import { clearAllReviews, clearReviewsForRepoPaths } from '../lib/review.ts'
@@ -30,8 +30,11 @@ export function registerWorkspace() {
     return describeChanges(r, await gitOps.changes(r.root))
   })
   handle('workspace:revert', async (paths) => {
-    await gitOps.revert(requireWorkspace(), paths)
-    clearReviewsForRepoPaths(ref(), paths)
+    const root = requireWorkspace()
+    // "매뉴얼 삭제" 묶음은 그 매뉴얼 파일 전부로 푼다
+    const files = paths.some((p) => p.endsWith('/')) ? expandRevertPaths(paths, await gitOps.changes(root)) : paths
+    await gitOps.revert(root, files)
+    clearReviewsForRepoPaths(ref(), files)
   })
   handle('workspace:diff', async (path) => {
     const root = requireWorkspace()

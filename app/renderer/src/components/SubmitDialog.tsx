@@ -10,7 +10,9 @@ function defaultMessage(changes: FileChange[]) {
   const images = changes.filter((c) => c.kind === 'image').length
   const parts = sections.slice(0, 3)
   const rest = sections.length - parts.length
-  const subject = parts.length ? `${parts.join(', ')}${rest > 0 ? ` 외 ${rest}건` : ''} 수정` : '매뉴얼 수정'
+  const removed = changes.filter((c) => c.kind === 'manual-removed').map((c) => c.path.split('/')[1])
+  const edited = parts.length ? `${parts.join(', ')}${rest > 0 ? ` 외 ${rest}건` : ''} 수정` : ''
+  const subject = [removed.length ? `매뉴얼 삭제 (${removed.join(', ')})` : '', edited].filter(Boolean).join(', ') || '매뉴얼 수정'
   return `docs: ${subject}${images ? ` (이미지 ${images}장)` : ''}`
 }
 

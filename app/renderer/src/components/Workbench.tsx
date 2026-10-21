@@ -316,6 +316,11 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         onSync={() => void side.runSync()}
         onSwitchManual={(id) => void switchManual(id)}
         onImport={() => setDialog({ type: 'import' })}
+        onManualDeleted={(m) => {
+          // 지운 매뉴얼은 변경 탭에 한 줄로 보인다. 제출해야 다른 사람에게 반영된다
+          void side.refresh().then(() => setTab('changes'))
+          toast.show('success', `${m.title} 매뉴얼을 지웠습니다. 제출하면 모두에게 반영되고, 그 전에는 변경 탭에서 되돌릴 수 있습니다`)
+        }}
         onCapture={() => setCapturing(true)}
         onPreviewAll={() => {
           // Word 만들기 전에 전체를 훑어본다: 미리보기만, 전체 범위

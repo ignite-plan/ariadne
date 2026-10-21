@@ -13,9 +13,11 @@ import { clearReview, listReviews, readReview } from '../lib/review.ts'
 import {
   collectTodos,
   createSection,
+  deleteManual,
   importImage,
   listImages,
   listManuals,
+  manualStats,
   moveChapter,
   moveSection,
   readSectionDoc,
@@ -31,7 +33,7 @@ import { handle, pickPath, ref, requirePandoc, requireWorkspace, send } from './
 function manualInfos(root: string): ManualInfo[] {
   return listManuals(root).map((id) => {
     const m = loadManual({ root, manual: id })
-    return { id, title: m.title, version: m.version }
+    return { id, title: m.title, version: m.version, ...manualStats(root, id) }
   })
 }
 
@@ -42,6 +44,8 @@ let previewCache: { manual: string; sections: PreviewCache } = { manual: '', sec
 
 export function registerManual() {
   handle('manual:list', () => manualInfos(requireWorkspace()))
+  // 매뉴얼 하나를 통째로 지운다 (지금 매뉴얼은 안 됨). 제출해야 다른 사람에게 반영된다
+  handle('manual:deleteManual', (id) => deleteManual(requireWorkspace(), id, ref().manual))
   handle('manual:config', () => settingsOf(loadManual(ref())))
   handle('manual:updateConfig', (patch) => {
     const r = ref()

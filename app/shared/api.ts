@@ -20,6 +20,9 @@ export interface ManualInfo {
   id: string
   title: string
   version: string
+  // 화면·이미지 수 (매뉴얼 목록, 삭제 확인)
+  sections: number
+  images: number
 }
 
 export interface ImportInput {
@@ -296,7 +299,8 @@ export interface FileChange {
   status: ChangeStatus
   // manuals/<m>/ 아래 섹션이면 제목, 이미지면 이미지 id
   label: string
-  kind: 'section' | 'image' | 'manual' | 'other'
+  // manual-removed: 지운 매뉴얼 하나(그 아래 파일 전부)를 한 줄로 묶은 것. path는 manuals/<id>/
+  kind: 'section' | 'image' | 'manual' | 'manual-removed' | 'other'
 }
 
 export interface SyncState {
@@ -444,6 +448,8 @@ export interface AriadneApi {
   }
   manual: {
     list(): Promise<ManualInfo[]>
+    // 매뉴얼 하나를 통째로 지운다 (manuals/<id>/). 지금 열린 매뉴얼과 마지막 하나는 안 된다
+    deleteManual(id: string): Promise<void>
     config(): Promise<ManualConfig>
     updateConfig(patch: Partial<ManualConfig>): Promise<ManualConfig>
     pickDocx(): Promise<string | null>
@@ -591,6 +597,7 @@ export const API_METHODS = {
   workspace: ['state', 'clone', 'sync', 'changes', 'revert', 'submit', 'record', 'reveal', 'diff'],
   manual: [
     'list',
+    'deleteManual',
     'config',
     'updateConfig',
     'pickDocx',
