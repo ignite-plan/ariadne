@@ -595,9 +595,9 @@ i18nPrefix: []
 ![Dealer Registration Notice](images/dealer-registration-notice-2.png){width=4.2in align=center}
 
 
-- Once the **dealer creation** is complete, a confirmation message will be displayed, prompting you to proceed with the creation of the **Dealer Principal's HMG Partner ID**.
+- Once the **dealer creation** is complete, a confirmation message will be displayed, prompting you to proceed with the creation of the **Dealer Principal's ID**.
 
-- Dealer employees must have an **HMG Partner ID** to access the **Dealers** service.
+- Dealer employees must have an ** ID** to access the **Dealers** service.
 
   - Therefore, if immediate access is required after dealer creation, an account should be created right away.
 
@@ -607,6 +607,6 @@ i18nPrefix: []
 
   - The Dealer Principal's information will also be registered under **Dealer Employee Information**.
 
-- \[Create ID\]**: Navigates to the** Dealer Employee Management **screen to create the Dealer Principal's** HMG Partner ID**.**
+- \[Create ID\]**: Navigates to the** Dealer Employee Management **screen to create the Dealer Principal's** ID**.**
 
   - information and Dealer Principal's information have already been successfully saved. Even after navigating to another screen, both the dealer information and Dealer Principal's information have already been successfully saved.
