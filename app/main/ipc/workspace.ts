@@ -1,6 +1,7 @@
 // 작업 폴더(매뉴얼 리포): 내려받기, 동기화, 바뀐 파일, 제출
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { shell } from 'electron'
+import { isDraftRunning } from '../draft.ts'
 import { describeChanges, expandRevertPaths } from '../lib/changes.ts'
 import * as gitOps from '../lib/git.ts'
 import { createPullRequest } from '../lib/github.ts'
@@ -22,7 +23,8 @@ export function registerWorkspace() {
   })
   handle('workspace:sync', async () => {
     requireWorkspace()
-    return gitOps.sync(await gitContext())
+    // 고친 것이 있어도 다른 사람의 변경을 합친다. Claude가 파일을 쓰는 중이면 받아 오기만
+    return gitOps.sync(await gitContext(), { mergeLocal: !isDraftRunning() })
   })
   handle('workspace:changes', async () => {
     requireWorkspace()

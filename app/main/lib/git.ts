@@ -187,8 +187,12 @@ async function recordedCommits(dir: string) {
   const result: { oid: string; message: string }[] = []
   for (const entry of log) {
     if (entry.oid === base) break
+    // 동기화하면서 여러 기록을 한 커밋으로 옮긴 것은 줄마다 기록 하나
     if (entry.commit.message.includes(RECORD_TRAILER)) {
-      result.push({ oid: entry.oid, message: entry.commit.message.replace(RECORD_TRAILER, '').trim() })
+      // 한 커밋 안은 오래된 것부터 적혀 있다. 이 목록은 최근 것부터
+      for (const line of entry.commit.message.replace(RECORD_TRAILER, '').trim().split('\n').filter((l) => l.trim()).reverse()) {
+        result.push({ oid: entry.oid, message: line.trim() })
+      }
     }
   }
   return result
@@ -197,7 +201,9 @@ async function recordedCommits(dir: string) {
 // 제출하지 않고 내 PC에만 커밋한다 (원격에 연결하지 않는다). 기록할 새 변경이 없으면 오류
 export async function record(dir: string, author: GitContext['author'], message: string) {
   if (!(await stageAll(dir))) throw new Error('기록할 새 변경이 없습니다')
-  const commit = await git.commit({ fs, dir, message: `${message.trim() || 'docs: 매뉴얼 수정'}\n\n${RECORD_TRAILER}`, author })
+  // 기록 하나는 한 줄 (동기화할 때 여러 기록을 한 커밋에 줄마다 옮긴다)
+  const line = message.replace(/\s+/g, ' ').trim() || 'docs: 매뉴얼 수정'
+  const commit = await git.commit({ fs, dir, message: `${line}\n\n${RECORD_TRAILER}`, author })
   return { commit, recorded: (await recordedCommits(dir)).length }
 }
 
@@ -307,7 +313,105 @@ async function restoreOutside(dir: string) {
 }
 
 // 원격을 받아 온다. 작업 중인 변경이 없으면 fast-forward까지 한다
-export async function sync(ctx: GitContext): Promise<SyncState> {
+// ours 커밋과 원격을 줄 단위로 합쳐 본다 (작업 폴더·브랜치는 건드리지 않는다). 합치면 커밋 oid, 같은 줄이 겹치면 그 파일들
+async function tryMerge(ctx: GitContext, ours: string, theirsRef: string): Promise<{ oid?: string; conflicts?: string[] }> {
+  const { dir } = ctx
+  const temp = 'refs/heads/ariadne-sync'
+  await git.writeRef({ fs, dir, ref: temp, value: ours, force: true })
+  try {
+    const result = await git.merge({ fs, dir, ours: temp, theirs: theirsRef, author: ctx.author, message: 'Ariadne sync', abortOnConflict: true })
+    return { oid: result.oid }
+  } catch (error) {
+    if (error instanceof Errors.MergeConflictError) return { conflicts: error.data.filepaths }
+    if (error instanceof Errors.MergeNotSupportedError) return { conflicts: [] }
+    throw error
+  } finally {
+    await git.deleteRef({ fs, dir, ref: temp }).catch(() => {})
+  }
+}
+
+// HEAD 트리에 작업 폴더의 manuals/ 변경을 얹은 임시 커밋 (브랜치는 옮기지 않는다)
+async function commitWorkdir(ctx: GitContext, head: string, work: Change[]) {
+  const { dir } = ctx
+  const files = await treeFiles(dir, head)
+  for (const change of work) {
+    if (change.status === 'deleted') {
+      files.delete(change.path)
+      continue
+    }
+    const oid = await git.writeBlob({ fs, dir, blob: fs.readFileSync(join(dir, change.path)) })
+    files.set(change.path, { mode: files.get(change.path)?.mode ?? 0o100644, oid, type: 'blob' })
+  }
+  const tree = await writeFiles(dir, files)
+  return git.commit({ fs, dir, message: 'Ariadne sync (작업 폴더)', author: ctx.author, tree, parent: [head], noUpdateBranch: true })
+}
+
+// 고친 것(저장·기록)이 있어도 다른 사람의 변경을 받아 합친다.
+// 메모리(git 객체)에서 먼저 다 합쳐 보고, 하나라도 같은 줄이 겹치면 아무것도 바꾸지 않고 그 파일들을 돌려준다.
+// 다 합쳐지면: 내가 고친 파일을 .capture/sync-backup에 복사해 두고, 브랜치를 원격 위로(기록은 한 커밋으로 옮김) 옮긴 뒤
+// 합친 내 변경을 작업 폴더에 다시 쓴다 (저장만 한 변경은 저장만 한 채로 남는다)
+async function syncLocal(ctx: GitContext, local: string, upstream: string): Promise<{ applied: boolean; conflicts: string[] }> {
+  const { dir } = ctx
+  const upstreamRef = `refs/remotes/${remote}/${ctx.branch}`
+  const bases = await git.findMergeBase({ fs, dir, oids: [local, upstream] })
+  if (bases.length !== 1) return { applied: false, conflicts: [] }
+  const work = (await workdirChanges(dir)).filter((c) => owned(c.path))
+
+  // 1) 커밋해 둔 내 변경(기록, PR로 올린 커밋)을 원격 위로 (합친 커밋)
+  let committed: string | undefined
+  if (local !== bases[0]) {
+    const merged = await tryMerge(ctx, local, upstreamRef)
+    if (!merged.oid) return { applied: false, conflicts: merged.conflicts ?? [] }
+    committed = merged.oid
+  }
+  // 2) 저장만 한 변경까지 합친 최종 모습 (합친 커밋)
+  let full = committed
+  if (work.length) {
+    const merged = await tryMerge(ctx, await commitWorkdir(ctx, local, work), upstreamRef)
+    if (!merged.oid) return { applied: false, conflicts: merged.conflicts ?? [] }
+    full = merged.oid
+  }
+
+  // 쓰기 전에 내가 고친 파일을 남긴다 (도중에 앱이 꺼져도 되살릴 수 있게)
+  const backup = join(dir, '.capture', 'sync-backup', stamp(new Date()))
+  for (const change of work.filter((c) => c.status !== 'deleted')) {
+    fs.mkdirSync(dirname(join(backup, change.path)), { recursive: true })
+    fs.copyFileSync(join(dir, change.path), join(backup, change.path))
+  }
+
+  // 브랜치: 원격 위에 (커밋해 둔 변경이 있으면) 한 커밋으로
+  let head = upstream
+  if (committed) {
+    const records = await recordedCommits(dir)
+    const message = records.length
+      ? `${records.reverse().map((r) => r.message).join('\n')}\n\n${RECORD_TRAILER}`
+      : (await git.readCommit({ fs, dir, oid: local })).commit.message
+    const tree = (await git.readCommit({ fs, dir, oid: committed })).commit.tree
+    head = await git.commit({ fs, dir, message, author: ctx.author, tree, parent: [upstream], noUpdateBranch: true })
+  }
+  await git.writeRef({ fs, dir, ref: `refs/heads/${ctx.branch}`, value: head, force: true })
+  await git.checkout({ fs, dir, ref: ctx.branch, force: true })
+
+  // 저장만 한 변경: 합친 최종 모습과 브랜치가 다른 manuals/ 파일을 작업 폴더에 쓴다
+  if (full && full !== committed) {
+    const [now, want] = await Promise.all([treeFiles(dir, head), treeFiles(dir, full)])
+    for (const path of new Set([...now.keys(), ...want.keys()])) {
+      if (!owned(path) || now.get(path)?.oid === want.get(path)?.oid) continue
+      const entry = want.get(path)
+      if (!entry) {
+        await rm(join(dir, path), { force: true })
+        continue
+      }
+      const { blob } = await git.readBlob({ fs, dir, oid: entry.oid })
+      await mkdir(dirname(join(dir, path)), { recursive: true })
+      await writeFile(join(dir, path), blob)
+    }
+  }
+  return { applied: true, conflicts: [] }
+}
+
+// mergeLocal: 고친 것이 있어도 다른 사람의 변경을 합친다 (Claude 작업 중에는 끈다: 파일을 쓰는 중이다)
+export async function sync(ctx: GitContext, { mergeLocal = true }: { mergeLocal?: boolean } = {}): Promise<SyncState> {
   await restoreOutside(ctx.dir)
   try {
     await fetchRemote(ctx)
@@ -329,7 +433,19 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
     await git.checkout({ fs, dir: ctx.dir, ref: ctx.branch, force: true })
     status = 'synced'
   }
-  const pending = await changes(ctx.dir)
+  let pending = await changes(ctx.dir)
+  let applied = false
+  let conflicts: string[] | undefined
+  if ((status === 'behind' || status === 'diverged') && pending.length && mergeLocal) {
+    const result = await syncLocal(ctx, local, upstream)
+    if (result.applied) {
+      applied = true
+      pending = await changes(ctx.dir)
+      status = await relation(ctx.dir, (await oid(ctx.dir, ctx.branch))!, upstream)
+    } else {
+      conflicts = result.conflicts
+    }
+  }
   if (status === 'behind' && !pending.length) {
     await git.merge({ fs, dir: ctx.dir, ours: ctx.branch, theirs: `${remote}/${ctx.branch}`, fastForwardOnly: true })
     // merge가 브랜치를 먼저 옮긴다. checkout이 실패하면 브랜치를 되돌려 HEAD와 작업 폴더가 어긋나지 않게 한다
@@ -349,7 +465,20 @@ export async function sync(ctx: GitContext): Promise<SyncState> {
     diverged: '다른 사람의 변경과 갈라졌습니다. 제출할 때 합칩니다',
     offline: '',
   }[status]
-  return { status, changes: pending.length, recorded: await recordedCount(ctx.dir), message }
+  const names = conflicts?.filter(owned).map((p) => p.split('/').pop()!.replace(/\.md$/, ''))
+  return {
+    status,
+    changes: pending.length,
+    recorded: await recordedCount(ctx.dir),
+    message:
+      conflicts && status !== 'synced'
+        ? `다른 사람도 같은 곳을 고쳐 지금은 받아 오지 못했습니다${names?.length ? `: ${names.join(', ')}` : ''}. 내 수정은 그대로이고, 제출할 때 합쳐 보고 안 되면 PR로 넘깁니다`
+        : applied
+          ? '다른 사람의 변경을 받아 내 수정과 합쳤습니다'
+          : message,
+    ...(applied ? { applied } : {}),
+    ...(conflicts ? { conflicts } : {}),
+  }
 }
 
 // HEAD 대비 바뀐 manuals/ 파일을 커밋할 수 있게 올린다. 올린 수

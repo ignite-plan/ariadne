@@ -96,6 +96,18 @@ export function Workbench({ onReset }: { onReset: () => void }) {
     }
   }
 
+  // 동기화: 입력 중인 내용을 먼저 저장하고, 내 수정과 다른 사람의 변경을 합쳤으면 열린 화면을 다시 읽는다
+  const syncNow = async (quiet = false) => {
+    if (!(await flush())) return
+    const state = await side.runSync(quiet)
+    if (state?.applied) {
+      if (doc) await section.open(doc.path).catch(() => undefined)
+      toast.show('success', state.message)
+    } else if (state?.conflicts && !quiet) {
+      toast.show('info', state.message)
+    }
+  }
+
   const onImageFile = async (file: File) => {
     const data = new Uint8Array(await file.arrayBuffer())
     setDialog({
@@ -313,7 +325,7 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         changes={changes.length}
         currentChapter={currentChapter}
         flush={flush}
-        onSync={() => void side.runSync()}
+        onSync={() => void syncNow()}
         onSwitchManual={(id) => void switchManual(id)}
         onImport={() => setDialog({ type: 'import' })}
         onManualDeleted={(m) => {

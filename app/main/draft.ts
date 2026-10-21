@@ -610,6 +610,9 @@ function refreshResult(
   }
 }
 
+// Claude 작업이 파일을 쓰는 중인지 (그동안 동기화는 받아 오기만 한다)
+export const isDraftRunning = () => Boolean(current)
+
 export function cancelDraft() {
   if (!current) return
   current.cancelled = true

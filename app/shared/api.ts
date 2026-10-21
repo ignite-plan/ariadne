@@ -310,6 +310,10 @@ export interface SyncState {
   // "내 PC에 기록"만 하고 아직 제출하지 않은 기록 수
   recorded?: number
   message: string
+  // 고친 것이 있는데도 다른 사람의 변경을 받아 작업 폴더에 합쳤다 (열린 화면을 다시 읽어야 한다)
+  applied?: boolean
+  // 같은 곳을 다른 사람도 고쳐 받아 오지 못한 파일 (제출할 때 합쳐 보고, 안 되면 PR)
+  conflicts?: string[]
 }
 
 export interface SubmitResult {

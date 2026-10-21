@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, rmSync, writeFileSync, existsSync, mkdtempSync } from 'node:fs'
+import { readFileSync, readdirSync, rmSync, writeFileSync, existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
@@ -143,15 +143,82 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(read(ctx, 'manuals/bo/c.md'), 'c\n')
   })
 
-  it('sync: 로컬 변경이 있으면 받기만 하고 behind로 알린다', async () => {
+  it('sync: 고친 것이 있어도 다른 파일의 남 변경은 받아 합친다 (내 수정은 저장만 한 채로 남는다)', async () => {
     const ctx = await workspace()
     write(ctx, 'manuals/bo/a.md', 'line 1\nline 2\nline 3 local\n')
     server.other((dir) => writeFileSync(join(dir, 'manuals/bo/d.md'), 'd\n'), 'other adds d')
     const state = await gitOps.sync(ctx)
+    assert.deepEqual([state.status, state.applied, state.changes], ['synced', true, 1])
+    assert.equal(read(ctx, 'manuals/bo/d.md'), 'd\n', '남의 변경이 보인다')
+    assert.equal(read(ctx, 'manuals/bo/a.md'), 'line 1\nline 2\nline 3 local\n', '내 수정은 그대로')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/a.md', status: 'modified' }])
+    assert.equal(await gitOps.headContent(ctx.dir, 'manuals/bo/d.md'), 'd\n', '변경 보기 기준도 원격 최신')
+    // 고치기 전 내 파일을 남겨 둔다
+    const backups = readdirSync(join(ctx.dir, '.capture/sync-backup'))
+    assert.equal(read(ctx, `.capture/sync-backup/${backups[0]}/manuals/bo/a.md`), 'line 1\nline 2\nline 3 local\n')
+    // 그대로 제출된다
+    await gitOps.submit(ctx, submitOptions('docs: a 동기화 뒤 제출'))
+    assert.equal(server.show('main', 'manuals/bo/a.md'), 'line 1\nline 2\nline 3 local\n')
+  })
+
+  it('sync: 같은 파일의 다른 줄이면 줄 단위로 합친다', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/m.md', 'one\ntwo\nthree\nfour\nfive\n')
+    await gitOps.submit(ctx, submitOptions('docs: m'))
+    write(ctx, 'manuals/bo/m.md', 'one mine\ntwo\nthree\nfour\nfive\n')
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/m.md'), 'one\ntwo\nthree\nfour\nfive theirs\n'), 'other edits m')
+    const state = await gitOps.sync(ctx)
+    assert.equal(state.applied, true)
+    assert.equal(read(ctx, 'manuals/bo/m.md'), 'one mine\ntwo\nthree\nfour\nfive theirs\n')
+    assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/m.md', status: 'modified' }])
+  })
+
+  it('sync: 같은 줄을 둘 다 고쳤으면 아무것도 바꾸지 않고 받기만 한다 (내 수정 그대로, 충돌 파일을 알린다)', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/n.md', 'base\n')
+    await gitOps.submit(ctx, submitOptions('docs: n'))
+    write(ctx, 'manuals/bo/n.md', 'mine\n')
+    write(ctx, 'manuals/bo/n2.md', 'only mine\n')
+    server.other((dir) => {
+      writeFileSync(join(dir, 'manuals/bo/n.md'), 'theirs\n')
+      writeFileSync(join(dir, 'manuals/bo/n3.md'), 'theirs other file\n')
+    }, 'other edits n')
+    const state = await gitOps.sync(ctx)
     assert.equal(state.status, 'behind')
-    assert.equal(state.changes, 1)
-    assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/d.md')))
-    assert.equal(read(ctx, 'manuals/bo/a.md'), 'line 1\nline 2\nline 3 local\n')
+    assert.equal(state.applied, undefined)
+    assert.deepEqual(state.conflicts, ['manuals/bo/n.md'])
+    assert.match(state.message, /다른 사람도 같은 곳을 고쳐 지금은 받아 오지 못했습니다: n\./)
+    assert.equal(read(ctx, 'manuals/bo/n.md'), 'mine\n')
+    assert.equal(read(ctx, 'manuals/bo/n2.md'), 'only mine\n')
+    assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/n3.md')), '하나라도 겹치면 다른 파일도 받지 않는다')
+    assert.ok(!existsSync(join(ctx.dir, '.capture/sync-backup')))
+  })
+
+  it('sync: 내 PC에 기록한 것도 원격 위로 옮겨 유지하고, 기록 수와 제출 메시지가 그대로다', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/r1.md', 'r1\n')
+    await gitOps.record(ctx.dir, ctx.author, 'docs: 기록 1')
+    write(ctx, 'manuals/bo/r2.md', 'r2\n')
+    await gitOps.record(ctx.dir, ctx.author, 'docs: 기록 2')
+    write(ctx, 'manuals/bo/r3.md', 'not recorded\n')
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/o.md'), 'other\n'), 'other adds o')
+    const state = await gitOps.sync(ctx)
+    assert.deepEqual([state.applied, state.recorded, state.changes], [true, 2, 3])
+    assert.equal(read(ctx, 'manuals/bo/o.md'), 'other\n')
+    assert.equal(read(ctx, 'manuals/bo/r3.md'), 'not recorded\n')
+    assert.deepEqual((await gitOps.changes(ctx.dir)).map((c) => c.path), ['manuals/bo/r1.md', 'manuals/bo/r2.md', 'manuals/bo/r3.md'])
+    await gitOps.submit(ctx, submitOptions('docs: 기록 제출'))
+    assert.match(server.git('log', '-1', '--format=%B', 'main'), /docs: 기록 제출\n\n기록:\n- docs: 기록 1\n- docs: 기록 2/)
+    assert.equal(server.show('main', 'manuals/bo/r3.md'), 'not recorded\n')
+  })
+
+  it('sync: Claude 작업 중(mergeLocal: false)이면 받기만 한다', async () => {
+    const ctx = await workspace()
+    write(ctx, 'manuals/bo/q.md', 'q\n')
+    server.other((dir) => writeFileSync(join(dir, 'manuals/bo/q2.md'), 'q2\n'), 'other adds q2')
+    const state = await gitOps.sync(ctx, { mergeLocal: false })
+    assert.equal(state.status, 'behind')
+    assert.ok(!existsSync(join(ctx.dir, 'manuals/bo/q2.md')))
   })
 
   it('push 모드: 다른 사람이 다른 파일을 먼저 올렸으면 합쳐서 올린다', async () => {
@@ -251,7 +318,7 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     await git.push({ fs, dir: ctx.dir, url: server.url, ref: 'main', remoteRef: 'side', ...auth })
     // 다른 사람 O가 main에 올라간다. 나는 O를 받아 로컬에서 합친다 (push는 못 함)
     server.other((dir) => writeFileSync(join(dir, 'manuals/bo/o.md'), 'o\n'), 'other adds o')
-    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    assert.equal((await gitOps.sync(ctx)).status, 'ahead', '다른 파일의 남 변경은 받아 합치고, 내 커밋은 그 위에 남는다')
     await git.merge({ fs, dir: ctx.dir, ours: 'main', theirs: 'origin/main', author: ctx.author, message: 'local merge' })
     await git.checkout({ fs, dir: ctx.dir, ref: 'main', force: true })
     // 다른 사람은 반대로 P를 합친다 → merge base가 P, O 두 개 (criss-cross)
@@ -286,7 +353,7 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     assert.equal(server.git('rev-parse', `${head}^`), server.git('rev-parse', 'main'))
     assert.equal(server.git('diff', '--name-only', 'main', head), 'manuals/bo/b.md')
     // 머지 전에는 내 작업이 남고 sync가 지우지 않는다
-    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    assert.equal((await gitOps.sync(ctx)).status, 'ahead', '다른 파일의 남 변경은 받아 합치고, 내 커밋은 그 위에 남는다')
     assert.equal(read(ctx, 'manuals/bo/b.md'), 'b via pr\n')
   })
 
@@ -297,7 +364,7 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     await gitOps.submit(ctx, submitOptions('docs: b PR 후 수정', 'pr'))
     write(ctx, 'manuals/bo/new-after-pr.md', 'new\n')
     server.git('update-ref', 'refs/heads/main', prs.at(-1)!.head)
-    assert.equal((await gitOps.sync(ctx)).status, 'diverged')
+    assert.equal((await gitOps.sync(ctx)).status, 'ahead', '다른 파일의 남 변경은 받아 합치고, 내 커밋은 그 위에 남는다')
     assert.equal(read(ctx, 'manuals/bo/new-after-pr.md'), 'new\n')
     const result = await gitOps.submit(ctx, submitOptions('docs: 이어서'))
     assert.equal(result.mode, 'push')
@@ -374,7 +441,7 @@ describe('git (isomorphic-git ↔ git http-backend)', () => {
     await gitOps.record(ctx.dir, ctx.author, 'docs: 내 기록')
     server.other((dir) => writeFileSync(join(dir, 'manuals/bo/theirs.md'), 'theirs\n'), 'other adds theirs')
     const state = await gitOps.sync(ctx)
-    assert.equal(state.status, 'diverged')
+    assert.equal(state.status, 'ahead', '남의 변경을 받아 합치고 기록은 그 위로')
     assert.deepEqual(await gitOps.changes(ctx.dir), [{ path: 'manuals/bo/mine.md', status: 'added' }])
     await gitOps.submit(ctx, submitOptions('docs: mine 제출'))
     assert.equal(server.show('main', 'manuals/bo/mine.md'), 'mine\n')
