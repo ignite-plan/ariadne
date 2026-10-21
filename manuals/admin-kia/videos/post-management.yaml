@@ -31,7 +31,8 @@ scenes:
           ms: 1500
       - highlight:
           target:
-            text: System
+            role: cell
+            name: Announcement System
           ms: 1500
   - say: Search by board name or board ID.
     steps:
@@ -45,7 +46,7 @@ scenes:
       - type:
           target:
             placeholder: Please enter the board name
-          text: General
+          text: Bulletin
       - click:
           role: button
           name: Search
@@ -97,7 +98,7 @@ scenes:
     steps:
       - click:
           role: row
-          name: General Board - 20 Yes Bulletin Board
+          name: Bulletin news Yes Bulletin news
       - waitFor:
           text: Go to Manage Board
       - pause: 2000
@@ -145,7 +146,7 @@ scenes:
       - type:
           target:
             placeholder: Please enter the title.
-          text: Marketing
+          text: EV
       - click:
           role: button
           name: Search
@@ -203,7 +204,7 @@ scenes:
     steps:
       - click:
           role: link
-          name: 2026 Marketing Support Program
+          name: EV9 Product Guide
       - waitFor:
           text: Post Status Information
       - pause: 1500
@@ -258,11 +259,17 @@ scenes:
           target:
             text: Notifications are sent to the target audience
           ms: 1500
-  - say: Below are the title, summary, and attachments.
+  - say: Below are the title, summary, and attachments. Each attached file can be
+      previewed or downloaded.
     steps:
       - highlight:
           target:
-            text: No attachments available.
+            text: Attachments(EN)
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: catalog_morning
           ms: 1500
   - say: Change History records every update to the post.
     steps:
@@ -282,10 +289,10 @@ scenes:
       - click:
           role: button
           name: Edit
+      - waitFor:
+          text: Load Template
       - pause: 2000
-      - click:
-          role: button
-          name: Cancel
+      - open: /board/1/post/20
       - waitFor:
           text: Post Status Information
       - pause: 1500
@@ -352,14 +359,40 @@ scenes:
           name: ENABLED
           nth: 1
       - pause: 2000
-  - say: Enter the title in English, up to 300 characters.
+  - say: Click Load Template to start from a saved template. Pick a template to
+      preview it in English and French, then click Apply.
     steps:
-      - type:
+      - click:
+          role: button
+          name: Load Template
+      - waitFor:
+          text: Select a Template
+      - click:
+          text: Monthly Retail Incentive Program
+          within:
+            role: dialog
+      - pause: 2000
+      - click:
+          role: tab
+          name: FR
+          within:
+            role: dialog
+      - pause: 1500
+      - click:
+          role: button
+          name: Apply
+          within:
+            role: dialog
+      - pause: 1500
+  - say: The template fills in the title and summary. You can edit the title, up to
+      300 characters.
+    steps:
+      - highlight:
           target:
             placeholder: Please enter the post title (max 300 characters).
             nth: 0
-          text: Sample Post
-  - say: Write the summary with the editor. You can format text and insert links,
+          ms: 1500
+  - say: Edit the summary with the editor. You can format text and insert links,
       images, and tables.
     steps:
       - highlight:
@@ -367,23 +400,12 @@ scenes:
             text: Summary(EN)
           ms: 1500
       - pause: 2000
-  - say: Enter the French title and summary in the same way.
+  - say: The French title and summary are filled in the same way.
     steps:
       - highlight:
           target:
             text: Title(FR)
           ms: 1500
-  - say: Click Load Template to fill in the title and content from a saved template.
-    steps:
-      - click:
-          role: button
-          name: Load Template
-      - pause: 3000
-      - click:
-          role: button
-          name: Cancel
-          within:
-            role: dialog
   - say: Attach up to five files per language, up to 100MB each, or use the same
       files for both languages.
     steps:
@@ -425,9 +447,9 @@ scenes:
             name: Discard
           ms: 1500
   - say: Templates help you fill in posts quickly. Only active templates, up to 20,
-      are available when writing a post.
+      are available when writing a post, and you can drag to reorder them.
     steps:
-      - open: /board/5/post
+      - open: /board/1/post
       - waitFor:
           text: Go to Manage Board
       - click:
@@ -439,6 +461,11 @@ scenes:
           target:
             text: Templates help you quickly fill
           ms: 2500
+      - highlight:
+          target:
+            role: columnheader
+            name: Status
+          ms: 1500
   - say: Click New Template, set its status to Active or Inactive, and enter the
       title and summary in English and French.
     steps:
