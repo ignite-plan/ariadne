@@ -39,9 +39,7 @@ i18nPrefix: []
 
 - You can select **Title(default), key word,** or **Post ID** fields to search for posts that match the search criteria.
 
-![](images/announcement-img-1.png){width=3.61in}
-
-Search filter - Search criteria
+![Search filter - Search criteria](images/announcement-img-1.png){width=3.61in}
 
 - **The post search area** shows the total number of posts, and the list displays Title, Attachment, and Date information.
 

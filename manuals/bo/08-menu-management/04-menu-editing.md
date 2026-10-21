@@ -42,9 +42,8 @@ i18nPrefix: []
   - [If the selected date becomes a past date when saving (midnight boundary), a popup is displayed.]{.mark}
 
 **Menu Access Permissions**
-![](images/menu-editing-img-1.png){width=6.27in}
 
-Menu access permissions List
+![Menu access permissions List](images/menu-editing-img-1.png){width=6.27in}
 
 - When clicking the \[Edit\] button in Menu access permission, [the conditions are checked in the following four steps, and a pop-up is displayed according to the first condition that applies. The same steps apply to both the Job title tab and the User name tab, and also to the first access right after a menu is created.]{.mark}
 

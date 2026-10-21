@@ -363,9 +363,8 @@ Additional attribute setting pop-up -- Required field
 - \[**Delete**\]: Cannot be deleted if Usage Status=ON, additional attribute values that have been used in posts cannot be deleted.
 
 **Additional Attribute Modification and Deletion**
-![](images/bulletin-board-creation-img-11.png){width=2.73in}
 
-Editing Additional attribute setting
+![Editing Additional attribute setting](images/bulletin-board-creation-img-11.png){width=2.73in}
 
 - Usage status toggle: When ON is clicked, if the number of uses exceeds 5, a popup indicating it is unavailable is displayed
 

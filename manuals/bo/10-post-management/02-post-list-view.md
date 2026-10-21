@@ -215,14 +215,12 @@ Target Audience -- dropdown setting
   - When the Important Notice period ends, only the **pinned/important effect** ends. Post visibility still follows Display setting and Posting period rules.
 
   - Notification is automatically synced with Important Notice changes.\
-    ![](images/post-list-view-img-9.png){width=5.67in}
 
-Creating Post- Important notice 1
+    ![Creating Post- Important notice 1](images/post-list-view-img-9.png){width=5.67in}
 
 - Enabled selection screen\
-  ![](images/post-list-view-img-10.png){width=5.67in}
 
-Creating Post- Important notice 2
+  ![Creating Post- Important notice 2](images/post-list-view-img-10.png){width=5.67in}
 
 - You can set the important notice posting period. When you click on the calendar input field, you can select the important notice posting period (date and time).
 

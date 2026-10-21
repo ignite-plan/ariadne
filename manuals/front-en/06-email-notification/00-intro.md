@@ -14,9 +14,8 @@ i18nPrefix: []
 - Email notifications are sent to the target audience 1 hour after the post is published on the front end.
 
   - This is the **general post email** screen:\
-    ![](images/email-notification-img-1.png){width=5.79in}
 
-General Post Email Notification
+    ![General Post Email Notification](images/email-notification-img-1.png){width=5.79in}
 
 - **Important notice post email** screen:
 

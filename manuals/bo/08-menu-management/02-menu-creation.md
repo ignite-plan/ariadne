@@ -81,9 +81,8 @@ Calendar setting
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
 - **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset. [Menu name, Menu-board mapping, Domain, and Menu URL are reset, while the Menu Permission List is kept as is.]{.mark}\
-  ![](images/menu-creation-img-4.png){width=1.59in}
 
-Menu type
+  ![Menu type](images/menu-creation-img-4.png){width=1.59in}
 
 - Domain: A function that specifies which domain the menu operates on. You can select a domain address. The required field input setting for Domain changes according to the Menu type. [\
   ]{.mark} ![](images/menu-creation-img-5.png){width=2.32in}
@@ -99,9 +98,8 @@ Domain dropdown
     - Domain: <https://dealers.hyundai-corp.io>
 
     - Menu URL: /board/238\
-      ![](images/menu-creation-img-6.png){width=3.04in}
 
-Linking menu-board mapping - Domain and Menu URL
+      ![Linking menu-board mapping - Domain and Menu URL](images/menu-creation-img-6.png){width=3.04in}
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2326 Menu URL 하단 "Is this page implemented with DEALERS' Frontend Library?" 라디오버튼이 캡처에 없음 -->
 
@@ -257,14 +255,11 @@ Creating Menu -- Permission List information 1
 
     - **Display Policy:** The Permission Code field is not displayed on the Create or List screen. It is only visible on the Edit screen after saving, displayed as read-only for reference purposes.
 
-  - ![](images/menu-creation-img-22.png){width=3.08in}
-
-Adding Permission
+  - ![Adding Permission](images/menu-creation-img-22.png){width=3.08in}
 
 - You can edit and delete by clicking the Menu permission edit/delete buttons.\
-  ![](images/menu-creation-img-23.png){width=6.22in}
 
-Editing and Deleting Menu permissions
+  ![Editing and Deleting Menu permissions](images/menu-creation-img-23.png){width=6.22in}
 
 - When deleting, if there are Access permissions in sub-menus, permission removal is not possible.
 

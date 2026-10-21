@@ -27,13 +27,9 @@ i18nPrefix: []
 
   - **Most recent:** By latest
 
-- ![](images/search-result-img-2.png){width=2.13in}
+- ![Sort Search Result by condition1](images/search-result-img-2.png){width=2.13in}
 
-Sort Search Result by condition1
-
-- ![](images/search-result-img-3.png){width=1.68in}
-
-Sort Search Result by condition2
+- ![Sort Search Result by condition2](images/search-result-img-3.png){width=1.68in}
 
 - **anytime:** Entire period
 
@@ -49,9 +45,7 @@ Sort Search Result by condition2
 
 - Once you have searched, you can filter the results by selecting one or more boards. Only posts within the selected boards are displayed. If no board is selected, all board results are shown by default.
 
-- ![](images/search-result-img-4.png){width=2.31in}
-
-Select Board
+- ![Select Board](images/search-result-img-4.png){width=2.31in}
 
 - Search results for posts with attachments or thumbnails are displayed as follows.
 

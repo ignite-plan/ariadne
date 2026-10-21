@@ -117,9 +117,7 @@ This is the screen for creating a new dealer employee account.
 
 <!-- -->
 
-- ![](images/dealer-employee-creation-img-2.png){width=4.60in}
-
-Search Result
+- ![Search Result](images/dealer-employee-creation-img-2.png){width=4.60in}
 
 - **\[Save\]**: some information for the employee will be imported:
 
@@ -133,9 +131,7 @@ Search Result
 
 <!-- -->
 
-- ![](images/dealer-employee-creation-img-3.png){width=6.27in}
-
-Status - Inactive
+- ![Status - Inactive](images/dealer-employee-creation-img-3.png){width=6.27in}
 
 - If the account is initially set to **Inactive**, **ID creation is not allowed**. Only the message \"To proceed, the status must be Active.\" is shown.
 
@@ -151,9 +147,7 @@ Status - Inactive
 
   - Search by selecting one of Dealer no. or dealer name, then save the dealership information.
 
- ![](images/dealer-employee-creation-img-4.png){width=6.27in}
-
-Search Dealer Popup
+ ![Search Dealer Popup](images/dealer-employee-creation-img-4.png){width=6.27in}
 
 - Business Email: required.
 
@@ -244,15 +238,11 @@ Search Dealer Popup
 
 - When a dealer employee account is created with an ID, a welcome invitation email is automatically sent to the registered Account Email.
 
-- ![](images/dealer-employee-creation-img-9.png){width=4.59in}
-
-Welcome invitation email
+- ![Welcome invitation email](images/dealer-employee-creation-img-9.png){width=4.59in}
 
 - Dealer Employee View
 
-![](images/dealer-employee-creation-img-10.png){width=5.04in}
-
-Dealer Employee Detail
+![Dealer Employee Detail](images/dealer-employee-creation-img-10.png){width=5.04in}
 
 From the dealer employee list, you can view detailed information about a dealer employee by clicking on their ID or name.
 
@@ -386,9 +376,7 @@ When modifying dealer information, the screen displays the fields entered during
 
 <!-- -->
 
-- ![](images/dealer-employee-creation-img-11.png){width=6.27in}
-
-Initial Active Status applied
+- ![Initial Active Status applied](images/dealer-employee-creation-img-11.png){width=6.27in}
 
 - As shown on the creation screen, you can either create a new HMG Partner ID or link a user who already has an existing HMG Partner ID.
 

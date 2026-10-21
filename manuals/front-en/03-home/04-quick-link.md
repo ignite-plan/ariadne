@@ -25,9 +25,7 @@ refreshedFrom:
 
 - **Using Quick Link on the Home Screen**
 
-- ![](images/quick-link-img-1.png){width=2.20in}
-
-Quick Link
+- ![Quick Link](images/quick-link-img-1.png){width=2.20in}
 
 - Quick links are provided on the right side of the home screen.
 

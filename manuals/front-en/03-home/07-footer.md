@@ -58,9 +58,8 @@ i18nPrefix: []
 ![Cookie Policy](images/cookie-policy.png){width=5.72in}
 
 - In the popup, you can reset and save the cookie values that you individually consent to.\
-  ![](images/footer-img-2.png){width=3.65in}
 
-Cookie Settings
+  ![Cookie Settings](images/footer-img-2.png){width=3.65in}
 
 **User Manual**
 

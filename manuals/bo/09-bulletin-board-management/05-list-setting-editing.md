@@ -7,9 +7,7 @@ i18nPrefix: []
 
 ## List Setting Editing
 
-![](images/list-setting-editing-img-1.png){width=5.14in}
-
-Editing List setting
+![Editing List setting](images/list-setting-editing-img-1.png){width=5.14in}
 
 - **Order**: You can rearrange the order of **Field Names** by pressing and holding the icon for more than **1 second**, then using **drag & drop** to reorder the fields.
 

@@ -15,9 +15,7 @@ i18nPrefix: []
 
 - The screen provides **real-time status** based on the current database and allows operators to open related management screens to correct settings without IT support.
 
-- ![](images/dealer-employee-troubleshooting-img-1.png){width=5.95in}
-
-Dealer Employee Troubleshooting
+- ![Dealer Employee Troubleshooting](images/dealer-employee-troubleshooting-img-1.png){width=5.95in}
 
 **Dealer User Status Search**
 

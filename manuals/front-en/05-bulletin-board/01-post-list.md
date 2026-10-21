@@ -39,9 +39,7 @@ i18nPrefix: []
 
 - Example screen when additional attributes are displayed**:**
 
-![](images/post-list-img-1.png){width=5.17in}
-
-Bulletin boards with additional attributes
+![Bulletin boards with additional attributes](images/post-list-img-1.png){width=5.17in}
 
 **Search with Additional Attributes**
 

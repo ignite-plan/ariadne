@@ -127,9 +127,7 @@ i18nPrefix:
 
 - Clicking the \[edit\] button from the basic info screen switches the view into edit mode.
 
-- ![](images/dealer-detail-view-edit-screen-img-1.png){width=6.27in}
-
-Editing Dealer - Basic Information
+- ![Editing Dealer - Basic Information](images/dealer-detail-view-edit-screen-img-1.png){width=6.27in}
 
 - The edit screen provides the same columns as the creation screen and allows new values to be selected.
 
@@ -424,9 +422,7 @@ Clicking \[save\] registers the new business information.
 - **Change Dealer Principal**:\
   Clicking the **\[Reassign Dealer Principal\]** button next to the **User No.** opens a pop-up where you can change the Dealer Principal.
 
-- ![](images/dealer-detail-view-edit-screen-img-3.png){width=5.65in}
-
-Search User Popup
+- ![Search User Popup](images/dealer-detail-view-edit-screen-img-3.png){width=5.65in}
 
 - The dealer principal can only be selected from among dealer employees belonging to that dealership.
 

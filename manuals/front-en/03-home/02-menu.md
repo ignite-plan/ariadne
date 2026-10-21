@@ -25,9 +25,7 @@ i18nPrefix: []
 
 - GNB menu displays only 1depth menu, and when a menu is selected, you will be directed to the detailed screen of that menu.
 
-![](images/menu-img-1.png){width=6.79in}
-
-GNB Menu
+![GNB Menu](images/menu-img-1.png){width=6.79in}
 
 - When hovering the mouse over a 1depth menu, the entire 2 \~ 4depth menu layer of that menu is displayed, and when a menu is selected, you will be directed to the detailed screen of that menu.
 
@@ -59,9 +57,7 @@ GNB Menu
 
   - When initially entering by clicking on a 1depth menu, the 2depth menus are displayed in a collapsed state.
 
-  - ![](images/menu-img-2.png){width=2.04in}
-
-2depth menus
+  - ![2depth menus](images/menu-img-2.png){width=2.04in}
 
 - **Expand and Collapse**
 

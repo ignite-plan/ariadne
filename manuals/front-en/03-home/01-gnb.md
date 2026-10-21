@@ -15,9 +15,7 @@ i18nPrefix: []
 
 - The service logo is displayed at the top left, and clicking on the logo will take you to the home screen.
 
-- ![](images/gnb-img-1.png){width=6.79in}
-
-Logo image
+- ![Logo image](images/gnb-img-1.png){width=6.79in}
 
 - **Search Bar**
 
@@ -28,17 +26,14 @@ Logo image
 - When clicking on the search box, keyboard input is activated and up to 10 recent searches are displayed. When hovering the mouse over a recent search term, a delete button appears, and clicking it immediately deletes that search history.
 
 - After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
-  ![](images/gnb-img-2.png){width=5.13in}
 
-Recent searches
+  ![Recent searches](images/gnb-img-2.png){width=5.13in}
 
 - 
 
 - **Multi-Dealer Switch**
 
-- ![](images/gnb-img-3.png){width=5.95in}
-
-Multi dealer switch
+- ![Multi dealer switch](images/gnb-img-3.png){width=5.95in}
 
 - The GNB displays the name of the currently active dealer.
 
@@ -59,9 +54,8 @@ Multi dealer switch
 - **Quick Link**
 
   - When Quick Link is clicked, the Quick Link screen is displayed. Please refer to the Quick Link description below.
-    ![](images/gnb-img-4.png){width=5.05in}
 
-Quick Link
+    ![Quick Link](images/gnb-img-4.png){width=5.05in}
 
 - **Notification:**
 
@@ -70,14 +64,12 @@ Quick Link
 Notification
 
 - If there are new notifications, a number notification badge will be displayed, and after the layer screen is displayed, the number notification badge will be reset.\
-  ![](images/gnb-img-6.png){width=2.40in}
 
-New notification
+  ![New notification](images/gnb-img-6.png){width=2.40in}
 
 - When the Notification button is clicked, the notification layer appears. In the Notification list, read and unread notifications are displayed separately.\
-  ![](images/gnb-img-7.png){width=2.35in}
 
-Notification layer
+  ![Notification layer](images/gnb-img-7.png){width=2.35in}
 
 <!-- TODO: 이미지 갱신 필요 - GIDPGRO-669 알림 카드 날짜 옆 Edited 태그 표시 (gnb-img-7) -->
 
@@ -156,21 +148,18 @@ Notification layer
 - **Language setting:**
 
   - The language setting button is displayed.
-    ![](images/gnb-img-8.png){width=2.33in}
 
-Language setting
+    ![Language setting](images/gnb-img-8.png){width=2.33in}
 
 - When clicked, language information is displayed in the right layer, and you can select a language using **radio buttons.**
-  ![](images/gnb-img-9.png){width=2.59in}
 
-Language selection
+  ![Language selection](images/gnb-img-9.png){width=2.59in}
 
 - **Account:**
 
   - The user\'s account information is displayed.\
-    ![](images/gnb-img-10.png){width=2.86in}
 
-Account
+    ![Account](images/gnb-img-10.png){width=2.86in}
 
 - If the user has registered a profile picture, the profile image is displayed. If an image has not been registered, an initials avatar is displayed instead. This applies to the GNB and the Account layer.
 

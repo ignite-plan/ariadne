@@ -27,9 +27,8 @@ i18nPrefix: []
 ![](images/post-view-img-1.png){width=4.88in}\
 ![](images/post-view-img-2.png){width=5.02in}\
 ![](images/post-view-img-3.png){width=5.68in}\
-![](images/post-view-img-4.png){width=5.75in}
 
-Post Detail
+![Post Detail](images/post-view-img-4.png){width=5.75in}
 
 - **Post Status Information**
 

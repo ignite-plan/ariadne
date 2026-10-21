@@ -719,9 +719,7 @@ i18nPrefix:
 
     - **\[Review Fields\]:** Returns to the first screen with missing required information. On that screen, any required fields will be highlighted in red.
 
-- ![](images/dealer-creation-screen-img-3.png){width=4.16in}
-
-Dealer Creation Failed
+- ![Dealer Creation Failed](images/dealer-creation-screen-img-3.png){width=4.16in}
 
 - **When dealer creation succeeds**
 

@@ -10,9 +10,8 @@ i18nPrefix: []
 - Menu deletion is only available to users with write permissions.
 
 - When a user with permissions selects a menu and hovers over it, the \[Delete\] button is displayed, and the menu can be deleted through this button.\
-  ![](images/menu-deletion-img-1.png){width=4.89in}
 
-Menu deletion
+  ![Menu deletion](images/menu-deletion-img-1.png){width=4.89in}
 
 - **Menu deletion conditions**:
 
@@ -24,6 +23,4 @@ Menu deletion
 
 - When deleting a menu with mapped bulletin boards, the Menu-Board mapping is released and only the menu can be deleted.
 
-- ![](images/menu-deletion-img-2.png){width=3.70in}
-
-Menu deletion pop-up
+- ![Menu deletion pop-up](images/menu-deletion-img-2.png){width=3.70in}

@@ -17,9 +17,7 @@ i18nPrefix: []
 
 - Basic board data such as Board ID, Name, Description are displayed at the top. The Post Attribute Setting that specifies the attributes of posts connected to the bulletin board is displayed at the bottom.
 
-![](images/bulletin-board-view-img-1.png){width=4.82in}
-
-Bulletin board detail
+![Bulletin board detail](images/bulletin-board-view-img-1.png){width=4.82in}
 
 
 
@@ -140,9 +138,8 @@ Bulletin board detail -- Post Attribute setting5
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2053 하단 좌측 [View List] 버튼 추가 (Bulletin board detail 이미지) -->
 
 - Bulletin board attribute values can be freely changed, but they are reflected in the post management screen according to the bulletin board attribute modification policy below.\
-  ![](images/bulletin-board-view-img-8.png){width=3.63in}
 
-Editing Bulletin Board
+  ![Editing Bulletin Board](images/bulletin-board-view-img-8.png){width=3.63in}
 
 - **The bulletin board/post display policy according to bulletin board attribute modification is as follows:**
 
