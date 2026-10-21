@@ -30,8 +30,6 @@ i18nPrefix: []
   - Select Logout from this sheet.
 
 
-![Logout button](images/image-24.png){width=3.4in}
-
 - **Automatic logout instructions**:
   - In accordance with security policy, Dealers will automatically log you out if no activity is detected on the site for 60 minutes.
   - After 55 minutes of inactivity, a popup will appear notifying you that logout will occur in 5 minutes.

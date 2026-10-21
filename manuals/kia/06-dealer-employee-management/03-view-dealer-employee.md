@@ -22,7 +22,7 @@ i18nPrefix: []
 
 
 
-![](images/image-17.png){width=4.2in align=center}
+![View Detail](images/image-17.png){width=4.2in align=center}
 
 
 

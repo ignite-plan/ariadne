@@ -16,7 +16,7 @@ refreshedFrom:
 
 
 
-![](images/image-18.png){width=4.2in align=center}
+![Edit Scren](images/image-18.png){width=4.2in align=center}
 
 
 
@@ -38,7 +38,6 @@ The dealer employee information edit screen is mostly identical to the dealer cr
 
 ![Create ID](images/create-id.png){width=6.27in}
 
-ID Not existed
 
 - When the **Status** is updated to **Active**, the Existing ID field is enabled.
 

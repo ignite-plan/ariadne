@@ -13,7 +13,7 @@ i18nPrefix: []
 
 In the **Basic Information** area, enter the user\'s basic information:
 
-  ![](images/image-14.png){width=3.4in}
+  ![Basic Information](images/image-14.png){width=3.4in align=center}
 
 - **First name(Required):** Maximum 20 characters. Leading and trailing spaces, special characters and numbers cannot be entered.
 
