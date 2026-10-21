@@ -114,7 +114,7 @@ export function taskText(
     lines.push(`- 할 일: 가이드 영상 시나리오 \`${input.video}\`를 채운다 (video_get → STG 확인 → video_save → video_check)`)
     lines.push(...linkedSections(ref, input.targets, '- 연결된 매뉴얼 화면: 없음 (STG 화면과 기획서로 내레이션을 쓴다)'))
     lines.push(`- STG 경로 힌트: ${input.path || '(없음 — 연결 화면의 front-matter routes에서 찾는다)'}`)
-    if (input.notes) lines.push(`- 기획자 메모: ${input.notes}`)
+    if (input.notes?.trim()) lines.push(requestLine(input.notes))
     return lines.join('\n')
   }
   if (input.mode === 'shots') {

@@ -49,9 +49,9 @@ export function DraftPanel({
   const [localPhase, setLocalPhase] = useState<'check' | 'ready'>('check')
   const phase: Phase = task?.phase ?? localPhase
   const [force, setForce] = useState(false)
-  // 최신화·캡처 정의: Claude에게 요청 (작업 지시에 "기획자 요청"으로 들어간다)
+  // 최신화·캡처 정의·영상 초안: Claude에게 요청 (작업 지시에 "기획자 요청"으로 들어간다)
   const [request, setRequest] = useState('')
-  const askable = input.mode === 'refresh' || input.mode === 'shots'
+  const askable = input.mode === 'refresh' || input.mode === 'shots' || input.mode === 'video'
   const withRequest = (): typeof panel => (askable && request.trim() ? { ...panel, input: { ...input, notes: request.trim() } } : panel)
   const [scope, setScope] = useState<{ value?: RefreshScope; error?: string }>({})
   const [check, setCheck] = useState<DraftCheck>()
@@ -160,7 +160,9 @@ export function DraftPanel({
                 placeholder={
                   input.mode === 'shots'
                     ? '예: 팝업은 Location만, 검색 영역 이미지는 빼기'
-                    : '예: Location 팝업 설명은 건드리지 말 것, 버튼 이름만 확인'
+                    : input.mode === 'video'
+                      ? '예: 검색 조건은 Dealer Name만 보여 주기, 장면은 5개 이내'
+                      : '예: Location 팝업 설명은 건드리지 말 것, 버튼 이름만 확인'
                 }
               />
               <em className="hint">먼저 따르지만, 저장·삭제 금지나 근거가 없으면 TODO로 남기는 규칙은 바뀌지 않습니다</em>
