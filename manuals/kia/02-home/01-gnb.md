@@ -29,13 +29,16 @@ Logo image
 
 - After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
 
+
+
     ![Recent searches](images/gnb-img-2.png){width=4.36in}
 
 - **Quick Link**
 
   - When Quick Link is clicked, the Quick Link screen is displayed. Please refer to the Quick Link description below.
- 
-   ![Quick Link](images/gnb-img-3.png){width=3.88in}
+
+
+     ![Quick Link](images/gnb-img-3.png){width=3.88in}
 
 
 - **Notification:**
