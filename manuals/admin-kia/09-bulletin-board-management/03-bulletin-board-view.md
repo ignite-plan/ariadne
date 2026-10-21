@@ -65,31 +65,33 @@ i18nPrefix: []
 
 - Values entered during post creation are displayed on the post inquiry screen
 
-- **Posting Period** ![](images/bulletin-board-view-img-1.png){width=6.26in}
+- **Posting Period**
 
-*Bulletin board detail -- Post Attribute setting1*
+    ![Bulletin board detail -- Post Attribute setting1](images/bulletin-board-view-img-1.png){width=6.26in}
 
-- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)![](images/bulletin-board-view-img-2.png){width=6.26in}
 
-*Bulletin board detail -- Post Attribute setting2*
+- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)
 
-- **Important Notice** ![](images/bulletin-board-view-img-3.png){width=3.96in}
+    ![Bulletin board detail -- Post Attribute setting2](images/bulletin-board-view-img-2.png){width=6.26in}
 
-*Bulletin board detail -- Post Attribute setting3*
+- **Important Notice**
 
-- **Notification** ![](images/bulletin-board-view-img-4.png){width=4.71in}
+  ![Bulletin board detail -- Post Attribute setting3](images/bulletin-board-view-img-3.png){width=3.96in}
 
-*Bulletin board detail -- Post Attribute setting4*
+- **Notification**
 
-- **Attachments** ![](images/bulletin-board-view-img-5.png){width=4.29in}
+  ![Bulletin board detail -- Post Attribute setting4](images/bulletin-board-view-img-4.png){width=4.71in}
 
-*Bulletin board detail -- Post Attribute setting5*
+
+- **Attachments**
+
+    ![Bulletin board detail -- Post Attribute setting5](images/bulletin-board-view-img-5.png){width=4.29in}
+
 
 - **Additional Attribute**
 
-![Bulletin board detail -- Post Attribute setting6](images/bulletin-board-detail-post-attribute-setting6.png){width=4.58in}
+  ![Bulletin board detail -- Post Attribute setting6](images/bulletin-board-detail-post-attribute-setting6.png){width=4.58in}
 
-*Bulletin board detail -- Post Attribute setting6*
 
 **Bulletin Board Editing**
 
@@ -98,22 +100,17 @@ i18nPrefix: []
   - \[**Delete**\]: Clicking the **\[Delete\]** button will trigger a **validation check** before the bulletin board can be deleted.
 
   - Deletion Not Allowed If:
-
     - The bulletin board is **mapped to a menu**.
-
     - The bulletin board **contains existing posts**.
-
     - In these cases, an **alert pop-up** will be displayed, and deletion will be **blocked**.
-
   - \[**Edit**\]: Clicking allows you to move to the bulletin board modification screen
 
 - [**\[View List\]**: Displayed at the bottom left. Clicking it returns you to the bulletin board list.]{.mark}
 
 - Bulletin board attribute values can be freely changed, but they are reflected in the post management screen according to the bulletin board attribute modification policy below.
 
-![](images/bulletin-board-view-img-6.png){width=6.26in}
+  ![Editing Bulletin Board](images/bulletin-board-view-img-6.png){width=6.26in}
 
-**Editing Bulletin Board**
 
 - **The bulletin board/post display policy according to bulletin board attribute modification is as follows:**
 

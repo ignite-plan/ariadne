@@ -57,29 +57,21 @@ i18nPrefix: []
 
   - If no permission, an **Access Denied** screen is shown.
 
-![Bulletin Post Report screen- content info](images/bulletin-post-report-screen-content-info.png){width=6.26in}
+  ![Bulletin Post Report screen- content info](images/bulletin-post-report-screen-content-info.png){width=6.26in}
 
 **User Report (User List for the Selected Post)**
 
 - Displays the user list for the selected post.
-
   - **1 row = 1 ID (unique user)**.
-
   - Read status is determined **per user**: if a user read the post in **any affiliated dealership context**, they are marked as **Read = Yes**.
-
   - Default sorting: **Dealer No ascending**, then **Partner ID ascending**.
-
   - Pagination follows BO common components.
-
 - **Filters**
-
   - Filters apply **within the selected post\'s user list**.
-
   - Filter fields: **Dealer Name**, **ID**, **Read Status** (All/Read/Unread), **Zone**, **District** (enabled after Zone selection).
-
   - [**\[Search\]** applies filters; **\[Reset\]** restores defaults.]{.mark}
 
-![Bulletin Report-User Filter](images/bulletin-report-user-filter.png){width=6.26in}
+  ![Bulletin Report-User Filter](images/bulletin-report-user-filter.png){width=6.26in}
 
 - **Multi-Dealership Display**
 
@@ -87,16 +79,14 @@ i18nPrefix: []
 
   - If a user has additional affiliations, it is summarized as and (n) more, and a modal/popup can be opened to view the full list (sorted by Dealer No ascending).
 
-![User Report](images/user-report.png){width=6.26in}
+  ![User Report](images/user-report.png){width=6.26in}
 
-![Bulletin Post Report screen- multi-dealership modal](images/bulletin-post-report-screen-multi-dealership-modal.png){width=4.32in}
+  ![Bulletin Post Report screen- multi-dealership modal](images/bulletin-post-report-screen-multi-dealership-modal.png){width=4.32in}
 
 - **No-result/ Error Handing**
 
   - In the following cases, the **User report** area is disabled and only a guide message is shown.
-
     - If filter result is 0
-
     - If data loading fails
 
-![No result case example](images/no-result-case-example.png){width=6.26in}
+  ![No result case example](images/no-result-case-example.png){width=6.26in}

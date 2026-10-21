@@ -7,9 +7,7 @@ i18nPrefix: []
 
 ## Menu View
 
-![Menu view](images/menu-view.png){width=6.26in}
-
-Menu Detail
+![Menu Detail](images/menu-view.png){width=6.26in}
 
 - When a menu is successfully saved or when you click a menu name in the Menu List, you move to the menu detail screen.
 
