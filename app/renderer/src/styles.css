@@ -1695,6 +1695,18 @@ details.advanced summary {
   border-right: 1px solid var(--border);
   background: var(--surface-2);
   min-height: 0;
+  overflow-y: auto;
+}
+/* 위 내용만 스크롤하고 아래 버튼은 항상 보인다 */
+.side-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
 }
 .session {
   display: flex;
@@ -2047,6 +2059,16 @@ details.advanced summary {
   margin: 0;
   min-width: 0;
   word-break: break-word;
+}
+.draft-input .clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+}
+.draft-input .clamp-toggle {
+  margin-top: 4px;
+  padding-left: 0;
 }
 .draft-log .log {
   list-style: none;

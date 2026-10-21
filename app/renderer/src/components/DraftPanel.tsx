@@ -132,44 +132,45 @@ export function DraftPanel({
 
       <div className="capture-body">
         <aside className="capture-side">
-          <div className="draft-checks">
-            {!task && (
-              <DraftChecks
-                check={check}
-                confluence={needsConfluence(input)}
-                rechecking={rechecking}
-                canRecheck={phase === 'ready' && !rechecking}
-                onRecheck={() => void runCheck(true)}
-              />
+          <div className="side-scroll">
+            <div className="draft-checks">
+              {!task && (
+                <DraftChecks
+                  check={check}
+                  confluence={needsConfluence(input)}
+                  rechecking={rechecking}
+                  canRecheck={phase === 'ready' && !rechecking}
+                  onRecheck={() => void runCheck(true)}
+                />
+              )}
+              <StgSession disabled={phase === 'running' || phase === 'check'} />
+              {!tasks.session.exists && <p className="muted small-note">STG 로그인이 없으면 화면 확인과 캡처를 건너뜁니다</p>}
+            </div>
+
+            <DraftInputList input={input} sceneNo={sceneNo} subject={mode.subject} task={task} queued={queuedItem} />
+
+            {refresh && !task && !queued && <RefreshScopeFields force={force} onForce={setForce} onScope={setScope} />}
+            {askable && !task && !queued && (
+              <label className="scope-fields request-field">
+                <b>Claude에게 요청 (선택)</b>
+                <textarea
+                  aria-label="Claude에게 요청"
+                  rows={3}
+                  value={request}
+                  onChange={(e) => setRequest(e.target.value)}
+                  placeholder={
+                    input.mode === 'shots'
+                      ? '예: 팝업은 Location만, 검색 영역 이미지는 빼기'
+                      : input.mode === 'video'
+                        ? '예: 검색 조건은 Dealer Name만 보여 주기, 장면은 5개 이내'
+                        : '예: Location 팝업 설명은 건드리지 말 것, 버튼 이름만 확인'
+                  }
+                />
+                <em className="hint">먼저 따르지만, 저장·삭제 금지나 근거가 없으면 TODO로 남기는 규칙은 바뀌지 않습니다</em>
+              </label>
             )}
-            <StgSession disabled={phase === 'running' || phase === 'check'} />
-            {!tasks.session.exists && <p className="muted small-note">STG 로그인이 없으면 화면 확인과 캡처를 건너뜁니다</p>}
           </div>
 
-          <DraftInputList input={input} sceneNo={sceneNo} subject={mode.subject} task={task} queued={queuedItem} />
-
-          {refresh && !task && !queued && <RefreshScopeFields force={force} onForce={setForce} onScope={setScope} />}
-          {askable && !task && !queued && (
-            <label className="scope-fields request-field">
-              <b>Claude에게 요청 (선택)</b>
-              <textarea
-                aria-label="Claude에게 요청"
-                rows={3}
-                value={request}
-                onChange={(e) => setRequest(e.target.value)}
-                placeholder={
-                  input.mode === 'shots'
-                    ? '예: 팝업은 Location만, 검색 영역 이미지는 빼기'
-                    : input.mode === 'video'
-                      ? '예: 검색 조건은 Dealer Name만 보여 주기, 장면은 5개 이내'
-                      : '예: Location 팝업 설명은 건드리지 말 것, 버튼 이름만 확인'
-                }
-              />
-              <em className="hint">먼저 따르지만, 저장·삭제 금지나 근거가 없으면 TODO로 남기는 규칙은 바뀌지 않습니다</em>
-            </label>
-          )}
-
-          <span className="spacer" />
           {queued ? (
             <>
               <p className="notice queue-notice">
@@ -520,7 +521,7 @@ function DraftInputList({
       {requestOf(input, task, queued) && (
         <>
           <dt>요청</dt>
-          <dd>{requestOf(input, task, queued)}</dd>
+          <ClampedText text={requestOf(input, task, queued)!} />
         </>
       )}
       {input.path && (
@@ -532,6 +533,29 @@ function DraftInputList({
         </>
       )}
     </dl>
+  )
+}
+
+// 긴 요청은 몇 줄만 보이고 펼쳐 본다 (왼쪽 패널 아래 버튼이 밀려나지 않게)
+function ClampedText({ text }: { text: string }) {
+  const ref = useRef<HTMLElement>(null)
+  const [open, setOpen] = useState(false)
+  const [long, setLong] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (el && !open) setLong(el.scrollHeight > el.clientHeight + 1)
+  }, [text, open])
+  return (
+    <dd>
+      <span ref={ref} className={open ? '' : 'clamped'}>
+        {text}
+      </span>
+      {(long || open) && (
+        <button className="button ghost small clamp-toggle" onClick={() => setOpen(!open)}>
+          <Icon name={open ? 'up' : 'down'} /> {open ? '접기' : '펼치기'}
+        </button>
+      )}
+    </dd>
   )
 }
 

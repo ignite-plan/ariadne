@@ -16,7 +16,7 @@ description: 매뉴얼에 없는 메뉴의 화면 섹션 초안을 Confluence �
 - Read/Glob/Grep(작업 폴더), `manuals/<id>/` 안의 Write/Edit. Bash, 웹, 하위 에이전트는 막혀 있다
 
 ## 1. 준비
-1. `manual_outline`으로 목차, 템플릿(`template`), 예시(`example`), 캡처 주소를 본다. 템플릿과 예시를 Read로 읽고 문체·형식을 맞춘다
+1. `manual_outline`으로 목차, 템플릿(`template`), 예시(`example`), 캡처 주소를 본다. 템플릿과 예시(없으면 빠져 있다)를 Read로 읽고 문체·형식을 맞춘다
 2. 이미 같은 메뉴 섹션이 있으면 새로 만들지 말고 마지막 요약에 그 사실만 적는다
 
 ## 2. 근거 수집 (Confluence, 스페이스 DLRS)

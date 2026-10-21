@@ -47,6 +47,9 @@ const FULL = z
     'true면 화면 전체 접근성 트리를 길게(최대 12000자) 돌려준다. 대화에 계속 쌓이므로 잘린 뒤쪽이 꼭 필요할 때만. 기본은 짧게 (대화상자가 열려 있으면 대화상자만, 누르기·입력 뒤 같은 화면이면 달라진 줄만)',
   )
 
+// 참고 예시는 있는 파일만 알려 준다. 기획자 PC에는 bo 예시가 없을 수 있고, 없는 경로를 주면 Claude가 헛읽기를 한다
+export const firstExisting = (paths: string[]) => paths.find((p) => existsSync(p))
+
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }] })
 const fail = (error: unknown) => ({
   content: [{ type: 'text' as const, text: `오류: ${error instanceof Error ? error.message : String(error)}` }],
@@ -106,8 +109,11 @@ function buildServer(deps: AriadneMcpDeps, definedNow: Set<string>) {
             manual: deps.ref.manual,
             title: tree.title,
             folder: dir,
-            template: existsSync(join(dir, '_template.md')) ? join(dir, '_template.md') : join(deps.ref.root, 'manuals', 'bo', '_template.md'),
-            example: join(deps.ref.root, 'manuals', 'bo', '02-dealer-management', '01-dealer-list-view.md'),
+            template: firstExisting([join(dir, '_template.md'), join(deps.ref.root, 'manuals', 'bo', '_template.md')]),
+            example: firstExisting([
+              join(deps.ref.root, 'manuals', 'bo', '02-dealer-management', '01-dealer-list-view.md'),
+              ...tree.chapters.flatMap((c) => c.sections.map((s) => join(dir, s.path))),
+            ]),
             captureBaseUrl: manual.capture?.baseUrl,
             chapters: tree.chapters.map((c, index) => ({
               index,
@@ -255,7 +261,12 @@ function buildServer(deps: AriadneMcpDeps, definedNow: Set<string>) {
             // 연결된 매뉴얼 화면 (영상에 나오는 순서)
             sections: (v.sections ?? []).map((s) => join(manualDir(deps.ref), s)),
             yaml: YAML.stringify(file),
-            example: join(deps.ref.root, 'manuals', 'bo', 'videos', 'dealer-list.yaml'),
+            example: firstExisting([
+              join(deps.ref.root, 'manuals', 'bo', 'videos', 'dealer-list.yaml'),
+              ...listVideos(deps.ref)
+                .filter((other) => other !== id)
+                .map((other) => join(manualDir(deps.ref), 'videos', `${other}.yaml`)),
+            ]),
           },
           null,
           2,
