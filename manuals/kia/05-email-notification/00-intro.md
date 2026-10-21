@@ -16,11 +16,11 @@ i18nPrefix: []
   - This is the **general post email** screen:\
 
 
-![](images/image-11.png){width=4.2in}
+![General Post Email Notification](images/image-11.png){width=4.2in}
 
 
 
-General Post Email Notification
+
 
 - **Important notice post email** screen:
 
