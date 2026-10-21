@@ -138,12 +138,14 @@ export function loadVideo(ref: ManualRef, id: string) {
   return parseVideo(id, YAML.parse(readFileSync(file, 'utf8')))
 }
 
+// 시나리오 파일 내용 (id는 파일 이름이라 빼고). 저장·내보내기가 같이 쓴다
+export const videoYaml = ({ id: _, ...file }: VideoScenario) => YAML.stringify(file)
+
 // 앱과 CLI가 같은 diff를 내도록 YAML.stringify로만 쓴다 (saveManual과 같음)
 export function saveVideo(ref: ManualRef, { id, ...data }: VideoScenario) {
   const parsed = parseVideo(id, data)
   mkdirSync(videosDir(ref), { recursive: true })
-  const { id: _, ...file } = parsed
-  writeFileSync(videoFile(ref, id), YAML.stringify(file))
+  writeFileSync(videoFile(ref, id), videoYaml(parsed))
   return parsed
 }
 

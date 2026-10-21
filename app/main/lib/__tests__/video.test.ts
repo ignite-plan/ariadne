@@ -9,7 +9,8 @@ import { createFixture } from '../../../../src/core/__tests__/fixture.ts'
 import { KOKORO_FILES, KOKORO_MODEL } from '../../../../src/core/video/tts/model.ts'
 import { mediaResponse } from '../asset.ts'
 import { downloadModel, modelStatus, type ModelProgress } from '../video-model.ts'
-import { createVideo, newVideoId, videoInfos } from '../videos.ts'
+import { loadVideo, videoYaml } from '../../../../src/core/video/scenario.ts'
+import { createVideo, newVideoId, readVideoYaml, videoInfos } from '../videos.ts'
 
 describe('가이드 영상 목록·만들기', () => {
   const fx = createFixture()
@@ -40,6 +41,22 @@ describe('가이드 영상 목록·만들기', () => {
     assert.equal(infos[1].output?.mp4, 'dist/videos/dealer-list-view.mp4')
     assert.equal(infos[1].output?.vtt, 'dist/videos/dealer-list-view.vtt')
     assert.equal(infos[2].output, undefined)
+  })
+
+  it('YAML 가져오기: id는 파일 이름, 같은 id가 있으면 알리고 새로 넣을 id를 준다, 형식이 틀리면 이유', () => {
+    const yaml = 'title: Post Management\nscenes:\n  - say: Hello.\n    steps:\n      - open: /post\n'
+    const fresh = readVideoYaml(fx.ref, '/tmp/Post Management.yaml', yaml)
+    assert.deepEqual([fresh.id, fresh.exists, fresh.freeId], ['post-management', false, 'post-management'])
+    assert.deepEqual(fresh.scenario.scenes, [{ say: 'Hello.', steps: [{ open: '/post' }] }])
+    const same = readVideoYaml(fx.ref, '/x/dealer-list-view.yml', yaml)
+    assert.deepEqual([same.id, same.exists, same.freeId, same.scenario.id], ['dealer-list-view', true, 'dealer-list-view-3', 'dealer-list-view'])
+    // 파일 이름이 한글뿐이면 제목으로
+    assert.equal(readVideoYaml(fx.ref, '/x/게시판.yaml', yaml).id, 'post-management')
+    assert.throws(() => readVideoYaml(fx.ref, '/x/a.yaml', 'title: [x'), /a\.yaml: YAML 문법 오류/)
+    assert.throws(() => readVideoYaml(fx.ref, '/x/a.yaml', 'title: X\nscenes:\n  - steps:\n      - run: x\n'), /형식 오류/)
+    // 내보낸 파일을 다시 가져오면 같은 시나리오
+    const original = loadVideo(fx.ref, 'dealer-list-view')
+    assert.deepEqual(readVideoYaml(fx.ref, '/x/dealer-list-view.yaml', videoYaml(original)).scenario, original)
   })
 })
 

@@ -1,18 +1,22 @@
 // 가이드 영상: 시나리오, 만들기·미리보기, 음성, STG에서 기록
-import { relative } from 'node:path'
+import { readFile, writeFile } from 'node:fs/promises'
+import { join, relative } from 'node:path'
+import { app } from 'electron'
 import { loadManual } from '../../../src/core/manual.ts'
-import { deleteVideo, loadVideo, saveVideo } from '../../../src/core/video/scenario.ts'
+import { deleteVideo, loadVideo, saveVideo, videoYaml } from '../../../src/core/video/scenario.ts'
 import type { VideoRunResult } from '../../shared/api.ts'
 import { acquireExclusiveProfile, leaseEndpoint } from '../lib/browser-host.ts'
 import { acquireShared } from '../lib/profile-lock.ts'
 import { downloadModel, modelStatus } from '../lib/video-model.ts'
 import { isRecording, startRecording, stopRecording } from '../lib/video-record.ts'
-import { createVideo, videoInfos } from '../lib/videos.ts'
+import { createVideo, readVideoYaml, videoInfos } from '../lib/videos.ts'
 import { cancelVideo, runVideo, speak } from '../video.ts'
 import {
   captureBaseUrl,
   handle,
   netFetch,
+  pickPath,
+  pickSavePath,
   ref,
   requireChrome,
   requireFfmpeg,
@@ -46,6 +50,16 @@ export function registerVideo() {
   handle('video:load', (id) => loadVideo(ref(), id))
   handle('video:save', (scenario) => saveVideo(ref(), scenario))
   handle('video:create', (input) => createVideo(ref(), input))
+  handle('video:importYaml', async () => {
+    const file = await pickPath({ title: '영상 시나리오 YAML', properties: ['openFile'], filters: [{ name: 'YAML', extensions: ['yaml', 'yml'] }] })
+    return file ? readVideoYaml(ref(), file, await readFile(file, 'utf8')) : null
+  })
+  handle('video:exportYaml', async (id) => {
+    const text = videoYaml(loadVideo(ref(), id))
+    const file = await pickSavePath({ defaultPath: join(app.getPath('downloads'), `${id}.yaml`), filters: [{ name: 'YAML', extensions: ['yaml'] }] })
+    if (file) await writeFile(file, text, 'utf8')
+    return file
+  })
   handle('video:remove', (id) => deleteVideo(ref(), id))
   handle('video:run', async (id, options = {}): Promise<VideoRunResult> => {
     if (isRecording()) throw new Error('STG 기록을 먼저 끝내세요')

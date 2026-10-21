@@ -338,6 +338,14 @@ export interface CaptureProgress {
   total: number
 }
 
+// 가져온 YAML 파일. 같은 id가 있으면 exists, 새로 넣을 때는 freeId로 저장한다
+export interface VideoImport {
+  id: string
+  exists: boolean
+  freeId: string
+  scenario: VideoScenario
+}
+
 // 가이드 영상 목록 한 줄. 경로는 작업 폴더 기준
 export interface VideoInfo {
   id: string
@@ -506,6 +514,10 @@ export interface AriadneApi {
     load(id: string): Promise<VideoScenario>
     save(scenario: VideoScenario): Promise<VideoScenario>
     create(input: { title: string; sections?: string[] }): Promise<VideoScenario>
+    // YAML 파일을 골라 읽고 형식을 검사한다 (저장은 save로). 고르지 않으면 null
+    importYaml(): Promise<VideoImport | null>
+    // 시나리오를 고른 곳에 YAML 파일로 저장한다. 저장한 경로 (취소하면 null)
+    exportYaml(id: string): Promise<string | null>
     remove(id: string): Promise<void>
     run(id: string, options?: VideoRunOptions): Promise<VideoRunResult>
     cancel(): Promise<void>
@@ -626,7 +638,7 @@ export const API_METHODS = {
   review: ['get', 'clear'],
   build: ['docx', 'open'],
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],
-  video: ['list', 'load', 'save', 'create', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
+  video: ['list', 'load', 'save', 'create', 'importYaml', 'exportYaml', 'remove', 'run', 'cancel', 'speak', 'model', 'downloadModel', 'record', 'stopRecord'],
   claudeLogin: ['status', 'start', 'sendCode', 'cancel', 'logout'],
   draft: ['check', 'start', 'cancel', 'decide', 'saveLog'],
   affected: ['run'],

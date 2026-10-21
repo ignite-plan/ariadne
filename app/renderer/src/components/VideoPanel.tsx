@@ -5,6 +5,7 @@ import { appendRecorded, sceneHasContent } from '../../../../src/core/video/edit
 import {
   assetUrl,
   type ManualTree,
+  type VideoImport,
   type VideoInfo,
   type VideoModelProgress,
   type VideoModelStatus,
@@ -18,7 +19,7 @@ import { findSection } from '../manual-tree.ts'
 import { useAutosave } from '../hooks.ts'
 import { useClaudeDone, useTasks, type VideoTask } from '../tasks.tsx'
 import { Icon } from './Icon.tsx'
-import { Confirm } from './Modal.tsx'
+import { Confirm, Modal } from './Modal.tsx'
 import { Progress } from './Progress.tsx'
 import { StgSession } from './StgSession.tsx'
 import { useToast } from './Toast.tsx'
@@ -35,7 +36,7 @@ const STAGE: Record<VideoProgress['stage'], string> = {
 
 type Failure = Extract<VideoRunResult, { ok: false }>
 type Recording = { scene: number; ready: boolean; warnings: string[] }
-type Dialog = { type: 'create' } | { type: 'delete' } | { type: 'mutates'; action: 'preview' | 'render' | 'record'; scene?: number }
+type Dialog = { type: 'create' } | { type: 'delete' } | { type: 'import'; file: VideoImport } | { type: 'mutates'; action: 'preview' | 'render' | 'record'; scene?: number }
 
 // 연결된 화면 제목. 목차에 없으면 경로
 const sectionsLabel = (tree: ManualTree | undefined, sections: string[] = []) =>
@@ -208,6 +209,47 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
     }
   }
 
+  // YAML 파일(videos 폴더와 같은 형식)을 가져와 시나리오로 저장한다. 같은 id가 있으면 바꿀지 새로 넣을지 묻는다
+  const importYaml = async () => {
+    try {
+      const file = await api.video.importYaml()
+      if (!file) return
+      if (file.exists) return setDialog({ type: 'import', file })
+      await saveImport(file, file.freeId)
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
+  const saveImport = async (file: VideoImport, id: string) => {
+    setDialog(undefined)
+    try {
+      if (!(await flush())) return toast.show('error', SAVE_FAILED)
+      const saved = await api.video.save({ ...file.scenario, id })
+      await refresh()
+      // 보고 있던 영상을 바꿨으면 고른 영상이 그대로라 다시 읽지 않는다. 직접 보여 준다
+      if (selected === id) {
+        setFailure(undefined)
+        show(saved)
+      } else setSelected(id)
+      toast.show('success', `"${saved.title}" 시나리오를 가져왔습니다 (장면 ${saved.scenes.length}개)`)
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
+  // 고른 영상의 시나리오를 YAML 파일로 (가져오기와 같은 형식)
+  const exportYaml = async () => {
+    if (!selected) return
+    try {
+      if (!(await flush())) return toast.show('error', SAVE_FAILED)
+      const file = await api.video.exportYaml(selected)
+      if (file) toast.show('success', `시나리오를 저장했습니다: ${file}`)
+    } catch (e) {
+      toast.error(e)
+    }
+  }
+
   const remove = async () => {
     if (!selected) return
     try {
@@ -251,6 +293,22 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
           <VideoList videos={videos} loadError={loadError} selected={selected} disabled={locked} onSelect={(id) => void select(id)} />
           <button className="button block" onClick={() => setDialog({ type: 'create' })} disabled={locked}>
             <Icon name="plus" /> 새 영상
+          </button>
+          <button
+            className="button block"
+            onClick={() => void importYaml()}
+            disabled={locked}
+            title="videos 폴더의 시나리오와 같은 형식의 YAML 파일을 가져옵니다"
+          >
+            <Icon name="upload" /> YAML 가져오기
+          </button>
+          <button
+            className="button block"
+            onClick={() => void exportYaml()}
+            disabled={!scenario || Boolean(info?.error)}
+            title="고른 영상의 시나리오를 YAML 파일로 저장합니다 (다른 PC·매뉴얼에서 가져오기로 씁니다)"
+          >
+            <Icon name="download" /> YAML 내보내기
           </button>
         </aside>
 
@@ -400,6 +458,37 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
             setSelected(created.id)
           }}
         />
+      )}
+      {dialog?.type === 'import' && (
+        <Modal
+          title="같은 id의 영상이 있습니다"
+          onClose={() => setDialog(undefined)}
+          width={460}
+          footer={
+            <>
+              <button className="button" onClick={() => setDialog(undefined)}>
+                취소
+              </button>
+              <button className="button" onClick={() => void saveImport(dialog.file, dialog.file.freeId)}>
+                새 영상으로 추가 ({dialog.file.freeId})
+              </button>
+              <button
+                className="button primary"
+                onClick={() => void saveImport(dialog.file, dialog.file.id)}
+                disabled={(claudeRunning && tasks.claude?.input.video === dialog.file.id) || rendering?.id === dialog.file.id}
+              >
+                바꾸기
+              </button>
+            </>
+          }
+        >
+          <div className="confirm-message">
+            <p>
+              <b>{dialog.file.id}</b> 시나리오를 가져온 파일 내용(<b>{dialog.file.scenario.title}</b>, 장면 {dialog.file.scenario.scenes.length}개)으로
+              바꿀까요? 제출하기 전에는 변경 탭에서 되돌릴 수 있습니다.
+            </p>
+          </div>
+        </Modal>
       )}
       {dialog?.type === 'delete' && info && (
         <Confirm
