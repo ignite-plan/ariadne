@@ -76,11 +76,7 @@ i18nPrefix: []
   - Account duplication check is required.
   - Account creation consent is required.
 
-|  |
-|--------------------------------------------------|
-| ![Already have an account option](images/already-have-an-account-option.png){width=4.20in} |
-
-: Already have an account option
+![Already have an account option](images/already-have-an-account-option.png){width=4.20in}
 
 - **Already have an account option:**
 
@@ -146,11 +142,7 @@ i18nPrefix: []
 
 **Job & Menu Permission**
 
-|  |
-|------------------------------------------------------------------------|
-| ![Job & Menu permission](images/job-and-menu-permission.png){width=6.60in} |
-
-: Job & Menu permission
+![Job & Menu permission](images/job-and-menu-permission.png){width=6.60in}
 
 - **Job title**: User permissions can be granted through job title.
 

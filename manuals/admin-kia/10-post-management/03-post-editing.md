@@ -11,17 +11,9 @@ i18nPrefix: []
 
 Editing Post -- post attribute information 1
 
-|  |
-|--------------------------------------------------|
-| ![Editing Post - Basic](images/editing-post-basic.png){width=4.20in} |
+![Editing Post - Basic](images/editing-post-basic.png){width=4.20in}
 
-: Editing Post - Basic
-
-|  |
-|--------------------------------------------------|
-| ![Editing Post - Contents](images/editing-post-contents.png){width=4.20in} |
-
-: Editing Post - Contents
+![Editing Post - Contents](images/editing-post-contents.png){width=4.20in}
 
 Editing Post -- post attribute information 2
 

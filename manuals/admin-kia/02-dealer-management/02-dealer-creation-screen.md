@@ -567,11 +567,7 @@ i18nPrefix: []
 
 - **When dealer creation succeeds**
 
-|  |
-|--------------------------------------------------|
-| ![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in} |
-
-: Dealer Registration Notice
+![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in}
 
 - Once the **dealer creation** is complete, a confirmation message will be displayed, prompting you to proceed with the creation of the **Dealer Principal's ID**.
 

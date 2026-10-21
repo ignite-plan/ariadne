@@ -13,19 +13,11 @@ i18nPrefix: []
 
 - Each tab can be edited separately depending on the type of information.
 
-|  |
-|------------------------------------------------------------------------|
-| ![Dealer Detail - Basic Information](images/dealer-detail-basic-information.png){width=6.26in} |
-
-: Dealer Detail - Basic Information
+![Dealer Detail - Basic Information](images/dealer-detail-basic-information.png){width=6.26in}
 
 - **Dealer basic information**
 
-|  |
-|------------------------------------------------------------------------|
-| ![Dealer Basic Information1](images/dealer-basic-information1-2.png){width=6.26in} |
-
-: Dealer Basic Information1
+![Dealer Basic Information1](images/dealer-basic-information1-2.png){width=6.26in}
 
 - **Dealer name**: Internally managed name.
 
