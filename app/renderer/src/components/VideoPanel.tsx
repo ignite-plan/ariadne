@@ -144,6 +144,13 @@ export function VideoPanel({ currentSection, initial, onClose }: { currentSectio
     setSelected(id)
   }
 
+  // 패널이 열린 채로 영상 완료 알림의 [보기]를 누르면 그 영상의 결과를 보여 준다 (처음 열 때는 위에서 고른다)
+  useEffect(() => {
+    if (!initial || !videos?.some((v) => v.id === initial)) return
+    void select(initial).then(() => setTab('video'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks.videoPanel])
+
   const close = async () => {
     await flush()
     onClose()

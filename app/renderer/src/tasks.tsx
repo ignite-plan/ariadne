@@ -246,11 +246,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       setVideo({ id, title, startedAt: Date.now() })
       try {
         const result = await api.video.run(id, options)
-        const action = { label: '보기', run: () => openVideo(id) }
-        if (result.ok) toast.show('success', `"${title}" 영상을 만들었습니다 (${formatDuration(result.durationMs)})`, action)
+        if (result.ok)
+          toast.show('success', `"${title}" 영상을 만들었습니다 (${formatDuration(result.durationMs)})`, { label: '보기', run: () => openVideo(id) })
         else {
+          // 실패는 다른 오류처럼 로그에 남기고 [신고]를 붙인다 (자세한 결과는 영상 패널에 나온다)
           const where = result.scene === undefined ? '' : result.scene === 'cleanup' ? ' (정리 단계)' : ` (장면 ${result.scene + 1})`
-          toast.show('error', `"${title}" 영상을 만들지 못했습니다${where}: ${result.error}`, action)
+          toast.error(`"${title}" 영상을 만들지 못했습니다${where}: ${result.error}`)
         }
         return result
       } finally {

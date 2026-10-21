@@ -202,6 +202,9 @@ export async function renderVideo({
       content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask, captionScale: CAPTION_SCALE[style.captionSize] }),
     })
     if (!scenario.mutates) await guardWrites(page, (request) => blockedRequests.push(request))
+    // 대화상자는 직접 닫는다 (Playwright 기본 동작과 같게). 공유 Chrome에 붙은 main이 먼저 닫으면 실패하는데,
+    // 기본 자동 닫기는 그 거절을 아무도 받지 않아 worker가 죽는다
+    page.on('dialog', (dialog) => void (dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss()).catch(() => {}))
     page.setDefaultTimeout(stepTimeout)
     const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: stepPace })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다

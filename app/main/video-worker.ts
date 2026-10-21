@@ -20,6 +20,11 @@ export type WorkerMessage = WorkerReply<unknown>
 const post = (message: WorkerMessage) => process.parentPort.postMessage(message)
 const controller = new AbortController()
 
+// 처리 못 한 오류로 worker가 죽으면 main에는 종료 코드만 남는다. 진짜 메시지를 결과로 보낸다
+process.on('uncaughtException', (error) => post(stepFailure(error)))
+// 녹화 흐름 밖의 거절(예: Playwright가 대화상자를 자동으로 닫다 실패)은 main처럼 넘어가고 녹화를 계속한다
+process.on('unhandledRejection', (reason) => console.error('[video-worker]', reason))
+
 async function handle(request: Exclude<WorkerRequest, { op: 'cancel' }>) {
   if (request.op === 'render') {
     const { cdpEndpoint, ...options } = request.options
