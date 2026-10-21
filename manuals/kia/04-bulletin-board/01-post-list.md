@@ -16,21 +16,13 @@ i18nPrefix: []
 - The post list displays the following required fields: **Post ID**, **Title**, and **Date**.
 
 - Depending on the **Attachments** and **Additional Attribute** settings, list items may also appear in the search area and results.
-
 - Posts may be displayed in the order they were updated in the BO, and any **Field Name** included in the search criteria will also be shown as a column in the list.
-
 - Sorting options are available to organize posts by **Date** (latest to oldest) or **Title** (alphabetical ascending or descending).
-
 - **Default search period (auto setting):** On the post list screen, the Date search condition is automatically initialized when the user enters the screen.
-
   - The **End date** is automatically set to **today's date (current date)**.
-
   - The **Start date** is automatically set to **1 year before today's date**.
-
     - Example) If today is 2026-04-20:
-
       - Start date: 2025-04-20
-
       - End date: 2026-04-20
 
 - By default, **20 posts** are displayed, and you can select up to 50 posts to display from the bottom left.
@@ -39,9 +31,8 @@ i18nPrefix: []
 
 - Example screen when additional attributes are displayed**:**
 
-![](images/post-list-img-1.png){width=5.17in}
+  ![Bulletin boards with additional attributes](images/post-list-img-1.png){width=5.17in}
 
-Bulletin boards with additional attributes
 
 **Search with Additional Attributes**
 
@@ -75,7 +66,6 @@ Bulletin boards with additional attributes
 
 ![Search - Chip filters](images/search-chip-filters.png){width=6.46in}
 
-**Post Search Results Area**
 
 - **Total:** The **total number of posts** displayed reflects the user\'s access permissions.
 
@@ -91,11 +81,12 @@ Bulletin boards with additional attributes
 
   - For important notice posts, they are fixed at the top and a fixed icon is displayed to the left of the title.
 
-- ![](images/post-list-img-2.png){width=6.79in}
+**Post Search Results Area**
 
-![Post Search Results Area](images/post-search-results-area.png){width=3.89in}
+   ![](images/post-list-img-2.png){width=6.79in}
 
-Post -- Icon/Title/Date/Flag
+  ![Post -- Icon/Title/Date/Flag](images/post-search-results-area.png){width=3.89in}
+
 
 - **Attachments:** Up to 5 attachments can be displayed.
 
@@ -121,26 +112,27 @@ Post -- Icon/Title/Date/Flag
 
 - The top left of the popup window displays the filename and extension, and the top right has buttons for full view and close. ![](images/post-list-img-3.png){width=5.31in}
 
-PDF Header Area
+**PDF Header Area**
 
 - Clicking on icons from the left performs the following actions:\
   ![](images/post-list-img-4.png){width=0.63in} ![](images/post-list-img-5.png){width=0.56in}\
   ![](images/post-list-img-6.png){width=2.33in}![](images/post-list-img-7.png){width=2.63in}\
-  **- View settings**: You can set thumbnail preview view/normal page view.\
+
+- **View settings**: You can set thumbnail preview view/normal page view.\
   ![](images/post-list-img-8.png){width=1.15in}
 
   - View current page number/total page number, and view a page by entering the desired page number.\
     ![](images/post-list-img-9.png){width=1.72in}\
-    **- Enlarge/Reduce**: You can enlarge or reduce the file by entering the file ratio and clicking the -/+ buttons (minimum 50%, maximum 150%).\
+   - **Enlarge/Reduce**: You can enlarge or reduce the file by entering the file ratio and clicking the -/+ buttons (minimum 50%, maximum 150%).\
     ![](images/post-list-img-10.png){width=1.03in} ![](images/post-list-img-11.png){width=1.04in}\
-    **- Two/Single Page:** You can set two-page view/one-page view.\
+   - **Two/Single Page:** You can set two-page view/one-page view.\
     ![](images/post-list-img-12.png){width=0.84in} ![](images/post-list-img-13.png){width=0.65in}\
-    **- View:** You can set page height fit/page width fit view.\
+   - **View:** You can set page height fit/page width fit view.\
     ![](images/post-list-img-14.png){width=0.47in}\
     ![](images/post-list-img-15.png){width=1.22in}\
-    **- Page rotation:** You can rotate 90 degrees to the left.\
+   - **Page rotation:** You can rotate 90 degrees to the left.\
     ![](images/post-list-img-16.png){width=0.75in}\
-    **- Download:** Clicking the download button takes you to the PDF file download page, where you can download the file with watermarks.\
+   - **Download:** Clicking the download button takes you to the PDF file download page, where you can download the file with watermarks.\
     ![](images/post-list-img-17.png){width=0.56in}
   - **Print:** Clicking the print button displays the print settings page, allowing you to print the file with watermarks.
 

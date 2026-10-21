@@ -22,7 +22,7 @@ i18nPrefix: []
 
 
 
-Post - Header Area
+**Post - Header Area**
 
 - **Title:** The post title is displayed up to 200 characters.
 

@@ -9,19 +9,11 @@ i18nPrefix: []
 
 - Clicking **\[create new\]** at the top of the dealer employee list takes you to a screen to create a dealer employee.
 
-
-
-![](images/image-13.png){width=4.2in}
-
-
+  ![Creating Dealer Employee](images/image-13.png){width=4.2in}
 
 In the **Basic Information** area, enter the user\'s basic information:
 
-
-
-![](images/image-14.png){width=3.4in}
-
-
+  ![](images/image-14.png){width=3.4in}
 
 - **First name(Required):** Maximum 20 characters. Leading and trailing spaces, special characters and numbers cannot be entered.
 
@@ -30,10 +22,8 @@ In the **Basic Information** area, enter the user\'s basic information:
 - **Picture:** Click the picture area and select an image from your computer. A registered picture is displayed as a circle. Click the x button to delete it.
 
 - **Account email(Required when Status is Active):** The employee's personal email, used to manage the ID and send password reset requests. Account-related notifications, such as password resets, are sent to this address.
-
-- It cannot be entered when the Status is Inactive.
-
-- If an existing ID is imported, the field is disabled.
+  - It cannot be entered when the Status is Inactive.
+  - If an existing ID is imported, the field is disabled.
 
 - **Personal Phone:** Optional. Enter the user\'s personal phone number (up to 15 digits; numbers and '-' only).
 
@@ -83,7 +73,7 @@ In the **Basic Information** area, enter the user\'s basic information:
 
     - Consent to create the ID is mandatory.
 
-- Use existing account Case
+- **Use existing account Case**
 
 - When registering an account with an existing ID as a dealer employee, enter the ID (guide: "Search the ID to confirm and connect the account.") and click the \[Search ID\] button.
 
@@ -142,7 +132,7 @@ In the **Basic Information** area, enter the user\'s basic information:
 ![](images/image-15.png){width=3.4in align=center}
 
 
-- **How to Grant Permissions**
+**How to Grant Permissions**
 
 - You must have at least **Access** permission for a **1st-level menu** in order to assign permissions to its **2nd-level menus**.
 
@@ -173,4 +163,4 @@ In the **Basic Information** area, enter the user\'s basic information:
 - When an employee who already has an ID is added as an employee of a dealership and an Employee no. is issued, a "dealership added" notification email is sent to that employee's Account Email.
 
 
-![](images/image-16.png){width=4.2in}
+![Email](images/image-16.png){width=4.2in}

@@ -10,5 +10,4 @@ i18nPrefix: []
 - The selected **menu name**, menu description is displayed at the top, and the post search area and post search results area are displayed.
 
 
-
-![](images/image-7.png){width=4.2in}
+![Bulletin detail](images/image-7.png){width=4.2in}

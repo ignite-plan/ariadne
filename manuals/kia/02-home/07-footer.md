@@ -17,7 +17,7 @@ i18nPrefix: []
 
 - Clicking on the select box in the upper right provides previous versions of the personal information policy.
 
-![Privacy policy](images/privacy-policy.png){width=6.09in height=2.78in}
+  ![Privacy policy](images/privacy-policy.png){width=6.09in height=2.78in}
 
 **FAQ**
 
@@ -31,7 +31,7 @@ i18nPrefix: []
 
 - You can select a second category in the filter at the top.
 
-![FAQ](images/faq.png){width=6.40in}
+  ![FAQ](images/faq.png){width=6.40in}
 
 - FAQ categories are displayed up to a maximum of 3.
 
@@ -53,7 +53,7 @@ i18nPrefix: []
 
 - Clicking the **\[cookie settings\]** button at the top creates a cookie settings popup.
 
-![Cookie Policy](images/cookie-policy.png){width=5.72in}
+  ![Cookie Policy](images/cookie-policy.png){width=5.72in}
 
 - In the popup, you can reset and save the cookie values that you individually consent to.\
   ![](images/footer-img-2.png){width=3.65in}
