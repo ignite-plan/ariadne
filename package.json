@@ -59,7 +59,7 @@
     "zod": "^4.6.5"
   },
   "productName": "Ariadne",
-  "version": "1.13.7",
+  "version": "1.13.8",
   "description": "Dealers 사용자 매뉴얼 편집기",
   "author": "Ignite",
   "main": "out/main/index.js"
