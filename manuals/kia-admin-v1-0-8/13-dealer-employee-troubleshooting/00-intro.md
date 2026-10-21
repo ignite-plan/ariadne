@@ -20,7 +20,11 @@ refreshedFrom:
 
 - The screen provides **real-time status** based on the current database and allows operators to open related management screens to correct settings without IT support.
 
-- ![](images/dealer-employee-troubleshooting-img-1.png){width=5.95in}
+
+
+![Dealer Employee TroubleShooting](images/dealer-employee-troubleshooting.png){width=6.27in}
+
+
 
 Dealer Employee Troubleshooting
 
@@ -40,7 +44,11 @@ Dealer Employee Troubleshooting
 
 - The **Search** button becomes active only when both Dealer Name and ID are entered.
 
-![Dealer User Status](images/dealer-user-status.png){width=6.26in}
+
+
+![Dealer User Status](images/dealer-user-status-2.png){width=6.27in}
+
+
 
 - When **Search** is clicked: The system validates that the entered **Dealer Name** and **ID** combination exists.
 
@@ -242,4 +250,6 @@ Dealer Employee Troubleshooting
 
   - Message: "Something Went Wrong ... contact your system administrator."
 
-![Dealer Employee Troubleshooting -- Content Status (Not visible case)](images/dealer-employee-troubleshooting-content-status-not-visible-case.png){width=6.26in}
+
+
+![Content Status Not Visible Case](images/content-status-not-visible-case.png){width=6.27in}
