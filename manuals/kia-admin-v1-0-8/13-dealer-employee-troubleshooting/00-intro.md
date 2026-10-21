@@ -86,18 +86,6 @@ Dealer Employee Troubleshooting
 
     - Linked to the Job Management detail screen.
 
-  - **Last Login:** Date and time of the user's last login, received from HMG Partner ID
-
-    - Format: MM(Alphabet)-DD-YYYY HH:mm:ss {timezone}. The timezone follows the tenant of the dealer being viewed.
-
-    - The value is per tenant, so a user belonging to multiple dealers shows the same value for every dealer in the same tenant.
-
-    - If there is no login information, "No Login History" is displayed.
-
-    - If the lookup fails, an error icon is displayed with the tooltip "Data is temporarily unavailable."
-
-    - No link is provided.
-
 - **Tag color:**
 
   - **Green:** Login possible.

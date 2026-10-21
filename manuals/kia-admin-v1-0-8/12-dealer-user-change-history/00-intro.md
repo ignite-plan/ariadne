@@ -37,7 +37,7 @@ i18nPrefix: []
 
   - Search by keyword with partial match applied.
 
-  - Available target fields: Name (default), Partner ID, User No, Dealer
+  - Available target fields: Name (default), ID, User No, Dealer
 
 - **Dealer**
 
@@ -97,7 +97,7 @@ i18nPrefix: []
 
   - **User No.:** Employee number assigned by the dealer.
 
-  - **ID**: HMG Partner ID of the target employee.
+  - **ID**: ID of the target employee.
 
   - **Name**: First name Last name.
 
