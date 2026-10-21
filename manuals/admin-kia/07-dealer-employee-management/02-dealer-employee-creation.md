@@ -76,7 +76,9 @@ i18nPrefix: []
   - Account duplication check is required.
   - Account creation consent is required.
 
-![Already have an account option](images/already-have-an-account-option.png){width=4.20in}
+
+ ![Already have an account option](images/already-have-an-account-option.png){width=4.20in} 
+
 
 - **Already have an account option:**
 
@@ -91,7 +93,7 @@ i18nPrefix: []
 - When you enter and search for the ID you want to link, some user information will be displayed so you can verify if it is the correct user.
 - For privacy, the last character of the name and the last 2 characters of the email's local part are masked with \*.
 
-![](images/dealer-employee-creation-img-1.png){width=6.27in}
+![Result notice](images/dealer-employee-creation-img-1.png){width=6.27in}
 
 - **\[Save\]**: some information for the employee will be imported:
 
@@ -113,7 +115,7 @@ i18nPrefix: []
 
 - Dealer: This is the item for selecting the dealership to which the dealer employee belongs.
 
-![](images/dealer-employee-creation-img-2.png){width=6.26in}
+![Search Dealer](images/dealer-employee-creation-img-2.png){width=6.26in}
 
 - When you click the \[Search\] button, a popup is created where you can search for the dealership to which the dealer employee will belong.
 
@@ -142,7 +144,8 @@ i18nPrefix: []
 
 **Job & Menu Permission**
 
-![Job & Menu permission](images/job-and-menu-permission.png){width=6.60in}
+ ![Job & Menu permission](images/job-and-menu-permission.png){width=6.60in} 
+
 
 - **Job title**: User permissions can be granted through job title.
 
