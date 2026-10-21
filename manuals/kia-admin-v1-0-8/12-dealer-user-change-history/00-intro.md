@@ -77,7 +77,11 @@ i18nPrefix: []
 
 **Result Area**
 
-![Result Area](images/result-area.png){width=4.03in}
+
+
+![Result Area](images/result-area-2.png){width=6.27in}
+
+
 
 - Total record count, sort order, records per page, and pagination are displayed above the result table.
 
@@ -93,7 +97,7 @@ i18nPrefix: []
 
   - **User No.:** Employee number assigned by the dealer.
 
-  - **Partner ID**: HMG Partner ID of the target employee.
+  - **ID**: HMG Partner ID of the target employee.
 
   - **Name**: First name Last name.
 

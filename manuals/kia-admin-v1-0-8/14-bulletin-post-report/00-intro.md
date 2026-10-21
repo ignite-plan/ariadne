@@ -5,7 +5,10 @@ sources: []
 i18nPrefix: []
 ---
 
-![Bulletin Post Report screen](images/bulletin-post-report-screen.png){width=5.87in}
+
+
+![Bulletin Post Report Screen](images/bulletin-post-report-screen-2.png){width=6.27in}
+
 
 - The **Bulletin Post Report** screen is a Back Office report tool that allows operators to verify whether a **specific post** (important notice / training / announcement-type content) was read by its target audience.
 
@@ -79,7 +82,11 @@ i18nPrefix: []
 
   - [**\[Search\]** applies filters; **\[Reset\]** restores defaults.]{.mark}
 
-![Bulletin Post Report screen- filters](images/bulletin-post-report-screen-filters.png){width=6.26in}
+
+
+![Bulletin Report-User Filter](images/bulletin-report-user-filter.png){width=6.27in}
+
+
 
 - **Multi-Dealership Display**
 
@@ -87,7 +94,10 @@ i18nPrefix: []
 
   - If a user has additional affiliations, it is summarized as and (n) more, and a modal/popup can be opened to view the full list (sorted by Dealer No ascending).
 
-![Bulletin Post Report screen- user report](images/bulletin-post-report-screen-user-report.png){width=4.88in}
+
+
+![User Report](images/user-report.png){width=6.27in}
+
 
 ![Bulletin Post Report screen- multi-dealership modal](images/bulletin-post-report-screen-multi-dealership-modal.png){width=4.32in}
 
@@ -99,7 +109,10 @@ i18nPrefix: []
 
     - If data loading fails
 
-![No result case example](images/no-result-case-example.png){width=4.46in}
+
+
+![No result case example](images/no-result-case-example-2.png){width=6.27in}
+
 
 # 15. HMG-Notice (Notifications, Terms of Use, and FAQ)
 
