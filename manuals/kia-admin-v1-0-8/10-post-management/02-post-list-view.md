@@ -24,13 +24,20 @@ i18nPrefix: []
 - [**Menu Display Status**: A banner in the header shows whether the menu is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.]{.mark}
   - [If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.]{.mark}
   - [If Mobile Web is disabled, only a single value (Visible or Not Visible) is shown.]{.mark}
-  - [Visible is marked with a green dot and Not Visible with a gray dot.]{.mark}
-  - [Hovering over the info icon shows a tooltip: \"This menu\'s visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.\"]{.mark}
+  - [Visible is marked with a green dot and Not Visible with a gray dot.
+    ]{.mark}
+  - [Hovering over the info icon shows a tooltip.]{.mark}
 - [\[View Board List\]: Located at the bottom left. Clicking it returns to the board selection screen.]{.mark}
 
 ![Post List -- Selecting board(Board-menu mapping= yes)](images/image-24.png){width=6.27in}
 
 - [**Template Management** tab: Users with Write permission see a \[Template Management\] tab next to the Post List tab. Templates help you quickly fill in the title and content when creating a post.]{.mark}
+- Title allows up to 300 characters and Summary up to 50,000 characters. The number of characters entered is displayed.
+
+![Post Template Tab](images/image-26.png){width=6.27in}
+
+![Template creation](images/template-creation.png){width=6.27in}
+
   - [The list shows Template Title (truncated after 2 lines), Created By, Created Date (EST), Status (ON/OFF toggle) and \[Delete\].]{.mark}
   - [Drag the handle to reorder templates. Changes are saved automatically and a toast message is displayed.]{.mark}
   - [Hovering over a template title shows a preview popover with EN and FR tabs.]{.mark}
@@ -44,7 +51,9 @@ i18nPrefix: []
 Post List -- Search filter 1
 
 You can search for posts based on Created Date, Updated Date, Posting period.\
-![](images/post-list-view-img-2.png){width=5.49in}
+
+![](images/image-28.png){width=4.2in}
+
 
 Post List -- Search filter 2
 ![](images/post-list-view-img-3.png){width=6.26in}
@@ -79,12 +88,10 @@ Post List: The list of posts matching the applied search criteria is displayed. 
 - **Post Creation**
 
   - Users with permission can write new posts.
-
   - The post writing screen allows input of title, content, attachments, etc.
-
   - Additional input attributes may be displayed differently depending on the bulletin board attribute settings.
 
-![Creating Post](images/creating-post.png){width=4.10in}
+![Creating Post](images/image-29.png){width=4.2in}
 
 There are required and optional values for post creation.
 
@@ -192,11 +199,8 @@ Creating Post- Important notice 2
 - **Important notice policy**
 
   - The important notice start time setting cannot exceed the important notice end date
-
   - The important notice end time cannot be set before the important notice start date and time
-
   - Important notices cannot be set before the posting start time
-
   - Important notices cannot be set after the posting end time
 
 ![Important notice -- Calendar Setting](images/important-notice-calendar-setting.png){width=2.27in}
@@ -204,11 +208,8 @@ Creating Post- Important notice 2
 - **Notification:** This is a value for setting notifications and is optional.
 
   - The initial setting is set to Disabled.
-
   - When **Important Notice is turned ON**, the **Notification setting is automatically switched to ON**, and one-time email/FO notification is sent at the posting start time.
-
   - When **Important Notice is turned OFF**, the **Notification setting is also automatically turned OFF**.
-
   - After the notification has been sent once, the Notification value remains but the control becomes read-only and can no longer be changed.
 
 - Initial setting (Disabled)
@@ -222,14 +223,27 @@ Creating Post- Important notice 2
 - **Title/Content (Required field):** You can write the title and content of the post in English/French.
 
 - These are required input values. The initial setting displays the EN tab.
-
   - Title: The title is limited to 200 characters.
-
   - Content: The content is limited to 50,000 characters.
-
   - If the character limit is exceeded, input is not possible.
 
-![Creating Post -- Title/Contents1](images/creating-post-title-contents1.png){width=6.26in}
+![Creating Post -- Title/Contents1](images/image-30.png){width=6.27in}
+
+- You can click [Template] and select the template you want to use.
+- The template’s title and content are filled in automatically in both English and French.
+- If you have already entered a title or content, a confirmation pop-up asks whether to overwrite it.
+- You can edit the title and content after applying a template. Changes to the post do not affect the saved template.
+-  - In the "Select a Template" popup, select one template with the radio button. Only templates whose Status is ON are listed. 
+
+  - The Preview area on the right shows "Select a template to preview." until a template is selected. 
+
+  - Select **\[Apply\]** to apply the template, or **\[Cancel\]** (or the close icon) to close the popup. When applied, the message "The template has been successfully applied." is displayed.
+
+  - After applying, you can freely edit the content. Settings other than Title and Summary are not changed.
+
+![Creating Post --Contents Template](images/image-31.png){width=4.2in}
+
+
 
 - You can use the editing tools provided by the editor tool.
 

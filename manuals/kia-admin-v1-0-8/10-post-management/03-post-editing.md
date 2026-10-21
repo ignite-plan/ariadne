@@ -7,21 +7,25 @@ i18nPrefix: []
 
 ## Post Editing
 
-• You can edit the content of existing posts or change posting conditions.![](images/post-editing-img-1.png){width=4.99in}
+• You can edit the content of existing posts or change posting conditions.
 
-![Editing Post -- post attribute information 1](images/editing-post-post-attribute-information-1.png){width=5.28in}
+Editing Post -- post attribute information 1
+
+![Editing Post - Basic](images/image-32.png){width=4.2in align=center}
+
+![Editing Post - Contents](images/image-33.png){width=4.2in align=center}
 
 Editing Post -- post attribute information 2
 
-![](images/post-editing-img-2.png){width=6.26in}
+![Editing Post – post attribute information 1](images/image-35.png){width=4.2in}
 
 Editing Post -- post attribute information3
 
 - **Menu Display Status**: Shows whether the menu linked to the board is visible on the front-end screen.
 
-  - When the tenant's mobile web is ON, both values are shown (for example, "PC: Visible \| Mobile: Not Visible"). When it is OFF, only one value (Visible / Not Visible) is shown.
+![](images/image-36.png){width=6.27in}
 
-  - The notice "This menu's visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting." is displayed below it.
+  - When the tenant's mobile web is ON, both values are shown (for example, "PC: Visible \| Mobile: Not Visible"). When it is OFF, only one value (Visible / Not Visible) is shown.
 
 • When modifying the posting period, the following policy applies: ![](images/post-editing-img-3.png){width=6.26in}
 
@@ -61,21 +65,15 @@ Editing Post -- Important Notice 1
 
 - The entered values for Title/Content (EN/FR) are displayed.
 
-![Editing Post -- Contents 1](images/editing-post-contents-1.png){width=6.26in}
+![Editing Post -- Contents 1](images/image-37.png){width=6.27in}
+
+
 
 - **\[Load Template\]**: Fills the Title and Summary (EN/FR) with a saved template.
 
-  - On the edit screen, a confirmation popup always appears first: "Applying a template will overwrite your current title and summary content for all languages. Do you want to continue?" Select **\[Confirm\]** to continue or **\[Cancel\]** to stop. (On the Post Details screen for a new post, this popup appears only when something has already been entered.)
+![Template overwrite pop-up](images/image-39.png){width=3.4in}
 
-  - In the "Select a Template" popup, select one template with the radio button. Only templates whose Status is ON are listed. If there is none, "No templates available." is displayed.
-
-  - The Preview area on the right shows "Select a template to preview." until a template is selected. Images are shown as \[image\] and links as text only.
-
-  - Select **\[Apply\]** to apply the template, or **\[Cancel\]** (or the close icon) to close the popup. When applied, the message "The template has been successfully applied." is displayed.
-
-  - After applying, you can freely edit the content. Settings other than Title and Summary are not changed.
-
-- Title allows up to 300 characters and Summary up to 50,000 characters. The number of characters entered is displayed.
+  - On the edit screen, a confirmation popup always appears first. Select **\[Confirm\]** to continue or **\[Cancel\]** to stop. (On the Post Details screen for a new post, this popup appears only when something has already been entered.)
 
 - [**Translation banner**: A banner is displayed at the top of the FR area. It contains the **\[EN → FR Translate\]** button and the notice "Clicking the left button will translate the English text entered above and display the French translation in the field below." Only EN to FR translation is supported. The banner is displayed only to users with Write permission for creating and editing posts (it is hidden for Read-only users), and it is currently available only for tenants with two languages (EN, FR).]{.mark}
 
