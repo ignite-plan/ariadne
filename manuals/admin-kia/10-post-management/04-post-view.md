@@ -21,7 +21,13 @@ i18nPrefix: []
 
 - Posts of a menu whose Mobile Display is Disabled do not appear in the Mobile Home Bulletin Highlight or the Mobile integrated search. The post view screen has no separate mobile setting.
 
-![](images/post-view-img-1.png){width=4.20in} ![](images/post-view-img-2.png){width=4.20in} ![](images/post-view-img-3.png){width=4.20in} ![](images/post-view-img-4.png){width=6.26in}
+![](images/post-view-img-1.png){width=4.20in align=center} 
+
+![](images/post-view-img-2.png){width=4.20in align=center} 
+
+![](images/post-view-img-3.png){width=4.20in align=center} 
+
+![](images/post-view-img-4.png){width=6.26in align=center}
 
 **Post Detail**
 

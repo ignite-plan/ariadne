@@ -65,19 +65,12 @@ i18nPrefix: []
 - Selection boxes are displayed in the post according to the ON/OFF of the target audience options. If you toggle OFF, you cannot set the target audience.
 
 - **Job title:** Job role (eg. Sales manager, sales staff etc.)
-
 - **Dealer distribution group:** Dealer group
-
 - **Dealer:** Dealership
-
 - **Zone:** The value entered in the dealer area setting, which is the zone to which the dealership belongs.
-
 - **District:** The District value to which the dealership belongs, which is entered in the dealer area setting.
-
 - **Disabled:** You cannot specify a target audience.
-
 - The target audience option UI is not displayed in the post details.
-
 - If the bulletin board is linked to a menu, posts are displayed to all users who can access the menu.
 
 
@@ -90,11 +83,8 @@ i18nPrefix: []
 - The important notice post and important notice posting period setting UI are displayed in the post details, and when the post is saved, it is fixed at the top of the BO/FO posts for the corresponding period.
 
 - **Disabled:** You cannot set important notices.
-
 - The important notice post setting UI is not displayed in the post details.
-
 - If there is an important notice post that has already been set and the attribute value is changed, it can be fixed at the top for the set period.
-
 
 **Notification**
 
@@ -105,15 +95,13 @@ i18nPrefix: []
 - The Notification selection UI is displayed in the post details, and when a post is published with the notification function set, notifications and emails are sent to the target audience through the notification center.
 
 - **Disabled:** You cannot set notifications.
-
 - The Notification selection UI is not displayed in the post details.
 
 
 **Attachments**
 
-![](images/bulletin-board-creation-img-2.png){width=4.53in}
+![Creating Bulletin board -- Post attribute setting information5](images/bulletin-board-creation-img-2.png){width=4.53in}
 
-*Creating Bulletin board -- Post attribute setting information5*
 
 - **Enabled (Default):** This is a function that allows you to attach files.
 
@@ -132,7 +120,7 @@ i18nPrefix: []
 
 - Additional attribute usage limit: Up to 5 can be used per menu (bulletin board)
 
-![](images/bulletin-board-creation-img-3.png){width=6.26in}
+![Creating Bulletin board - initial](images/bulletin-board-creation-img-3.png){width=6.26in}
 
 ![Creating Bulletin board -- Post attribute setting information6](images/creating-bulletin-board-post-attribute-setting-information6.png){width=6.26in}
 

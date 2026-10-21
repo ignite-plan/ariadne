@@ -223,9 +223,9 @@ i18nPrefix: []
 
 
 - You can edit and delete by clicking the Menu permission edit/delete buttons.\
-  ![](images/menu-creation-img-18.png){width=6.22in}
 
-Editing and Deleting Menu permissions
+  ![Editing and Deleting Menu permissions](images/menu-creation-img-18.png){width=6.22in}
+
 
 - When deleting, if there are Access permissions in sub-menus, permission removal is not possible.
 

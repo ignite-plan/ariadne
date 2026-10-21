@@ -10,7 +10,8 @@ i18nPrefix: []
 - Menu deletion is only available to users with write permissions.
 
 - When a user with permissions selects a menu and hovers over it, the \[Delete\] button is displayed, and the menu can be deleted through this button.\
-  ![](images/menu-deletion-img-1.png){width=4.89in}
+
+    ![Menu Hover](images/menu-deletion-img-1.png){width=4.89in}
 
 - **Menu deletion conditions**:
 
