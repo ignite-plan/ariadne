@@ -2,7 +2,7 @@ title: Dealers Admin User Manual-KIA
 version: 1.0.8
 output: Dealers Admin User Manual-KIA_v{version}
 capture:
-  baseUrl: https://stg-dealers-admin.hyundai-corp.io/ca
+  baseUrl: https://stg-dealers-admin.kia-corp.io/ca
   viewport:
     width: 1440
     height: 900
