@@ -17,9 +17,9 @@ i18nPrefix: []
 
 - **Using Quick Link on the Home Screen**
 
-- ![](images/quick-link-img-1.png){width=4.66in}
+   ![](images/quick-link-img-1.png){width=4.66in}
 
-Quick Link
+**Quick Link**
 
 - Quick links are provided on the right side of the home screen.
 
@@ -65,7 +65,7 @@ Quick Link
 
 ![Quick Link](images/quick-link.png){width=3.91in height=2.84in}
 
-Quick Link Setting Popup
+**Quick Link Setting Popup**
 
 - Menu List shows the entire menu tree the user has permission to access, organized by depth. Each level can be collapsed or expanded, and the list is fully expanded by default. Directory-type menus do not show a bookmark icon and cannot be added to Quick Links.
 

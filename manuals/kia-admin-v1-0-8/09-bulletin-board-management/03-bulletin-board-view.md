@@ -65,27 +65,30 @@ i18nPrefix: []
 
 - Values entered during post creation are displayed on the post inquiry screen
 
-- **Posting Period** ![](images/bulletin-board-view-img-3.png){width=6.26in}
+- **Posting Period**
 
-Bulletin board detail -- Post Attribute setting1
-
-- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)![](images/image-19.png){width=6.27in}
+  ![Bulletin board detail -- Post Attribute setting1](images/bulletin-board-view-img-3.png){width=6.26in}
 
 
+- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)
 
-Bulletin board detail -- Post Attribute setting2
+  ![Bulletin board detail -- Post Attribute setting2](images/image-19.png){width=6.27in}
 
-- **Important Notice** ![](images/bulletin-board-view-img-5.png){width=3.96in}
 
-Bulletin board detail -- Post Attribute setting3
+- **Important Notice**
 
-- **Notification** ![](images/bulletin-board-view-img-6.png){width=4.71in}
+  ![Bulletin board detail -- Post Attribute setting3](images/bulletin-board-view-img-5.png){width=3.96in}
 
-Bulletin board detail -- Post Attribute setting4
 
-- **Attachments** ![](images/bulletin-board-view-img-7.png){width=4.29in}
+- **Notification**
 
-Bulletin board detail -- Post Attribute setting5
+  ![Bulletin board detail -- Post Attribute setting4](images/bulletin-board-view-img-6.png){width=4.71in}
+
+
+- **Attachments**
+
+![Bulletin board detail -- Post Attribute setting5](images/bulletin-board-view-img-7.png){width=4.29in}
+
 
 - **Additional Attribute**
 

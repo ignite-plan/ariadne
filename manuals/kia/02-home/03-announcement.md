@@ -41,7 +41,7 @@ i18nPrefix: []
 
 ![](images/announcement-img-1.png){width=3.61in}
 
-Search filter - Search criteria
+**Search filter - Search criteria**
 
 - **The post search area** shows the total number of posts, and the list displays Title, Attachment, and Date information.
 

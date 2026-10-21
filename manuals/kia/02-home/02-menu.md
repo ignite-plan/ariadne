@@ -25,7 +25,7 @@ i18nPrefix: []
 
 - GNB menu displays only 1depth menu, and when a menu is selected, you will be directed to the detailed screen of that menu.
 
-![](images/menu-img-1.png){width=6.79in}
+  ![](images/menu-img-1.png){width=6.79in}
 
 GNB Menu
 
@@ -33,7 +33,7 @@ GNB Menu
 
 - **Menu dropdown:** When hovering the mouse over a 1depth menu, you can check the lower 2 \~4 depth menus through the menu dropdown.
 
-![Menu dropdown](images/menu-dropdown.png){width=6.79in}
+  ![Menu dropdown](images/menu-dropdown.png){width=6.79in}
 
 **SNB Menu**
 
@@ -45,7 +45,7 @@ GNB Menu
 
 - **The 1depth menu** of the selected menu is marked as selected in the GNB, and the corresponding 2\~4depth menus are displayed in a tree structure.
 
-![SNB (Side Navigation Bar) Menu](images/snb-side-navigation-bar-menu.png){width=6.79in}
+  ![SNB (Side Navigation Bar) Menu](images/snb-side-navigation-bar-menu.png){width=6.79in}
 
 - When a menu is selected, you will be directed to the detailed screen of that menu, and the selected **menu name** is displayed on the right page.
 

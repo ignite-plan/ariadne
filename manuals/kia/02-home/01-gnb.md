@@ -124,11 +124,15 @@ Notification layer
 
 - **Language setting:**
 
-  - The language setting button is displayed. ![](images/gnb-img-7.png){width=5.68in}
+  - The language setting button is displayed.
+  
+   ![](images/gnb-img-7.png){width=5.68in}
 
 Language setting
 
-- When clicked, language information is displayed in the right layer, and you can select a language using **radio buttons.** ![](images/gnb-img-8.png){width=2.59in}
+- When clicked, language information is displayed in the right layer, and you can select a language using **radio buttons.**
+
+ ![](images/gnb-img-8.png){width=2.59in}
 
 Language selection
 
