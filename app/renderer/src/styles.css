@@ -28,6 +28,9 @@
   --font-mono: 'SF Mono', ui-monospace, Menlo, 'Apple SD Gothic Neo', monospace;
   --page: #ffffff;
   --page-text: #1d1d1d;
+  /* 편집기 찾기: 형광펜(노랑)과 헷갈리지 않게 파랑 계열 */
+  --find-match: #cfe3ff;
+  --find-current: #8fbcff;
   color-scheme: light;
 }
 
@@ -58,6 +61,8 @@
     --shadow-lg: 0 4px 12px rgb(0 0 0 / 35%), 0 24px 64px rgb(0 0 0 / 50%);
     --page: #fdfcfa;
     --page-text: #1d1d1d;
+    --find-match: #23406b;
+    --find-current: #2f5f9e;
     color-scheme: dark;
   }
 }
@@ -2910,4 +2915,84 @@ fieldset.lock:disabled {
 /* Claude에게 요청 (최신화·캡처 정의) */
 .request-field textarea {
   resize: vertical;
+}
+
+/* ---------- 편집기 찾기·바꾸기 (지금 화면 안) ---------- */
+.toolbar .tool-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.cm-panels-top {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.cm-find {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 44px 8px 12px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.cm-find-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cm-find-input {
+  flex: 1 1 140px;
+  min-width: 0;
+  max-width: 260px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.cm-find-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.cm-find-input:disabled {
+  opacity: 0.6;
+}
+.cm-find-count {
+  min-width: 64px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.cm-find-button {
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.cm-find-button:hover:not(:disabled) {
+  background: var(--surface-3);
+}
+.cm-find-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.cm-find-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+}
+.cm-find-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
 }

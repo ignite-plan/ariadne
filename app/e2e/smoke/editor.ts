@@ -70,6 +70,43 @@ export async function editor({ page, step, snap, toast, workspace }: Smoke) {
     assert.doesNotMatch(execFileSync('git', ['-C', workspace, 'log', '-1', '--format=%B'], { encoding: 'utf8' }), /Ariadne-Record/)
   })
 
+  await step('찾기·바꾸기 (지금 화면): ⌘F → 결과 수 → 모두 바꾸기 → 되돌리기', async () => {
+    await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
+    await page.locator('.cm-content').click()
+    await page.keyboard.press('Meta+f')
+    const bar = page.getByRole('search', { name: '찾기·바꾸기' })
+    await bar.getByLabel('찾을 말').fill('Dealer List')
+    // 입력하면 가까운 결과로 옮겨 "n / 전체"를 보여 주고, 다음을 누르면 순서가 바뀐다
+    const count = bar.locator('.cm-find-count', { hasText: /^\d+ \/ \d+$/ })
+    await count.waitFor()
+    const first = await count.innerText()
+    assert.notEqual(first.split(' / ')[1], '1', 'Dealer List는 여러 곳에 있다')
+    await bar.getByRole('button', { name: '다음 (Enter)' }).click()
+    await page.waitForFunction((before) => document.querySelector('.cm-find-count')?.textContent !== before, first)
+    assert.ok((await page.locator('.cm-searchMatch').count()) > 1, '찾은 곳을 편집기에 표시한다')
+    await snap('06c-find')
+    // ⌥⌘F는 바꿀 말 칸으로
+    await page.keyboard.press('Meta+Alt+f')
+    await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === '바꿀 말')
+    await bar.getByLabel('바꿀 말').fill('Partner List')
+    await bar.getByRole('button', { name: '이 화면에서 찾은 곳을 모두 바꾸기' }).click()
+    await bar.locator('.cm-find-count', { hasText: '결과 없음' }).waitFor()
+    await page.waitForFunction(() => document.querySelector('.save-state')?.textContent === '저장됨')
+    await page.waitForTimeout(1500)
+    // 본문만 바꾼다 (front-matter의 화면 제목은 편집기에 없다)
+    const body = readFileSync(sectionFile, 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '')
+    assert.match(body, /Partner List/)
+    assert.doesNotMatch(body, /Dealer List/)
+    assert.match(readFileSync(sectionFile, 'utf8'), /images\/dealer-list\.png/, '이미지 경로는 대소문자·글자가 달라 그대로')
+    // Esc로 닫고, 모두 바꾸기는 한 번에 되돌린다
+    await page.keyboard.press('Escape')
+    await bar.waitFor({ state: 'detached' })
+    await page.getByTitle('되돌리기 (⌘Z)').click()
+    await page.waitForFunction(() => document.querySelector('.save-state')?.textContent === '저장됨')
+    await page.waitForTimeout(1500)
+    assert.equal(readFileSync(sectionFile, 'utf8'), original)
+  })
+
   await step('이미지 다이얼로그', async () => {
     await page.getByRole('tab', { name: '목차' }).click()
     await page.getByTitle('이미지 넣기').click()

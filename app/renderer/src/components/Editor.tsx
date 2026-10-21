@@ -19,6 +19,7 @@ import { tags } from '@lezer/highlight'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { MARK_RE, toggleCenter, toggleMark } from '../../../shared/markdown-edit.ts'
 import type { ReviewHunk } from '../../../shared/review-diff.ts'
+import { editorSearch, openSearch } from '../editor-search.ts'
 
 // Claude가 바꾼 줄 왼쪽에 막대를 그린다 (본문에는 아무것도 넣지 않는다). 줄 번호는 지금 본문 기준
 function reviewLines(hunks: ReviewHunk[]) {
@@ -43,6 +44,8 @@ export interface EditorHandle {
   wrap: (before: string, after: string, fallback: string) => void
   prefixLines: (prefix: string) => void
   goToLine: (line: number) => void
+  // 찾기 막대 열기 (replace면 바꿀 말 칸으로)
+  openSearch: (replace?: boolean) => void
   undo: () => void
   redo: () => void
   focus: () => void
@@ -206,6 +209,8 @@ export const Editor = forwardRef<
         placeholder('내용을 입력하세요'),
         lock.current.of(lockExtension(locked.current)),
         reviewing.current.of(reviewExtension(reviewHunks.current)),
+        // 지금 화면 안에서 찾기·바꾸기 (⌘F, ⌥⌘F)
+        editorSearch,
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         theme,
         EditorView.updateListener.of((u) => {
@@ -312,6 +317,7 @@ export const Editor = forwardRef<
       })
       v.focus()
     },
+    openSearch: (replace) => void openSearch(view.current!, replace),
     undo: () => void undo(view.current!),
     redo: () => void redo(view.current!),
     focus: () => view.current?.focus(),

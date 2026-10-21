@@ -130,7 +130,8 @@ export function DocumentPane({
       </fieldset>
       <div className={`panes ${layout}`}>
         <div className="pane editor-pane">
-          <fieldset className="lock toolbar" disabled={locked}>
+          <div className="toolbar">
+          <fieldset className="lock tool-group" disabled={locked}>
             <ToolButton icon="bold" label="굵게 (항목 이름)" onClick={() => editor.current?.wrap('**', '**', 'Label')} />
             <ToolButton icon="button" label="버튼 이름 [Save]" onClick={() => editor.current?.wrap('**\\[', '\\]**', 'Button')} />
             <ToolButton icon="highlight" label="노란 형광펜 (선택한 글자, 다시 누르면 해제)" onClick={() => editor.current?.toggleMark()} />
@@ -147,10 +148,15 @@ export function DocumentPane({
               }}
             />
             <ToolButton icon="flag" label="TODO 남기기 (확인 필요한 내용)" onClick={() => editor.current?.wrap('<!-- TODO: ', ' -->', '확인 필요')} />
-            <span className="spacer" />
+          </fieldset>
+          <span className="spacer" />
+          {/* 찾기는 Claude가 고치는 중(잠김)에도 된다. 바꾸기만 막는다 */}
+          <ToolButton icon="search" label="찾기·바꾸기 (⌘F, ⌥⌘F)" onClick={() => editor.current?.openSearch()} />
+          <fieldset className="lock tool-group" disabled={locked}>
             <ToolButton icon="undo" label="되돌리기 (⌘Z)" onClick={() => editor.current?.undo()} />
             <ToolButton icon="redo" label="다시 실행 (⇧⌘Z)" onClick={() => editor.current?.redo()} />
           </fieldset>
+          </div>
           <Editor
             readOnly={locked}
             ref={editor}
