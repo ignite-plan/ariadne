@@ -17,9 +17,7 @@ i18nPrefix: []
 
 - **Using Quick Link on the Home Screen**
 
-   ![](images/quick-link-img-1.png){width=4.66in}
-
-**Quick Link**
+     ![Quick Link](images/quick-link-img-1.png){width=4.66in}
 
 - Quick links are provided on the right side of the home screen.
 

@@ -39,7 +39,7 @@ i18nPrefix: []
 
 - You can select **Title(default), key word,** or **Post ID** fields to search for posts that match the search criteria.
 
-![](images/announcement-img-1.png){width=3.61in}
+  ![search criteria](images/announcement-img-1.png){width=3.61in}
 
 **Search filter - Search criteria**
 

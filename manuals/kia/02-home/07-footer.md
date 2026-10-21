@@ -53,12 +53,12 @@ i18nPrefix: []
 
 - Clicking the **\[cookie settings\]** button at the top creates a cookie settings popup.
 
-  ![Cookie Policy](images/cookie-policy.png){width=5.72in}
+    ![Cookie Policy](images/cookie-policy.png){width=5.72in}
 
 - In the popup, you can reset and save the cookie values that you individually consent to.\
-  ![](images/footer-img-2.png){width=3.65in}
 
-Cookie Settings
+    ![Cookie Settings](images/footer-img-2.png){width=3.65in}
+
 
 **User Manual**
 

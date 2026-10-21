@@ -13,7 +13,7 @@ i18nPrefix: []
 
 **View Mode**
 
-![My Profile](images/my-profile.png){width=6.79in}
+  ![My Profile](images/my-profile.png){width=6.79in}
 
 - The screen title is **My Profile**.
 

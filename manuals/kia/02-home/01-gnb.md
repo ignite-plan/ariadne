@@ -27,34 +27,31 @@ Logo image
 
 - When clicking on the search box, keyboard input is activated and up to 10 recent searches are displayed. When hovering the mouse over a recent search term, a delete button appears, and clicking it immediately deletes that search history.
 
-- After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below) ![](images/gnb-img-2.png){width=4.36in}
+- After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
 
-Recent searches
+    ![Recent searches](images/gnb-img-2.png){width=4.36in}
 
 - **Quick Link**
 
   - When Quick Link is clicked, the Quick Link screen is displayed. Please refer to the Quick Link description below.
-  - ![](images/gnb-img-3.png){width=3.88in}
+ 
+   ![Quick Link](images/gnb-img-3.png){width=3.88in}
 
-Quick Link
 
 - **Notification:**
 
   - If there are notifications, the notification details will be displayed
 
-Notification
-
-![](images/gnb-img-4.png){width=4.65in}
+  ![Notification](images/gnb-img-4.png){width=4.65in}
 
 - If there are new notifications, a number notification badge will be displayed, and after the layer screen is displayed, the number notification badge will be reset.\
-  ![](images/gnb-img-5.png){width=6.06in}
 
-New notification
+  ![New notification](images/gnb-img-5.png){width=6.06in}
 
 - When the Notification button is clicked, the notification layer appears. In the Notification list, read and unread notifications are displayed separately.\
-  ![](images/gnb-img-6.png){width=3.50in}
 
-Notification layer
+    ![Notification layer](images/gnb-img-6.png){width=3.50in}
+
 
 - **Edited notifications**
 
@@ -64,7 +61,7 @@ Notification layer
 
   - Each edit keeps the existing card and adds a new Edited card at the top of the list. The badge count also increases by 1 (e.g., 1 original notification + 10 edits = 11 cards, badge 11). A notification that was already read becomes unread again when the post is edited.
 
-  - Edited is not applied when:
+  - **Edited is not applied when:**
 
     - A menu setting is changed.
 
@@ -78,9 +75,9 @@ Notification layer
 
   - When a post is deleted or hidden, the existing card stays as it is and an error screen is shown when the card is clicked. The card does not move to the top.
 
-  - Icon change: when a post changes between Regular and Important notice, the regular post icon and the important notice icon are swapped. When an attachment is added to a regular post, the icon changes to the attachment icon.
+  - **Icon change:** when a post changes between Regular and Important notice, the regular post icon and the important notice icon are swapped. When an attachment is added to a regular post, the icon changes to the attachment icon.
 
-  - Sort order: newest first (received or edited time, descending). When events occur at the same time, unread regular notifications come first, then Edited, then read regular notifications. An Edited notification that occurs while scrolling is reflected in the order only after the user refreshes.
+  - **Sort order**: newest first (received or edited time, descending). When events occur at the same time, unread regular notifications come first, then Edited, then read regular notifications. An Edited notification that occurs while scrolling is reflected in the order only after the user refreshes.
 
 - A **Notification setting** button is displayed at the bottom of the notification layer. When this button is clicked, a notification settings screen is opened where the user can configure their notification type for the **currently active dealership** only. Settings do not apply across multiple dealerships.
 
@@ -102,12 +99,12 @@ Notification layer
 
   - For scheduled posts, if a post is changed to Important before it is sent, users who selected Important notices only will be included in the email/notification recipients at the time of sending.
 
-  - When a post status is changed:
+  - **When a post status is changed**:
 
-    i.  Regular → Important after sending:\
+    i.  **Regular → Important after sending:**\
         The notification is shown as Edited, moves to the top, becomes unread, and its icon is changed to the important notice icon. No additional email is sent.
 
-    ii. Important → Regular after sending:\
+    ii. **Important → Regular after sending**:\
         The notification is shown as Edited, moves to the top, becomes unread, and its icon is changed to the regular post icon. No additional email is sent.
 
   - A post with Display OFF and Notification ON is treated by the system as not sent. When the sending conditions are met later, it is sent as the first notification (Regular, or Important if it is an Important notice).
@@ -126,22 +123,16 @@ Notification layer
 
   - The language setting button is displayed.
   
-   ![](images/gnb-img-7.png){width=5.68in}
-
-Language setting
+     ![Language setting](images/gnb-img-7.png){width=5.68in}
 
 - When clicked, language information is displayed in the right layer, and you can select a language using **radio buttons.**
 
- ![](images/gnb-img-8.png){width=2.59in}
-
-Language selection
+   ![Language selection](images/gnb-img-8.png){width=2.59in}
 
 - **Account:**
-
   - The user\'s account information is displayed.\
-    ![](images/gnb-img-9.png){width=5.04in}
 
-Account
+    ![Account](images/gnb-img-9.png){width=5.04in}
 
 - If the user has registered a profile picture, the profile image is displayed. If an image has not been registered, an initials avatar is displayed instead. This applies to the GNB and the Account layer.
 
