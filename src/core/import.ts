@@ -4,6 +4,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { createBodyWriter } from './import/body.ts'
+import { wordCaptions } from './import/captions.ts'
 import { matchDrawings, readDrawings, runPandoc } from './import/docx.ts'
 import { guessTitle, guessVersion, structureFromHeadings, structureFromToc, titleCase } from './import/structure.ts'
 import { loadManual, manualDir, mergeManual, saveManual, serializeFrontMatter, type Manual, type ManualRef } from './manual.ts'
@@ -97,6 +98,8 @@ async function parseInto(workDir: string, source: string, pandoc: string, onProg
   ])
   const warnings: string[] = []
   const allDrawings = readDrawings(source)
+  // Word 캡션 스타일 문단 (이미지 캡션으로 옮긴다)
+  const captions = await wordCaptions(source, pandoc)
 
   const imageSrcs: string[] = []
   const lines = readFileSync(join(workDir, 'full.md'), 'utf8')
@@ -144,6 +147,7 @@ async function parseInto(workDir: string, source: string, pandoc: string, onProg
     chapters,
     warnings,
     structure: (fromToc ? 'toc' : 'headings') as DocxAnalysis['structure'],
+    captions,
     title: guessTitle(lines, firstChapterLine),
     version: guessVersion(source),
     images: imageSrcs.length,
@@ -218,6 +222,7 @@ export async function importDocx({
       imagesDir: join(dir, 'images'),
       drawings: parsed.drawings,
       warnings: parsed.warnings,
+      captions: parsed.captions,
       onImage: () => onProgress?.({ phase: 'images', done: ++written, total: parsed.images }),
     })
 

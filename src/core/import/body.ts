@@ -2,6 +2,7 @@
 import { copyFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { repairImportArtifacts } from '../markup-repair.ts'
+import { mergeCaptionParagraphs } from './captions.ts'
 import { slugify, uniqueName } from '../naming.ts'
 import { isPng, writeImage, type Drawing } from './docx.ts'
 
@@ -10,11 +11,13 @@ export interface BodyWriterOptions {
   // pandoc이 꺼낸 이미지 순서(#index)대로 Word 그림 정보
   drawings: (Drawing | undefined)[]
   warnings: string[]
+  // Word의 캡션 스타일 문단 글자. 이미지 바로 다음의 캡션 문단을 이미지 캡션으로 옮긴다
+  captions?: string[]
   onImage?: () => void
 }
 
 // 이미지 이름은 caption slug(없으면 <절>-img-N). 이미 쓴 이름이나 images/에 있는 파일과 겹치면 -2, -3 …
-export function createBodyWriter({ imagesDir, drawings, warnings, onImage }: BodyWriterOptions) {
+export function createBodyWriter({ imagesDir, drawings, warnings, captions = [], onImage }: BodyWriterOptions) {
   const used = new Set<string>()
   const saveImage = (alt: string, src: string, index: string, pandocSize: string | undefined, base: string) => {
     const png = isPng(src)
@@ -30,7 +33,7 @@ export function createBodyWriter({ imagesDir, drawings, warnings, onImage }: Bod
 
   return (body: string[], sectionSlug: string) => {
     let unnamed = 0
-    return body
+    const prepared = body
       .map((l) => l.replace(/^(> ?)+/, ''))
       .map((l) => l.replace(/\[\]\{#[^}]*\}/g, ''))
       // Word의 빈 굵게가 남긴 `**\**`, 닫는 별표가 이스케이프된 굵게 (Word에 ** 가 글자로 찍힌다)
@@ -48,7 +51,9 @@ export function createBodyWriter({ imagesDir, drawings, warnings, onImage }: Bod
       .map((l) => l.replace(/\[(!\[[^\]]*\]\([^)]*\)(\{[^}]*\})?)\]\{\.mark\}/g, '$1'))
       .map((l) => l.replace(/\[(\s*)\]\{\.mark\}/g, '$1'))
       .map((l) => (/^#/.test(l) ? l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1') : l))
-      .map((l) =>
+    // 이미지 아래 따로 달린 Word 캡션 문단을 이미지 캡션으로 (이미지 이름도 캡션으로 짓는다)
+    return mergeCaptionParagraphs(prepared, captions)
+      .lines.map((l) =>
         l.replace(/!\[([^\]]*)\]\(([^)#]+)#(\d+)\)(\{[^}]*\})?/g, (_, alt: string, src: string, index: string, pandocSize?: string) => {
           // Word가 자동 생성한 한글 대체 텍스트는 caption이 아니다
           const caption = /[가-힣]/.test(alt) ? '' : alt
