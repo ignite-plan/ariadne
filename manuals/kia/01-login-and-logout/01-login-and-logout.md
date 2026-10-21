@@ -34,10 +34,11 @@ i18nPrefix: []
 
 ![Logout button](images/image-24.png){width=3.4in}
 
-- Automatic logout instructions:
-  - In accordance with security policy, Dealers will automatically log you out if no acitivity is detected on the site for 60 minutes.
-  - After 55 miunutes of inactivity, a popup will appers notifying you that logout will occur in 5 minutes.
-  - In inactivity is detected for 60 minutes, automatic logout will be initiated.
-  - If a user retures to the Dealers screen after 60 minutes have passed, they will be automatically logged out.
+- **Automatic logout instructions**:
+  - In accordance with security policy, Dealers will automatically log you out if no activity is detected on the site for 60 minutes.
+  - After 55 minutes of inactivity, a popup will appear notifying you that logout will occur in 5 minutes.
+  - If inactivity is detected for 60 minutes, automatic logout will be initiated.
+  - If a user returns to the Dealers screen after 60 minutes have passed, they will be automatically logged out.
+
 
 ![Session end pop-up](images/image-27.png){width=6.27in}
