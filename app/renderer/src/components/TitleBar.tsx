@@ -29,6 +29,7 @@ export function TitleBar({
   onSwitchManual,
   onImport,
   onCapture,
+  onPreviewAll,
   onSubmit,
   onSettings,
 }: {
@@ -43,6 +44,8 @@ export function TitleBar({
   onSwitchManual: (id: string) => void
   onImport: () => void
   onCapture: () => void
+  // Word 만들기 전 전체 보기 (미리보기를 전체 범위로)
+  onPreviewAll: () => void
   onSubmit: () => void
   onSettings: () => void
 }) {
@@ -80,7 +83,7 @@ export function TitleBar({
         <button className="button ghost" onClick={() => tasks.openVideo()}>
           <Icon name="video" /> 영상
         </button>
-        <BuildMenu currentChapter={currentChapter} flush={flush} />
+        <BuildMenu currentChapter={currentChapter} flush={flush} onPreviewAll={onPreviewAll} />
         <button
           className="button primary"
           onClick={onSubmit}
@@ -98,7 +101,7 @@ export function TitleBar({
 }
 
 // Word 만들기: 전체 또는 지금 장만
-function BuildMenu({ currentChapter, flush }: { currentChapter?: Chapter; flush: () => Promise<boolean> }) {
+function BuildMenu({ currentChapter, flush, onPreviewAll }: { currentChapter?: Chapter; flush: () => Promise<boolean>; onPreviewAll: () => void }) {
   const toast = useToast()
   const [open, setOpen] = useState(false)
   const [building, setBuilding] = useState(false)
@@ -139,6 +142,15 @@ function BuildMenu({ currentChapter, flush }: { currentChapter?: Chapter; flush:
         <>
           <div className="menu-backdrop" onClick={() => setOpen(false)} />
           <div className="menu">
+            <button
+              onClick={() => {
+                setOpen(false)
+                onPreviewAll()
+              }}
+            >
+              <b>만들기 전 전체 보기</b>
+              <span>Word와 같은 내용으로 미리보기</span>
+            </button>
             <button onClick={() => void build()}>
               <b>전체 매뉴얼</b>
               <span>모든 장</span>

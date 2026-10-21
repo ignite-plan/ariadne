@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FileChange, Settings, SubmitResult, UpdateInfo } from '../../../shared/api.ts'
+import type { FileChange, PreviewScope, Settings, SubmitResult, UpdateInfo } from '../../../shared/api.ts'
 import { isDraftTarget } from '../../../shared/draft-log.ts'
 import { isVideoDraft } from '../../../shared/draft-mode.ts'
 import { api } from '../api.ts'
 import { allSections, findSection, pickSection } from '../manual-tree.ts'
 import { REVIEW_ATTR } from '../review-marks.ts'
 import { useClaudeDone, useTasks } from '../tasks.tsx'
-import { LAST_PATH, storage, usePersistentState, usePreview, useReview, useSectionDocument, useWorkspaceSide } from '../workbench-state.ts'
+import { LAST_PATH, storage, useManualPreview, usePersistentState, usePreview, useReview, useSectionDocument, useWorkspaceSide } from '../workbench-state.ts'
 import { CapturePanel } from './CapturePanel.tsx'
 import { DiffDialog } from './DiffDialog.tsx'
 import { DocumentPane, type Layout } from './DocumentPane.tsx'
@@ -45,7 +45,10 @@ export function Workbench({ onReset }: { onReset: () => void }) {
   const [layout, setLayout] = usePersistentState<Layout>('ariadne.layout', 'split')
   // 이미지 파일만 바뀌었을 때 미리보기를 다시 그리기 위한 값
   const [previewNonce, setPreviewNonce] = useState(0)
-  const preview = usePreview(doc, section.body, layout !== 'editor', previewNonce)
+  // 미리보기 범위: 이 화면 / 이 장 / 전체. 장·전체는 Word와 같은 내용(TODO 뺌)이라 지금 화면도 Word 모드로 그린다
+  const [previewScope, setPreviewScope] = usePersistentState<PreviewScope>('ariadne.previewScope', 'section')
+  const preview = usePreview(doc, section.body, layout !== 'editor', previewNonce, previewScope !== 'section')
+  const fullPreview = useManualPreview(previewScope, doc?.path.split('/')[0], layout !== 'editor', tree, previewNonce)
   const previewRef = useRef<HTMLDivElement>(null)
   // Claude 변경 검토 (최신화가 고치기 직전 본문과 비교)
   const review = useReview(doc, section.version, section.body, layout !== 'editor', previewNonce)
@@ -314,6 +317,11 @@ export function Workbench({ onReset }: { onReset: () => void }) {
         onSwitchManual={(id) => void switchManual(id)}
         onImport={() => setDialog({ type: 'import' })}
         onCapture={() => setCapturing(true)}
+        onPreviewAll={() => {
+          // Word 만들기 전에 전체를 훑어본다: 미리보기만, 전체 범위
+          setPreviewScope('all')
+          setLayout('preview')
+        }}
         onSubmit={() => void openSubmit()}
         onSettings={() => setDialog({ type: 'settings' })}
       />
@@ -367,6 +375,10 @@ export function Workbench({ onReset }: { onReset: () => void }) {
               onRefresh={() => currentChapter && void startRefresh({ chapterDir: currentChapter.dir, path: doc.path })}
               onInsertImage={() => setDialog({ type: 'image' })}
               onImageFile={(f) => void onImageFile(f)}
+              previewScope={previewScope}
+              onPreviewScope={setPreviewScope}
+              full={fullPreview}
+              onOpenSection={(path) => void section.open(path)}
               review={
                 review.active
                   ? {

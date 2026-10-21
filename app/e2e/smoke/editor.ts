@@ -107,6 +107,39 @@ export async function editor({ page, step, snap, toast, workspace }: Smoke) {
     assert.equal(readFileSync(sectionFile, 'utf8'), original)
   })
 
+  await step('미리보기 범위: 전체(Word와 같은 내용) → 이 장 → 다른 화면 편집 → Word 메뉴의 만들기 전 전체 보기', async () => {
+    const bar = page.locator('.preview-bar')
+    await bar.getByRole('button', { name: '전체', exact: true }).click()
+    await page.locator('.full-preview .full-section').nth(10).waitFor({ timeout: 60000 })
+    const current = page.locator('.full-section.current')
+    assert.equal(await current.getAttribute('data-path'), '02-dealer-management/01-dealer-list-view.md', '지금 화면을 강조한다')
+    assert.ok((await page.locator('.full-chapter').count()) >= 10, '모든 장')
+    assert.equal(await page.locator('.full-preview .todo').count(), 0, 'TODO는 Word처럼 뺀다')
+    await snap('06d-full-preview')
+    // 이 장만
+    await bar.getByRole('button', { name: '이 장', exact: true }).click()
+    await page.waitForFunction(() => document.querySelectorAll('.full-chapter').length === 1, undefined, { timeout: 30000 })
+    // 다른 화면을 편집기에 연다
+    const other = page.locator('.full-section[data-path="02-dealer-management/02-dealer-creation-screen.md"]')
+    await other.hover()
+    await other.getByRole('button', { name: '이 화면 편집' }).click()
+    await page.locator('.breadcrumb', { hasText: 'Dealer Creation' }).waitFor()
+    await page.locator('.full-section.current[data-path="02-dealer-management/02-dealer-creation-screen.md"]').waitFor()
+    // Word 만들기 메뉴: 미리보기만 + 전체
+    await bar.getByRole('button', { name: '이 화면', exact: true }).click()
+    await page.getByRole('button', { name: 'Word 만들기' }).click()
+    await page.getByRole('button', { name: /만들기 전 전체 보기/ }).click()
+    await page.locator('.panes.preview').waitFor()
+    await bar.locator('button.active', { hasText: '전체' }).waitFor()
+    await page.locator('.full-section.current').waitFor({ timeout: 60000 })
+    // 뒤 단계를 위해 원래대로 (나란히, 이 화면, Dealer List View)
+    await page.getByTitle('나란히').click()
+    await bar.getByRole('button', { name: '이 화면', exact: true }).click()
+    await page.getByRole('tab', { name: '목차' }).click()
+    await page.locator('.toc-section', { hasText: 'Dealer List View' }).click()
+    await page.locator('.breadcrumb', { hasText: 'Dealer List View' }).waitFor()
+  })
+
   await step('이미지 다이얼로그', async () => {
     await page.getByRole('tab', { name: '목차' }).click()
     await page.getByTitle('이미지 넣기').click()

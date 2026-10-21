@@ -2946,7 +2946,7 @@ fieldset.lock:disabled {
   flex: 1 1 140px;
   min-width: 0;
   max-width: 260px;
-  height: 26px;
+  height: 28px;
   padding: 0 8px;
   border: 1px solid var(--border-strong);
   border-radius: 6px;
@@ -2968,31 +2968,71 @@ fieldset.lock:disabled {
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
-.cm-find-button {
-  height: 26px;
-  padding: 0 9px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-.cm-find-button:hover:not(:disabled) {
-  background: var(--surface-3);
-}
-.cm-find-button:disabled {
-  opacity: 0.5;
-  cursor: default;
+.cm-find-toggle[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .cm-find-close {
   position: absolute;
-  top: 8px;
+  top: 9px;
   right: 10px;
 }
-.cm-find-check {
-  display: inline-flex;
+
+/* ---------- 미리보기 범위 (이 화면 / 이 장 / 전체) ---------- */
+.preview-bar {
+  display: flex;
   align-items: center;
-  gap: 4px;
-  cursor: pointer;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+.preview-issues {
+  color: var(--danger);
+}
+.full-preview .full-page + .full-page {
+  margin-top: 24px;
+}
+.full-chapter {
+  font-size: 24px;
+  margin: 0 0 18px;
+}
+.full-section {
+  position: relative;
+  margin: 0 -0.32in;
+  padding: 4px 0.32in 12px;
+  border-left: 3px solid transparent;
+}
+.full-section + .full-section {
+  border-top: 1px dashed #e4e1da;
+}
+.full-section.current {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 35%, transparent);
+}
+.full-open {
+  position: absolute;
+  top: 8px;
+  right: 0.32in;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.full-section:hover .full-open,
+.full-open:focus-visible {
+  opacity: 1;
+}
+.full-preview-loading {
+  text-align: center;
+  margin-top: 40px;
+}
+.page mark.word-issue {
+  background: var(--danger-soft);
+  color: var(--danger);
+  outline: 1px solid var(--danger);
+  border-radius: 2px;
+}
+.page pre.word-issue-block {
+  outline: 2px solid var(--danger);
+  background: var(--danger-soft);
 }

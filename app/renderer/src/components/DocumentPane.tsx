@@ -1,6 +1,6 @@
 // 열린 화면: 위치·최신화·저장 상태·보기 방식, front-matter, 편집기 도구 막대, 편집기와 미리보기
 import type { RefObject } from 'react'
-import type { ManualTree, SectionDoc, SectionMeta } from '../../../shared/api.ts'
+import type { ManualTree, PreviewChapter, PreviewScope, SectionDoc, SectionMeta } from '../../../shared/api.ts'
 import { formatAge } from '../../../shared/format.ts'
 import type { ReviewHunk } from '../../../shared/review-diff.ts'
 import type { SaveState } from '../workbench-state.ts'
@@ -8,9 +8,16 @@ import { useToast } from './Toast.tsx'
 import { Editor, type EditorHandle } from './Editor.tsx'
 import { Icon, type IconName } from './Icon.tsx'
 import { MetaPanel } from './MetaPanel.tsx'
+import { FullPreview } from './FullPreview.tsx'
 import { Preview } from './Preview.tsx'
 
 export type Layout = 'editor' | 'split' | 'preview'
+
+const SCOPES: { id: PreviewScope; label: string; title: string }[] = [
+  { id: 'section', label: '이 화면', title: '지금 화면만 (TODO도 보임)' },
+  { id: 'chapter', label: '이 장', title: '지금 장의 화면을 Word 순서대로 이어서 (TODO는 Word처럼 뺌)' },
+  { id: 'all', label: '전체', title: '매뉴얼 전체를 Word와 같은 순서·내용으로 (TODO는 Word처럼 뺌)' },
+]
 
 const SAVE_LABEL: Record<SaveState, string> = { saved: '저장됨', pending: '입력 중', saving: '저장 중…', error: '저장 실패' }
 
@@ -33,6 +40,10 @@ export function DocumentPane({
   onInsertImage,
   onImageFile,
   review,
+  previewScope,
+  onPreviewScope,
+  full,
+  onOpenSection,
 }: {
   doc: SectionDoc
   docVersion: number
@@ -52,6 +63,11 @@ export function DocumentPane({
   onRefresh: () => void
   onInsertImage: () => void
   onImageFile: (file: File) => void
+  // 미리보기 범위: 이 화면 / 이 장 / 전체 (장·전체는 Word와 같은 내용)
+  previewScope: PreviewScope
+  onPreviewScope: (scope: PreviewScope) => void
+  full: { chapters?: PreviewChapter[]; loading: boolean; error?: string }
+  onOpenSection: (path: string) => void
   // Claude 변경 검토 중이면 바뀐 곳과 이동·검토 완료
   review?: {
     hunks: ReviewHunk[]
@@ -63,11 +79,24 @@ export function DocumentPane({
   }
 }) {
   const toast = useToast()
-  // 나란히 볼 때 편집기 스크롤에 미리보기를 맞춘다
+  // 나란히 볼 때 편집기 스크롤에 미리보기를 맞춘다. 장·전체 미리보기면 지금 화면 구간 안에서 맞춘다
   const syncScroll = (ratio: number) => {
     const el = previewRef.current
     if (!el || layout !== 'split') return
-    el.scrollTop = ratio * (el.scrollHeight - el.clientHeight)
+    if (previewScope === 'section') {
+      el.scrollTop = ratio * (el.scrollHeight - el.clientHeight)
+      return
+    }
+    const current = el.querySelector<HTMLElement>('[data-current="true"]')
+    if (!current) return
+    const top = current.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop
+    el.scrollTop = top + ratio * Math.max(0, current.offsetHeight - el.clientHeight)
+  }
+  // Word에 표기가 글자로 나오는 화면 수 (장·전체 미리보기)
+  const issueSections = previewScope === 'section' ? [] : (full.chapters ?? []).flatMap((c) => c.sections.filter((s) => s.issues.length))
+  const goToIssue = () => {
+    const first = previewRef.current?.querySelector<HTMLElement>('.full-section.has-issue')
+    first?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
 
   return (
@@ -169,7 +198,38 @@ export function DocumentPane({
           />
         </div>
         <div className="pane preview-pane">
-          <Preview ref={previewRef} html={preview.html} error={preview.error} beforeHtml={review?.beforeHtml} />
+          <div className="preview-bar">
+            <div className="segmented small" role="group" aria-label="미리보기 범위">
+              {SCOPES.map((s) => (
+                <button key={s.id} className={previewScope === s.id ? 'active' : ''} onClick={() => onPreviewScope(s.id)} title={s.title}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            {full.loading && previewScope !== 'section' && <Icon name="sync" size={13} className="spin muted" />}
+            {issueSections.length > 0 && (
+              <button
+                className="button small ghost preview-issues"
+                onClick={goToIssue}
+                title={`Word에 **나 {.mark} 같은 표기가 글자로 그대로 나오는 화면: ${issueSections.map((s) => s.title).join(', ')}`}
+              >
+                <Icon name="alert" size={13} /> Word 표기 문제 {issueSections.length}
+              </button>
+            )}
+          </div>
+          {previewScope === 'section' ? (
+            <Preview ref={previewRef} html={preview.html} error={preview.error} beforeHtml={review?.beforeHtml} />
+          ) : (
+            <FullPreview
+              ref={previewRef}
+              chapters={full.chapters}
+              loading={full.loading}
+              error={full.error}
+              currentPath={doc.path}
+              liveHtml={preview.html}
+              onOpenSection={onOpenSection}
+            />
+          )}
         </div>
       </div>
     </>

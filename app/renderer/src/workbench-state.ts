@@ -1,6 +1,6 @@
 // 편집 화면(Workbench) 상태: 사이드바 데이터·동기화, 열린 화면과 자동 저장, 미리보기, 기억해 두는 화면 설정
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { FileChange, ManualTree, ReviewBase, SectionDoc, SectionMeta, SyncState, Todo } from '../../shared/api.ts'
+import type { FileChange, ManualTree, PreviewChapter, PreviewScope, ReviewBase, SectionDoc, SectionMeta, SyncState, Todo } from '../../shared/api.ts'
 import { reviewHunks } from '../../shared/review-diff.ts'
 import { api, errorMessage } from './api.ts'
 import type { EditorHandle } from './components/Editor.tsx'
@@ -179,20 +179,44 @@ export function useSectionDocument({ onSaved }: { onSaved: () => void }) {
 }
 
 // 미리보기: 입력이 멈추면 pandoc으로 다시 그린다. nonce가 바뀌면 이미지만 바뀌어도 다시 그린다
-export function usePreview(doc: SectionDoc | undefined, body: string, enabled: boolean, nonce: number) {
+// word: Word와 같은 내용으로 그린다 (전체·장 미리보기 안의 지금 화면. TODO를 뺀다)
+export function usePreview(doc: SectionDoc | undefined, body: string, enabled: boolean, nonce: number, word = false) {
   const [preview, setPreview] = useState<{ html?: string; error?: string }>({})
   useEffect(() => {
     if (!doc || !enabled) return
     const handle = setTimeout(async () => {
       try {
-        setPreview({ html: await api.preview.render(doc.path, body) })
+        setPreview({ html: await api.preview.render(doc.path, body, word ? { word } : undefined) })
       } catch (e) {
         setPreview({ error: errorMessage(e) })
       }
     }, 300)
     return () => clearTimeout(handle)
-  }, [doc, body, enabled, nonce])
+  }, [doc, body, enabled, nonce, word])
   return preview
+}
+
+// 전체·장 미리보기: 다른 화면은 디스크 내용으로 (main이 화면별로 기억해 바뀐 것만 다시 그린다).
+// tree가 바뀌면(저장·동기화·Claude 작업 뒤) 다시 읽는다
+export function useManualPreview(scope: PreviewScope, chapterDir: string | undefined, enabled: boolean, tree: unknown, nonce: number) {
+  const [state, setState] = useState<{ chapters?: PreviewChapter[]; error?: string; loading: boolean }>({ loading: false })
+  const target = scope === 'chapter' ? chapterDir : undefined
+  useEffect(() => {
+    if (!enabled || scope === 'section' || (scope === 'chapter' && !chapterDir)) return
+    let alive = true
+    setState((s) => ({ ...s, loading: true }))
+    const handle = setTimeout(() => {
+      api.preview.manual(target).then(
+        (chapters) => alive && setState({ chapters, loading: false }),
+        (e) => alive && setState({ error: errorMessage(e), loading: false }),
+      )
+    }, 300)
+    return () => {
+      alive = false
+      clearTimeout(handle)
+    }
+  }, [scope, target, enabled, tree, nonce, chapterDir])
+  return state
 }
 
 // Claude 변경 검토: 최신화가 고치기 직전 본문(main에 저장)과 지금 본문을 비교한다.

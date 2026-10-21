@@ -15,6 +15,7 @@ import {
 } from '@codemirror/search'
 import type { EditorState, Extension } from '@codemirror/state'
 import { EditorView, keymap, type Panel, type ViewUpdate } from '@codemirror/view'
+import { iconElement, type IconName } from './icons.ts'
 
 // 결과가 아주 많으면 그만 센다
 const MAX_COUNT = 999
@@ -53,8 +54,9 @@ class SearchBar implements Panel {
   top = true
   private search: HTMLInputElement
   private replace: HTMLInputElement
-  private caseSensitive: HTMLInputElement
-  private wholeWord: HTMLInputElement
+  // 옵션 토글 (앱 버튼 모양, aria-pressed)
+  private caseSensitive: HTMLButtonElement
+  private wholeWord: HTMLButtonElement
   private count: HTMLElement
   private replaceButtons: HTMLButtonElement[]
   private query: SearchQuery
@@ -66,13 +68,19 @@ class SearchBar implements Panel {
     this.search.setAttribute('aria-label', '찾을 말')
     this.replace = el('input', { className: 'cm-find-input', placeholder: '바꿀 말', value: this.query.replace, type: 'text' })
     this.replace.setAttribute('aria-label', '바꿀 말')
-    this.caseSensitive = el('input', { type: 'checkbox', checked: this.query.caseSensitive })
-    this.wholeWord = el('input', { type: 'checkbox', checked: this.query.wholeWord })
     this.count = el('span', { className: 'cm-find-count' })
     this.count.setAttribute('aria-live', 'polite')
 
-    const button = (label: string, title: string, run: () => void) => {
-      const b = el('button', { type: 'button', className: 'cm-find-button', textContent: label, title })
+    // 앱 버튼과 같은 모양: 글자 버튼은 .button small, 아이콘 버튼은 .icon-button small + 앱 라인 아이콘
+    const button = (content: string | { icon: IconName }, title: string, run: () => void) => {
+      const b = el('button', { type: 'button', title })
+      if (typeof content === 'string') {
+        b.className = 'button small'
+        b.textContent = content
+      } else {
+        b.className = 'icon-button small'
+        b.append(iconElement(content.icon, 15))
+      }
       b.setAttribute('aria-label', title)
       b.addEventListener('click', () => {
         run()
@@ -80,12 +88,17 @@ class SearchBar implements Panel {
       })
       return b
     }
-    const check = (input: HTMLInputElement, label: string) => {
-      const wrap = el('label', { className: 'cm-find-check' })
-      input.addEventListener('change', () => this.commit())
-      wrap.append(input, document.createTextNode(label))
-      return wrap
+    const toggle = (label: string, title: string, on: boolean) => {
+      const b = el('button', { type: 'button', className: 'button small ghost cm-find-toggle', textContent: label, title })
+      b.setAttribute('aria-pressed', String(on))
+      b.addEventListener('click', () => {
+        b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'))
+        this.commit()
+      })
+      return b
     }
+    this.caseSensitive = toggle('대소문자', '대소문자가 같은 것만 찾기', this.query.caseSensitive)
+    this.wholeWord = toggle('단어 단위', '단어 전체가 같은 것만 찾기', this.query.wholeWord)
     this.replaceButtons = [
       button('바꾸기', '지금 찾은 곳을 바꾸고 다음으로', () => replaceNext(this.view)),
       button('모두 바꾸기', '이 화면에서 찾은 곳을 모두 바꾸기', () => replaceAll(this.view)),
@@ -100,12 +113,12 @@ class SearchBar implements Panel {
     findRow.append(
       this.search,
       this.count,
-      button('↑', '이전 (⇧Enter)', () => findPrevious(this.view)),
-      button('↓', '다음 (Enter)', () => findNext(this.view)),
-      check(this.caseSensitive, '대소문자'),
-      check(this.wholeWord, '단어 단위'),
+      button({ icon: 'up' }, '이전 (⇧Enter)', () => findPrevious(this.view)),
+      button({ icon: 'down' }, '다음 (Enter)', () => findNext(this.view)),
+      this.caseSensitive,
+      this.wholeWord,
     )
-    const close = button('✕', '닫기 (Esc)', () => {
+    const close = button({ icon: 'x' }, '닫기 (Esc)', () => {
       closeSearchPanel(this.view)
       this.view.focus()
     })
@@ -159,8 +172,8 @@ class SearchBar implements Panel {
     const query = new SearchQuery({
       search: this.search.value,
       replace: this.replace.value,
-      caseSensitive: this.caseSensitive.checked,
-      wholeWord: this.wholeWord.checked,
+      caseSensitive: this.caseSensitive.getAttribute('aria-pressed') === 'true',
+      wholeWord: this.wholeWord.getAttribute('aria-pressed') === 'true',
       literal: true,
     })
     if (query.eq(this.query)) return
@@ -177,8 +190,8 @@ class SearchBar implements Panel {
       this.query = query
       this.search.value = query.search
       this.replace.value = query.replace
-      this.caseSensitive.checked = query.caseSensitive
-      this.wholeWord.checked = query.wholeWord
+      this.caseSensitive.setAttribute('aria-pressed', String(query.caseSensitive))
+      this.wholeWord.setAttribute('aria-pressed', String(query.wholeWord))
     }
     if (update.docChanged || update.selectionSet || update.transactions.some((t) => t.effects.length) || update.startState.readOnly !== update.state.readOnly) {
       this.refresh()

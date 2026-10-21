@@ -247,6 +247,15 @@ export interface ReviewBase {
   at: number
 }
 
+// 전체·장 미리보기 (Word와 같은 내용: TODO 등 주석은 뺀다). issues: Word에 표기가 글자로 찍히는 곳
+export type PreviewScope = 'section' | 'chapter' | 'all'
+export interface PreviewChapter {
+  dir: string
+  no: number
+  title: string
+  sections: { path: string; title: string; html: string; issues: string[] }[]
+}
+
 export interface ChapterNode {
   no: number
   dir: string
@@ -455,7 +464,10 @@ export interface AriadneApi {
     suggestImageId(caption: string): Promise<string>
   }
   preview: {
-    render(path: string, body: string): Promise<string>
+    // word: Word와 같은 내용으로 (TODO 등 주석을 뺀다)
+    render(path: string, body: string, options?: { word?: boolean }): Promise<string>
+    // 매뉴얼 전체(또는 chapterDir 장)를 Word 순서대로
+    manual(chapterDir?: string): Promise<PreviewChapter[]>
   }
   // Claude 변경 검토: 최신화가 고치기 직전 본문. 검토 완료·제출·되돌리기 때 지운다
   review: {
@@ -597,7 +609,7 @@ export const API_METHODS = {
     'importImage',
     'suggestImageId',
   ],
-  preview: ['render'],
+  preview: ['render', 'manual'],
   review: ['get', 'clear'],
   build: ['docx', 'open'],
   capture: ['shots', 'session', 'login', 'checkSession', 'tasks', 'finishLogin', 'cancelLogin', 'run', 'adopt'],

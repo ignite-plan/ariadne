@@ -8,7 +8,7 @@ import { isPngBytes } from '../../../src/core/naming.ts'
 import type { ManualConfig, ManualInfo } from '../../shared/api.ts'
 import { analyzeInWorker, importInWorker } from '../importer.ts'
 import * as gitOps from '../lib/git.ts'
-import { renderSection } from '../lib/preview.ts'
+import { renderManualPreview, renderSection, type PreviewCache } from '../lib/preview.ts'
 import { clearReview, listReviews, readReview } from '../lib/review.ts'
 import {
   collectTodos,
@@ -36,6 +36,9 @@ function manualInfos(root: string): ManualInfo[] {
 }
 
 const settingsOf = ({ chapters: _chapters, ...config }: ReturnType<typeof loadManual>): ManualConfig => config
+
+// 전체 미리보기 화면별 결과 (지금 매뉴얼)
+let previewCache: { manual: string; sections: PreviewCache } = { manual: '', sections: new Map() }
 
 export function registerManual() {
   handle('manual:list', () => manualInfos(requireWorkspace()))
@@ -109,10 +112,17 @@ export function registerManual() {
   // Claude 변경 검토 (최신화가 고치기 직전 본문)
   handle('review:get', (path) => readReview(ref(), path) ?? null)
   handle('review:clear', (path) => clearReview(ref(), path))
-  handle('preview:render', (_path, body) => {
+  handle('preview:render', (_path, body, options) => {
     const r = ref()
     const versions = new Map(listImages(r).map((i) => [i.id, Math.round(i.mtime)]))
-    return renderSection(requirePandoc(), r.manual, body, versions)
+    return renderSection(requirePandoc(), r.manual, body, versions, options)
+  })
+  // 전체·장 미리보기. 화면별 결과는 본문이 같으면 다시 그리지 않는다 (매뉴얼을 바꾸면 비운다)
+  handle('preview:manual', (chapterDir) => {
+    const r = ref()
+    if (previewCache.manual !== r.manual) previewCache = { manual: r.manual, sections: new Map() }
+    const versions = new Map(listImages(r).map((i) => [i.id, Math.round(i.mtime)]))
+    return renderManualPreview({ ref: r, pandoc: requirePandoc(), chapterDir, versions, cache: previewCache.sections })
   })
 
   handle('build:docx', (chapters) => {

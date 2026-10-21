@@ -4,7 +4,7 @@ import { markReview } from '../review-marks.ts'
 
 // pandoc HTML을 정리해서 보여 준다. ariadne:// 이미지와 width 스타일은 남긴다
 const ALLOWED_URI = /^(?:(?:https?|ariadne|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i
-const sanitize = (html: string) => DOMPurify.sanitize(html, { ADD_ATTR: ['style'], ALLOWED_URI_REGEXP: ALLOWED_URI })
+export const sanitize = (html: string) => DOMPurify.sanitize(html, { ADD_ATTR: ['style'], ALLOWED_URI_REGEXP: ALLOWED_URI })
 
 export const Preview = forwardRef<
   HTMLDivElement,
