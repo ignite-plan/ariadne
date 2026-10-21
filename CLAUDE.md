@@ -14,7 +14,7 @@ Dealers 사용자 매뉴얼 docs-as-code 리포 + 기획자용 편집 앱(Electr
 - Word 빌드(`src/core/build.ts`)는 pandoc 전에 주석(`<!-- TODO … -->`)을 지우고, 화면마다 `src/core/word-check.ts`로 Markdown 표기가 글자로 찍히는 곳(쪼개진 굵게, 형광펜 안 목록 기호, 들여쓰기 코드 블록)을 찾아 `issues`로 돌려준다(앱 완료 알림, CLI 경고). 깨진 표기 바로잡기 규칙은 `src/core/markup-repair.ts`(가져오기도 씀), 형광펜 버튼은 `shared/markdown-edit.ts` `toggleMark`
 - 미리보기 범위(이 화면/이 장/전체): 장·전체는 `preview:manual`(`app/main/lib/preview.ts` `renderManualPreview`)이 Word와 같은 순서·내용(주석 제거)으로 화면별 HTML과 word-check 결과를 돌려준다. 화면별 결과는 본문·이미지 버전 해시로 기억해 바뀐 화면만 다시 그린다. 지금 화면은 입력 중 내용을 Word 모드로 따로 그린다(`FullPreview.tsx`). React 밖 DOM 아이콘은 `renderer/src/icons.ts` `iconElement`
 - 편집기 찾기·바꾸기(지금 화면 안만): `renderer/src/editor-search.ts`. `@codemirror/search` 엔진에 막대는 직접 그린다(한국어, `n / 전체`). ⌘F·⌥⌘F, 잠긴 화면은 찾기만
-- Word 가져오기는 그림 아래 Word "캡션" 스타일 문단(pandoc `docx+styles`)을 이미지 캡션으로 옮긴다(`src/core/import/captions.ts` `mergeCaptionParagraphs`). 윗줄 문장에 이어진 이미지는 빈 줄로 떼어야 캡션이 붙는 그림(Word ImageCaption)이 된다
+- Word 가져오기는 그림 아래 Word "캡션" 스타일 문단(pandoc `docx+styles`)을 이미지 캡션으로 옮긴다(`src/core/import/captions.ts` `mergeCaptionParagraphs`). 윗줄 문장에 이어진 이미지는 빈 줄로 떼어야 캡션이 붙는 그림(Word ImageCaption)이 된다. 이미지 하나만 든 칸 하나짜리 표(+ 표 캡션 `: …`, Word에서 표 위에 나옴)는 `unwrapImageTables`로 풀어 보통 이미지 + 아래 캡션으로
 - `manuals/bo/reference.docx`: Word 스타일 템플릿 (`pnpm make:reference`로 원본에서 생성)
 - 사용법 문서: `README.md`는 길잡이 표만, 기획자용은 `docs/planner/`(기능별 파일, 목차는 `docs/planner/README.md`), 개발자용은 `docs/developer/`, 작성 규칙은 `docs/writing-rules.md`. 기능을 바꾸면 해당 문서를 고친다
 - `.env`: `DEALERHUB_WEB_DIR`, `BO_BASE_URL`(bo 캡처 주소 덮어쓰기, 선택)

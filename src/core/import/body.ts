@@ -2,7 +2,7 @@
 import { copyFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { repairImportArtifacts } from '../markup-repair.ts'
-import { mergeCaptionParagraphs } from './captions.ts'
+import { mergeCaptionParagraphs, unwrapImageTables } from './captions.ts'
 import { slugify, uniqueName } from '../naming.ts'
 import { isPng, writeImage, type Drawing } from './docx.ts'
 
@@ -51,8 +51,9 @@ export function createBodyWriter({ imagesDir, drawings, warnings, captions = [],
       .map((l) => l.replace(/\[(!\[[^\]]*\]\([^)]*\)(\{[^}]*\})?)\]\{\.mark\}/g, '$1'))
       .map((l) => l.replace(/\[(\s*)\]\{\.mark\}/g, '$1'))
       .map((l) => (/^#/.test(l) ? l.replace(/\[([^\]]*)\]\{\.mark\}/g, '$1') : l))
-    // 이미지 아래 따로 달린 Word 캡션 문단을 이미지 캡션으로 (이미지 이름도 캡션으로 짓는다)
-    return mergeCaptionParagraphs(prepared, captions)
+    // 이미지만 든 칸 하나짜리 표는 풀고(표 캡션 → 이미지 캡션), 이미지 아래 따로 달린 Word 캡션 문단도 이미지 캡션으로
+    // (이미지 이름도 캡션으로 짓는다)
+    return mergeCaptionParagraphs(unwrapImageTables(prepared).lines, captions)
       .lines.map((l) =>
         l.replace(/!\[([^\]]*)\]\(([^)#]+)#(\d+)\)(\{[^}]*\})?/g, (_, alt: string, src: string, index: string, pandocSize?: string) => {
           // Word가 자동 생성한 한글 대체 텍스트는 caption이 아니다

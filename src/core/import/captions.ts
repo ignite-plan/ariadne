@@ -96,3 +96,40 @@ export function mergeCaptionParagraphs(lines: string[], captions: Iterable<strin
   }
   return { lines: out, merged }
 }
+
+const TABLE_ROW = /^(\s*)\|(.*)\|\s*$/
+const TABLE_SEPARATOR = /^\s*\|(\s*:?-{3,}:?\s*\|)+\s*$/
+const IMAGE_ONLY = /^!\[([^\]]*)\]\(([^)\s]+)\)(\{[^}]*\})?$/
+// 표 캡션 (`: 캡션` 또는 `Table: 캡션`)
+const TABLE_CAPTION = /^(?:Table)?:\s+(\S.*)$/
+const cellsOf = (inner: string) => inner.split('|').map((c) => c.trim())
+
+// Word에서 이미지를 칸 하나짜리 표(틀)에 넣고 아래에 캡션을 단 경우, pandoc은 Markdown 표 + 표 캡션(`: 캡션`)으로 꺼낸다.
+// 표 캡션은 Word·미리보기에서 표 위에 나와 캡션이 이미지 위로 올라간다. 이미지 하나만 든 표는 풀어서 보통 이미지로 두고,
+// 이미지에 캡션이 없으면 표 캡션을 이미지 캡션으로 쓴다 (Word에서 이미지 아래 캡션 서식). 글자·칸이 더 있는 표는 그대로
+export function unwrapImageTables(lines: string[]) {
+  const out: string[] = []
+  const unwrapped: string[] = []
+  for (let i = 0; i < lines.length; i++) {
+    const head = lines[i].match(TABLE_ROW)
+    if (head && TABLE_SEPARATOR.test(lines[i + 1] ?? '')) {
+      let end = i + 2
+      while (end < lines.length && TABLE_ROW.test(lines[end])) end++
+      const contents = [lines[i], ...lines.slice(i + 2, end)].flatMap((row) => cellsOf(row.match(TABLE_ROW)![2])).filter(Boolean)
+      const image = contents.length === 1 ? contents[0].match(IMAGE_ONLY) : null
+      if (image) {
+        let next = end
+        while (next < lines.length && !lines[next].trim()) next++
+        const caption = lines[next]?.match(TABLE_CAPTION)?.[1]?.trim()
+        const [, alt, src, attrs = ''] = image
+        const text = alt && !/[가-힣]/.test(alt) ? alt : caption ? plainCaption(caption).replace(/[[\]]/g, '\\$&') : alt
+        out.push(`${head[1]}![${text}](${src})${attrs}`)
+        unwrapped.push(plainCaption(text))
+        i = caption ? next : end - 1
+        continue
+      }
+    }
+    out.push(lines[i])
+  }
+  return { lines: out, unwrapped }
+}

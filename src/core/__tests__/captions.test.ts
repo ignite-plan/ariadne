@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { captionKey, captionsInAst, mergeCaptionParagraphs } from '../import/captions.ts'
+import { captionKey, captionsInAst, mergeCaptionParagraphs, unwrapImageTables } from '../import/captions.ts'
 
 const caps = ['Dealer Creation Failed', 'Business Email with domain selector', 'Company’s Email Domain', 'Search Result']
 
@@ -56,3 +56,45 @@ describe('Word 캡션 문단을 이미지 캡션으로', () => {
     assert.equal(captionKey('**Dealer** [List]{.mark}'), 'dealer list')
   })
 })
+
+describe('이미지만 든 칸 하나짜리 표 풀기', () => {
+  it('표를 풀어 보통 이미지로 두고, 표 캡션(위에 나옴)은 지운다. 이미지에 캡션이 없으면 표 캡션을 쓴다', () => {
+    const { lines, unwrapped } = unwrapImageTables([
+      '- **When dealer creation succeeds**',
+      '',
+      '|  |',
+      '|--------------------------------------------------|',
+      '| ![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in} |',
+      '',
+      ': Dealer Registration Notice',
+      '',
+      '|  |',
+      '|------|',
+      '| ![](media/image3.png#2){width=4.20in} |',
+      '',
+      ': Editing Post - Basic',
+      '',
+      'Next.',
+    ])
+    assert.deepEqual(lines, [
+      '- **When dealer creation succeeds**',
+      '',
+      '![Dealer Registration Notice](images/dealer-registration-notice.png){width=4.20in}',
+      '',
+      '![Editing Post - Basic](media/image3.png#2){width=4.20in}',
+      '',
+      'Next.',
+    ])
+    assert.deepEqual(unwrapped, ['Dealer Registration Notice', 'Editing Post - Basic'])
+  })
+
+  it('글자나 칸이 더 있는 표, 이미지가 두 장인 표는 그대로', () => {
+    const tables = [
+      ['| Name | Value |', '|------|-------|', '| ![](images/a.png) |  |', '| Text |  |'],
+      ['| Field | Desc |', '|---|---|', '| Name | Required |'],
+      ['|  |  |', '|---|---|', '| ![](images/a.png) | ![](images/b.png) |'],
+    ]
+    for (const table of tables) assert.deepEqual(unwrapImageTables(table).lines, table)
+  })
+})
+
