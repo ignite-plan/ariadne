@@ -5,8 +5,6 @@ sources: []
 i18nPrefix: []
 ---
 
-## Login & Logout
-
 
 **Login method**
 
