@@ -524,8 +524,9 @@ scenes:
           name: Next
       - waitFor:
           text: New Facility1
-  - say: In Facility Information, select the facility purpose and type. For a
-      showroom, also select the facility space type.
+  - say: In Facility Information, select the facility purpose and then the facility
+      type. The type can be Training Center, Showroom, or Workshop. A showroom
+      needs one space type.
     steps:
       - choose:
           target:
@@ -599,6 +600,105 @@ scenes:
           text: 08:00 PM
       - click:
           text: New Facility1
+  - say: To register another facility, click Add Facility. The new facility is added
+      at the top.
+    steps:
+      - click:
+          role: button
+          name: Add Facility
+      - waitFor:
+          text: New Facility2
+      - pause: 1000
+  - say: Select Service Assets and Workshop. A workshop needs a space type for the
+      customer lounge, gate reception, and repair shop.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Service Assets
+      - choose:
+          target:
+            role: combobox
+            name: Training Center
+          option: Workshop
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Standalone
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Standalone
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Multi-brand
+  - say: Enter the workshop's name, ownership status, size, and the vehicle types it
+      services.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Facility Name (max 20 characters)
+          text: Maple Kia Service
+      - type:
+          target:
+            placeholder: Saisissez le nom
+          text: Service Kia Érable
+      - click:
+          role: radio
+          name: Leased
+      - type:
+          target:
+            placeholder: Enter the facility size
+          text: "1200"
+      - click:
+          role: checkbox
+          name: Passenger
+      - click:
+          role: checkbox
+          name: Commercial
+  - say: Add the workshop's location and opening hours the same way, then click
+      Next.
+    steps:
+      - click:
+          role: button
+          name: Search on Map
+      - type:
+          target:
+            placeholder: Input Address
+          text: 2460 Dufferin St Toronto
+      - click:
+          role: button
+          name: search
+          within:
+            role: dialog
+      - pause: 2000
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - type:
+          target:
+            placeholder: 00:00 AM
+          text: 07:30 AM
+      - click:
+          text: New Facility2
+      - type:
+          target:
+            placeholder: 00:00 AM
+            nth: 1
+          text: 06:00 PM
+      - click:
+          text: New Facility2
       - click:
           role: button
           name: Next
