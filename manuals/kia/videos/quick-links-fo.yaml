@@ -1,0 +1,126 @@
+title: Quick Links
+intro: This video shows how to add frequently used menus to Quick Links, rename
+  them, and open them from the header.
+sections:
+  - 01-common/quick-links.md
+mutates: true
+scenes:
+  - say: Quick Links lets you save the menus you use most and open them from
+      anywhere. Click the star icon in the header.
+    steps:
+      - open: /ca
+      - waitFor:
+          placeholder: Search
+      - highlight:
+          target:
+            label: Quick Links
+          ms: 2000
+      - click:
+          label: Quick Links
+  - say: The Quick Links panel opens on the right. If you have not added any menu
+      yet, it shows a guide message.
+    steps:
+      - waitFor:
+          text: Add Quick Links
+      - highlight:
+          target:
+            text: Add frequently used menus to Quick Link.
+          ms: 2000
+  - say: Click Add Quick Links to open the settings window.
+    steps:
+      - click:
+          text: Add Quick Links
+          exact: true
+      - waitFor:
+          text: Quick Links Settings
+      - pause: 1500
+  - say: The menu list is on the left, and your Quick Links are on the right. Only
+      menus linked to a page can be added.
+    steps:
+      - highlight:
+          target:
+            text: Menu List
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Only menus linked to a page can be added as Quick Links.
+          ms: 2000
+      - highlight:
+          target:
+            text: Choose menu items on the left to add as Quick Links
+          ms: 2000
+  - say: Click the star next to a menu to add it. It appears in the right list, up
+      to 20 items.
+    steps:
+      - click:
+          label: Add EV Guides to Quick Links
+      - waitFor:
+          text: Add to Quick Links
+      - highlight:
+          target:
+            text: Add to Quick Links
+          ms: 1500
+  - say: Add one more menu the same way.
+    steps:
+      - click:
+          label: Add Incentive Programs to Quick Links
+      - pause: 1500
+  - say: Hover over an item in the right list and click the pencil icon to rename
+      it.
+    steps:
+      - hover:
+          text: EV Guides
+          nth: 1
+          exact: true
+      - click:
+          label: Rename EV Guides
+      - waitFor:
+          text: Rename Quick Link
+  - say: Enter a new name of up to 50 characters. The original menu path is shown
+      below the name.
+    steps:
+      - type:
+          target:
+            placeholder: EV Guides
+          text: My EV Guides
+      - highlight:
+          target:
+            text: Bulletin Board > new board (for 'ignite' job) > EV Guides
+          ms: 2000
+      - click:
+          text: Save
+          nth: 1
+          exact: true
+  - say: Click Save to apply your changes.
+    steps:
+      - click:
+          text: Save
+          nth: 0
+          exact: true
+      - waitFor:
+          text: My EV Guides
+      - pause: 1500
+  - say: Your Quick Links now appear in the panel and on the home screen.
+    steps:
+      - highlight:
+          target:
+            text: My EV Guides
+            nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            text: Quick Links
+            nth: 1
+            exact: true
+          ms: 1500
+  - say: To remove a Quick Link, click the yellow star next to it.
+    steps:
+      - click:
+          label: Remove My EV Guides from Quick Links
+          nth: 0
+      - pause: 2000
+      - highlight:
+          target:
+            text: Incentive Programs
+          ms: 1500
