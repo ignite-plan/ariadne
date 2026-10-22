@@ -1,4 +1,6 @@
 // 시나리오가 쓰는 조작 헬퍼. 사람이 조작하는 것처럼 커서를 옮기고, 누를 곳을 강조한 뒤 누른다.
+import { existsSync } from 'node:fs'
+import { isAbsolute, resolve } from 'node:path'
 import type { Locator, Page } from 'playwright'
 import { isBlockedLabel } from '../safety.ts'
 import { gotoStg } from '../stg-url.ts'
@@ -14,6 +16,8 @@ export interface DirectorOptions {
   pace?: number
   // false면 자막·강조를 그리지 않는다 (overlay가 없는 기록 브라우저에서 단계를 다시 재생할 때)
   overlay?: boolean
+  // upload 단계의 파일 경로 기준 (매뉴얼 폴더)
+  filesDir?: string
 }
 
 type Target = Locator | string
@@ -27,15 +31,17 @@ export class Director {
   private readonly mutates: boolean
   private readonly pace: number
   private readonly drawOverlay: boolean
+  private readonly filesDir?: string
 
   constructor(
     readonly page: Page,
-    { baseUrl, mutates = false, pace = 1, overlay = true }: DirectorOptions,
+    { baseUrl, mutates = false, pace = 1, overlay = true, filesDir }: DirectorOptions,
   ) {
     this.baseUrl = baseUrl
     this.mutates = mutates
     this.pace = pace
     this.drawOverlay = overlay
+    this.filesDir = filesDir
   }
 
   // baseUrl 기준 경로로 이동. 로그인 페이지로 튕기면 세션 만료로 멈춘다
@@ -89,6 +95,24 @@ export class Director {
     await this.moveTo(locator)
     await this.highlightBox(locator, 400)
     await locator.selectOption(value)
+    await this.wait(300)
+  }
+
+  // 대상을 눌러 뜬 파일 선택 창에 파일을 넣는다. 파일을 올리는 것도 쓰기라 mutates 시나리오만
+  async upload(target: Target, file: string) {
+    if (!this.mutates) {
+      throw new MutationBlockedError(`파일 올리기는 데이터를 바꿀 수 있어 'STG에 실제 저장 허용' 시나리오에서만 할 수 있습니다`)
+    }
+    if (!isAbsolute(file) && !this.filesDir) throw new Error(`파일 위치를 알 수 없습니다: ${file}`)
+    const path = isAbsolute(file) ? file : resolve(this.filesDir!, file)
+    if (!existsSync(path)) throw new Error(`올릴 파일이 없습니다: ${path}`)
+    const locator = this.locate(target).first()
+    await this.moveTo(locator)
+    await this.highlightBox(locator, 450)
+    await this.wait(250)
+    const chooser = this.page.waitForEvent('filechooser')
+    await locator.click()
+    await (await chooser).setFiles(path)
     await this.wait(300)
   }
 

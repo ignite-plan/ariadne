@@ -46,6 +46,7 @@ scenes:
 | `type: { target, text }` | 한 글자씩 입력합니다 |
 | `choose: { target, option }` | HDS(MUI) Select를 열고 옵션을 고릅니다. native select는 `select: { target, value }` |
 | `highlight: { target, ms }` / `hover` / `scroll` / `pause: <ms>` | 누르지 않고 강조 / 올려놓기 / 스크롤 / 대기 |
+| `upload: { target, file }` | 대상을 눌러 뜬 파일 선택 창에 파일을 넣습니다. `file`은 매뉴얼 폴더 기준 경로(예: `videos/files/photo.png`). `mutates: true` 시나리오만 |
 
 대상은 `{ role, name }`(접근성 이름, 예: `button`/`Location`)을 먼저 쓰고, 없으면 `label`·`placeholder`·`text`를 씁니다. 같은 대상이 여러 개면 `nth`(0부터), 특정 행 안에서 찾으려면 `within`을 씁니다. 문자열의 `{stamp}`는 실행 시각(MMDDHHmm)으로 바뀝니다.
 

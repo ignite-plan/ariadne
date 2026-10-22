@@ -6,6 +6,7 @@ import { join } from 'node:path'
 import { after, before, describe, it } from 'node:test'
 import { chromium } from 'playwright'
 import { PNG } from 'pngjs'
+import { manualDir } from '../manual.ts'
 import { MASK_ATTR, overlayScript, renderVideo, StepError, videoWorkDir, type TtsProvider, type VideoScenario } from '../video/index.ts'
 import { skipWithout, startFakeStg } from './browser.ts'
 import { createFixture } from './fixture.ts'
@@ -61,6 +62,9 @@ describe('renderVideo (Chrome)', { skip }, () => {
         <button onclick="document.getElementById('popup').hidden=false">Location</button>
         <button onclick="fetch('/api/dealer',{method:'POST'}).then(()=>document.getElementById('done').hidden=false)">Save</button>
         <button onclick="fetch('/api/dealer',{method:'POST'}).catch(()=>{}).finally(()=>document.getElementById('went').hidden=false)">Go</button>
+        <button onclick="document.getElementById('file').click()">Upload</button>
+        <input id="file" type="file" hidden onchange="document.getElementById('picked').textContent='Picked '+this.files[0].name">
+        <div id="picked"></div>
         <div id="popup" role="dialog" hidden>Location Information</div>
         <div id="done" hidden>Saved</div><div id="went" hidden>Went</div>
         </div></body></html>`)
@@ -133,6 +137,31 @@ describe('renderVideo (Chrome)', { skip }, () => {
     const result = await renderVideo({ ...run, id: 'save-true', scenario: make(true, 'Save') })
     assert.deepEqual(posts, ['/api/dealer'])
     assert.deepEqual(probe(result.mp4!).streams.map((s) => s.codec_type).sort(), ['subtitle', 'video'])
+  })
+
+  it('upload는 mutates 시나리오에서만, 매뉴얼 폴더 기준 파일을 파일 선택 창에 넣는다', async () => {
+    const dir = join(manualDir(fx.ref), 'videos', 'files')
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'photo.png'), 'png')
+    const make = (mutates: boolean): VideoScenario => ({
+      id: `upload-${mutates}`,
+      title: 'Upload',
+      mutates,
+      scenes: [
+        {
+          say: 'Upload a photo.',
+          steps: [
+            { open: '/dealer/company' },
+            { upload: { target: { role: 'button', name: 'Upload' }, file: 'videos/files/photo.png' } },
+            { waitFor: { text: 'Picked photo.png' } },
+          ],
+        },
+      ],
+    })
+    const run = { ...options(), tts: false as const, pace: 0.1, preview: true, headed: false }
+    await assert.rejects(renderVideo({ ...run, id: 'upload-false', scenario: make(false) }), /장면 1 단계 2 .*파일 올리기는 데이터를 바꿀/)
+    const result = await renderVideo({ ...run, id: 'upload-true', scenario: make(true) })
+    assert.deepEqual(result.cues.map((c) => c.text), ['Upload a photo.'])
   })
 
   it('fromScene은 앞 장면을 녹화 없이 재생하고, preview는 파일을 만들지 않는다', async () => {

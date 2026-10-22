@@ -51,6 +51,7 @@ export async function runStep(v: Director, step: Step) {
   if ('choose' in step) return v.choose(locate(page, step.choose.target), step.choose.option)
   if ('select' in step) return v.select(locate(page, step.select.target), step.select.value)
   if ('highlight' in step) return v.highlight(locate(page, step.highlight.target), step.highlight.ms)
+  if ('upload' in step) return v.upload(locate(page, step.upload.target), step.upload.file)
   return v.pause(step.pause)
 }
 
@@ -80,14 +81,16 @@ export interface ReplayOptions {
   mutates?: boolean
   // 자막·강조를 그린다 (영상 만들기). 기록 브라우저·Claude 탐색에는 overlay가 없다
   overlay?: boolean
+  // upload 단계의 파일 경로 기준 (매뉴얼 폴더)
+  filesDir?: string
   signal?: AbortSignal
   onScene?: (index: number) => void
 }
 
 // 장면들의 단계를 기다림 없이 이어서 재생해, 다음 장면이 시작되는 화면을 만든다.
 // 영상을 중간 장면부터 만들 때, STG에서 기록할 때, Claude가 장면 하나를 채울 때 같이 쓴다
-export async function replayScenes(page: Page, scenes: Scene[], { baseUrl, mutates = false, overlay = false, signal, onScene }: ReplayOptions) {
-  const v = new Director(page, { baseUrl, mutates, pace: 0, overlay })
+export async function replayScenes(page: Page, scenes: Scene[], { baseUrl, mutates = false, overlay = false, filesDir, signal, onScene }: ReplayOptions) {
+  const v = new Director(page, { baseUrl, mutates, pace: 0, overlay, filesDir })
   for (const [index, scene] of scenes.entries()) {
     onScene?.(index)
     await runSteps(v, scene.steps, index, { signal })

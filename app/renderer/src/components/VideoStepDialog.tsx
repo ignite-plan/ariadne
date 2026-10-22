@@ -74,6 +74,12 @@ export function StepDialog({ step, onClose, onSave }: { step?: VideoStep; onClos
           <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Active" />
         </label>
       )}
+      {kind === 'upload' && (
+        <label className="field">
+          <span>올릴 파일 (매뉴얼 폴더 기준 경로)</span>
+          <input value={text} onChange={(e) => setText(e.target.value)} placeholder="videos/files/photo.png" />
+        </label>
+      )}
       {(kind === 'pause' || kind === 'highlight') && (
         <label className="field">
           <span>{kind === 'pause' ? '멈출 시간 (초)' : '강조할 시간 (초)'}</span>

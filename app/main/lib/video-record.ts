@@ -1,7 +1,7 @@
 // STG에서 기록: 화면이 보이는 Chrome을 띄우고, 고른 장면까지의 단계를 빠르게 재생한 뒤 기획자의 조작을 기록한다.
 // STG 저장 허용이 아니면 쓰기 요청을 막는다 (Claude STG 탐색과 같은 규칙)
 import type { BrowserContext } from 'playwright'
-import { loadManual, type ManualRef } from '../../../src/core/manual.ts'
+import { loadManual, manualDir, type ManualRef } from '../../../src/core/manual.ts'
 import { guardWrites } from '../../../src/core/safety.ts'
 import { openProfile } from '../../../src/core/session.ts'
 import { videoViewport } from '../../../src/core/video/index.ts'
@@ -58,7 +58,7 @@ export async function startRecording({ id, scene, baseUrl, profileDir, onEvent, 
     await page.waitForLoadState('networkidle')
     const before = scenario.scenes.slice(0, scene + 1)
     try {
-      await replayScenes(page, before, { baseUrl, mutates: scenario.mutates })
+      await replayScenes(page, before, { baseUrl, mutates: scenario.mutates, filesDir: manualDir(ref) })
     } catch (error) {
       onEvent({ kind: 'warning', message: `앞 단계를 재생하다 멈췄습니다. 지금 화면에서 이어서 기록합니다: ${(error as Error).message}` })
     }

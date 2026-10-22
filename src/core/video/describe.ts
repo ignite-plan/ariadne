@@ -43,5 +43,6 @@ export function describeStep(step: Step): string {
   if ('choose' in step) return `${describeTarget(step.choose.target)}에서 '${step.choose.option}' 선택`
   if ('select' in step) return `${describeTarget(step.select.target)}에서 '${step.select.value}' 선택`
   if ('highlight' in step) return `${describeTarget(step.highlight.target)} 강조${step.highlight.ms ? ` (${step.highlight.ms / 1000}초)` : ''}`
+  if ('upload' in step) return `'${step.upload.file}' 파일 올리기 (${describeTarget(step.upload.target)})`
   return `${step.pause / 1000}초 멈춤`
 }

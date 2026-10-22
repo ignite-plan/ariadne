@@ -207,6 +207,10 @@ describe('describeStep', () => {
     assert.equal(describeStep({ type: { target: { placeholder: 'Dealer Name' }, text: 'X' } }), "'Dealer Name' 입력칸에 \"X\" 입력")
     assert.equal(describeStep({ choose: { target: { role: 'combobox' }, option: 'Active' } }), "선택 상자에서 'Active' 선택")
     assert.equal(describeStep({ waitFor: { text: 'Total' } }), "'Total' 글자 표시 기다림")
+    assert.equal(
+      describeStep({ upload: { target: { role: 'button', name: 'Upload' }, file: 'videos/files/photo.png' } }),
+      "'videos/files/photo.png' 파일 올리기 ('Upload' 버튼)",
+    )
     assert.equal(describeStep({ pause: 1500 }), '1.5초 멈춤')
   })
 })

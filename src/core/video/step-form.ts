@@ -1,7 +1,7 @@
 // 앱 장면 편집기의 단계·대상 입력 규칙. renderer도 쓰므로 node·playwright를 import하지 않는다
 import type { Step, Target } from './scenario.ts'
 
-export type StepKind = 'open' | 'waitFor' | 'click' | 'type' | 'choose' | 'select' | 'highlight' | 'hover' | 'scroll' | 'pause'
+export type StepKind = 'open' | 'waitFor' | 'click' | 'type' | 'choose' | 'select' | 'highlight' | 'hover' | 'scroll' | 'upload' | 'pause'
 
 export const STEP_KINDS: { kind: StepKind; label: string }[] = [
   { kind: 'open', label: '화면 열기' },
@@ -12,6 +12,7 @@ export const STEP_KINDS: { kind: StepKind; label: string }[] = [
   { kind: 'highlight', label: '강조 (누르지 않음)' },
   { kind: 'hover', label: '마우스 올리기' },
   { kind: 'scroll', label: '스크롤' },
+  { kind: 'upload', label: '파일 올리기 (STG 저장 허용만)' },
   { kind: 'pause', label: '잠깐 멈춤' },
   { kind: 'select', label: '목록 상자에서 고르기 (기본 select)' },
 ]
@@ -31,6 +32,7 @@ export function targetOf(step?: Step): Target | undefined {
   if ('choose' in step) return step.choose.target
   if ('select' in step) return step.select.target
   if ('highlight' in step) return step.highlight.target
+  if ('upload' in step) return step.upload.target
   return undefined
 }
 
@@ -44,7 +46,16 @@ export interface StepFields {
 export function stepFields(step?: Step): StepFields {
   return {
     path: step && 'open' in step ? step.open : '/',
-    text: step && 'type' in step ? step.type.text : step && 'choose' in step ? step.choose.option : step && 'select' in step ? step.select.value : '',
+    text:
+      step && 'type' in step
+        ? step.type.text
+        : step && 'choose' in step
+          ? step.choose.option
+          : step && 'select' in step
+            ? step.select.value
+            : step && 'upload' in step
+              ? step.upload.file
+              : '',
     seconds: step && 'pause' in step ? step.pause / 1000 : step && 'highlight' in step && step.highlight.ms ? step.highlight.ms / 1000 : 1.5,
   }
 }
@@ -55,7 +66,7 @@ export function stepValid(kind: StepKind, target: Target, { path, text, seconds 
   return (
     (kind === 'open' ? path.trim().length > 0 : true) &&
     (needsTarget(kind) ? targetValid(target) : true) &&
-    (kind === 'choose' || kind === 'select' ? text.trim().length > 0 : true) &&
+    (kind === 'choose' || kind === 'select' || kind === 'upload' ? text.trim().length > 0 : true) &&
     (kind === 'pause' || kind === 'highlight' ? seconds > 0 : true)
   )
 }
@@ -84,6 +95,8 @@ export function buildStep(kind: StepKind, target: Target, { path, text, seconds 
       return { select: { target: t, value: text.trim() } }
     case 'highlight':
       return { highlight: { target: t, ms } }
+    case 'upload':
+      return { upload: { target: t, file: text.trim() } }
   }
 }
 

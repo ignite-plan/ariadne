@@ -11,6 +11,7 @@ describe('장면 편집기 단계 입력', () => {
       { type: { target: { label: 'Name' }, text: 'Video Test {stamp}' } },
       { choose: { target: { role: 'combobox', name: 'Status' }, option: 'Active' } },
       { highlight: { target: { text: 'Total' }, ms: 2000 } },
+      { upload: { target: { role: 'button', name: 'Upload' }, file: 'videos/files/photo.png' } },
       { pause: 1500 },
     ]
     for (const step of steps) {
@@ -26,6 +27,7 @@ describe('장면 편집기 단계 입력', () => {
     assert.equal(stepValid('open', {}, { path: ' ', text: '', seconds: 1 }), false)
     assert.equal(stepValid('click', { text: ' ' }, { path: '/', text: '', seconds: 1 }), false)
     assert.equal(stepValid('choose', { role: 'combobox' }, { path: '/', text: '', seconds: 1 }), false)
+    assert.equal(stepValid('upload', { role: 'button', name: 'Upload' }, { path: '/', text: ' ', seconds: 1 }), false)
     assert.equal(stepValid('pause', {}, { path: '/', text: '', seconds: 0 }), false)
   })
 

@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Page } from 'playwright'
-import { loadManual, type Manual, type ManualRef, type Viewport } from '../manual.ts'
+import { loadManual, manualDir, type Manual, type ManualRef, type Viewport } from '../manual.ts'
 import { guardWrites } from '../safety.ts'
 import { clearSession, defaultProfileDir, profileTab, requireSession, type OpenTab } from '../session.ts'
 import { isSessionExpired } from '../stg-url.ts'
@@ -206,7 +206,8 @@ export async function renderVideo({
     // 기본 자동 닫기는 그 거절을 아무도 받지 않아 worker가 죽는다
     page.on('dialog', (dialog) => void (dialog.type() === 'beforeunload' ? dialog.accept() : dialog.dismiss()).catch(() => {}))
     page.setDefaultTimeout(stepTimeout)
-    const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: stepPace })
+    const filesDir = manualDir(ref)
+    const v = new Director(page, { baseUrl, mutates: scenario.mutates, pace: stepPace, filesDir })
     // 시작 카드 뒤에 깔릴 첫 화면. 세션 확인도 겸한다
     onProgress?.({ stage: 'prepare', message: 'STG 열기' })
     await v.goto('/')
@@ -214,6 +215,7 @@ export async function renderVideo({
       baseUrl,
       mutates: scenario.mutates,
       overlay: true,
+      filesDir,
       signal,
       onScene: (index) => onProgress?.({ stage: 'prepare', message: `장면 ${index + 1} 빠르게 재생`, scene: index }),
     })
@@ -268,7 +270,7 @@ export async function renderVideo({
     }
     if (scenario.cleanup?.length) {
       onProgress?.({ stage: 'cleanup', message: '테스트 데이터 정리' })
-      await runSteps(new Director(page, { baseUrl, mutates: true, pace: 0 }), scenario.cleanup, 'cleanup')
+      await runSteps(new Director(page, { baseUrl, mutates: true, pace: 0, filesDir }), scenario.cleanup, 'cleanup')
     }
   } catch (error) {
     if (signal?.aborted) throw new Error('취소했습니다', { cause: error })

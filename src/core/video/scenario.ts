@@ -45,6 +45,8 @@ const step = z.union([
   z.strictObject({ type: z.strictObject({ target, text: z.string() }) }),
   z.strictObject({ choose: z.strictObject({ target, option: z.string().min(1) }) }),
   z.strictObject({ select: z.strictObject({ target, value: z.string() }) }),
+  // 대상을 눌러 뜬 파일 선택 창에 파일을 넣는다. file은 매뉴얼 폴더 기준 경로 (mutates 시나리오만)
+  z.strictObject({ upload: z.strictObject({ target, file: z.string().min(1) }) }),
   z.strictObject({ highlight: z.strictObject({ target, ms: z.number().int().positive().optional() }) }),
   z.strictObject({ pause: z.number().int().positive() }),
 ])
