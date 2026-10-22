@@ -1,0 +1,674 @@
+title: Dealer Management
+intro: This video shows how to search dealers, view and edit dealer details, and
+  create a new dealer in Dealer Management.
+sections:
+  - 02-dealer-management/01-dealer-list-view.md
+  - 02-dealer-management/02-dealer-creation-screen.md
+  - 02-dealer-management/03-dealer-detail-view-edit-screen.md
+mutates: true
+maskPersonal: true
+scenes:
+  - say: This screen provides a list of all registered dealers. You can create a new
+      dealer, or view and edit details of existing dealers.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          role: columnheader
+          name: Company Name
+      - highlight:
+          target:
+            role: heading
+            name: Dealer Management
+            exact: true
+          ms: 2000
+  - say: Each row shows the company name, dealer number, dealer name, zone,
+      district, business end date, who last updated it, and when. If no zone or
+      district is assigned, it shows Unassigned.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Company Name
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Business End Date
+          ms: 1500
+  - say: Status shows whether the dealer is Draft, Active, Inactive, Under
+      termination, or Terminated. Only active dealers can use the services.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Status
+          ms: 2000
+  - say: To search, choose Company Name, Dealer No., or Dealer Name, enter a
+      keyword, and click Search.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Dealer No.
+          option: Dealer Name
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            exact: true
+          text: kia
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - pause: 2000
+  - say: You can also filter by the dealer's status.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Active
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - pause: 1500
+  - say: Use 60 Days or 90 Days to find dealers whose business ends soon.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: 60Days
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: 90Days
+          ms: 1500
+  - say: Filter by zone, then by a district within that zone.
+    steps:
+      - highlight:
+          target:
+            text: Zone
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: District
+            exact: true
+          ms: 1500
+  - say: Click Reset to clear all filter conditions, then search again to see every
+      dealer.
+    steps:
+      - click:
+          role: button
+          name: Reset
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - pause: 1500
+  - say: Click the Detail icon to open the dealer's details. Each section of the
+      dealer's information is shown in its own tab.
+    steps:
+      - click:
+          role: button
+          name: View
+          within:
+            role: row
+            name: DLR_KCA_01_EN
+      - waitFor:
+          text: Dealer Basic Information
+      - highlight:
+          target:
+            role: tablist
+          ms: 2000
+  - say: Basic Info shows the dealer's names, numbers, contact details, email
+      domains, location, zone and district, groups, dealer type, and status.
+    steps:
+      - highlight:
+          target:
+            text: Company's Email Domain
+          ms: 1500
+      - scroll:
+          text: Dealer Category
+      - highlight:
+          target:
+            text: Dealer Category
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Number of Facilities
+          ms: 1500
+  - say: Click See All Changes to view changes to the dealer information, starting
+      from the most recent.
+    steps:
+      - click:
+          role: button
+          name: See All Changes
+      - waitFor:
+          text: Change Date
+      - pause: 2500
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+  - say: Click Edit to switch to edit mode. Dealer name, company name, and dealer
+      number cannot be changed.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Search on Map
+      - pause: 1500
+      - highlight:
+          target:
+            role: button
+            name: Search on Map
+          ms: 1500
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+      - waitFor:
+          text: See All Changes
+  - say: Business Info lists each business entry. If only one is registered, you can
+      add another with Add Business.
+    steps:
+      - click:
+          role: tab
+          name: Business Info
+      - waitFor:
+          text: Business Information
+      - highlight:
+          target:
+            role: button
+            name: Add Business
+          ms: 1500
+  - say: Click Detail to see the change history of a business entry.
+    steps:
+      - click:
+          role: button
+          name: Detail
+          exact: true
+      - waitFor:
+          text: Business Change History
+      - pause: 2000
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+  - say: Click Edit to change a business entry. The business type cannot be changed.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - pause: 2000
+      - highlight:
+          target:
+            text: Business Type
+          ms: 1500
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+      - pause: 1000
+  - say: Facility Info shows all of the dealer's facilities on a map when their
+      addresses are registered. Each facility type has its own icon.
+    steps:
+      - open: /dealer/company/detail/3
+      - waitFor:
+          text: Dealer Basic Information
+      - click:
+          role: tab
+          name: Facility Info
+      - waitFor:
+          text: Displays only when address is provided
+      - pause: 3000
+  - say: Facilities are grouped into tabs by type. Click a type to see its
+      facilities.
+    steps:
+      - click:
+          role: button
+          name: Showroom(1)
+      - pause: 1500
+      - click:
+          role: button
+          name: Training Center(1)
+      - pause: 1500
+      - click:
+          role: button
+          name: Workshop(1)
+      - pause: 1000
+  - say: Click View on Map to open a facility's location in Google Maps. Use Edit or
+      Delete to change a facility. At least one facility is required, so Delete
+      is hidden when only one remains.
+    steps:
+      - scroll:
+          role: button
+          name: View on Map
+      - highlight:
+          target:
+            role: button
+            name: View on Map
+          ms: 1500
+      - scroll:
+          role: button
+          name: Delete
+      - highlight:
+          target:
+            role: button
+            name: Edit
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Delete
+          ms: 1500
+  - say: Click Add Facility to register a new facility in a popup. The fields are
+      the same as in dealer creation.
+    steps:
+      - click:
+          role: button
+          name: Add Facility
+      - waitFor:
+          text: Register New Facility
+      - pause: 2500
+      - open: /dealer/company/detail/4
+      - waitFor:
+          text: Dealer Basic Information
+  - say: Dealer Principal shows the dealer principal's information. Click See
+      Complete Details to open it in Dealer Employee Management.
+    steps:
+      - click:
+          role: tab
+          name: Dealer Principal
+      - waitFor:
+          text: Dealer Principal Information
+      - highlight:
+          target:
+            role: button
+            name: See Complete Details
+          ms: 1500
+  - say: To change the dealer principal, click Reassign Dealer Principal and enter
+      the user number of an employee from the same dealer.
+    steps:
+      - click:
+          role: button
+          name: Reassign Dealer Principal
+      - waitFor:
+          text: Search User
+      - highlight:
+          target:
+            placeholder: Type UserNo. Only users from the same dealer can be assigned
+          ms: 2000
+      - click:
+          role: button
+          name: Cancel
+          within:
+            role: dialog
+  - say: Click View List to return to the dealer list.
+    steps:
+      - click:
+          role: button
+          name: View List
+      - waitFor:
+          role: columnheader
+          name: Company Name
+  - say: Click Create New to register a new dealer. Dealer creation consists of four
+      steps.
+    steps:
+      - click:
+          role: button
+          name: Create New
+      - waitFor:
+          text: Create Dealer
+      - pause: 1500
+  - say: In Dealer Basic Information, enter the dealer name in English and French,
+      the business number, and the official company name.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Dealer Name (max 20 characters)
+          text: Maple Kia {stamp}
+      - type:
+          target:
+            placeholder: Enter Dealer Name (max 20 characters)
+            nth: 1
+          text: Kia Érable {stamp}
+      - type:
+          target:
+            placeholder: Enter Business No. (alphanumeric, up to 20 chars)
+          text: CA{stamp}01
+      - type:
+          target:
+            placeholder: Enter Legal Business Company Name
+          text: Maple Kia Motors Inc. {stamp}
+  - say: Enter the company email, then register the company's email domain. Dealer
+      employees' business emails use this domain.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Email
+          text: info@maplekia{stamp}.ca
+      - type:
+          target:
+            placeholder: Enter company domain without @
+          text: maplekia{stamp}.ca
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - pause: 1000
+  - say: Add the phone number, founding date, and website.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Phone Number
+          text: "4165550198"
+      - type:
+          target:
+            placeholder: MM-DD-YYYY
+          text: 03-15-2012
+      - click:
+          text: Dealer Basic Information
+          nth: 1
+      - type:
+          target:
+            placeholder: Enter your website address
+          text: https://www.maplekia.ca
+  - say: Click Search on Map to find the dealer's address on Google Maps, add any
+      address details, and save.
+    steps:
+      - click:
+          role: button
+          name: Search on Map
+      - type:
+          target:
+            placeholder: Input Address
+          text: 2460 Dufferin St Toronto
+      - click:
+          role: button
+          name: search
+          within:
+            role: dialog
+      - pause: 2000
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 2
+            exact: true
+            within:
+              role: dialog
+          text: Unit 2
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - pause: 1500
+  - say: Select the zone first, then a district within that zone.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: ER
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: E1
+  - say: Select the dealer distribution groups and the holding company the dealer
+      belongs to.
+    steps:
+      - click:
+          role: button
+          name: 열기
+      - click:
+          text: DLR_DIST_GRP_01
+          within:
+            role: listbox
+      - click:
+          text: Holding Company
+          exact: true
+      - choose:
+          target:
+            role: button
+            name: 열기
+            nth: 1
+          option: HOLDING_COMPANY_01
+  - say: Select the dealer management type and status. The dealer type options
+      depend on the management type.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Official Dealer
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Active
+      - highlight:
+          target:
+            role: combobox
+            name: Main
+          ms: 1500
+  - say: Click Next to move to Business Information. You can also save a draft at
+      any step.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Save Draft
+          ms: 1200
+      - click:
+          role: button
+          name: Next
+      - waitFor:
+          text: New Business1
+  - say: Select the business type to show the remaining fields, then choose the
+      vehicle types, product types, and EV certification status.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: General/Retail
+      - click:
+          role: checkbox
+          name: Passenger
+      - click:
+          role: checkbox
+          name: Finished Vehicles
+      - click:
+          role: checkbox
+          name: CPO
+      - click:
+          role: radio
+          name: Certificated
+  - say: Enter the business start and end dates, then click Next.
+    steps:
+      - type:
+          target:
+            placeholder: MM-DD-YYYY
+          text: 11-01-2026
+      - click:
+          text: New Business1
+      - type:
+          target:
+            placeholder: MM-DD-YYYY
+            nth: 1
+          text: 10-31-2031
+      - click:
+          text: New Business1
+      - click:
+          role: button
+          name: Next
+      - waitFor:
+          text: New Facility1
+  - say: In Facility Information, select the facility purpose and type. For a
+      showroom, also select the facility space type.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Sales Assets
+      - choose:
+          target:
+            role: combobox
+            name: Training Center
+          option: Showroom
+      - choose:
+          target:
+            role: combobox
+            name: Select
+            exact: true
+          option: Standalone
+  - say: Enter the facility name in English and French, its ownership status, size,
+      and vehicle type.
+    steps:
+      - type:
+          target:
+            placeholder: Enter Facility Name (max 20 characters)
+          text: Maple Kia Showroom
+      - type:
+          target:
+            placeholder: Saisissez le nom
+          text: Salle Kia Érable
+      - click:
+          role: radio
+          name: Owned
+      - type:
+          target:
+            placeholder: Enter the facility size
+          text: "850"
+      - click:
+          role: checkbox
+          name: Passenger
+  - say: Add the facility's location with Search on Map, then its opening and
+      closing times.
+    steps:
+      - click:
+          role: button
+          name: Search on Map
+      - type:
+          target:
+            placeholder: Input Address
+          text: 2460 Dufferin St Toronto
+      - click:
+          role: button
+          name: search
+          within:
+            role: dialog
+      - pause: 2000
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - type:
+          target:
+            placeholder: 00:00 AM
+          text: 09:00 AM
+      - click:
+          text: New Facility1
+      - type:
+          target:
+            placeholder: 00:00 AM
+            nth: 1
+          text: 08:00 PM
+      - click:
+          text: New Facility1
+      - click:
+          role: button
+          name: Next
+      - waitFor:
+          text: Upload a Photo
+  - say: In Dealer Principal Information, upload the dealer principal's photo and
+      enter their name.
+    steps:
+      - upload:
+          target:
+            role: button
+            name: Upload
+            exact: true
+          file: videos/files/principal-photo.png
+      - type:
+          target:
+            placeholder: First Name (max 20characters)
+          text: Daniel
+      - type:
+          target:
+            placeholder: Last Name (max 20characters)
+          text: Thompson
+  - say: The business email uses the company domain you registered. Enter the ID,
+      business phone, and the year the CEO joined the dealership.
+    steps:
+      - type:
+          target:
+            placeholder: Enter ID (max 20 characters)
+          text: dthompson
+      - type:
+          target:
+            placeholder: Enter Business Phone Number
+          text: "4165550142"
+      - type:
+          target:
+            placeholder: YYYY
+            exact: true
+          text: "2015"
+      - click:
+          text: Dealer Principal Information
+          nth: 1
+  - say: Agree to register the dealer as a partner, then click Create.
+    steps:
+      - click:
+          role: checkbox
+          name: I agree to complete both the contract
+      - click:
+          role: button
+          name: Create
+          exact: true
+      - pause: 8000
+      - waitFor:
+          text: Dealer Registration Successful
+  - say: When the dealer is created, you can create an ID for the dealer principal
+      right away, or do it later in Dealer Employee Management.
+    steps:
+      - highlight:
+          target:
+            role: dialog
+          ms: 2500
+      - click:
+          role: button
+          name: Maybe later
+      - waitFor:
+          role: columnheader
+          name: Company Name
+  - say: The new dealer now appears in the dealer list.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Maple Kia Motors Inc. {stamp}
+          ms: 2500
