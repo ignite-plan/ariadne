@@ -1,7 +1,200 @@
 title: My Profile
+intro: This video shows how to view your profile and business information, and
+  how to edit your personal information.
 sections:
   - 02-home/08-my-profile.md
 maskPersonal: true
 scenes:
-  - say: ""
-    steps: []
+  - say: Click your Account icon in the GNB and select My Profile to see your
+      personal and business information.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - click:
+          role: button
+          name: ""
+          nth: 6
+      - waitFor:
+          role: button
+          name: My Profile
+      - pause: 1000
+      - click:
+          role: button
+          name: My Profile
+      - waitFor:
+          role: heading
+          name: My Profile
+      - highlight:
+          target:
+            role: heading
+            name: My Profile
+          ms: 2000
+  - say: The summary card shows your photo, your name, and your account email.
+    steps:
+      - highlight:
+          target:
+            role: heading
+            name: Jennie Lee
+          ms: 1500
+      - highlight:
+          target:
+            text: jwlee0822@ignite.co.kr
+            nth: 1
+          ms: 1500
+  - say: My Profile lists your ID, personal phone, language, and age, calculated
+      automatically from your date of birth.
+    steps:
+      - highlight:
+          target:
+            role: cell
+            name: ID
+          ms: 1000
+      - highlight:
+          target:
+            role: cell
+            name: Personal Phone
+          ms: 1000
+      - highlight:
+          target:
+            role: cell
+            name: Language
+          ms: 1000
+      - highlight:
+          target:
+            role: cell
+            name: Age
+          ms: 1500
+  - say: Business Profile shows the dealership, business email, and business phone
+      registered by your dealership administrator. You can't edit this here.
+    steps:
+      - highlight:
+          target:
+            text: Business Profile
+          ms: 2000
+      - highlight:
+          target:
+            role: cell
+            name: Dealership
+          ms: 1000
+      - highlight:
+          target:
+            role: cell
+            name: Business Email
+          ms: 1000
+      - highlight:
+          target:
+            role: cell
+            name: Business Phone
+          ms: 1000
+  - say: Click Edit to switch to Edit My Profile.
+    steps:
+      - click:
+          role: button
+          name: Edit
+      - waitFor:
+          role: heading
+          name: Edit My Profile
+      - highlight:
+          target:
+            role: heading
+            name: Edit My Profile
+          ms: 2000
+  - say: Click the photo area to upload a JPEG or PNG file up to 20MB. If a photo is
+      already set, click the X to remove it.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Upload a Photo
+          ms: 1500
+      - highlight:
+          target:
+            text: "Supported image formats: JPEG (JPG) or PNG, up to 20MB in size."
+          ms: 1500
+  - say: First Name and Last Name are required, up to 20 characters each. Account
+      Email is required too, up to 50 characters, and is checked as you type.
+    steps:
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 1
+          ms: 1000
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 2
+          ms: 1000
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 3
+          ms: 1500
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 3
+          text: invalid-email
+      - highlight:
+          target:
+            text: Please enter a valid email
+          ms: 1500
+  - say: Personal Phone is optional. Pick a country code and enter up to 15 digits.
+      Language is required. Date of Birth is optional and picked from a
+      calendar.
+    steps:
+      - highlight:
+          target:
+            role: combobox
+            name: "+1"
+          ms: 1000
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 4
+          ms: 1000
+      - highlight:
+          target:
+            role: combobox
+            name: English
+          ms: 1000
+      - click:
+          role: textbox
+          name: date picker
+      - pause: 1500
+      - click:
+          text: "24"
+  - say: "Save becomes active only after you've made a change. "
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Save
+          ms: 1500
+  - say: If a required field is empty, you'll see Please fill in this field. After
+      saving, your profile updates right away, and a notification email is sent
+      to your account email, listing only the titles of what changed.
+    steps:
+      - pause: 3000
+  - say: That's your Profile. Review your information anytime, and keep it up to
+      date from the Edit screen.
+    steps:
+      - open: /profile/me
+      - waitFor:
+          role: button
+          name: Edit
+      - highlight:
+          target:
+            role: heading
+            name: My Profile
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: Edit
+          ms: 1000

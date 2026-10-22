@@ -1,0 +1,153 @@
+title: Quick Link
+intro: This video shows how to add, reorder, and rename Quick Links from the
+  Home screen or any other screen.
+sections:
+  - 02-home/04-quick-link.md
+maskPersonal: true
+scenes:
+  - say: Quick Links sit on the right side of the Home screen, giving you one-click
+      access to the menus you use most.
+    steps:
+      - open: /
+      - waitFor:
+          text: Board you've visited
+      - highlight:
+          target:
+            text: Quick Links
+            nth: 1
+          ms: 2000
+  - say: Up to 20 menus can be registered. Long names wrap to a new line, and
+      hovering over a name for about a second shows the full menu path.
+    steps:
+      - highlight:
+          target:
+            text: General Board - 20
+            nth: 0
+          ms: 1500
+      - hover:
+          text: new board (for 'ignite' job)
+          nth: 0
+      - pause: 1500
+  - say: Click the star icon next to a menu name to remove it from Quick Links.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Remove bookmark
+            nth: 0
+          ms: 1500
+  - say: Below Quick Links, Board you've visited shows your recently visited menus.
+      Click the star there to add one straight to Quick Links, or click it again
+      to remove it.
+    steps:
+      - highlight:
+          target:
+            text: Board you've visited
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Add bookmark
+            nth: 0
+          ms: 1500
+  - say: Click Edit next to Quick Links to open the popup that manages your entire
+      list.
+    steps:
+      - click:
+          text: Edit
+      - waitFor:
+          text: Quick Links Settings
+      - pause: 2000
+      - click:
+          text: Cancel
+  - say: From any screen in Dealers, click the star icon in the GNB to open the
+      Quick Links panel on the right.
+    steps:
+      - click:
+          role: button
+          name: Quick Links
+      - waitFor:
+          text: Add Quick Links
+      - pause: 2000
+  - say: Click a menu name to go straight there, or click the star to remove it from
+      Quick Links.
+    steps:
+      - highlight:
+          target:
+            role: menuitem
+            name: 10- Bulletin Board Remove 10- Bulletin Board from Quick Links
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Remove 10- Bulletin Board from Quick Links
+          ms: 1500
+  - say: Close the panel by clicking the GNB star icon again, the X button, or
+      anywhere outside the panel.
+    steps:
+      - click:
+          text: Welcome to DEALERS!
+      - pause: 1000
+  - say: Click Add Quick Links at the bottom of the panel to open the full settings
+      popup.
+    steps:
+      - click:
+          role: button
+          name: Quick Links
+      - waitFor:
+          text: Add Quick Links
+      - click:
+          role: button
+          name: Add Quick Links
+      - waitFor:
+          text: Quick Links Settings
+      - pause: 2000
+  - say: The Menu List shows every menu you have permission to access, organized by
+      depth and expanded by default. Directory-type menus don't have a star, so
+      they can't be added.
+    steps:
+      - highlight:
+          target:
+            text: Menu List
+          ms: 2000
+      - highlight:
+          target:
+            text: Bulletin news
+            nth: 1
+          ms: 1500
+  - say: A banner reminds you that only menus linked to a page can be added. It
+      stays pinned at the top while you scroll, and closing it hides it for good
+      on this dealership.
+    steps:
+      - highlight:
+          target:
+            text: Only menus linked to a page can be added as Quick Links.
+          ms: 2000
+      - scroll:
+          text: Recall & Campaign Notices
+      - highlight:
+          target:
+            text: Only menus linked to a page can be added as Quick Links.
+          ms: 1500
+  - say: Add to Quick Links lists every menu you've added, with the first one you
+      added at the top. Drag the six-dot handle to reorder them.
+    steps:
+      - highlight:
+          target:
+            text: Add to Quick Links
+          ms: 1500
+  - say: Up to 20 menus can be added, and adding more shows an alert. Cancel
+      discards your changes, and Save applies the new list everywhere Quick
+      Links appear.
+    steps:
+      - highlight:
+          target:
+            text: Cancel
+          ms: 1500
+      - highlight:
+          target:
+            text: Save
+          ms: 1500
+      - click:
+          text: Cancel
+      - pause: 1000
