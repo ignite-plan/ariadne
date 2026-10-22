@@ -1,0 +1,209 @@
+title: Bulletin Board Management
+intro: This video shows how to search bulletin boards, view their details and
+  list settings, and create and delete a board.
+sections:
+  - 09-bulletin-board-management/00-intro.md
+mutates: true
+scenes:
+  - say: Bulletin Board Management lists every bulletin board used in Kia Dealers.
+      Create boards here, then connect them to a menu in Menu Management.
+    steps:
+      - open: /board
+      - waitFor:
+          role: columnheader
+          name: Board Name
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin Board Management
+          ms: 2000
+  - say: Each row shows the board ID and name, whether it is mapped to a menu, the
+      menu path, and who created and updated it, and when.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Menu-Board Mapping
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Menu Path
+          ms: 1500
+  - say: To search, enter a board name and click Search. You can also filter by menu
+      mapping, creator or updater, date, or menu.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the board name
+          text: EV Guides
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - pause: 2000
+  - say: Click a board to open its details.
+    steps:
+      - click:
+          role: row
+          name: EV Guides
+      - waitFor:
+          text: Board Details
+          exact: true
+      - highlight:
+          target:
+            text: Menu Display Status
+          ms: 2000
+  - say: Board Details shows the board ID, dates, names in English and French, the
+      admin description, and the menu it is mapped to. Use the buttons to jump
+      to Manage Posts or Manage Menu.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Manage Posts
+          ms: 1500
+      - scroll:
+          role: button
+          name: Go to Manage Menu
+      - highlight:
+          target:
+            role: button
+            name: Go to Manage Menu
+          ms: 1500
+  - say: Post Attribute Setting decides which options writers get, such as posting
+      period, target audience, important notice, notification, attachments, and
+      additional attributes.
+    steps:
+      - scroll:
+          text: Post Attribute Setting
+      - highlight:
+          target:
+            text: Post Attribute Setting
+          ms: 3000
+  - say: The List Setting tab controls which columns appear in the post list and in
+      what order.
+    steps:
+      - click:
+          role: tab
+          name: List Setting
+      - waitFor:
+          text: Display Items and Order
+      - highlight:
+          target:
+            text: Display Items and Order
+          ms: 2500
+  - say: To create a board, go back to the list and click New Board.
+    steps:
+      - open: /board
+      - waitFor:
+          role: columnheader
+          name: Board Name
+      - click:
+          role: button
+          name: New Board
+      - waitFor:
+          text: Post Attribute Setting
+  - say: Enter the board name in English and French, and a description for
+      administrators.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the board name. (max 50 characters)
+          text: Demo Board {stamp}
+      - type:
+          target:
+            placeholder: Veuillez saisir le nom du forum. (50 caractères max.)
+          text: Forum démo {stamp}
+      - type:
+          target:
+            placeholder: Please enter the board description. (max 200 characters)
+          text: Demo board for the guide video.
+  - say: Choose Enabled or Disabled for each post attribute. With Target Audience
+      enabled, writers can target by job title, dealer group, dealer, zone, and
+      district.
+    steps:
+      - scroll:
+          text: "*Additional Attribute"
+          exact: true
+      - highlight:
+          target:
+            text: "*Target Audience"
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: "*Attachments"
+            exact: true
+          ms: 1500
+  - say: Click Save. The new board opens, not yet mapped to a menu.
+    steps:
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Saved successfully
+      - click:
+          role: button
+          name: OK
+      - waitFor:
+          text: Board Details
+          exact: true
+      - highlight:
+          target:
+            text: Not Visible
+          ms: 2000
+  - say: In List Setting, click Edit to change the columns. Drag the handles to
+      reorder, and turn display on or off. Required fields cannot be hidden.
+    steps:
+      - click:
+          role: tab
+          name: List Setting
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: The visibility of these required fields cannot be modified
+      - click:
+          role: checkbox
+          nth: 3
+      - pause: 1000
+  - say: Click Save to apply the list settings.
+    steps:
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Bulletin Board List Items Saved
+      - click:
+          role: button
+          name: OK
+  - say: To delete a board, open Bulletin Board Details and click Delete. Deleted
+      boards cannot be recovered.
+    steps:
+      - click:
+          role: tab
+          name: Bulletin Board Details
+      - click:
+          role: button
+          name: Delete
+          exact: true
+      - waitFor:
+          text: Are you sure you want to delete this board?
+      - highlight:
+          target:
+            role: dialog
+          ms: 2000
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+      - waitFor:
+          text: Deleted successfully.
+      - click:
+          role: button
+          name: OK

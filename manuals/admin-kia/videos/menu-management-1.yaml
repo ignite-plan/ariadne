@@ -1,0 +1,497 @@
+title: Menu Management
+intro: This video shows how to view, search, edit, create, and delete menus, and
+  how to set menu access permissions.
+sections:
+  - 08-menu-management/00-intro.md
+mutates: true
+scenes:
+  - say: Menu Management lets you manage the menus of Kia Dealers_BO. Click Menu
+      Management in the left navigation to open it.
+    steps:
+      - open: /dealer/company
+      - waitFor:
+          text: Dealer Management
+      - click:
+          role: link
+          name: Menu Management
+      - waitFor:
+          text: Dealers Menu
+  - say: On the left is the Dealers Menu tree. Menus can be created up to a maximum
+      of 4 depths.
+    steps:
+      - highlight:
+          target:
+            text: Dealers Menu
+          ms: 2500
+  - say: On the right, the detail panel asks you to select a menu from the Kia
+      Dealers Portal until you pick one.
+    steps:
+      - highlight:
+          target:
+            text: Please select a menu from the Kia Dealers Portal
+          ms: 2500
+  - say: To find a menu, type its name in the search box. Here we search for
+      Incentive. Matching keywords are highlighted, and only the parent path
+      remains.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the menu name
+          text: Incentive
+      - pause: 2500
+  - say: Clear the search keyword, and the full menu tree appears again.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the menu name
+          text: ""
+      - pause: 1500
+  - say: Select a menu to see its details. Here we select General Board - 20, under
+      the new board menu.
+    steps:
+      - click:
+          role: treeitem
+          name: General Board - 20
+      - waitFor:
+          text: Menu Display Status
+  - say: Menu Display Status shows whether the menu is currently visible. Display
+      Setting is Enabled or Disabled, and it also controls the visibility of the
+      submenus on the front-end screen.
+    steps:
+      - highlight:
+          target:
+            text: Menu Display Status
+          ms: 2500
+      - highlight:
+          target:
+            text: Controls the menu and submenu visibility on Front-end screen.
+          ms: 2500
+  - say: With Scheduled Display enabled, you can set a Display start date. The menu
+      becomes visible at 00:00 EST on that date.
+    steps:
+      - highlight:
+          target:
+            text: Scheduled Display
+          ms: 2500
+      - highlight:
+          target:
+            text: The menu will become visible on the Front screen at the start of the
+              selected date (00:00 EST).
+          ms: 2500
+  - say: Below, you can see the create and update dates, and who created and updated
+      the menu, followed by the Menu Type.
+    steps:
+      - highlight:
+          target:
+            text: Create Date
+          ms: 2500
+      - highlight:
+          target:
+            text: Menu Type
+          ms: 2500
+  - say: Further down are the Menu Name in English and French, the Domain and Menu
+      URL, the Menu Description, and the Menu Permissions List.
+    steps:
+      - scroll:
+          text: Menu Permissions List
+      - highlight:
+          target:
+            text: Menu Permissions List
+          ms: 2500
+  - say: To change a menu, click Edit at the bottom.
+    steps:
+      - click:
+          role: button
+          name: Edit
+      - waitFor:
+          text: Domain Setting
+  - say: Display Setting, Scheduled Display, Menu Type, Menu-Board Mapping, Domain
+      Setting, descriptions, and permissions can now be edited. Changing the
+      menu type resets the existing input, so a confirmation message appears
+      first.
+    steps:
+      - highlight:
+          target:
+            text: Menu Type
+          ms: 3000
+  - say: Click Domain Setting to open the Domain List, with each domain, its SSO
+      callback path, and its linked menus.
+    steps:
+      - click:
+          role: button
+          name: Domain Setting
+      - waitFor:
+          text: Domain List
+  - say: Use Add at the top right to add a domain. A domain that has linked menus
+      cannot be deleted. Click Cancel to close the popup.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Add
+          ms: 2500
+      - click:
+          role: button
+          name: Cancel
+  - say: In the Menu Permissions List, click Add to define a permission for this
+      menu. Choose Access or Read, and enter the description in English and
+      French, up to 200 characters.
+    steps:
+      - click:
+          role: button
+          name: Add
+          nth: 1
+      - waitFor:
+          text: Add Menu Permission
+      - highlight:
+          target:
+            text: Permission Description
+          ms: 3000
+  - say: Cancel the popup, and then cancel the edit if you do not want to save.
+      Saving shows a confirmation and applies the change.
+    steps:
+      - click:
+          role: button
+          name: Cancel
+      - highlight:
+          target:
+            role: button
+            name: Save
+          ms: 2500
+      - click:
+          role: button
+          name: Cancel
+      - waitFor:
+          text: Menu Details
+  - say: Next, open the Menu Access Permission tab to set who can access this menu.
+    steps:
+      - click:
+          role: tab
+          name: Menu Access Permission
+      - waitFor:
+          text: Job title
+  - say: Click Edit to open the Menu Access Permission popup. Search for a Job
+      title, then set All, Access, or Read with the checkboxes.
+    steps:
+      - click:
+          role: button
+          name: Edit
+      - waitFor:
+          text: Job Title Permission
+      - highlight:
+          target:
+            role: table
+          ms: 3000
+  - say: Only Job titles with access to the parent menu are listed. To assign
+      others, use the parent menu or Job Management first. Click Cancel to
+      close.
+    steps:
+      - highlight:
+          target:
+            text: To assign access to users or job titles that do not currently have
+              permission
+          ms: 3000
+      - click:
+          role: button
+          name: Cancel
+  - say: Note the order. If a menu has no permissions defined, such as Product,
+      clicking Edit here shows an Add Menu Permission notice.
+    steps:
+      - click:
+          text: Product
+          nth: 0
+          exact: true
+      - waitFor:
+          text: Menu Details
+      - click:
+          role: tab
+          name: Menu Access Permission
+      - click:
+          role: button
+          name: Edit
+      - waitFor:
+          text: Add Menu Permission
+      - highlight:
+          target:
+            role: button
+            name: Go to Setting
+          ms: 2000
+  - say: Click Go to Setting to return to the Menu Details tab, where the Menu
+      Permissions List is shown.
+    steps:
+      - click:
+          role: button
+          name: Go to Setting
+      - waitFor:
+          text: Menu Permissions List
+      - highlight:
+          target:
+            text: Menu Permissions List
+          ms: 2000
+  - say: Click Edit, then Add in the Menu Permissions List. Select Access and enter
+      a description.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          role: button
+          name: Save
+          exact: true
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Permission Description
+          exact: true
+      - choose:
+          target:
+            role: combobox
+            name: Please select a permission
+            within:
+              role: dialog
+          option: Access
+      - type:
+          target:
+            placeholder: Enter the description of the permission (max 200 characters,
+              including spaces).
+          text: Access to the Product menu
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Add Read the same way. Both permissions now appear in the list, and you can
+      grant them in the Menu Access Permission tab after saving.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Permission Description
+          exact: true
+      - choose:
+          target:
+            role: combobox
+            name: Please select a permission
+            within:
+              role: dialog
+          option: Read
+      - type:
+          target:
+            placeholder: Enter the description of the permission (max 200 characters,
+              including spaces).
+          text: Read the Product menu
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - highlight:
+          target:
+            text: Menu Permissions List
+          ms: 2500
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+      - click:
+          role: button
+          name: Discard
+          within:
+            role: dialog
+  - say: To create a top-level group, click Group Addition at the top of the tree.
+      For a submenu, hover over a tree node and click Add Submenu.
+    steps:
+      - open: /menu
+      - waitFor:
+          text: Dealers Menu
+      - click:
+          role: button
+          name: Group Addition
+      - waitFor:
+          text: Display Setting
+  - say: A creation form opens with only the Menu Details tab. Keep Same Tab as the
+      menu type, and enter the menu name in English and French.
+    steps:
+      - highlight:
+          target:
+            text: Same Tab
+            exact: true
+          ms: 1500
+      - type:
+          target:
+            placeholder: Menu name (max 50)
+          text: Demo Menu
+      - type:
+          target:
+            placeholder: Nom du menu (50 caractères max.)
+          text: Menu démo
+  - say: Select the domain and enter the menu URL that follows it.
+    steps:
+      - choose:
+          target:
+            text: No selection (Directory)
+            exact: true
+          option: https://stg-dealers.kia-corp.io
+      - type:
+          target:
+            placeholder: Enter the URL following the domain. ex) /menu_url
+          text: /demo-menu
+  - say: Choose whether the page uses the DEALERS Frontend Library. Hover over the
+      help icon to see when to select YES. Select YES only if the page was built
+      with the library.
+    steps:
+      - hover:
+          label: What's DEALERS' Frontend Library?
+      - waitFor:
+          text: Check YES only if the page linked to this Menu URL was actually developed
+            using DEALERS' frontend library.
+      - pause: 3500
+      - click:
+          role: radio
+          name: YES
+  - say: Add the Access and Read permissions in the Menu Permissions List, then
+      click Save.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - choose:
+          target:
+            role: combobox
+            name: Please select a permission
+            within:
+              role: dialog
+          option: Access
+      - type:
+          target:
+            placeholder: Enter the description of the permission (max 200 characters,
+              including spaces).
+          text: Access to the Demo Menu
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - choose:
+          target:
+            role: combobox
+            name: Please select a permission
+            within:
+              role: dialog
+          option: Read
+      - type:
+          target:
+            placeholder: Enter the description of the permission (max 200 characters,
+              including spaces).
+          text: Read the Demo Menu
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Saved successfully
+      - click:
+          role: button
+          name: OK
+  - say: After saving, open the Menu Access Permission tab and click Edit to grant
+      the new menu to job titles. Job titles inherited from the parent are
+      already checked.
+    steps:
+      - click:
+          role: tab
+          name: Menu Access Permission
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Job Title Permission
+  - say: Check Access and then Read for the job title. Read becomes available once
+      Access is checked.
+    steps:
+      - click:
+          role: checkbox
+          nth: 1
+          within:
+            role: row
+            name: ignite
+      - click:
+          role: checkbox
+          nth: 2
+          within:
+            role: row
+            name: ignite
+      - pause: 1000
+  - say: Click Save. A summary of the added and removed permissions appears. Click
+      Confirm to apply them.
+    steps:
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Added Permissions
+      - highlight:
+          target:
+            text: Added Permissions
+          ms: 2000
+      - click:
+          role: button
+          name: Confirm
+      - waitFor:
+          role: row
+          name: ignite
+  - say: To delete a menu, hover over it in the Dealers Menu tree. The plus button
+      adds a submenu, and the minus button deletes the menu.
+    steps:
+      - hover:
+          role: treeitem
+          name: Demo Menu
+      - highlight:
+          target:
+            label: Add Submenu
+          ms: 1500
+      - highlight:
+          target:
+            label: Delete Menu
+          ms: 1500
+  - say: A menu with submenus cannot be deleted until the submenus are removed.
+      Otherwise, a Delete This Menu confirmation lists what will be removed.
+    steps:
+      - click:
+          label: Delete Menu
+      - waitFor:
+          text: Delete This Menu?
+      - highlight:
+          target:
+            role: dialog
+          ms: 3000
+      - click:
+          role: button
+          name: Delete
+          exact: true
+          within:
+            role: dialog
+      - pause: 2000
