@@ -1,0 +1,244 @@
+title: Bulletin Board & Post Detail
+intro: This video shows how to find a post in a bulletin board, read the post
+  details, and view images and attachments.
+sections:
+  - 04-bulletin-board/00-intro.md
+  - 04-bulletin-board/01-post-list.md
+  - 04-bulletin-board/02-post-detail.md
+maskPersonal: true
+scenes:
+  - say: Click a menu in the top navigation bar to open its bulletin board. The menu
+      name and description appear at the top.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - hover:
+          text: Bulletin news
+      - click:
+          text: Bulletin news
+      - waitFor:
+          text: Bulletin Menu
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin news
+          ms: 2000
+  - say: Use the search filters to find a post by Title, Keyword, or Post ID, by
+      Date, or by additional attributes such as Item. The list shows the total
+      number of posts, and you can sort by Date or Title; important notices are
+      pinned at the top, new posts have a New flag, and hovering over an
+      attachment name shows the full file name. Click a post title to open the
+      post detail, which shows the title, additional information, the posting
+      date in American format, Copy Link, and the content with its formatting.
+    steps:
+      - click:
+          role: combobox
+          name: Title
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: option
+          name: Title
+      - click:
+          role: textbox
+          name: date picker
+          nth: 0
+      - pause: 1500
+      - click:
+          role: heading
+          name: Bulletin news
+      - click:
+          role: button
+          name: 열기
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: button
+          name: 닫기
+          nth: 1
+      - highlight:
+          target:
+            text: Total 11
+          ms: 2000
+      - highlight:
+          target:
+            role: columnheader
+            name: Post ID
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Title
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Date
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Attachment
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Bulletin Number
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Bulletin Type
+          ms: 1000
+      - highlight:
+          target:
+            role: columnheader
+            name: Item
+          ms: 1000
+      - click:
+          role: combobox
+          name: ""
+          nth: 4
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: option
+          name: Date Latest
+      - highlight:
+          target:
+            role: cell
+            name: EV9 Product Guide New
+          ms: 2000
+      - highlight:
+          target:
+            role: cell
+            name: Home and Public Charging Quick Reference New
+          ms: 2000
+      - hover:
+          role: button
+          name: catalog_morning.pdf
+      - pause: 1500
+      - click:
+          text: EV9 Product Guide
+      - waitFor:
+          role: heading
+          name: EV9 Product Guide
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Product Guide
+          ms: 2000
+      - highlight:
+          target:
+            text: "Bulletin Number : 2026-10-1001"
+          ms: 2000
+      - highlight:
+          target:
+            text: Oct 21, 2026
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: ""
+            nth: 8
+          ms: 2000
+      - scroll:
+          role: img
+          name: paste-1792573411612.png
+      - pause: 1500
+      - scroll:
+          role: img
+          name: paste-1792573463247.png
+      - pause: 1500
+      - scroll:
+          role: img
+          name: paste-1792573493602.png
+      - pause: 1500
+      - scroll:
+          role: heading
+          name: EV9 Product Guide
+      - pause: 1000
+  - say: Click a post title to open the post detail. The header shows the title,
+      additional information, and the posting date.
+    steps:
+      - open: /board/1/post/20
+      - waitFor:
+          role: heading
+          name: EV9 Product Guide
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Product Guide
+          ms: 2000
+      - highlight:
+          target:
+            text: "Bulletin Number : 2026-10-1001"
+          ms: 2000
+  - say: Images in the post open in the image gallery. You can download the image or
+      close the gallery from the top right, and move between images with the
+      thumbnails at the bottom.
+    steps:
+      - click:
+          role: img
+          name: paste-1792573411612.png
+      - waitFor:
+          role: dialog
+      - pause: 1000
+      - highlight:
+          target:
+            role: button
+            nth: 0
+            within:
+              role: dialog
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: paste-1792573463247.png
+            within:
+              role: dialog
+          ms: 2000
+      - click:
+          role: button
+          nth: 1
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Click an attachment to preview it. A watermark is added to every page of
+      the PDF, and you can zoom, change the view, download, or print the file.
+    steps:
+      - highlight:
+          target:
+            text: Attachment 2
+          ms: 2000
+      - click:
+          role: button
+          name: catalog_morning.pdf (4.2 MB)
+      - waitFor:
+          role: dialog
+      - pause: 3000
+      - click:
+          role: button
+          nth: 1
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Use Previous and Next to move between posts, or click View List to return
+      to the post list.
+    steps:
+      - open: /board/1/post/20
+      - waitFor:
+          role: button
+          name: View List
+      - scroll:
+          role: button
+          name: View List
+      - highlight:
+          target:
+            role: button
+            name: View List
+          ms: 2000

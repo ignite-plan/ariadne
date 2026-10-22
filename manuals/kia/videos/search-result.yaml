@@ -1,0 +1,293 @@
+title: Search Result
+intro: This video shows how to search for posts and attachments, narrow the
+  results, and open them.
+sections:
+  - 03-search-result/00-intro.md
+maskPersonal: true
+scenes:
+  - say: Use the search bar at the top of every page to search posts and attachments
+      across all bulletin boards you can access.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - highlight:
+          target:
+            placeholder: Search
+          ms: 2000
+      - click:
+          placeholder: Search
+      - pause: 500
+      - highlight:
+          target:
+            role: listbox
+          ms: 2000
+  - say: Your last 10 searches are saved in this browser. Hover over a search term
+      and click the delete button to remove it.
+    steps:
+      - hover:
+          role: option
+          nth: 0
+      - highlight:
+          target:
+            role: button
+            within:
+              role: option
+              nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+  - say: Enter a keyword and press Enter or click the search icon. If you enter more
+      than one word, only results that contain all of the words are shown.
+    steps:
+      - type:
+          target:
+            placeholder: Search
+          text: EV9 charging
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: Search Result for
+      - pause: 2000
+  - say: Search results show matching posts and attachments. Only posts you have
+      permission to view and that are currently posted appear in the results.
+    steps:
+      - highlight:
+          target:
+            placeholder: Search
+          ms: 1500
+      - highlight:
+          target:
+            placeholder: Select Board
+          ms: 1500
+      - highlight:
+          target:
+            text: Relevance
+          ms: 1500
+      - highlight:
+          target:
+            text: Anytime
+          ms: 1500
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Showroom Display Guidelines
+          ms: 2000
+  - say: A post card shows the menu path, title, a short preview of the content, and
+      the posting date. Your keyword is highlighted.
+    steps:
+      - highlight:
+          target:
+            text: Dealer Bulletins
+            nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Showroom Display Guidelines
+          ms: 1500
+      - highlight:
+          target:
+            text: Updated showroom display guidelines for the
+          ms: 2000
+      - highlight:
+          target:
+            text: Oct 19, 2026
+          ms: 1500
+  - say: When your keyword is found in an attachment, the file appears as a separate
+      card with its file name and the matching text. One post can show up to
+      five file cards.
+    steps:
+      - scroll:
+          text: health check shceduled.pdf
+      - highlight:
+          target:
+            text: health check shceduled.pdf
+          ms: 1500
+      - highlight:
+          target:
+            text: 국가예방접종
+          ms: 2000
+  - say: You can also search by reference numbers, such as a bulletin number. Enter
+      the number exactly as it was registered.
+    steps:
+      - click:
+          placeholder: Search
+      - type:
+          target:
+            placeholder: Search
+          text: SB-2026-041
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: Search Result for
+      - pause: 1500
+      - highlight:
+          target:
+            text: SB-2026-041
+            nth: 0
+          ms: 2000
+  - say: Results are sorted by relevance by default. Select Most recent to see the
+      newest posts first.
+    steps:
+      - open: /search?keyword=EV9+charging
+      - waitFor:
+          text: Search Result for
+      - click:
+          role: combobox
+          name: ""
+          nth: 2
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+      - click:
+          role: option
+          name: Most recent
+      - pause: 1000
+      - highlight:
+          target:
+            role: heading
+            nth: 1
+          ms: 1500
+  - say: Choose a period to narrow the results, or select Custom range to set your
+      own start and end dates.
+    steps:
+      - click:
+          role: combobox
+          name: ""
+          nth: 3
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+      - click:
+          role: option
+          name: Custom range
+      - waitFor:
+          role: textbox
+          name: date picker
+      - click:
+          role: textbox
+          name: date picker
+          nth: 0
+      - pause: 1500
+      - click:
+          role: textbox
+          name: date picker
+          nth: 1
+      - pause: 1500
+      - highlight:
+          target:
+            text: Custom range
+          ms: 1500
+  - say: Select one or more boards to see results from those boards only. If no
+      board is selected, results from all boards are shown.
+    steps:
+      - open: /search?keyword=EV9+charging
+      - waitFor:
+          text: Search Result for
+      - click:
+          role: button
+          name: 열기
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: checkbox
+          name: checkbox
+          nth: 0
+      - click:
+          role: checkbox
+          name: checkbox
+          nth: 1
+      - pause: 1000
+      - click:
+          text: Search Result for
+      - pause: 1500
+  - say: Click a post title, preview, or thumbnail to open the post. Click the last
+      item in the menu path to go to that bulletin board.
+    steps:
+      - open: /search?keyword=EV9+charging
+      - waitFor:
+          role: heading
+          name: EV9 Showroom Display Guidelines
+      - hover:
+          role: button
+          name: Dealer Bulletins
+          nth: 0
+      - highlight:
+          target:
+            role: button
+            name: Dealer Bulletins
+            nth: 0
+          ms: 1500
+      - click:
+          role: heading
+          name: EV9 Showroom Display Guidelines
+      - pause: 2000
+  - say: Click a file card to preview the attachment without opening the post.
+    steps:
+      - open: /search?keyword=EV9+charging
+      - waitFor:
+          role: heading
+          name: EV9 Showroom Display Guidelines
+      - scroll:
+          text: health check shceduled.pdf
+      - highlight:
+          target:
+            text: health check shceduled.pdf
+          ms: 2000
+  - say: Twenty results are shown at a time. Click Load more results to see more.
+      The button disappears when there are no more results.
+    steps:
+      - open: /search?keyword=the
+      - waitFor:
+          role: button
+          name: Load more results
+      - scroll:
+          role: button
+          name: Load more results
+      - highlight:
+          target:
+            role: button
+            name: Load more results
+          ms: 1500
+      - click:
+          role: button
+          name: Load more results
+      - pause: 1500
+      - highlight:
+          target:
+            role: heading
+            nth: 22
+          ms: 1500
+  - say: If nothing matches, check the spelling or try different or more general
+      keywords.
+    steps:
+      - open: /search?keyword=EV9+charging
+      - waitFor:
+          text: Search Result for
+      - click:
+          placeholder: Search
+      - type:
+          target:
+            placeholder: Search
+          text: xyz2026test
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: did not match any documents
+      - highlight:
+          target:
+            text: did not match any documents
+          ms: 2500
