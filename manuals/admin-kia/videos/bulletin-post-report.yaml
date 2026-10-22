@@ -1,0 +1,471 @@
+title: Bulletin Post Report
+intro: This video shows how to check whether a post was read by its target
+  audience, using the Bulletin Post Report.
+sections:
+  - 14-bulletin-post-report/00-intro.md
+mutates: true
+scenes:
+  - say: Bulletin Post Report is a Back Office report tool. It lets you verify
+      whether a specific post, such as an important notice, training, or
+      announcement, was read by its target audience.
+    steps:
+      - open: /bulletin-post-report
+      - waitFor:
+          text: Please enter a Post ID to view the user report.
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin Post Report
+          ms: 2000
+  - say: Use it to check the read rate of a single post, identify unread users, and
+      plan follow-up communication such as reminders.
+    steps:
+      - highlight:
+          target:
+            text: Please enter a Post ID to view the user report.
+          ms: 3000
+  - say: To generate a report, search by Post ID. The Post ID is required, and the
+      Search button becomes active once you enter at least one character.
+    steps:
+      - highlight:
+          target:
+            placeholder: Please enter the post ID.
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Search
+            exact: true
+          ms: 1500
+  - say: If you enter an invalid Post ID, a help message appears and no result is
+      shown.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the post ID.
+          text: "999999"
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: No search result. Please enter the exact post ID.
+      - highlight:
+          target:
+            text: No search result. Please enter the exact post ID.
+          ms: 2500
+  - say: Enter a valid Post ID and click Search. Here we look up post 16. The post
+      information appears in Content Info.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the post ID.
+          text: "16"
+      - click:
+          role: button
+          name: Search
+          nth: 0
+          exact: true
+      - waitFor:
+          text: Content Info
+          exact: true
+      - pause: 1000
+  - say: Post Status shows whether the post is visible, based on its display setting
+      and posting period. This post is Not Visible, so users cannot see it yet.
+    steps:
+      - highlight:
+          target:
+            text: Post Status
+            exact: true
+          ms: 2500
+      - highlight:
+          target:
+            text: Posting Period
+            exact: true
+          ms: 2000
+  - say: Because nobody can see it, its view rate is zero percent.
+    steps:
+      - highlight:
+          target:
+            text: View Rate(%)
+          ms: 2500
+  - say: Now search for post 20, which is visible. Clicking Search retrieves the
+      post information again and resets the User Report section.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the post ID.
+          text: "20"
+      - click:
+          role: button
+          name: Search
+          nth: 0
+          exact: true
+      - waitFor:
+          text: EV9 Product Guide
+      - pause: 1000
+  - say: Content Info shows the bulletin board and the post, each with its ID and
+      name.
+    steps:
+      - highlight:
+          target:
+            text: Board ID/Bulletin Board Name
+          ms: 2000
+      - highlight:
+          target:
+            text: Post ID/Post Name
+          ms: 2000
+  - say: View Rate is calculated in real time, as the read count divided by the
+      total number of target users. If there are no target users, it shows N/A.
+    steps:
+      - highlight:
+          target:
+            text: View Rate(%)
+          ms: 3500
+  - say: Menu Status shows whether the menu, including its parent menus, is visible
+      on the front office. Click Detail to open the menu settings in a new tab.
+    steps:
+      - highlight:
+          target:
+            text: Menu Status
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Detail
+            exact: true
+          ms: 2000
+  - say: Post Status and Posting Period show when the post is visible. The posting
+      period is displayed in the tenant time zone.
+    steps:
+      - highlight:
+          target:
+            text: Post Status
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Posting Period
+            exact: true
+          ms: 2000
+  - say: Checked Date shows when this result was retrieved.
+    steps:
+      - highlight:
+          target:
+            text: Checked Date
+            exact: true
+          ms: 2500
+  - say: Below, User Report lists the target users for this post. Each row is one
+      ID, that is, one unique user.
+    steps:
+      - scroll:
+          text: User Report
+          exact: true
+      - highlight:
+          target:
+            text: User Report
+            exact: true
+          ms: 2500
+  - say: Each row shows the dealer number and name, zone, district, user number, ID,
+      read status, and read date.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealer No.
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: ID
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Read Status
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Read Date
+          ms: 1500
+  - say: Read status is decided per user. If a user read the post in any of their
+      dealerships, they are marked as Read. The list is sorted by dealer number,
+      then by ID.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: KCA14740
+          ms: 3000
+  - say: Click a dealer number or a user number to open its details in a new tab.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: User No.
+          ms: 2000
+  - say: Filters apply only to the user list of the selected post. You can filter by
+      dealer name, ID, read status, zone, and district.
+    steps:
+      - highlight:
+          target:
+            placeholder: Please enter the dealer
+          ms: 1200
+      - highlight:
+          target:
+            placeholder: Please enter ID
+          ms: 1200
+      - highlight:
+          target:
+            placeholder: Please enter the zone
+          ms: 1200
+      - highlight:
+          target:
+            placeholder: Please enter the district
+          ms: 1500
+  - say: To see only the users who read the post, select Read and click Search.
+    steps:
+      - click:
+          role: radio
+          name: Read
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 1
+      - highlight:
+          target:
+            role: row
+            name: KCA14740
+          ms: 2000
+  - say: Select Unread to find the users who still need a reminder.
+    steps:
+      - click:
+          role: radio
+          name: Unread
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 47
+      - pause: 1500
+  - say: Click Reset to restore the default filters.
+    steps:
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 48
+      - pause: 1000
+  - say: To filter by dealer, open Dealer Name and select one or more dealers.
+    steps:
+      - click:
+          placeholder: Please enter the dealer
+      - click:
+          text: DLKC_AR-A1_Offi_Sub
+          within:
+            role: listbox
+      - click:
+          text: User Report
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: KCA24732
+      - pause: 1500
+  - say: A user who belongs to several dealerships appears once, with one
+      representative dealership based on the current filter. The rest are
+      summarized as "and N more".
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: KCA24732
+          ms: 3000
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 48
+  - say: To filter by area, select a zone first. District becomes available only
+      after a zone is selected.
+    steps:
+      - click:
+          placeholder: Please enter the zone
+      - click:
+          text: TEST
+          exact: true
+          within:
+            role: listbox
+      - click:
+          text: User Report
+          exact: true
+      - click:
+          placeholder: Please enter the district
+      - click:
+          text: TEST > Unassigned
+          exact: true
+          within:
+            role: listbox
+      - click:
+          text: User Report
+          exact: true
+  - say: Click Search to show only the users in that zone and district.
+    steps:
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - pause: 2000
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 48
+  - say: To check one user, enter their ID and click Search.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter ID
+          text: KCA24732
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          text: and 1 more
+      - pause: 1000
+  - say: Click "and 1 more" to see all of the user's dealerships. They are sorted by
+      dealer number.
+    steps:
+      - click:
+          text: and 1 more
+      - waitFor:
+          text: Affiliated Dealerships (2)
+      - highlight:
+          target:
+            role: dialog
+          ms: 3500
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+  - say: If the ID does not exist, a help message asks you to enter the exact ID.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter ID
+          text: ZZZ99999
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Please enter the exact ID.
+      - highlight:
+          target:
+            text: Please enter the exact ID.
+          ms: 2500
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 48
+  - say: If no user matches the filters, the list is replaced by a guide message.
+      The same happens if the data fails to load.
+    steps:
+      - click:
+          placeholder: Please enter the zone
+      - click:
+          text: CR
+          exact: true
+          within:
+            role: listbox
+      - click:
+          text: User Report
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          text: No results found. Try different search terms or filters.
+      - highlight:
+          target:
+            text: No results found. Try different search terms or filters.
+          ms: 2500
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+          exact: true
+      - waitFor:
+          text: Total 48
+  - say: The list uses the standard pagination. Move between pages at the bottom.
+    steps:
+      - scroll:
+          role: button
+          name: Go to page 2
+      - click:
+          role: button
+          name: Go to page 2
+      - pause: 2000
+  - say: You can also change how many rows are shown on each page.
+    steps:
+      - choose:
+          target:
+            text: 20 per page
+            exact: true
+          option: 50 per page
+      - pause: 2000
+  - say: To look up another post, click Reset next to the Post ID field, or enter a
+      new Post ID and search again.
+    steps:
+      - scroll:
+          placeholder: Please enter the post ID.
+      - highlight:
+          target:
+            role: button
+            name: Reset
+            nth: 0
+            exact: true
+          ms: 2000
+      - click:
+          role: button
+          name: Reset
+          nth: 0
+          exact: true
+      - pause: 1500
+  - say: Use the Bulletin Post Report to check read rates, follow up with unread
+      users, and monitor important posts.
+    steps:
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin Post Report
+          ms: 2500

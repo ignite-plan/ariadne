@@ -136,6 +136,335 @@ scenes:
             text: "*Attachments"
             exact: true
           ms: 1500
+  - say: Set Additional Attribute to Enabled to add custom fields to posts. Up to 10
+      attributes can be added, and up to 5 can be in use.
+    steps:
+      - click:
+          role: radio
+          name: Enabled
+          nth: 5
+      - waitFor:
+          text: Field Name / Display Format
+      - highlight:
+          target:
+            text: Field Name / Display Format
+          ms: 2000
+  - say: Click Add, enter the field name, and choose Single selection with a
+      dropdown. Add the display values with the plus button, then a description,
+      and save.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Additional Attributes assign custom fields to a post.
+      - type:
+          target:
+            placeholder: Field Name (eg. model)
+          text: Model
+      - type:
+          target:
+            placeholder: Nom du champ (p. ex. modèle)
+          text: Modèle
+      - choose:
+          target:
+            text: Please select a display format
+            exact: true
+          option: Single selection(dropdowns)
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 0
+          text: EV6
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 0
+          text: EV6
+      - click:
+          role: button
+          name: Add
+          exact: true
+          within:
+            role: dialog
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 1
+          text: EV9
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 1
+          text: EV9
+      - type:
+          target:
+            placeholder: Description (eg. Please select the model)
+          text: Please select the model
+      - type:
+          target:
+            placeholder: Description (p. ex., Veuillez sélectionner le modèle)
+          text: Veuillez sélectionner le modèle
+      - pause: 1000
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Do you want to save the Additional Attribute?
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - waitFor:
+          text: Model
+          exact: true
+  - say: A single selection with radio buttons allows up to 5 display values.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Additional Attributes assign custom fields to a post.
+      - type:
+          target:
+            placeholder: Field Name (eg. model)
+          text: Trim
+      - type:
+          target:
+            placeholder: Nom du champ (p. ex. modèle)
+          text: Finition
+      - choose:
+          target:
+            text: Please select a display format
+            exact: true
+          option: Single selection(radio buttons)
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 0
+          text: Base
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 0
+          text: Base
+      - click:
+          role: button
+          name: Add
+          exact: true
+          within:
+            role: dialog
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 1
+          text: Premium
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 1
+          text: Premium
+      - pause: 1000
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Do you want to save the Additional Attribute?
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - waitFor:
+          text: Trim
+          exact: true
+  - say: A multi-selection dropdown lets writers choose several values.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Additional Attributes assign custom fields to a post.
+      - type:
+          target:
+            placeholder: Field Name (eg. model)
+          text: Color
+      - type:
+          target:
+            placeholder: Nom du champ (p. ex. modèle)
+          text: Couleur
+      - choose:
+          target:
+            text: Please select a display format
+            exact: true
+          option: Multi-selection(dropdowns)
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 0
+          text: Red
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 0
+          text: Red
+      - click:
+          role: button
+          name: Add
+          exact: true
+          within:
+            role: dialog
+      - type:
+          target:
+            placeholder: Display Value (eg. Red, Blue, Green...)
+            nth: 1
+          text: Blue
+      - type:
+          target:
+            placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
+            nth: 1
+          text: Blue
+      - type:
+          target:
+            placeholder: Description (eg. Please select the model)
+          text: Please select the colors
+      - type:
+          target:
+            placeholder: Description (p. ex., Veuillez sélectionner le modèle)
+          text: Veuillez sélectionner les couleurs
+      - pause: 1000
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Do you want to save the Additional Attribute?
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - waitFor:
+          text: Color
+          exact: true
+  - say: A period lets writers enter a start and end date. No display values are
+      needed.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Additional Attributes assign custom fields to a post.
+      - type:
+          target:
+            placeholder: Field Name (eg. model)
+          text: Campaign Period
+      - type:
+          target:
+            placeholder: Nom du champ (p. ex. modèle)
+          text: Période de campagne
+      - choose:
+          target:
+            text: Please select a display format
+            exact: true
+          option: Period(MM-DD-YYYY ~ MM-DD-YYYY) EST
+      - pause: 1000
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Do you want to save the Additional Attribute?
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - waitFor:
+          text: Campaign Period
+          exact: true
+  - say: An input box lets writers type free text. Enter a description, which is
+      shown as a placeholder. You can also include the field in integrated
+      search.
+    steps:
+      - click:
+          role: button
+          name: Add
+          exact: true
+      - waitFor:
+          text: Additional Attributes assign custom fields to a post.
+      - type:
+          target:
+            placeholder: Field Name (eg. model)
+          text: Dealer Note
+      - type:
+          target:
+            placeholder: Nom du champ (p. ex. modèle)
+          text: Note du concessionnaire
+      - choose:
+          target:
+            text: Please select a display format
+            exact: true
+          option: Input box (text)
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 2
+            within:
+              role: dialog
+          text: Enter a note for dealers
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 3
+            within:
+              role: dialog
+          text: Saisissez une note pour les concessionnaires
+      - highlight:
+          target:
+            text: Integrated Search
+            exact: true
+          ms: 2000
+      - pause: 1000
+      - click:
+          role: button
+          name: Save
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: Do you want to save the Additional Attribute?
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - waitFor:
+          text: Dealer Note
+          exact: true
+  - say: All five attributes are listed with their display values and usage status.
+    steps:
+      - highlight:
+          target:
+            text: Field Name / Display Format
+          ms: 3000
   - say: Click Save. The new board opens, not yet mapped to a menu.
     steps:
       - click:
