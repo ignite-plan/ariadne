@@ -1,0 +1,76 @@
+title: Terms / Privacy / FAQ / Cookie Policy
+intro: This video shows how to open the Terms, Privacy Policy, FAQ, and Cookie
+  Policy pages from the footer.
+sections:
+  - 02-home/07-footer.md
+maskPersonal: true
+scenes:
+  - say: Click Terms in the footer to open the service terms in a new tab.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - scroll:
+          role: button
+          name: Terms
+      - highlight:
+          target:
+            role: button
+            name: Terms
+          ms: 1500
+      - click:
+          role: button
+          name: Terms
+      - pause: 2000
+  - say: Click Privacy Policy in the footer to check the latest personal information
+      policy. It opens in a new tab, using the same layout as Terms.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Privacy Policy
+          ms: 1500
+      - click:
+          role: button
+          name: Privacy Policy
+      - pause: 2000
+  - say: Click FAQ in the footer to open frequently asked questions in a new tab.
+      Major categories are listed on the left, and a second filter at the top
+      lets you narrow the questions further.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: FAQ
+          ms: 1500
+      - open: /faq
+      - waitFor:
+          role: heading
+          name: FAQ
+      - highlight:
+          target:
+            role: heading
+            name: FAQ
+          ms: 1500
+      - highlight:
+          target:
+            text: ALL
+          ms: 1500
+  - say: You can revisit the full Cookie policy anytime from the footer. It opens in
+      a new tab.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - scroll:
+          role: button
+          name: Cookie Policy
+      - highlight:
+          target:
+            role: button
+            name: Cookie Policy
+          ms: 1500
+      - click:
+          role: button
+          name: Cookie Policy
+      - pause: 2000

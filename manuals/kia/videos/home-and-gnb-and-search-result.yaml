@@ -1,0 +1,226 @@
+title: Home & GNB & Search Result
+intro: This video shows the Home screen, the GNB and menus, the Home widgets,
+  the footer, and how to use integrated search.
+sections:
+  - 02-home/00-intro.md
+  - 02-home/01-gnb.md
+  - 02-home/02-menu.md
+  - 02-home/03-announcement.md
+  - 02-home/04-quick-link.md
+  - 02-home/05-board-you-ve-visited.md
+  - 02-home/06-bulletin-highlight.md
+  - 02-home/07-footer.md
+  - 03-search-result/00-intro.md
+maskPersonal: true
+scenes:
+  - say: The Home screen is the first screen displayed when a user connects. It
+      consists of the GNB, menu, Announcement, Quick Links, Board you've
+      visited, and Bulletin Highlights.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - pause: 1500
+  - say: The GNB, or Global Navigation Bar, shows the logo, search box, Quick Links,
+      notifications, language settings, account information, and the menu. Click
+      the logo to return to the Home screen.
+    steps:
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: Quick Links
+          ms: 2000
+      - highlight:
+          target:
+            text: Notification
+          ms: 2000
+      - highlight:
+          target:
+            text: Language
+          ms: 2000
+      - highlight:
+          target:
+            text: Account
+          ms: 2000
+  - say: The GNB menu displays only the 1depth menus. Hover over a 1depth menu, such
+      as Sales Information, and the menu dropdown shows all of its 2 to 4depth
+      menus. Select a menu to go to its detail screen.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin Board
+          ms: 1500
+      - hover:
+          text: Sales Information
+      - pause: 3000
+  - say: At the top of the Home screen, the Dealer name and Job Title are displayed.
+      The Dealer name shows the dealership you are currently working in, and the
+      Job Title shows your assigned job.
+    steps:
+      - highlight:
+          target:
+            text: Dealer name
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: kia test 01
+          ms: 2000
+      - highlight:
+          target:
+            text: Job Title
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: ignite
+          ms: 2000
+  - say: Announcement shows up to 10 posts from the announcement bulletin boards,
+      with important notices first. Each post shows its title and date, and a
+      New flag appears on new posts. Click More to see the full list.
+    steps:
+      - highlight:
+          target:
+            text: Announcement
+            nth: 0
+          ms: 2000
+      - highlight:
+          target:
+            text: Year-End Sales Reporting Deadline
+          ms: 2000
+      - highlight:
+          target:
+            text: More
+          ms: 2000
+  - say: Quick Links lets you quickly access frequently used menus. Click a
+      registered menu to open it, click the star to remove it, or click Edit to
+      manage the list. Up to 20 menus can be registered.
+    steps:
+      - highlight:
+          target:
+            text: Quick Links
+            nth: 1
+          ms: 2000
+      - highlight:
+          target:
+            text: Edit
+          ms: 2000
+  - say: Board you've visited lists up to five recently visited menus. Click a menu
+      to open it, or click the star to add it to or remove it from Quick Links.
+    steps:
+      - scroll:
+          text: Board you've visited
+      - highlight:
+          target:
+            text: Board you've visited
+          ms: 2000
+      - highlight:
+          target:
+            role: link
+            name: General Board - 20
+          ms: 2000
+  - say: Bulletin Highlights collects up to 10 posts registered as important
+      notices, newest first, from boards you have permission to view. Click a
+      title to open the post.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin Highlights
+          ms: 2000
+      - highlight:
+          target:
+            text: Lease Rate Support – EV Models
+          ms: 2000
+  - say: The footer at the bottom of the page provides the Terms, Privacy Policy,
+      Cookie Policy, FAQ, and User Manual. Each one opens in a new tab.
+    steps:
+      - scroll:
+          role: button
+          name: Terms
+      - highlight:
+          target:
+            role: button
+            name: Terms
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Privacy Policy
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Cookie Policy
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: FAQ
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: User Manual
+          ms: 1500
+  - say: To use integrated search, enter a keyword in the search box and press Enter
+      or click the search icon.
+    steps:
+      - waitFor:
+          text: Bulletin Highlights
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+          text: Warranty
+      - pause: 1000
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          role: heading
+          name: Search Result for" Warranty "
+  - say: The results show matching posts with the keyword highlighted. Filter by
+      board, sort by Relevance or Most recent, and set the period, from Anytime
+      to a custom range. Click a post to open its detail.
+    steps:
+      - highlight:
+          target:
+            role: heading
+            name: Search Result for" Warranty "
+          ms: 1500
+      - click:
+          role: combobox
+          nth: 1
+      - waitFor:
+          role: combobox
+          name: listbox
+      - click:
+          role: combobox
+          name: ""
+          nth: 2
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: option
+          name: Most recent
+      - click:
+          role: combobox
+          name: ""
+          nth: 3
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: option
+          name: Anytime
+      - highlight:
+          target:
+            role: heading
+            name: "[Important] 2027 Model Year Warranty Coverage Changes"
+          ms: 2000

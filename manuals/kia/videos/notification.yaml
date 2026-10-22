@@ -1,0 +1,121 @@
+title: Notification & Notification Setting
+intro: This video shows how to check your notifications and choose which
+  notifications you receive.
+sections:
+  - 05-email-notification/00-intro.md
+maskPersonal: true
+scenes:
+  - say: The bell icon in the GNB shows a numbered badge whenever you have unread
+      notifications.
+    steps:
+      - waitFor:
+          text: Bulletin Highlights
+      - highlight:
+          target:
+            text: Notification
+          ms: 2500
+  - say: Click the bell to open the notification layer. The badge resets once the
+      layer is open.
+    steps:
+      - click:
+          role: button
+          name: ""
+          nth: 4
+      - waitFor:
+          text: Notification Setting
+      - pause: 2000
+  - say: Each card shows the post title and when it arrived, and the icon tells you
+      what kind of post it is. Click a card to jump straight to that post.
+    steps:
+      - highlight:
+          target:
+            text: EV9 Product Guide
+            nth: 0
+          ms: 2000
+      - highlight:
+          target:
+            text: 1 day ago
+            nth: 0
+          ms: 1500
+  - say: If a post is edited after it is sent, a new card with an Edited tag appears
+      in the list.
+    steps:
+      - click:
+          text: EV9 Product Guide
+          nth: 1
+      - waitFor:
+          role: heading
+          name: EV9 Product Guide
+      - highlight:
+          target:
+            text: Edited
+            nth: 3
+          ms: 2000
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Product Guide
+          ms: 2000
+      - pause: 3000
+      - highlight:
+          target:
+            role: button
+          ms: 1000
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - highlight:
+          target:
+            text: Notification
+          ms: 1500
+      - click:
+          role: button
+          nth: 4
+      - waitFor:
+          text: Notification Setting
+  - say: At the bottom of the notification layer, click Notification Setting to
+      choose what you want to be notified about.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Notification Setting
+          ms: 1500
+      - click:
+          role: button
+          name: Notification Setting
+      - waitFor:
+          text: Notification Type
+      - pause: 1500
+  - say: Choose All Posts to receive every post notification, or Important Posts
+      Only to receive just the important notices configured by an admin.
+    steps:
+      - highlight:
+          target:
+            text: All Posts
+          ms: 1500
+      - highlight:
+          target:
+            text: Important Posts Only
+          ms: 1500
+      - click:
+          label: Important Posts Only
+  - say: Save your change to apply it. Notifications generated outside the allowed
+      notification hours are delivered in a batch at the start of the next
+      business day.
+    steps:
+      - highlight:
+          target:
+            text: Notifications generated outside the allowed notification hours will be
+              delivered in a batch at the start of the next business day.
+          ms: 2500
+      - highlight:
+          target:
+            text: Save
+          ms: 1500
+      - click:
+          text: Cancel
+      - highlight:
+          target:
+            text: Notification
+          ms: 3000
