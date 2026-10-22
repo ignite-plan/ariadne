@@ -1,0 +1,199 @@
+title: Bulletin Board & Post Detail
+intro: This video shows how to find a post in a bulletin board, read the post
+  details, and view images and attachments.
+sections:
+  - 04-bulletin-board/00-intro.md
+  - 04-bulletin-board/01-post-list.md
+  - 04-bulletin-board/02-post-detail.md
+maskPersonal: true
+scenes:
+  - say: Click a menu in the top navigation bar to open its bulletin board. The menu
+      name and description appear at the top.
+    steps:
+      - waitFor:
+          text: Bulletin Highlights
+      - hover:
+          text: Bulletin news
+      - click:
+          text: Bulletin news
+      - waitFor:
+          text: Bulletin Menu
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin news
+          ms: 2000
+  - say: Use the search filters above the list to find a post. Choose a search field
+      such as Title or Bulletin Number, and set the date range. By default,
+      posts from the last year are shown.
+    steps:
+      - highlight:
+          target:
+            role: combobox
+            name: Title
+          ms: 1500
+      - click:
+          role: combobox
+          nth: 1
+      - click:
+          role: option
+      - highlight:
+          target:
+            text: Bulletin Type
+          ms: 1500
+      - click:
+          text: Select
+      - click:
+          role: option
+          name: All
+      - highlight:
+          target:
+            text: Bulletin Number
+          ms: 1500
+      - click:
+          role: combobox
+          nth: 3
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 0
+          ms: 2000
+  - say: The post list shows the post ID, title, and date. Important notices are
+      pinned at the top, and new posts have a New flag. You can also sort the
+      list, for example by the latest date.
+    steps:
+      - highlight:
+          target:
+            text: Total 11
+          ms: 2000
+      - click:
+          text: Date Latest
+      - click:
+          role: option
+          name: Date Latest
+      - highlight:
+          target:
+            text: Title
+            nth: 1
+          ms: 1000
+      - highlight:
+          target:
+            text: EV9 Product Guide
+          ms: 1000
+      - highlight:
+          target:
+            text: New
+            nth: 3
+          ms: 2000
+      - highlight:
+          target:
+            text: Date
+            nth: 2
+          ms: 1000
+      - hover:
+          role: button
+          name: catalog_morning.pdf
+      - pause: 1500
+      - highlight:
+          target:
+            text: Bulletin Number
+            nth: 1
+          ms: 1000
+  - say: The post detail shows the title, additional information, and the posting
+      date in American format. Click Copy Link to copy the post link for
+      sharing, and read the content as it was formatted in the editor.
+    steps:
+      - click:
+          text: EV9 Product Guide
+      - highlight:
+          target:
+            text: EV9 Product Guide
+          ms: 2000
+      - highlight:
+          target:
+            text: "Bulletin Number : 2026-10-1001"
+          ms: 2000
+      - highlight:
+          target:
+            text: Oct 21, 2026
+          ms: 2000
+      - hover:
+          role: button
+          name: Copy Link
+      - highlight:
+          target:
+            role: button
+            name: Copy Link
+          ms: 2000
+      - highlight:
+          target:
+            text: This guide cover
+          ms: 2000
+      - pause: 1000
+  - say: Images in the post open in the image gallery. You can download the image or
+      close the gallery from the top right, and move between images with the
+      thumbnails at the bottom.
+    steps:
+      - click:
+          role: img
+          name: paste-1792573411612.png
+      - waitFor:
+          role: dialog
+      - pause: 1000
+      - highlight:
+          target:
+            role: button
+            nth: 0
+            within:
+              role: dialog
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: paste-1792573463247.png
+            within:
+              role: dialog
+          ms: 2000
+      - click:
+          role: button
+          nth: 1
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Click an attachment to preview it. A watermark is added to every page of
+      the PDF, and you can zoom, change the view, download, or print the file.
+    steps:
+      - highlight:
+          target:
+            text: Attachment 2
+          ms: 2000
+      - click:
+          role: button
+          name: en_catalog_k5.pdf
+      - waitFor:
+          role: dialog
+      - pause: 5000
+      - click:
+          role: button
+          nth: 1
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Use Previous and Next to move between posts, or click View List to return
+      to the post list.
+    steps:
+      - waitFor:
+          role: button
+          name: View List
+      - scroll:
+          role: button
+          name: View List
+      - highlight:
+          target:
+            role: button
+            name: View List
+          ms: 2000

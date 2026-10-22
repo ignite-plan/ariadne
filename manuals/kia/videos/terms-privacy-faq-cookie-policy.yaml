@@ -7,7 +7,6 @@ maskPersonal: true
 scenes:
   - say: Click Terms in the footer to open the service terms in a new tab.
     steps:
-      - open: /
       - waitFor:
           text: Bulletin Highlights
       - scroll:

@@ -1,4 +1,4 @@
-title: Bulletin Board & Post Detail
+title: Bulletin Board & Post Detail- old ver.
 intro: This video shows how to find a post in a bulletin board, read the post
   details, and view images and attachments.
 sections:
@@ -10,7 +10,6 @@ scenes:
   - say: Click a menu in the top navigation bar to open its bulletin board. The menu
       name and description appear at the top.
     steps:
-      - open: /
       - waitFor:
           text: Bulletin Highlights
       - hover:
@@ -24,31 +23,30 @@ scenes:
             role: heading
             name: Bulletin news
           ms: 2000
-  - say: Use the search filters to find a post by Title, Keyword, or Post ID, by
-      Date, or by additional attributes such as Item. The list shows the total
-      number of posts, and you can sort by Date or Title; important notices are
-      pinned at the top, new posts have a New flag, and hovering over an
-      attachment name shows the full file name. Click a post title to open the
-      post detail, which shows the title, additional information, the posting
-      date in American format, Copy Link, and the content with its formatting.
+  - say: The post list shows the post ID, title, and date. Important notices are
+      pinned at the top, and new posts have a New flag. By default, posts from
+      the last year are shown.
     steps:
+      - highlight:
+          target:
+            role: combobox
+            name: Title
+          ms: 1500
+      - highlight:
+          target:
+            text: Bulletin Number
+          ms: 1500
       - click:
           role: combobox
-          name: Title
+          name: ""
+          nth: 0
       - waitFor:
           role: listbox
       - pause: 1500
       - click:
-          role: option
-          name: Title
-      - click:
-          role: textbox
-          name: date picker
+          role: combobox
+          name: ""
           nth: 0
-      - pause: 1500
-      - click:
-          role: heading
-          name: Bulletin news
       - click:
           role: button
           name: 열기
@@ -61,53 +59,14 @@ scenes:
           nth: 1
       - highlight:
           target:
-            text: Total 11
+            role: textbox
+            name: date picker
+            nth: 0
           ms: 2000
       - highlight:
           target:
-            role: columnheader
-            name: Post ID
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Title
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Date
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Attachment
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Bulletin Number
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Bulletin Type
-          ms: 1000
-      - highlight:
-          target:
-            role: columnheader
-            name: Item
-          ms: 1000
-      - click:
-          role: combobox
-          name: ""
-          nth: 4
-      - waitFor:
-          role: listbox
-      - pause: 1500
-      - click:
-          role: option
-          name: Date Latest
+            text: Total 11
+          ms: 2000
       - highlight:
           target:
             role: cell
@@ -118,66 +77,53 @@ scenes:
             role: cell
             name: Home and Public Charging Quick Reference New
           ms: 2000
+      - click:
+          role: combobox
+          name: ""
+          nth: 4
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: option
+          name: Date Latest
       - hover:
           role: button
           name: catalog_morning.pdf
       - pause: 1500
+  - say: The post detail shows the title, additional information, and the posting
+      date in American format. Click Copy Link to copy the post link for
+      sharing, and read the content as it was formatted in the editor.
+    steps:
+      - waitFor:
+          text: EV9 Product Guide
       - click:
           text: EV9 Product Guide
-      - waitFor:
-          role: heading
-          name: EV9 Product Guide
       - highlight:
           target:
-            role: heading
-            name: EV9 Product Guide
+            text: EV9 Product Guide
           ms: 2000
       - highlight:
           target:
-            text: "Bulletin Number : 2026-10-1001"
+            text: 2026-10-1001
           ms: 2000
       - highlight:
           target:
             text: Oct 21, 2026
           ms: 2000
+      - hover:
+          role: button
+          name: Copy Link
       - highlight:
           target:
             role: button
-            name: ""
-            nth: 8
+            name: Copy Link
           ms: 2000
-      - scroll:
-          role: img
-          name: paste-1792573411612.png
-      - pause: 1500
-      - scroll:
-          role: img
-          name: paste-1792573463247.png
-      - pause: 1500
-      - scroll:
-          role: img
-          name: paste-1792573493602.png
-      - pause: 1500
-      - scroll:
-          role: heading
-          name: EV9 Product Guide
+      - highlight:
+          target:
+            text: See the attached PDF for the full guide.
+          ms: 2000
       - pause: 1000
-  - say: Click a post title to open the post detail. The header shows the title,
-      additional information, and the posting date.
-    steps:
-      - open: /board/1/post/20
-      - waitFor:
-          role: heading
-          name: EV9 Product Guide
-      - highlight:
-          target:
-            role: heading
-            name: EV9 Product Guide
-          ms: 2000
-      - highlight:
-          target:
-            text: "Bulletin Number : 2026-10-1001"
-          ms: 2000
   - say: Images in the post open in the image gallery. You can download the image or
       close the gallery from the top right, and move between images with the
       thumbnails at the bottom.
@@ -217,10 +163,10 @@ scenes:
           ms: 2000
       - click:
           role: button
-          name: catalog_morning.pdf (4.2 MB)
+          name: en_catalog_k5.pdf
       - waitFor:
           role: dialog
-      - pause: 3000
+      - pause: 6000
       - click:
           role: button
           nth: 1
@@ -230,7 +176,6 @@ scenes:
   - say: Use Previous and Next to move between posts, or click View List to return
       to the post list.
     steps:
-      - open: /board/1/post/20
       - waitFor:
           role: button
           name: View List
