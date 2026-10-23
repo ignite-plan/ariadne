@@ -753,7 +753,13 @@ function VideoPlayer({ info }: { info: VideoInfo }) {
   const { output } = info
   return (
     <div className="video-player">
-      <video key={output.updatedAt} controls src={assetUrl(output.mp4, output.updatedAt)} crossOrigin="anonymous">
+      <video
+        key={output.updatedAt}
+        controls
+        src={assetUrl(output.mp4, output.updatedAt)}
+        poster={output.poster ? assetUrl(output.poster, output.updatedAt) : undefined}
+        crossOrigin="anonymous"
+      >
         <track kind="subtitles" srcLang="en" label="English" src={assetUrl(output.vtt, output.updatedAt)} />
       </video>
       <div className="video-meta">

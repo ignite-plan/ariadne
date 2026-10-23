@@ -110,7 +110,8 @@ try {
         encoding: 'utf8',
       }),
     ) as { streams: { codec_type: string }[] }
-    assert.deepEqual(probe.streams.map((s) => s.codec_type).sort(), ['audio', 'subtitle', 'video'])
+    // video 2개: 녹화 + 썸네일(cover)
+    assert.deepEqual(probe.streams.map((s) => s.codec_type).sort(), ['audio', 'subtitle', 'video', 'video'])
     assert.equal(result.cues.length, 3)
     const list = await call((api) => api.video.list())
     assert.equal(list.find((v) => v.id === 'e2e')?.output?.mp4, 'dist/videos/e2e.mp4')

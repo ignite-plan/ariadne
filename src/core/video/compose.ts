@@ -1,4 +1,4 @@
-// 녹화 영상 + 내레이션 clip + 자막 → 최종 mp4 (h264 + aac + mov_text)
+// 녹화 영상 + 내레이션 clip + 자막 + 썸네일 → 최종 mp4 (h264 + aac + mov_text + cover jpg)
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 
@@ -8,16 +8,19 @@ export interface ComposeInput {
   audio: { file: string; at: number }[]
   // 자막이 없으면 생략
   srt?: string
+  // mp4 cover (attached_pic). Finder·플레이어 썸네일
+  poster?: string
   durationMs: number
   out: string
   // 기본 PATH의 ffmpeg. 앱은 번들된 ffmpeg-static 경로를 넘긴다
   ffmpegPath?: string
 }
 
-export function composeArgs({ video, audio, srt, durationMs, out }: ComposeInput) {
+export function composeArgs({ video, audio, srt, poster, durationMs, out }: ComposeInput) {
   const args = ['-hide_banner', '-loglevel', 'error', '-y', '-i', video]
   for (const clip of audio) args.push('-i', clip.file)
   if (srt) args.push('-i', srt)
+  if (poster) args.push('-i', poster)
   const maps = ['-map', '0:v']
   if (audio.length) {
     const delayed = audio.map(
@@ -29,6 +32,8 @@ export function composeArgs({ video, audio, srt, durationMs, out }: ComposeInput
     maps.push('-map', '[aout]', '-c:a', 'aac', '-b:a', '160k')
   }
   if (srt) maps.push('-map', `${audio.length + 1}:s`, '-c:s', 'mov_text', '-metadata:s:s:0', 'language=eng')
+  // jpg는 다시 인코딩하지 않고 두 번째 video stream(cover)으로 넣는다
+  if (poster) maps.push('-map', `${audio.length + (srt ? 2 : 1)}:v`, '-disposition:v:1', 'attached_pic')
   args.push(...maps, '-c:v', 'copy')
   args.push('-t', (durationMs / 1000).toFixed(3), '-movflags', '+faststart', out)
   return args

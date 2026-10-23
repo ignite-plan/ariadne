@@ -6,6 +6,8 @@ sections:
   - 06-job-management/02-job-creation.md
   - 06-job-management/03-view-job.md
   - 06-job-management/04-job-editing.md
+mutates: true
+maskSystem: true
 scenes:
   - say: Job Management lists every job. A job decides which menus a dealer employee
       can use.

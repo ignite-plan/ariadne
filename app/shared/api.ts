@@ -355,7 +355,8 @@ export interface VideoInfo {
   mutates: boolean
   scenes: number
   // 만든 영상이 있으면
-  output?: { mp4: string; vtt: string; updatedAt: number; size: number }
+  // poster: 썸네일 (예전에 만든 영상은 없다)
+  output?: { mp4: string; vtt: string; poster?: string; updatedAt: number; size: number }
   // YAML 형식이 틀렸으면 그 내용
   error?: string
 }
