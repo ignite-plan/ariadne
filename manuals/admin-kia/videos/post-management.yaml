@@ -3,15 +3,13 @@ intro: This video shows how to find boards, manage posts, create a new post, and
   use templates in Post Management.
 sections:
   - 10-post-management/00-intro.md
+mutates: true
 maskPersonal: true
 maskSystem: true
 scenes:
   - say: Post Management is where you create and manage posts for each bulletin
       board.
     steps:
-      - open: /dealer/company
-      - waitFor:
-          text: Dealer Management
       - click:
           role: link
           name: Post Management
@@ -277,6 +275,7 @@ scenes:
       - highlight:
           target:
             text: Change History
+            nth: 1
           ms: 1500
   - say: Admins can view and leave comments here.
     steps:
@@ -492,3 +491,11 @@ scenes:
       - click:
           role: button
           name: Cancel
+  - say: That's it for this guide. You're now ready to use this feature on your own.
+      Thank you for watching.
+    steps:
+      - highlight:
+          target:
+            text: Post Management
+            nth: 1
+          ms: 1500
