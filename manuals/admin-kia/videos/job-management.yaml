@@ -166,7 +166,7 @@ scenes:
       - waitFor:
           text: View Job
           exact: true
-  - say: Some jobs, such as Super Admin and Dealer Principal, are locked and cannot
+  - say: Some jobs, such as Dealer Admin and Dealer Principal, are locked and cannot
       be edited.
     steps:
       - open: /permission
@@ -177,19 +177,19 @@ scenes:
           target:
             role: textbox
             name: Text Field
-          text: Super Admin
+          text: Dealer Admin
       - click:
           role: button
           name: Search
           exact: true
       - waitFor:
           role: row
-          name: Super Admin
+          name: Dealer Admin
       - click:
           role: button
           within:
             role: row
-            name: Super Admin
+            name: Dealer Admin
       - waitFor:
           text: View Job
           exact: true
@@ -335,7 +335,8 @@ scenes:
             name: Import Job
           ms: 3000
   - say: Click Create to create the job. A unique job code is assigned. Click Cancel
-      to leave without saving.
+      to leave without saving. That's it for this guide. You're now ready to use
+      this feature on your own. Thank you for watching.
     steps:
       - highlight:
           target:
