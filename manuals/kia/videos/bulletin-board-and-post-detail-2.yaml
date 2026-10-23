@@ -5,8 +5,8 @@ sections:
   - 04-bulletin-board/00-intro.md
   - 04-bulletin-board/01-post-list.md
   - 04-bulletin-board/02-post-detail.md
+mutates: true
 maskPersonal: true
-maskSystem: true
 scenes:
   - say: Click a menu in the top navigation bar to open its bulletin board. The menu
       name and description appear at the top.
@@ -24,9 +24,13 @@ scenes:
             role: heading
             name: Bulletin news
           ms: 2000
-  - say: Use the search filters above the list to find a post. Choose a search field
-      such as Title or Bulletin Number, and set the date range. By default,
-      posts from the last year are shown.
+  - say: >-
+      Use the search filters above the list to find a post. 
+
+      Choose a search field such as Title or Additional attribute like a
+      Bulletin Number, and set the date range. 
+
+      By default, posts from the last year are shown.
     steps:
       - highlight:
           target:
@@ -63,9 +67,12 @@ scenes:
             name: date picker
             nth: 0
           ms: 2000
-  - say: The post list shows the post ID, title, and date. Important notices are
-      pinned at the top, and new posts have a New flag. You can also sort the
-      list, for example by the latest date.
+  - say: >-
+      The total post count shows the list. You can also sort the list, for
+      example by the latest date. 
+
+      The post list shows the post ID, title, and date. Important notices are
+      pinned at the top, and new posts have a New flag.
     steps:
       - highlight:
           target:
@@ -198,3 +205,28 @@ scenes:
             role: button
             name: View List
           ms: 2000
+  - say: >-
+      That is how to find a post on the bulletin board and read its details,
+      images, and attachments. Click View List to return to the post list.
+
+      Thank you for watching.
+    steps:
+      - scroll:
+          role: heading
+          name: EV9 Product Guide
+      - highlight:
+          target:
+            role: heading
+            name: EV9 Product Guide
+          ms: 2000
+      - click:
+          role: button
+          name: View List
+      - waitFor:
+          text: Bulletin Menu
+      - highlight:
+          target:
+            role: heading
+            name: Bulletin news
+          ms: 2000
+      - pause: 2000
