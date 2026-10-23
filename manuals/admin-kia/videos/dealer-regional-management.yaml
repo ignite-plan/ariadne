@@ -6,6 +6,7 @@ sections:
   - 03-zone-district-management-dealer-regional-management/02-zone-district-creation-modification-and-deletion.md
   - 03-zone-district-management-dealer-regional-management/03-excel-upload-bulk-update.md
 mutates: true
+maskPersonal: true
 maskSystem: true
 scenes:
   - say: In Zone/District Management, you can see which zone and district each
@@ -95,13 +96,6 @@ scenes:
   - say: Unassigned shows dealers that have no zone, or that belong to a zone but
       have no district.
     steps:
-      - click:
-          text: Unassigned
-          nth: 0
-          exact: true
-          within:
-            role: tree
-            nth: 1
       - pause: 2000
   - say: Click Detail to open the dealer's details.
     steps:
@@ -379,6 +373,8 @@ scenes:
       - pause: 1000
   - say: Click Update Log to see past uploads. A log is saved whenever processing
       starts, and you can download the uploaded file and the error report again.
+      That's it for this guide. You're now ready to use this feature on your
+      own. Thank you for watching.
     steps:
       - click:
           role: button
