@@ -463,7 +463,7 @@ scenes:
           exact: true
       - pause: 1500
   - say: Use the Bulletin Post Report to check read rates, follow up with unread
-      users, and monitor important posts.
+      users, and monitor important posts. Thank you for watching.
     steps:
       - highlight:
           target:
