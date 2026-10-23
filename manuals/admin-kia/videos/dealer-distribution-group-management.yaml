@@ -7,6 +7,7 @@ sections:
   - 04-dealer-distribution-group-management/03-dealer-distribution-group-detail-view.md
   - 04-dealer-distribution-group-management/04-dealer-distribution-group-editing.md
 mutates: true
+maskSystem: true
 scenes:
   - say: In Dealer Distribution Group Management, you can create, edit, delete, and
       view groups of dealers.
@@ -246,7 +247,8 @@ scenes:
           text: View Dealer Distribution Group
       - pause: 1500
   - say: To delete the group, click Delete. All dealers in the group become
-      ungrouped.
+      ungrouped. That's it for this guide. You're now ready to use this feature
+      on your own. Thank you for watching.
     steps:
       - click:
           role: button

@@ -1,0 +1,234 @@
+title: Holding Company Management
+intro: This video shows how to view the holding company list, create a holding
+  company, and view and edit its details.
+sections:
+  - 05-holding-company-management/01-holding-company-list-view.md
+  - 05-holding-company-management/02-holding-company-creation.md
+  - 04-dealer-distribution-group-management/03-dealer-distribution-group-detail-view.md
+  - 04-dealer-distribution-group-management/04-dealer-distribution-group-editing.md
+mutates: true
+maskPersonal: true
+maskSystem: true
+scenes:
+  - say: Holding Company Management lets you create, edit, delete, and view holding
+      companies.
+    steps:
+      - open: /holding
+      - waitFor:
+          role: columnheader
+          name: Holding Company Name
+      - highlight:
+          target:
+            role: heading
+            name: Holding Company Management
+          ms: 2000
+  - say: Each row shows the holding company name, the company representative, the
+      number of dealers, and who updated it last, and when.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Holding Company Name
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Company Representative
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealers
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated by
+          ms: 1500
+  - say: To register a new holding company, click Create New.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Create New
+          ms: 1200
+      - click:
+          role: button
+          name: Create New
+      - waitFor:
+          text: Create Holding Company
+      - pause: 1000
+  - say: The company name is required, up to 50 characters, and must be unique. The
+      name of the company representative is optional, up to 20 characters.
+    steps:
+      - type:
+          target:
+            placeholder: Name (max 50 characters)
+          text: Video Test Holding
+      - type:
+          target:
+            placeholder: Name (max 20 characters)
+          text: Video Tester
+      - pause: 1000
+  - say: In the Affiliate Dealer List, the Available Dealer List shows dealers that
+      are not assigned to any holding company. A dealer can belong to only one
+      holding company.
+    steps:
+      - highlight:
+          target:
+            text: Available Dealer List
+            exact: true
+          ms: 2000
+  - say: Each dealer shows its name, number, and status. You can search by dealer
+      name or number.
+    steps:
+      - type:
+          target:
+            placeholder: Type dealer name or dealer number
+            nth: 0
+          text: DLR_KCA
+      - pause: 1500
+  - say: Check a dealer to add it to Selected Dealers on the right. Uncheck it, or
+      click the x button, to remove it.
+    steps:
+      - click:
+          role: checkbox
+          name: DLR_KCA_01_EN (4) | Active
+      - pause: 1000
+      - highlight:
+          target:
+            text: Selected Dealers
+            exact: true
+          ms: 2000
+      - click:
+          role: checkbox
+          name: DLR_KCA_01_EN (4) | Active
+      - pause: 1000
+  - say: Click Create to save the holding company, or Cancel to go back to the list.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Create
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Cancel
+          ms: 1500
+      - open: /holding
+      - waitFor:
+          role: columnheader
+          name: Holding Company Name
+  - say: To see a holding company's details, click the view button in its row.
+    steps:
+      - click:
+          role: button
+          name: view
+          within:
+            role: row
+            name: HOLDING_COMPANY_02
+      - waitFor:
+          text: View Holding Company
+      - highlight:
+          target:
+            text: Holding Company Information
+            exact: true
+          ms: 2000
+  - say: The details show the company name, the company representative, the number
+      of dealers, and how many dealers there are in each status.
+    steps:
+      - highlight:
+          target:
+            text: Dealer Status
+            exact: true
+          ms: 2500
+  - say: Affiliate Dealer List shows the dealers in the holding company, with their
+      number, status, and the date they were affiliated. Click view to open a
+      dealer's details.
+    steps:
+      - scroll:
+          text: Affiliate Dealer List
+          exact: true
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealer No.
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated date
+          ms: 1500
+  - say: Use Delete to delete the holding company, Edit to change it, and View List
+      to go back to the list. When a holding company is deleted, its dealers
+      become unassigned.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: View List
+          ms: 1200
+      - highlight:
+          target:
+            role: button
+            name: Delete
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Edit
+            exact: true
+          ms: 1200
+  - say: Click Edit to change the holding company.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Edit Holding Company
+      - pause: 1000
+  - say: The company name cannot be edited. You can change the name of the company
+      representative.
+    steps:
+      - highlight:
+          target:
+            placeholder: Name (max 50 characters)
+          ms: 1500
+      - type:
+          target:
+            placeholder: Name (max 20 characters)
+          text: Video Tester
+      - pause: 1000
+  - say: Dealers already in the holding company are checked. Check or uncheck
+      dealers to add or remove them.
+    steps:
+      - highlight:
+          target:
+            text: Selected Dealers
+            exact: true
+          ms: 2000
+      - click:
+          role: checkbox
+          name: DLR_KCA_01_EN (4) | Active
+      - pause: 1500
+  - say: When you change the dealers and click Save, a pop-up lists the dealers
+      added and removed. Click Confirm to apply the changes, or Cancel to go
+      back to editing. Click Cancel on this screen to discard your changes and
+      go back. That's it for this guide. Thank you for watching.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Save
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: Cancel
+          ms: 1500
+      - pause: 1000
