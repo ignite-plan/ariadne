@@ -1,0 +1,666 @@
+title: Dealer User Change History
+intro: This video shows how to search the change history of dealer employees,
+  and how to read each record in Dealer User Change History.
+sections:
+  - 12-dealer-user-change-history/00-intro.md
+mutates: true
+maskSystem: true
+scenes:
+  - say: Dealer User Change History is a central audit log. It tracks every change
+      to dealer employee information and permissions.
+    steps:
+      - open: /dealer/history
+      - waitFor:
+          text: Please set the search conditions to proceed.
+      - highlight:
+          target:
+            role: heading
+            name: Dealer User Change History
+          ms: 2500
+  - say: Records are kept for a set period and then deleted permanently. Changes to
+      user information, such as creating or updating an employee, are kept for
+      one year. Permission-related changes, including user and permission status
+      changes, are kept for five years.
+    steps:
+      - pause: 4000
+  - say: When the screen opens, only the search area is shown, with this guide
+      message. Results appear after you search.
+    steps:
+      - highlight:
+          target:
+            text: Please set the search conditions to proceed.
+          ms: 3000
+  - say: You can combine several search conditions. Only records that match all of
+      them are shown.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Search
+            exact: true
+          ms: 2000
+  - say: Updated By ID finds changes by the person who made them. Front Office
+      changes show the user's ID, and Back Office changes show the HMG SSO ID.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 0
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 3000
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Updated By Name finds changes by the name of the person who made them.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 1
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Search finds the employee whose information changed. Choose Name, ID, or
+      User No., then enter a keyword. Partial matches are found.
+    steps:
+      - click:
+          role: combobox
+          nth: 4
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          role: option
+          name: Name
+          exact: true
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 2
+            exact: true
+          ms: 1500
+  - say: Dealer finds changes for employees of the selected dealers. You can select
+      more than one.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 3
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Select a zone first. Then District lists the districts in that zone.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 4
+          exact: true
+      - waitFor:
+          role: listbox
+      - click:
+          role: option
+          name: checkbox TEST
+          exact: true
+      - click:
+          text: Please set the search conditions to proceed.
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 5
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Updated Information finds changes to a specific field, such as menu
+      permissions.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 6
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Change Source finds changes by the screen where they were made, Employee
+      Management, Menu Management, or Job Management.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 7
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 3000
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Change Type finds changes by type, Creation, Modification, Deletion,
+      Activation, or Deactivation. You can select more than one.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 8
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 3000
+      - click:
+          text: Please set the search conditions to proceed.
+  - say: Updated Date is in Eastern Time. By default, it is set to the previous day.
+    steps:
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 1
+          ms: 1500
+  - say: The period can be up to six months. If you choose a longer period, the end
+      date is moved back to six months after the start date.
+    steps:
+      - type:
+          target:
+            role: textbox
+            name: date picker
+            nth: 0
+          text: 01-01-2026
+      - click:
+          text: Please set the search conditions to proceed.
+      - type:
+          target:
+            role: textbox
+            name: date picker
+            nth: 1
+          text: 10-23-2026
+      - click:
+          text: Please set the search conditions to proceed.
+      - pause: 800
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 1
+          ms: 2500
+  - say: Click Reset to clear all search conditions.
+    steps:
+      - click:
+          role: button
+          name: Reset
+          exact: true
+      - pause: 1500
+  - say: Set the period and click Search. Collapse the menu on the left to see more
+      of the table.
+    steps:
+      - type:
+          target:
+            role: textbox
+            name: date picker
+            nth: 0
+          text: 04-24-2026
+      - click:
+          text: Please set the search conditions to proceed.
+      - type:
+          target:
+            role: textbox
+            name: date picker
+            nth: 1
+          text: 10-23-2026
+      - click:
+          text: Please set the search conditions to proceed.
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          role: columnheader
+          name: Change Source
+      - click:
+          role: button
+          name: Collapse menu
+      - pause: 1500
+  - say: Above the table are the total number of records, the sort order, the number
+      of records per page, and the pages. By default, the latest changes come
+      first.
+    steps:
+      - highlight:
+          target:
+            text: Total
+          ms: 1500
+      - highlight:
+          target:
+            text: Updated date Latest
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: 20 per page
+            exact: true
+          ms: 1500
+  - say: Updated By shows the ID and name of the person who made the change.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated By(ID)
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated By(Name)
+          ms: 1500
+  - say: The next columns show the employee whose information changed, with the
+      dealer, zone, district, user number, ID, and name.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealer
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: User No.
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Name
+            exact: true
+          ms: 1200
+  - say: Then where the change was made, which field changed, and the type of
+      change.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Change Source
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated Information
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Change Type
+          ms: 1200
+  - say: Before Change and After Change show the values. A hyphen means there was no
+      value. Updated Date shows when the change was made, in Eastern Time.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Before Change
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: After Change
+          ms: 1500
+      - scroll:
+          role: columnheader
+          name: Updated Date
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated Date
+          ms: 1500
+      - scroll:
+          role: columnheader
+          name: Updated By(ID)
+  - say: Let's look up one employee. Choose ID as the search type, enter the ID, and
+      select Employee Management as the change source.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            nth: 3
+          option: ID
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+            nth: 2
+            exact: true
+          text: mokim3
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 7
+          exact: true
+      - click:
+          role: option
+          name: checkbox Employee Management
+          exact: true
+      - click:
+          text: Please set the search conditions to proceed.
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          role: link
+          name: Super Admin
+      - pause: 1000
+  - say: This employee was created in Employee Management. Each changed field gets
+      its own row, so creating one employee adds a row for the first name, last
+      name, phone, language, status, job title, and so on.
+    steps:
+      - highlight:
+          target:
+            role: table
+            nth: 1
+          ms: 4000
+  - say: For a new employee, Before Change is a hyphen, and After Change shows the
+      value that was entered.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Before Change
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: After Change
+          ms: 1500
+  - say: Job names are shown as links. Click one to open the job's details in Job
+      Management in a new tab. Without permission to view it, a no permission
+      message is shown.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: Super Admin
+          ms: 1500
+      - click:
+          role: link
+          name: Super Admin
+      - open: /permission/detail/6
+      - waitFor:
+          text: View Job
+          exact: true
+      - highlight:
+          target:
+            text: Job Information
+            exact: true
+          ms: 2500
+  - say: Changes are recorded as soon as they are saved. For example, deactivate the
+      Regional Manager job title in Job Management.
+    steps:
+      - open: /permission/detail/139
+      - waitFor:
+          text: View Job
+          exact: true
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          role: radio
+          name: Inactive
+      - click:
+          role: radio
+          name: Inactive
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: View Job
+          exact: true
+      - pause: 1500
+  - say: Back in the change history, search for an employee with this job title. The
+      new Deactivation record from Job Management is at the top. A record is
+      added for every employee with the job.
+    steps:
+      - open: /dealer/history?dateTo=12-31-2099&searchType=PARTNER_ID&search=KCA39577&sources=JOB_MANAGEMENT
+      - waitFor:
+          role: row
+          name: Deactivation
+          nth: 0
+      - highlight:
+          target:
+            role: row
+            name: Deactivation
+            nth: 0
+          ms: 3500
+  - say: Now activate the job title again.
+    steps:
+      - open: /permission/detail/139
+      - waitFor:
+          text: View Job
+          exact: true
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          role: radio
+          name: Active
+          exact: true
+      - click:
+          role: radio
+          name: Active
+          exact: true
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: View Job
+          exact: true
+      - pause: 1500
+  - say: The Activation record is added on top. When a job is activated or
+      deactivated, the change type is Activation or Deactivation.
+    steps:
+      - open: /dealer/history?dateTo=12-31-2099&searchType=PARTNER_ID&search=KCA39577&sources=JOB_MANAGEMENT
+      - waitFor:
+          role: row
+          name: Activation
+          nth: 0
+      - highlight:
+          target:
+            role: row
+            name: Activation
+            nth: 0
+          ms: 3500
+  - say: Permission changes are recorded too. In Menu Management, give the Sales
+      Manager job title access to the Dealer Bulletins menu.
+    steps:
+      - open: /menu?menuId=6921&tab=1
+      - waitFor:
+          role: row
+          name: ignite
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Job Title Permission
+      - type:
+          target:
+            placeholder: Please search for a job title.
+          text: Sales Manager
+      - pause: 1000
+      - click:
+          role: checkbox
+          nth: 4
+          within:
+            role: dialog
+      - click:
+          role: checkbox
+          nth: 5
+          within:
+            role: dialog
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - waitFor:
+          text: Would you like to save these permissions?
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+      - waitFor:
+          role: row
+          name: Sales Manager
+      - pause: 1000
+  - say: Search for an employee with this job title. Each menu permission is shown
+      as the permission name and the menu name, such as Access-Dealer Bulletins.
+      An added permission appears in After Change.
+    steps:
+      - open: /dealer/history?dateTo=12-31-2099&searchType=PARTNER_ID&search=KCA24732
+      - waitFor:
+          role: row
+          name: "- Access-Dealer Bulletins"
+          nth: 0
+      - highlight:
+          target:
+            role: row
+            name: "- Access-Dealer Bulletins"
+            nth: 0
+          ms: 3500
+  - say: This employee belongs to two dealers, so one record is added for each
+      dealer.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealer
+            exact: true
+          ms: 3000
+  - say: Now remove the permission again.
+    steps:
+      - open: /menu?menuId=6921&tab=1
+      - waitFor:
+          role: row
+          name: Sales Manager
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Job Title Permission
+      - type:
+          target:
+            placeholder: Please search for a job title.
+          text: Sales Manager
+      - pause: 1000
+      - click:
+          role: checkbox
+          nth: 4
+          within:
+            role: dialog
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - waitFor:
+          text: Would you like to save these permissions?
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+      - pause: 2000
+  - say: A removed permission is also a Modification. The permission appears in
+      Before Change, and After Change is a hyphen.
+    steps:
+      - open: /dealer/history?dateTo=12-31-2099&searchType=PARTNER_ID&search=KCA24732
+      - waitFor:
+          role: row
+          name: Access-Dealer Bulletins -
+          nth: 0
+      - highlight:
+          target:
+            role: row
+            name: Access-Dealer Bulletins -
+            nth: 0
+          ms: 3500
+  - say: Change the sort order to see the oldest changes first.
+    steps:
+      - choose:
+          target:
+            text: Updated date Latest
+            exact: true
+          option: Updated date Oldest
+      - pause: 2000
+  - say: Choose how many records to show per page, and use the page numbers to move
+      between pages.
+    steps:
+      - choose:
+          target:
+            text: 20 per page
+            exact: true
+          option: 50 per page
+      - pause: 2000
+  - say: Click Reset to clear the conditions and start a new search. Use Dealer User
+      Change History whenever you need to check who changed an employee's
+      information or permissions, and when.
+    steps:
+      - scroll:
+          role: heading
+          name: Dealer User Change History
+      - click:
+          role: button
+          name: Reset
+          exact: true
+      - click:
+          role: button
+          name: Expand menu
+      - highlight:
+          target:
+            role: heading
+            name: Dealer User Change History
+          ms: 2500

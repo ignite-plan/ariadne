@@ -1,0 +1,856 @@
+title: Dealer Employee Troubleshooting
+intro: This video shows how to find out why a dealer employee cannot log in, or
+  cannot see a menu or a post in Kia Dealers, using Dealer Employee
+  Troubleshooting.
+sections:
+  - 13-dealer-employee-troubleshooting/00-intro.md
+mutates: true
+maskSystem: true
+scenes:
+  - say: Dealer Employee Troubleshooting is a Back Office tool for head office
+      operators. It helps you find out why a dealer employee cannot log in, or
+      cannot see a specific menu or post on the Front Office.
+    steps:
+      - open: /dealer/trouble-shooting
+      - waitFor:
+          placeholder: Please enter ID.
+      - highlight:
+          target:
+            role: heading
+            name: Dealer Employee Troubleshooting
+          ms: 2500
+  - say: The results are based on the current data in real time. From each result,
+      you can open the related management screen and fix the setting yourself,
+      without IT support.
+    steps:
+      - pause: 3000
+  - say: First, choose which dealer and which user to check. Until a user is
+      specified, only the search area is shown, with this guide message.
+    steps:
+      - highlight:
+          target:
+            text: Please select a dealer and a user to check the dealer user status.
+          ms: 3000
+  - say: Both Dealer and ID are required. The Search button becomes active only when
+      both are entered.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Search
+            exact: true
+          ms: 2500
+  - say: Type in the Dealer field to search. Each dealer is shown with its dealer
+      number and name. Select the dealer the user belongs to.
+    steps:
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 01
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2000
+      - click:
+          role: option
+          name: 2 | kia test 01
+          exact: true
+  - say: Then enter the user's ID and click Search. If the ID does not belong to the
+      selected dealer, this message appears and no diagnosis is run.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: ZZZ99999
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: No search result. Please enter the exact ID.
+      - highlight:
+          target:
+            text: No search result. Please enter the exact ID.
+          ms: 2500
+  - say: Enter the correct ID and search again.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA14740
+      - click:
+          role: button
+          name: Search
+          nth: 0
+          exact: true
+      - waitFor:
+          text: Dealer User Info
+          exact: true
+      - pause: 1000
+  - say: Dealer User Info shows the user's login-related status. Checked Date shows
+      when the status was retrieved from the server.
+    steps:
+      - highlight:
+          target:
+            text: Dealer User Info
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Checked Date
+            exact: true
+          ms: 2000
+  - say: ID is the user's login ID. User No. is the dealer employee number, and it
+      links to the user's details in Dealer Employee Management.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: "71"
+            exact: true
+          ms: 2500
+  - say: Dealer Info shows the dealer's name and status. The status is Active,
+      Inactive, Under Termination, or Terminated. The name links to the dealer's
+      details in Dealer Management.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: kia test 01
+            exact: true
+          ms: 3000
+  - say: Job Title shows the job assigned to the user and whether it is Active or
+      Inactive. It links to the job's details in Job Management.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: ignite
+            exact: true
+          ms: 2500
+  - say: Each link opens the related detail screen in a new tab. For example, User
+      No. opens the user's details in Dealer Employee Management.
+    steps:
+      - click:
+          role: link
+          name: "71"
+          exact: true
+      - open: /dealer/employee/detail/71
+      - waitFor:
+          text: View Dealer Employee
+      - highlight:
+          target:
+            text: Account Information
+            exact: true
+          ms: 3000
+  - say: Back in Troubleshooting, search for the user again to continue.
+    steps:
+      - open: /dealer/trouble-shooting
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 01
+      - click:
+          role: option
+          name: 2 | kia test 01
+          exact: true
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA14740
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: Dealer User Info
+          exact: true
+      - pause: 1000
+  - say: A green tag means the status allows login, and a gray tag means it does
+      not. The user can log in only when the user is Active, the dealer is
+      Active or Under Termination, and the job title is Active.
+    steps:
+      - highlight:
+          target:
+            text: Active
+            nth: 0
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Active
+            nth: 1
+            exact: true
+          ms: 2000
+  - say: If the user is Inactive, the dealer is Inactive or Terminated, or the job
+      title is Inactive, the user cannot log in. In that case, Content Status is
+      disabled and asks you to check the user's access status first.
+    steps:
+      - highlight:
+          target:
+            text: Content Status
+            exact: true
+          ms: 3500
+  - say: This user can log in, so Content Status is available. Here you can check
+      whether the user can see a specific menu or post.
+    steps:
+      - highlight:
+          target:
+            text: Please search by menu or Post ID to diagnose the content status.
+          ms: 3000
+  - say: Choose Menu or Post as the type. Menu is selected by default.
+    steps:
+      - highlight:
+          target:
+            role: radiogroup
+          ms: 2000
+  - say: Click the Menu field to see every menu, newest first. Board menus show the
+      board ID in parentheses. General and outlink menus show only the name.
+    steps:
+      - click:
+          role: textbox
+          name: Text Field
+          nth: 2
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 3500
+  - say: Type to search, select the menu, and click Search.
+    steps:
+      - type:
+          target:
+            placeholder: Select
+            nth: 1
+            exact: true
+          text: EV Guides
+      - click:
+          role: option
+          name: EV Guides (7)
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Menu Permission
+      - pause: 1000
+  - say: Diagnostic Result shows each check the user must pass to see the menu, in
+      order. Each step shows the check item, the result, and a Go to Setting
+      button.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Step
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Check Item
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Result
+          ms: 1500
+  - say: The number of steps depends on the menu depth. For a submenu, the display
+      status of each parent menu is checked first, one row per level.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Parent Menu Display Status-1depth
+          ms: 1500
+      - highlight:
+          target:
+            role: row
+            name: Parent Menu Display Status-2depth
+          ms: 1500
+  - say: Then the menu's own display status, and the menu permission given to the
+      user's job title. All steps succeeded, so this user can see the menu.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Display Status Success
+          ms: 1500
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Success
+          ms: 2000
+  - say: The Checked Date shows when this diagnosis was run.
+    steps:
+      - highlight:
+          target:
+            text: "Checked Date:"
+          ms: 2000
+  - say: Go to Setting opens the related screen in a new tab. Display status steps
+      open the menu in Menu Management, and the permission step opens its access
+      permission tab. The button appears only if you have permission to read
+      that screen.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Setting
+            within:
+              role: row
+              name: Menu Permission
+          ms: 3500
+  - say: Now let's check a menu this user cannot see.
+    steps:
+      - type:
+          target:
+            placeholder: Select
+            nth: 1
+            exact: true
+          text: Kia University
+      - click:
+          role: option
+          name: Kia University
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Menu Permission Fail
+      - pause: 1000
+  - say: The menu and its parent menus are displayed, but the Menu Permission step
+      failed. The user's job title has no access permission for this menu.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Fail
+          ms: 3500
+  - say: Go to Setting opens the menu's access permission tab in Menu Management. If
+      the menu has no permissions defined yet, as here, you are asked to add
+      them in Menu Details first. We will fix a failed permission later in this
+      video.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Setting
+            within:
+              role: row
+              name: Menu Permission Fail
+          ms: 3500
+  - say: Click Reset to clear the search conditions and the result.
+    steps:
+      - click:
+          role: button
+          name: Reset
+          nth: 1
+      - pause: 1500
+  - say: To check a post, select Post and enter the post ID.
+    steps:
+      - click:
+          role: radio
+          name: Post
+      - waitFor:
+          placeholder: Please enter the Post ID.
+      - type:
+          target:
+            placeholder: Please enter the Post ID.
+          text: "20"
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Post Permission
+      - pause: 1000
+  - say: For a post, the menu checks come first, followed by the mapping between the
+      menu and the post's bulletin board.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Display Status
+          ms: 1500
+      - highlight:
+          target:
+            role: row
+            name: Menu-Board Mapping
+          ms: 2000
+  - say: Post Display Status checks whether the post is displayed and within its
+      posting period.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Post Display Status
+          ms: 2500
+  - say: Post Permission checks the post's target audience against the user's job
+      title, dealer, dealer distribution group, zone, and district. All steps
+      succeeded, so the user can see this post.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Post Permission
+          ms: 3500
+  - say: Let's check another post.
+    steps:
+      - type:
+          target:
+            placeholder: Please enter the Post ID.
+          text: "16"
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Post Display Status Fail
+      - pause: 1000
+  - say: Here Post Display Status failed. The post is not displayed, for example
+      because it is hidden or its posting period has ended.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Post Display Status Fail
+          ms: 3500
+  - say: Go to Setting opens the post in Post Management, where you can check its
+      display setting and posting period. The board mapping step opens Bulletin
+      Board Management.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Go to Setting
+            within:
+              role: row
+              name: Post Display Status Fail
+          ms: 3500
+  - say: Now let's fix a failed step. Search for another user of the same dealer,
+      whose job title is Sales Manager, and check the Dealer Bulletins menu.
+    steps:
+      - scroll:
+          role: heading
+          name: Dealer Employee Troubleshooting
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA24732
+      - click:
+          role: button
+          name: Search
+          nth: 0
+          exact: true
+      - waitFor:
+          role: link
+          name: Sales Manager
+          exact: true
+      - click:
+          role: radio
+          name: Menu
+      - type:
+          target:
+            placeholder: Select
+            nth: 1
+            exact: true
+          text: Dealer Bulletins
+      - click:
+          role: option
+          name: Dealer Bulletins (16)
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Menu Permission Fail
+      - pause: 1000
+  - say: The menu is displayed, but Menu Permission failed. Sales Manager has no
+      access permission for Dealer Bulletins.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Fail
+          ms: 3000
+  - say: Click Go to Setting. The menu's Menu Access Permission tab opens in a new
+      tab. It lists the job titles that already have access.
+    steps:
+      - click:
+          role: button
+          name: Go to Setting
+          within:
+            role: row
+            name: Menu Permission Fail
+      - open: /menu?menuId=6921&tab=1
+      - waitFor:
+          role: row
+          name: ignite
+      - highlight:
+          target:
+            role: table
+          ms: 3000
+  - say: Click Edit, search for the job title, and check Access and Read for Sales
+      Manager.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Job Title Permission
+      - type:
+          target:
+            placeholder: Please search for a job title.
+          text: Sales Manager
+      - pause: 1000
+      - click:
+          role: checkbox
+          nth: 4
+          within:
+            role: dialog
+      - click:
+          role: checkbox
+          nth: 5
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Click Save. A confirmation shows the permissions that will be added and
+      removed. Click Confirm to apply them.
+    steps:
+      - click:
+          role: button
+          name: Save
+          within:
+            role: dialog
+      - waitFor:
+          text: Would you like to save these permissions?
+      - highlight:
+          target:
+            role: dialog
+          ms: 3000
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+      - waitFor:
+          role: row
+          name: Sales Manager
+      - highlight:
+          target:
+            role: row
+            name: Sales Manager
+          ms: 2000
+  - say: Go back to Troubleshooting and run the same diagnosis again.
+    steps:
+      - open: /dealer/trouble-shooting
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 01
+      - click:
+          role: option
+          name: 2 | kia test 01
+          exact: true
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA24732
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: Dealer User Info
+          exact: true
+      - type:
+          target:
+            placeholder: Select
+            nth: 1
+            exact: true
+          text: Dealer Bulletins
+      - click:
+          role: option
+          name: Dealer Bulletins (16)
+          exact: true
+      - click:
+          role: button
+          name: Search
+          nth: 1
+          exact: true
+      - waitFor:
+          role: row
+          name: Menu Permission Success
+  - say: Menu Permission is now Success, so this user can see the menu.
+    steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Success
+          ms: 3000
+  - say: The Reset button at the top clears both the user search and the content
+      search.
+    steps:
+      - scroll:
+          role: heading
+          name: Dealer Employee Troubleshooting
+      - highlight:
+          target:
+            role: button
+            name: Reset
+            nth: 0
+          ms: 1500
+      - click:
+          role: button
+          name: Reset
+          nth: 0
+      - pause: 1500
+  - say: Some users cannot be diagnosed in detail. Let's check a Super Admin user.
+    steps:
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 01
+      - click:
+          role: option
+          name: 2 | kia test 01
+          exact: true
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA01829
+      - click:
+          role: button
+          name: Search
+          nth: 0
+          exact: true
+      - waitFor:
+          text: Detailed diagnostic is not available for Super Admin users
+      - pause: 1000
+  - say: The job title is Super Admin. Super Admins can access all menus and posts
+      as an administrative exception, so Content Status is disabled.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: Super Admin
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Detailed diagnostic is not available for Super Admin users
+          ms: 3000
+  - say: Next, let's see a user who cannot log in. For this example, set the
+      Regional Manager job title to Inactive in Job Management.
+    steps:
+      - open: /permission/detail/139
+      - waitFor:
+          text: View Job
+          exact: true
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          role: radio
+          name: Inactive
+      - click:
+          role: radio
+          name: Inactive
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: View Job
+          exact: true
+      - pause: 1500
+  - say: Now check a user with this job title in Troubleshooting.
+    steps:
+      - open: /dealer/trouble-shooting
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 02
+      - click:
+          role: option
+          name: 3 | kia test 02
+          exact: true
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA39577
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: Please check the dealer user's Access Status
+      - pause: 1000
+  - say: The job title is Inactive, shown with a gray tag. This user cannot log in.
+    steps:
+      - highlight:
+          target:
+            role: link
+            name: Regional Manager
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Inactive
+            exact: true
+          ms: 2500
+  - say: Because the user cannot log in, Content Status is disabled and this message
+      asks you to check the user's access status first. The same happens when
+      the user is Inactive, or the dealer is Inactive or Terminated.
+    steps:
+      - highlight:
+          target:
+            text: Please check the dealer user's Access Status
+          ms: 3500
+  - say: To fix it, click the job title. Job Management opens in a new tab. Click
+      Edit, set the status back to Active, and save.
+    steps:
+      - click:
+          role: link
+          name: Regional Manager
+          exact: true
+      - open: /permission/detail/139
+      - waitFor:
+          text: View Job
+          exact: true
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          role: radio
+          name: Active
+          exact: true
+      - click:
+          role: radio
+          name: Active
+          exact: true
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: View Job
+          exact: true
+      - pause: 1500
+  - say: Search again in Troubleshooting. The job title is Active, the user can log
+      in, and Content Status is available again.
+    steps:
+      - open: /dealer/trouble-shooting
+      - type:
+          target:
+            placeholder: Select
+            nth: 0
+            exact: true
+          text: kia test 02
+      - click:
+          role: option
+          name: 3 | kia test 02
+          exact: true
+      - type:
+          target:
+            placeholder: Please enter ID.
+          text: KCA39577
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          text: Please search by menu or Post ID to diagnose the content status.
+      - highlight:
+          target:
+            text: Active
+            nth: 1
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Please search by menu or Post ID to diagnose the content status.
+          ms: 2500
+  - say: If an external system error prevents the status from being retrieved, a
+      Something Went Wrong message asks you to try again later or contact your
+      system administrator.
+    steps:
+      - highlight:
+          target:
+            text: Content Status
+            exact: true
+          ms: 3000
+  - say: Use Dealer Employee Troubleshooting whenever a dealer employee reports a
+      login or visibility problem. Check the user status first, then the menu or
+      post, and fix the failed step with Go to Setting.
+    steps:
+      - click:
+          role: button
+          name: Reset
+          nth: 0
+      - highlight:
+          target:
+            role: heading
+            name: Dealer Employee Troubleshooting
+          ms: 2500
+cleanup:
+  - open: /menu?menuId=6921&tab=1
+  - waitFor:
+      role: row
+      name: Sales Manager
+  - click:
+      role: button
+      name: Edit
+      exact: true
+  - waitFor:
+      text: Job Title Permission
+  - type:
+      target:
+        placeholder: Please search for a job title.
+      text: Sales Manager
+  - pause: 1000
+  - click:
+      role: checkbox
+      nth: 4
+      within:
+        role: dialog
+  - click:
+      role: button
+      name: Save
+      within:
+        role: dialog
+  - waitFor:
+      text: Would you like to save these permissions?
+  - click:
+      role: button
+      name: Confirm
+      within:
+        role: dialog
+  - pause: 2000
