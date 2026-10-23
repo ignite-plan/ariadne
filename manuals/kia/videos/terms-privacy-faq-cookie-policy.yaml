@@ -1,63 +1,115 @@
 title: Terms / Privacy / FAQ / Cookie Policy
-intro: This video shows how to open the Terms, Privacy Policy, FAQ, and Cookie
-  Policy pages from the footer.
+intro: This video shows how to open the Terms, Privacy Policy, Cookie Policy,
+  FAQ, and User Manual pages from the footer of Kia Dealers.
 sections:
   - 02-home/07-footer.md
-maskPersonal: true
+mutates: true
 maskSystem: true
 scenes:
-  - say: Click Terms in the footer to open the service terms in a new tab.
+  - say: The footer at the very bottom of the home page has links to the Terms,
+      Privacy Policy, Cookie Policy, FAQ, and User Manual. Each one opens in a
+      new tab.
     steps:
+      - open: /
       - waitFor:
           text: Bulletin Highlights
       - scroll:
           role: button
           name: Terms
+          exact: true
       - highlight:
           target:
             role: button
             name: Terms
-          ms: 1500
-      - click:
-          role: button
-          name: Terms
-      - pause: 2000
-  - say: Click Privacy Policy in the footer to check the latest personal information
-      policy. It opens in a new tab, using the same layout as Terms.
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: button
+            name: User Manual
+            exact: true
+          ms: 1200
+  - say: Click Terms to check the latest service terms.
     steps:
+      - open: /legal/terms/tos
+      - waitFor:
+          role: heading
+          name: Service Terms
+      - highlight:
+          target:
+            role: heading
+            name: Service Terms
+          ms: 2000
+  - say: The latest version of the terms is shown first. Scroll down to read the
+      full content.
+    steps:
+      - scroll:
+          text: "[Mandatory] Consent to Collect and Use of Personal Information"
+      - pause: 2500
+      - scroll:
+          role: heading
+          name: Service Terms
+  - say: Use the select box in the upper right to check previous versions of the
+      terms.
+    steps:
+      - click:
+          role: combobox
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          role: option
+          name: Version 1
+          exact: true
+      - pause: 1000
+  - say: Back on the home page, click Privacy Policy in the footer.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - scroll:
+          role: button
+          name: Privacy Policy
+          exact: true
       - highlight:
           target:
             role: button
             name: Privacy Policy
+            exact: true
           ms: 1500
-      - click:
-          role: button
+      - open: /legal/terms/privacy
+      - waitFor:
+          role: heading
           name: Privacy Policy
-      - pause: 2000
-  - say: Click FAQ in the footer to open frequently asked questions in a new tab.
-      Major categories are listed on the left, and a second filter at the top
-      lets you narrow the questions further.
+          nth: 0
+  - say: The Privacy Policy page shows the latest personal information policy, in
+      the same layout as the terms.
     steps:
       - highlight:
           target:
-            role: button
-            name: FAQ
-          ms: 1500
-      - open: /faq
-      - waitFor:
-          role: heading
-          name: FAQ
-      - highlight:
-          target:
             role: heading
-            name: FAQ
-          ms: 1500
+            name: 1. How Does Hyundai Collect Personal Information?
+          ms: 2500
+  - say: Previous versions of the policy are also available from the select box in
+      the upper right.
+    steps:
+      - click:
+          role: combobox
+      - waitFor:
+          role: listbox
       - highlight:
           target:
-            text: ALL
-          ms: 1500
-  - say: You can revisit the full Cookie policy anytime from the footer. It opens in
-      a new tab.
+            role: listbox
+          ms: 2500
+      - click:
+          role: option
+          name: Version 1
+          exact: true
+      - pause: 1000
+  - say: Next, click Cookie Policy in the footer.
     steps:
       - open: /
       - waitFor:
@@ -65,12 +117,180 @@ scenes:
       - scroll:
           role: button
           name: Cookie Policy
+          exact: true
       - highlight:
           target:
             role: button
             name: Cookie Policy
+            exact: true
+          ms: 1500
+      - open: /legal/terms/cookie
+      - waitFor:
+          role: button
+          name: Cookie Settings
+  - say: The Cookie Policy page explains what cookies are, the types of cookies, and
+      how they are used. Previous versions are available from the select box.
+    steps:
+      - highlight:
+          target:
+            role: heading
+            name: What are cookies?
+          ms: 2000
+      - highlight:
+          target:
+            role: combobox
+          ms: 1500
+  - say: Click Cookie Settings at the top to open the cookie settings popup.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Cookie Settings
           ms: 1500
       - click:
           role: button
-          name: Cookie Policy
+          name: Cookie Settings
+      - waitFor:
+          role: dialog
+      - pause: 1500
+  - say: Strictly Necessary Cookies are always active and cannot be turned off. You
+      can choose whether to allow the other cookie types.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Strictly Necessary Cookies Always Active
+          ms: 2500
+  - say: Click a cookie type to see what it is used for.
+    steps:
+      - click:
+          text: Analytical Cookies
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          role: region
+          within:
+            role: dialog
+      - highlight:
+          target:
+            role: region
+            within:
+              role: dialog
+          ms: 3000
+  - say: Use the switch to turn a cookie type off or on.
+    steps:
+      - click:
+          role: checkbox
+          within:
+            role: button
+            name: Analytical Cookies switch
+      - pause: 1500
+      - click:
+          role: checkbox
+          within:
+            role: button
+            name: Analytical Cookies switch
+      - pause: 1000
+  - say: Click Save Preferences to save your choices. You can change them again at
+      any time.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Save Preferences
+          ms: 1500
+      - click:
+          role: button
+          name: Save Preferences
+      - pause: 1500
+  - say: Now click FAQ in the footer to check frequently asked questions.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - scroll:
+          role: button
+          name: FAQ
+          exact: true
+      - highlight:
+          target:
+            role: button
+            name: FAQ
+            exact: true
+          ms: 1500
+      - open: /faq
+      - waitFor:
+          role: heading
+          name: FAQ
+  - say: The major categories of questions are listed on the left. Select a category
+      to see its questions on the right.
+    steps:
+      - highlight:
+          target:
+            role: list
+            nth: 0
+          ms: 2000
+      - click:
+          text: FAQ
+          nth: 1
+          exact: true
+      - pause: 2000
+  - say: Questions that are asked often have a Frequently Asked badge.
+    steps:
+      - highlight:
+          target:
+            text: Frequently Asked
+            nth: 0
+            exact: true
+          ms: 2500
+  - say: Click a question title to see the answer. If a file is attached, click it
+      to preview it, or use the download icon to save it.
+    steps:
+      - click:
+          role: button
+          name: Do you have a mobile app?
+      - waitFor:
+          role: region
+      - highlight:
+          target:
+            role: region
+          ms: 3000
+      - click:
+          role: button
+          name: Do you have a mobile app?
+      - pause: 800
+  - say: Select ALL to see questions from every category again.
+    steps:
+      - click:
+          text: ALL
+          exact: true
+      - pause: 2000
+  - say: Finally, click User Manual in the footer. The FAQ page opens with the user
+      manual content.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - scroll:
+          role: button
+          name: User Manual
+          exact: true
+      - highlight:
+          target:
+            role: button
+            name: User Manual
+            exact: true
+          ms: 1500
+      - open: /faq?menuName=User+Manual
+      - waitFor:
+          role: heading
+          name: FAQ
+      - pause: 2000
+  - say: Use the footer whenever you need to check the terms and policies, or find
+      answers to common questions.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
       - pause: 2000

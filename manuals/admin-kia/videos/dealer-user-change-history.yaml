@@ -1,10 +1,10 @@
 title: Dealer User Change History
-intro: This video shows how to search the change history of dealer employees,
-  and how to read each record in Dealer User Change History.
+intro: This video shows how to search the change history of dealer employees, and
+  how to read each record in Dealer User Change History.
 sections:
   - 12-dealer-user-change-history/00-intro.md
 mutates: true
-maskSystem: true
+maskPersonal: true
 scenes:
   - say: Dealer User Change History is a central audit log. It tracks every change
       to dealer employee information and permissions.
@@ -45,8 +45,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 0
           exact: true
+          nth: 0
       - waitFor:
           role: listbox
       - highlight:
@@ -60,8 +60,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 1
           exact: true
+          nth: 1
       - waitFor:
           role: listbox
       - highlight:
@@ -90,8 +90,8 @@ scenes:
           target:
             role: textbox
             name: Text Field
-            nth: 2
             exact: true
+            nth: 2
           ms: 1500
   - say: Dealer finds changes for employees of the selected dealers. You can select
       more than one.
@@ -99,8 +99,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 3
           exact: true
+          nth: 3
       - waitFor:
           role: listbox
       - highlight:
@@ -114,8 +114,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 4
           exact: true
+          nth: 4
       - waitFor:
           role: listbox
       - click:
@@ -127,8 +127,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 5
           exact: true
+          nth: 5
       - waitFor:
           role: listbox
       - highlight:
@@ -143,8 +143,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 6
           exact: true
+          nth: 6
       - waitFor:
           role: listbox
       - highlight:
@@ -159,8 +159,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 7
           exact: true
+          nth: 7
       - waitFor:
           role: listbox
       - highlight:
@@ -175,8 +175,8 @@ scenes:
       - click:
           role: textbox
           name: Text Field
-          nth: 8
           exact: true
+          nth: 8
       - waitFor:
           role: listbox
       - highlight:
@@ -366,14 +366,14 @@ scenes:
           target:
             role: textbox
             name: Text Field
-            nth: 2
             exact: true
+            nth: 2
           text: mokim3
       - click:
           role: textbox
           name: Text Field
-          nth: 7
           exact: true
+          nth: 7
       - click:
           role: option
           name: checkbox Employee Management
@@ -419,9 +419,6 @@ scenes:
             role: link
             name: Super Admin
           ms: 1500
-      - click:
-          role: link
-          name: Super Admin
       - open: /permission/detail/6
       - waitFor:
           text: View Job
@@ -555,8 +552,8 @@ scenes:
           role: row
           name: Sales Manager
       - pause: 1000
-  - say: Search for an employee with this job title. Each menu permission is shown
-      as the permission name and the menu name, such as Access-Dealer Bulletins.
+  - say: Search for an employee with this job title. Each menu permission is shown as
+      the permission name and the menu name, such as Access-Dealer Bulletins.
       An added permission appears in After Change.
     steps:
       - open: /dealer/history?dateTo=12-31-2099&searchType=PARTNER_ID&search=KCA24732

@@ -135,10 +135,6 @@ scenes:
   - say: Each link opens the related detail screen in a new tab. For example, User
       No. opens the user's details in Dealer Employee Management.
     steps:
-      - click:
-          role: link
-          name: "71"
-          exact: true
       - open: /dealer/employee/detail/71
       - waitFor:
           text: View Dealer Employee
@@ -494,12 +490,6 @@ scenes:
   - say: Click Go to Setting. The menu's Menu Access Permission tab opens in a new
       tab. It lists the job titles that already have access.
     steps:
-      - click:
-          role: button
-          name: Go to Setting
-          within:
-            role: row
-            name: Menu Permission Fail
       - open: /menu?menuId=6921&tab=1
       - waitFor:
           role: row
@@ -736,10 +726,6 @@ scenes:
   - say: To fix it, click the job title. Job Management opens in a new tab. Click
       Edit, set the status back to Active, and save.
     steps:
-      - click:
-          role: link
-          name: Regional Manager
-          exact: true
       - open: /permission/detail/139
       - waitFor:
           text: View Job
