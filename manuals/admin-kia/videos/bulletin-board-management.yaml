@@ -4,6 +4,7 @@ intro: This video shows how to search bulletin boards, view their details and
 sections:
   - 09-bulletin-board-management/00-intro.md
 mutates: true
+maskSystem: true
 scenes:
   - say: Bulletin Board Management lists every bulletin board used in Kia Dealers.
       Create boards here, then connect them to a menu in Menu Management.

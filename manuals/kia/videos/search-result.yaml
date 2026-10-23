@@ -4,6 +4,7 @@ intro: This video shows how to search for posts and attachments, narrow the
 sections:
   - 03-search-result/00-intro.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Use the search bar at the top of every page to search posts and attachments
       across all bulletin boards you can access.

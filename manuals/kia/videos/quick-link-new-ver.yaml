@@ -4,6 +4,7 @@ intro: This video shows how to add, reorder, and rename Quick Links from the
 sections:
   - 02-home/04-quick-link.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Quick Links sit on the right side of the Home screen, giving you one-click
       access to the menus you use most.

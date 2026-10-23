@@ -4,6 +4,7 @@ intro: This video shows how to check whether a post was read by its target
 sections:
   - 14-bulletin-post-report/00-intro.md
 mutates: true
+maskSystem: true
 scenes:
   - say: Bulletin Post Report is a Back Office report tool. It lets you verify
       whether a specific post, such as an important notice, training, or

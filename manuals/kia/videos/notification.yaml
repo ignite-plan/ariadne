@@ -4,6 +4,7 @@ intro: This video shows how to check your notifications and choose which
 sections:
   - 05-email-notification/00-intro.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: The bell icon in the GNB shows a numbered badge whenever you have unread
       notifications.

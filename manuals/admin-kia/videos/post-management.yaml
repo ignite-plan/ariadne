@@ -4,6 +4,7 @@ intro: This video shows how to find boards, manage posts, create a new post, and
 sections:
   - 10-post-management/00-intro.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Post Management is where you create and manage posts for each bulletin
       board.

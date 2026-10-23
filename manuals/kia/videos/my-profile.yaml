@@ -4,6 +4,7 @@ intro: This video shows how to view your profile and business information, and
 sections:
   - 02-home/08-my-profile.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Click your Account icon in the GNB and select My Profile to see your
       personal and business information.

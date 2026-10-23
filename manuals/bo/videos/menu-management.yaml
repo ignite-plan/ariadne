@@ -4,6 +4,7 @@ intro: This video shows how to manage menus, including creating, viewing,
 section: 08-menu-management/00-intro.md
 mutates: true
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Menu Management lets you manage menus within Hyundai Dealers_BO by
       creating, editing, and deleting menus. Menus can be created up to a

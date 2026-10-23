@@ -12,6 +12,7 @@ sections:
   - 02-home/07-footer.md
   - 03-search-result/00-intro.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: The Home screen is the first screen displayed when a user connects. It
       consists of the GNB, menu, Announcement, Quick Links, Board you've

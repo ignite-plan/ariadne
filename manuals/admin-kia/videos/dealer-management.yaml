@@ -7,6 +7,7 @@ sections:
   - 02-dealer-management/03-dealer-detail-view-edit-screen.md
 mutates: true
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: This screen provides a list of all registered dealers. You can create a new
       dealer, or view and edit details of existing dealers.

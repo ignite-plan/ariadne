@@ -4,6 +4,7 @@ intro: This video shows how to open the Terms, Privacy Policy, FAQ, and Cookie
 sections:
   - 02-home/07-footer.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Click Terms in the footer to open the service terms in a new tab.
     steps:

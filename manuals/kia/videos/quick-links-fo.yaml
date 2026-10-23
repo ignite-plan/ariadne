@@ -4,6 +4,7 @@ intro: This video shows how to add frequently used menus to Quick Links, rename
 sections:
   - 01-common/quick-links.md
 mutates: true
+maskSystem: true
 scenes:
   - say: Quick Links lets you save the menus you use most and open them from
       anywhere. Click the star icon in the header.

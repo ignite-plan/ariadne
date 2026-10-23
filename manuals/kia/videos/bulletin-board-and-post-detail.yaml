@@ -6,6 +6,7 @@ sections:
   - 04-bulletin-board/01-post-list.md
   - 04-bulletin-board/02-post-detail.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: Click a menu in the top navigation bar to open its bulletin board. The menu
       name and description appear at the top.

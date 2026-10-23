@@ -4,6 +4,7 @@ intro: This video shows how to view, search, edit, create, and delete menus, and
 sections:
   - 08-menu-management/00-intro.md
 mutates: true
+maskSystem: true
 scenes:
   - say: Menu Management lets you manage the menus of Kia Dealers_BO. Click Menu
       Management in the left navigation to open it.
