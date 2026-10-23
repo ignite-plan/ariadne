@@ -1,4 +1,4 @@
-// 가이드 영상 목록·새로 만들기. 파일은 manuals/<m>/videos/<id>.yaml, 결과는 dist/videos/<id>.mp4
+// 가이드 영상 목록·새로 만들기. 파일은 manuals/<m>/videos/<id>.yaml, 결과는 dist/videos/<id>.mp4 (+ 썸네일 <id>.jpg)
 import { existsSync, statSync } from 'node:fs'
 import { basename, relative } from 'node:path'
 import YAML from 'yaml'
@@ -9,10 +9,16 @@ import type { VideoImport, VideoInfo } from '../../shared/api.ts'
 import { slugify, uniqueName } from '../../../src/core/naming.ts'
 
 export function videoOutput(ref: ManualRef, id: string): VideoInfo['output'] {
-  const { mp4, vtt } = videoOutputs(ref, id)
+  const { mp4, vtt, poster } = videoOutputs(ref, id)
   if (!existsSync(mp4)) return undefined
   const stat = statSync(mp4)
-  return { mp4: relative(ref.root, mp4), vtt: relative(ref.root, vtt), updatedAt: stat.mtimeMs, size: stat.size }
+  return {
+    mp4: relative(ref.root, mp4),
+    vtt: relative(ref.root, vtt),
+    ...(existsSync(poster) ? { poster: relative(ref.root, poster) } : {}),
+    updatedAt: stat.mtimeMs,
+    size: stat.size,
+  }
 }
 
 export function videoInfos(ref: ManualRef): VideoInfo[] {

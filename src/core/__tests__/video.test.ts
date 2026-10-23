@@ -82,6 +82,14 @@ describe('composeArgs', () => {
     assert.deepEqual(args.slice(-5), ['-t', '6.000', '-movflags', '+faststart', 'out.mp4'])
   })
 
+  it('썸네일은 마지막 입력을 두 번째 video stream(cover)으로 넣는다', () => {
+    const withSrt = composeArgs({ video: 'screen.mp4', audio: [{ file: 'a.wav', at: 0 }], srt: 'x.srt', poster: 'p.jpg', durationMs: 1000, out: 'out.mp4' })
+    assert.ok(withSrt.join(' ').includes('-i p.jpg'))
+    assert.ok(withSrt.join(' ').includes('-map 3:v -disposition:v:1 attached_pic'))
+    const noSrt = composeArgs({ video: 'screen.mp4', audio: [], poster: 'p.jpg', durationMs: 1000, out: 'out.mp4' })
+    assert.ok(noSrt.join(' ').includes('-map 1:v -disposition:v:1 attached_pic'))
+  })
+
   it('음성·자막이 없으면 영상만 복사', () => {
     const args = composeArgs({ video: 'screen.mp4', audio: [], durationMs: 1000, out: 'out.mp4' })
     assert.ok(!args.includes('-filter_complex'))

@@ -22,10 +22,10 @@ const fakeTts: TtsProvider = {
 }
 
 function probe(file: string) {
-  const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,codec_name:format=duration', '-of', 'json', file], {
+  const out = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,codec_name:stream_disposition=attached_pic:format=duration', '-of', 'json', file], {
     encoding: 'utf8',
   })
-  return JSON.parse(out) as { streams: { codec_type: string; codec_name: string }[]; format: { duration: string } }
+  return JSON.parse(out) as { streams: { codec_type: string; codec_name: string; disposition?: { attached_pic?: number } }[]; format: { duration: string } }
 }
 
 // at초 프레임의 (x, y) 주변 평균 밝기 0~255
@@ -107,7 +107,10 @@ describe('renderVideo (Chrome)', { skip }, () => {
     assert.ok(result.cues[0].end >= 2500, '시작 카드는 최소 2.5초')
 
     const info = probe(result.mp4!)
-    assert.deepEqual(info.streams.map((s) => `${s.codec_type}:${s.codec_name}`).sort(), ['audio:aac', 'subtitle:mov_text', 'video:h264'])
+    assert.deepEqual(info.streams.map((s) => `${s.codec_type}:${s.codec_name}`).sort(), ['audio:aac', 'subtitle:mov_text', 'video:h264', 'video:mjpeg'])
+    // 썸네일: 시작 카드 화면 jpg를 cover(attached_pic)로 넣는다
+    assert.ok(result.poster && existsSync(result.poster))
+    assert.equal(info.streams.find((s) => s.codec_name === 'mjpeg')?.disposition?.attached_pic, 1)
     assert.ok(Math.abs(Number(info.format.duration) * 1000 - result.durationMs) < 300, `${info.format.duration}s vs ${result.durationMs}ms`)
     assert.match(readFileSync(result.srt!, 'utf8'), /^1\n00:00:00,000 --> /)
     assert.ok(readFileSync(result.vtt!, 'utf8').startsWith('WEBVTT'))
@@ -136,7 +139,7 @@ describe('renderVideo (Chrome)', { skip }, () => {
     assert.match(blocked.blockedRequests[0], /^POST http.*\/api\/dealer$/)
     const result = await renderVideo({ ...run, id: 'save-true', scenario: make(true, 'Save') })
     assert.deepEqual(posts, ['/api/dealer'])
-    assert.deepEqual(probe(result.mp4!).streams.map((s) => s.codec_type).sort(), ['subtitle', 'video'])
+    assert.deepEqual(probe(result.mp4!).streams.map((s) => s.codec_type).sort(), ['subtitle', 'video', 'video'])
   })
 
   it('upload는 mutates 시나리오에서만, 매뉴얼 폴더 기준 파일을 파일 선택 창에 넣는다', async () => {

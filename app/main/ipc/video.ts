@@ -92,7 +92,7 @@ export function registerVideo() {
     ).finally(browser.release)
     if (!result.ok) return result
     const rel = (path?: string) => (path ? relative(r.root, path) : undefined)
-    return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt) }
+    return { ...result, mp4: rel(result.mp4), srt: rel(result.srt), vtt: rel(result.vtt), poster: rel(result.poster) }
   })
   handle('video:cancel', () => cancelVideo())
   handle('video:speak', async (text, speed) => {

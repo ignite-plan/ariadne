@@ -8,11 +8,11 @@
 
 ```bash
 pnpm login --manual bo                       # 세션이 없을 때 (캡처와 같은 .auth/bo-profile)
-pnpm video --manual bo --id dealer-list      # → dist/videos/dealer-list.mp4, .srt, .vtt
+pnpm video --manual bo --id dealer-list      # → dist/videos/dealer-list.mp4, .srt, .vtt, .jpg
 pnpm video --manual bo --id dealer-list --preview   # 시나리오 작성 중: 브라우저를 띄워 실행만 (음성·파일 없음)
 ```
 
-- 결과 mp4에는 영상(h264), 내레이션(aac), 자막 트랙(mov_text)이 들어 있습니다. 자막은 화면에도 그려져 있어 어느 플레이어에서나 보입니다. `.srt`·`.vtt`는 LMS나 YouTube에 따로 올릴 때 씁니다.
+- 결과 mp4에는 영상(h264), 내레이션(aac), 자막 트랙(mov_text), 썸네일(cover jpg, `attached_pic`)이 들어 있습니다. 썸네일은 녹화 중 시작 카드와 `intro` 자막이 뜬 화면을 `page.screenshot`으로 찍은 것(`<id>.jpg`)이고, `--from`·`--preview`는 찍지 않아 예전 것을 씁니다. 자막은 화면에도 그려져 있어 어느 플레이어에서나 보입니다. `.srt`·`.vtt`는 LMS나 YouTube에 따로 올릴 때 씁니다.
 - 내레이션은 로컬 TTS 모델 **Kokoro**(무료, API 키 없음)로 만듭니다. 첫 실행 때 모델(약 90MB)을 `.video-cache/models`에 받고, 만든 음성은 `.video-cache/tts`에 캐시합니다. 사내 TLS 프록시 때문에 `pnpm video`는 `--use-system-ca`로 실행됩니다.
 - OpenAI 음성을 쓰려면 `manual.yaml`에 `video.tts.provider: openai`(voice 예: `alloy`)를 지정하고 `.env`에 `OPENAI_API_KEY`를 넣습니다. ElevenLabs는 사내 webfilter로 막혀 있습니다.
 

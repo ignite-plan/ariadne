@@ -1,6 +1,6 @@
 // 시나리오 하나를 녹화해 자막·내레이션이 들어간 mp4로 만든다.
 // TTS 사전 생성 → 녹화(장면마다 자막 표시·조작·음성 길이만큼 대기) → ffmpeg 합성
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Page } from 'playwright'
 import { loadManual, manualDir, type Manual, type ManualRef, type Viewport } from '../manual.ts'
@@ -95,6 +95,8 @@ export interface VideoResult {
   mp4?: string
   srt?: string
   vtt?: string
+  // 썸네일 (시작 카드 + 시작 카드 내레이션 자막)
+  poster?: string
   cues: Cue[]
   durationMs: number
   // mutates가 아니어서 막은 쓰기 요청
@@ -111,7 +113,7 @@ export function videoCacheDir({ root }: Pick<ManualRef, 'root'>) {
 
 export function videoOutputs({ root }: Pick<ManualRef, 'root'>, id: string, outDir = 'dist/videos') {
   const dir = resolve(root, outDir)
-  return { mp4: join(dir, `${id}.mp4`), srt: join(dir, `${id}.srt`), vtt: join(dir, `${id}.vtt`) }
+  return { mp4: join(dir, `${id}.mp4`), srt: join(dir, `${id}.srt`), vtt: join(dir, `${id}.vtt`), poster: join(dir, `${id}.jpg`) }
 }
 
 async function applyMask(page: Page, targets: Target[] | undefined) {
@@ -161,6 +163,11 @@ export async function renderVideo({
   const work = videoWorkDir(ref, scenario.id)
   mkdirSync(work, { recursive: true })
   const outputs = videoOutputs(ref, scenario.id, outDir)
+  // 이번에 찍은 썸네일. 시작 카드를 건너뛰면(fromScene) 찍지 않고 예전 썸네일을 쓴다
+  const poster = join(work, 'poster.jpg')
+  rmSync(poster, { force: true })
+  // 처음부터 만들면 예전 썸네일을 쓰지 않는다 (이번 촬영이 실패하면 썸네일 없이)
+  if (!fromScene && !preview) rmSync(outputs.poster, { force: true })
 
   // 자막 크기·내레이션 속도·조작 속도 (시나리오 → manual.yaml video → 기본값)
   const style = videoStyle(scenario, manual.video)
@@ -241,6 +248,11 @@ export async function renderVideo({
         onProgress?.({ stage: 'record', message: '시작 카드' })
         const introClip = scenario.intro ? clips.get(scenario.intro) : undefined
         await v.caption(scenario.intro ?? null)
+        if (recording) {
+          // 자막이 다 나타난 뒤 (overlay transition) 썸네일을 찍는다. 시작 카드 시간 안이라 영상 길이는 그대로
+          await page.waitForTimeout(400)
+          await page.screenshot({ path: poster, type: 'jpeg', quality: 90 }).catch(() => {})
+        }
         await hold(0, scenario.intro, introClip, CARD_MS * stepPace)
         if (scenario.intro) cues.push({ start: 0, end: now(), text: scenario.intro })
         if (introClip) audio.push({ file: introClip.file, at: 0 })
@@ -292,7 +304,9 @@ export async function renderVideo({
   mkdirSync(resolve(outputs.mp4, '..'), { recursive: true })
   writeFileSync(outputs.srt, toSrt(cues))
   writeFileSync(outputs.vtt, toVtt(cues))
+  if (existsSync(poster)) copyFileSync(poster, outputs.poster)
   writeFileSync(join(work, 'timeline.json'), JSON.stringify({ durationMs, cues, audio, blockedRequests }, null, 2))
-  await compose({ video, audio, srt: cues.length ? outputs.srt : undefined, durationMs, out: outputs.mp4, ffmpegPath })
-  return { ...outputs, cues, durationMs, blockedRequests }
+  const cover = existsSync(outputs.poster) ? outputs.poster : undefined
+  await compose({ video, audio, srt: cues.length ? outputs.srt : undefined, poster: cover, durationMs, out: outputs.mp4, ffmpegPath })
+  return { ...outputs, poster: cover, cues, durationMs, blockedRequests }
 }
