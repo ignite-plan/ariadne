@@ -6,12 +6,9 @@ sections:
 mutates: true
 maskSystem: true
 scenes:
-  - say: Menu Management lets you manage the menus of Kia Dealers_BO. Click Menu
+  - say: Menu Management lets you manage the menus of Dealers_BO. Click Menu
       Management in the left navigation to open it.
     steps:
-      - open: /dealer/company
-      - waitFor:
-          text: Dealer Management
       - click:
           role: link
           name: Menu Management
@@ -24,8 +21,8 @@ scenes:
           target:
             text: Dealers Menu
           ms: 2500
-  - say: On the right, the detail panel asks you to select a menu from the Kia
-      Dealers Portal until you pick one.
+  - say: On the right, the detail panel asks you to select a menu from the Dealers
+      Portal until you pick one.
     steps:
       - highlight:
           target:
@@ -310,8 +307,7 @@ scenes:
   - say: To create a top-level group, click Group Addition at the top of the tree.
       For a submenu, hover over a tree node and click Add Submenu.
     steps:
-      - open: /menu
-      - waitFor:
+      - hover:
           text: Dealers Menu
       - click:
           role: button
@@ -357,7 +353,7 @@ scenes:
       - pause: 3500
       - click:
           role: radio
-          name: YES
+          name: NO
   - say: Add the Access and Read permissions in the Menu Permissions List, then
       click Save.
     steps:
@@ -469,6 +465,12 @@ scenes:
     steps:
       - hover:
           role: treeitem
+          name: Opportunity
+      - hover:
+          role: treeitem
+          name: EV performance
+      - hover:
+          role: treeitem
           name: Demo Menu
       - highlight:
           target:
@@ -496,3 +498,16 @@ scenes:
           within:
             role: dialog
       - pause: 2000
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+  - say: That's it for this guide. You're now ready to use this feature on your own.
+      Thank you for watching.
+    steps:
+      - highlight:
+          target:
+            text: Menu management
+            nth: 1
+          ms: 1500
