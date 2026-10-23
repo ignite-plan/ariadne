@@ -6,6 +6,7 @@ sections:
   - 03-zone-district-management-dealer-regional-management/02-zone-district-creation-modification-and-deletion.md
   - 03-zone-district-management-dealer-regional-management/03-excel-upload-bulk-update.md
 mutates: true
+maskSystem: true
 scenes:
   - say: In Zone/District Management, you can see which zone and district each
       dealer is assigned to, and create, edit, and delete zones and districts.

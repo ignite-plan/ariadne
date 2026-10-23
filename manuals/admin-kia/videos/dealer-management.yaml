@@ -6,7 +6,6 @@ sections:
   - 02-dealer-management/02-dealer-creation-screen.md
   - 02-dealer-management/03-dealer-detail-view-edit-screen.md
 mutates: true
-maskPersonal: true
 maskSystem: true
 scenes:
   - say: This screen provides a list of all registered dealers. You can create a new
@@ -505,7 +504,7 @@ scenes:
       - click:
           role: radio
           name: Certificated
-  - say: Enter the business start and end dates, then click Next.
+  - say: Enter the business start and end dates.
     steps:
       - type:
           target:
@@ -520,6 +519,77 @@ scenes:
           text: 10-31-2031
       - click:
           text: New Business1
+  - say: A dealer can have up to two business entries. Click Add Business to add the
+      second one. Once two are added, the Add Business button disappears.
+    steps:
+      - click:
+          role: button
+          name: Add Business
+      - waitFor:
+          text: New Business2
+      - pause: 1500
+  - say: A business type that is already used in the other entry cannot be selected
+      again. The first entry is General/Retail, so only After Service is
+      available here.
+    steps:
+      - click:
+          role: combobox
+          name: Select
+          exact: true
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 2500
+      - click:
+          role: option
+          name: AfterService
+          exact: true
+  - say: Fill in the vehicle type, product type, and EV certification status for the
+      second business as well.
+    steps:
+      - click:
+          role: checkbox
+          name: Passenger
+          nth: 0
+      - click:
+          role: checkbox
+          name: Finished Vehicles
+          nth: 0
+      - click:
+          role: radio
+          name: Certificated
+          exact: true
+          nth: 0
+  - say: Enter the business start and end dates for the second business.
+    steps:
+      - type:
+          target:
+            placeholder: MM-DD-YYYY
+            nth: 0
+          text: 11-01-2026
+      - click:
+          text: New Business2
+      - type:
+          target:
+            placeholder: MM-DD-YYYY
+            nth: 1
+          text: 10-31-2028
+      - click:
+          text: New Business2
+  - say: The business end date matters. When the dealer's latest business end date
+      passes, the dealer becomes Under termination and can still use the
+      services for 180 days. After that, the status changes to Terminated
+      automatically, and the dealer's employees can no longer use the services.
+    steps:
+      - highlight:
+          target:
+            placeholder: MM-DD-YYYY
+            nth: 1
+          ms: 3500
+  - say: Click Next to move to Facility Information.
+    steps:
       - click:
           role: button
           name: Next
