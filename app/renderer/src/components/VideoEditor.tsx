@@ -176,6 +176,10 @@ export function VideoEditor({
             이메일·전화번호 가리기
           </label>
           <label>
+            <input type="checkbox" checked={Boolean(scenario.maskSystem)} disabled={disabled} onChange={(e) => set({ maskSystem: e.target.checked || undefined })} />
+            시스템 이름·법인/대리점 가리기
+          </label>
+          <label>
             <input type="checkbox" checked={Boolean(scenario.mutates)} disabled={disabled} onChange={(e) => set({ mutates: e.target.checked || undefined })} />
             STG에 실제 저장 허용
           </label>

@@ -34,6 +34,7 @@ intro: This video shows how to search for dealers and view their information.
 sections:
   - 02-dealer-management/01-dealer-list-view.md
 maskPersonal: true
+maskSystem: true
 scenes:
   - say: The Dealer List screen provides a list of all registered dealers.
     steps:
@@ -49,7 +50,7 @@ scenes:
 - 장면 하나 = 내레이션 한두 문장 + 그 문장이 설명하는 조작. 첫 장면은 `open`과 화면이 준비됐는지 `waitFor`로 시작한다
 - 화면 전환이나 팝업 뒤에는 `waitFor`로 다음 화면의 글자를 기다린다
 - 항목 설명만 있는 문장은 그 영역을 `highlight`로 보여 준다
-- `sections`는 받은 그대로 둔다. `title`은 화면 이름(여러 화면이면 흐름 이름, 예: Dealer Search and Creation), `intro`는 "This video shows how to …" 한 문장. `maskPersonal: true`는 그대로 둔다
+- `sections`는 받은 그대로 둔다. `title`은 화면 이름(여러 화면이면 흐름 이름, 예: Dealer Search and Creation), `intro`는 "This video shows how to …" 한 문장. `maskPersonal: true`, `maskSystem: true`는 그대로 둔다
 - **내레이션에 TODO나 추측을 넣지 않는다** (소리 내어 읽힌다). 확인이 필요한 것은 마지막 요약의 `notes`에 적는다
 - 내레이션의 UI 라벨은 화면 표기 그대로 쓴다
 

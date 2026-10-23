@@ -11,6 +11,9 @@ export interface OverlayOptions {
   captionScale?: number
 }
 
+// maskSystem일 때 blur할 GNB 좌측 상단: 시스템 이름(예: [CA] KIA DEALERS_BO - STG), 법인/대리점 선택(예: Hyundai(HQ) Kia(HQ))
+export const SYSTEM_MASK = ['#hmgHeader h1', '#hmgGNB [role="combobox"][aria-label="Module"]']
+
 // 이 속성이 붙은 요소는 blur된다. 시나리오 mask Target은 runner가 이 속성을 붙인다
 export const MASK_ATTR = 'data-ariadne-mask'
 

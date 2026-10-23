@@ -40,6 +40,7 @@ export function createVideo(ref: ManualRef, { title, sections = [] }: { title: s
     title: trimmed,
     ...(sections.length ? { sections } : {}),
     maskPersonal: true,
+    maskSystem: true,
     scenes: [{ say: '', steps: [] }],
   })
 }

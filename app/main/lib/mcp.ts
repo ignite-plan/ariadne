@@ -279,7 +279,7 @@ function buildServer(deps: AriadneMcpDeps, definedNow: Set<string>) {
     'video_save',
     {
       description:
-        '가이드 영상 시나리오 전체를 YAML로 저장한다 (형식 검사 후). title, intro, sections, maskPersonal, mask, scenes[say, steps]. mutates(STG 저장 허용)는 켤 수 없다',
+        '가이드 영상 시나리오 전체를 YAML로 저장한다 (형식 검사 후). title, intro, sections, maskPersonal, maskSystem, mask, scenes[say, steps]. mutates(STG 저장 허용)는 켤 수 없다',
       inputSchema: { id: z.string(), yaml: z.string().describe('시나리오 YAML 전체 (id 제외)') },
     },
     ({ id, yaml }) => {

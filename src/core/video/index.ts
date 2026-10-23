@@ -9,7 +9,7 @@ import { clearSession, defaultProfileDir, profileTab, requireSession, type OpenT
 import { isSessionExpired } from '../stg-url.ts'
 import { compose } from './compose.ts'
 import { Director } from './director.ts'
-import { MASK_ATTR, overlayScript } from './overlay.ts'
+import { MASK_ATTR, SYSTEM_MASK, overlayScript } from './overlay.ts'
 import { startRecording, type Recording } from './recorder.ts'
 import { CAPTION_SCALE, PACE_FACTOR, sceneHasContent, videoStyle } from './edit.ts'
 import { applyVars, loadVideo, videoVars, type Target, type VideoScenario } from './scenario.ts'
@@ -199,7 +199,11 @@ export async function renderVideo({
     signal?.throwIfAborted()
     // 공유 Chrome의 다른 탭에 자막·커서가 뜨지 않게 이 탭에만 넣는다
     await page.addInitScript({
-      content: overlayScript({ personal: scenario.maskPersonal, css: manual.video?.mask, captionScale: CAPTION_SCALE[style.captionSize] }),
+      content: overlayScript({
+        personal: scenario.maskPersonal,
+        css: [...(manual.video?.mask ?? []), ...(scenario.maskSystem ? SYSTEM_MASK : [])],
+        captionScale: CAPTION_SCALE[style.captionSize],
+      }),
     })
     if (!scenario.mutates) await guardWrites(page, (request) => blockedRequests.push(request))
     // 대화상자는 직접 닫는다 (Playwright 기본 동작과 같게). 공유 Chrome에 붙은 main이 먼저 닫으면 실패하는데,

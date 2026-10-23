@@ -71,6 +71,8 @@ export const videoFileSchema = z.strictObject({
   mutates: z.boolean().optional(),
   // 이메일·전화번호처럼 보이는 글자를 자동으로 blur
   maskPersonal: z.boolean().optional(),
+  // GNB 좌측 상단 시스템 이름과 법인/대리점 선택을 blur (overlay.ts SYSTEM_MASK)
+  maskSystem: z.boolean().optional(),
   // 자막 크기. 없으면 manual.yaml video.captionSize, 그것도 없으면 medium
   captionSize: z.enum(['small', 'medium', 'large']).optional(),
   // 내레이션 속도 (0.8~1.3). 없으면 manual.yaml video.tts.speed, 그것도 없으면 1
