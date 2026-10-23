@@ -6,7 +6,7 @@ sections:
 mutates: true
 maskSystem: true
 scenes:
-  - say: Menu Management lets you manage the menus of Kia Dealers_BO. Click Menu
+  - say: Menu Management lets you manage the menus of Dealers_BO. Click Menu
       Management in the left navigation to open it.
     steps:
       - open: /dealer/company
