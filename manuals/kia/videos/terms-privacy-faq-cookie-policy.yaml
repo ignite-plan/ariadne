@@ -10,7 +10,6 @@ scenes:
       Privacy Policy, Cookie Policy, FAQ, and User Manual. Each one opens in a
       new tab.
     steps:
-      - open: /
       - waitFor:
           text: Bulletin Highlights
       - scroll:
@@ -294,3 +293,5 @@ scenes:
       - waitFor:
           text: Bulletin Highlights
       - pause: 2000
+  - say: That's it for this guide. Thank you for watching.
+    steps: []

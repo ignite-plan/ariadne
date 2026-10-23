@@ -1,0 +1,458 @@
+title: Home & GNB & Search Result
+intro: This video shows the Home screen, the GNB and menus, the Home widgets,
+  the footer, and how to use integrated search.
+sections:
+  - 02-home/00-intro.md
+  - 02-home/01-gnb.md
+  - 02-home/02-menu.md
+  - 02-home/03-announcement.md
+  - 02-home/04-quick-link.md
+  - 02-home/05-board-you-ve-visited.md
+  - 02-home/06-bulletin-highlight.md
+  - 02-home/07-footer.md
+  - 03-search-result/00-intro.md
+maskPersonal: true
+maskSystem: true
+scenes:
+  - say: The Home screen is the first screen displayed when a user connects. It
+      consists of the GNB, menu, Announcement, Quick Links, Board you've
+      visited, and Bulletin Highlights.
+    steps:
+      - waitFor:
+          text: Bulletin Highlights
+      - pause: 1500
+  - say: The GNB, or Global Navigation Bar, shows the logo, search box, Quick Links,
+      notifications, language settings, account information, and the menu. Click
+      the logo to return to the Home screen.
+    steps:
+      - highlight:
+          target:
+            role: textbox
+            name: Text Field
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: Quick Links
+          ms: 2000
+      - highlight:
+          target:
+            text: Notification
+          ms: 2000
+      - highlight:
+          target:
+            text: Language
+          ms: 2000
+      - highlight:
+          target:
+            text: Account
+          ms: 2000
+  - say: The GNB menu displays only the 1depth menus. Hover over a 1depth menu, such
+      as Sales Information, and the menu dropdown shows all of its 2 to 4depth
+      menus. Select a menu to go to its detail screen.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin Board
+          ms: 1500
+      - hover:
+          text: Sales Information
+      - pause: 3000
+  - say: At the top of the Home screen, the Dealer name and Job Title are displayed.
+      The Dealer name shows the dealership you are currently working in, and the
+      Job Title shows your assigned job.
+    steps:
+      - highlight:
+          target:
+            text: Dealer name
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: kia test 01
+          ms: 2000
+      - highlight:
+          target:
+            text: Job Title
+          ms: 2000
+      - highlight:
+          target:
+            role: button
+            name: ignite
+          ms: 2000
+  - say: Announcement shows up to 10 posts from the announcement bulletin boards,
+      with important notices first. Each post shows its title and date, and a
+      New flag appears on new posts. Click More to see the full list.
+    steps:
+      - highlight:
+          target:
+            text: Announcement
+            nth: 0
+          ms: 2000
+      - highlight:
+          target:
+            text: Year-End Sales Reporting Deadline
+          ms: 2000
+      - highlight:
+          target:
+            text: More
+          ms: 2000
+  - say: Quick Links lets you quickly access frequently used menus. Click a
+      registered menu to open it, click the star to remove it, or click Edit to
+      manage the list. Up to 20 menus can be registered.
+    steps:
+      - highlight:
+          target:
+            text: Quick Links
+            nth: 1
+          ms: 2000
+      - highlight:
+          target:
+            text: Edit
+          ms: 2000
+  - say: Board you've visited lists up to five recently visited menus. Click a menu
+      to open it, or click the star to add it to or remove it from Quick Links.
+    steps:
+      - scroll:
+          text: Board you've visited
+      - highlight:
+          target:
+            text: Board you've visited
+          ms: 2000
+      - highlight:
+          target:
+            role: link
+            name: General Board - 20
+          ms: 2000
+  - say: Bulletin Highlights collects up to 10 posts registered as important
+      notices, newest first, from boards you have permission to view. Click a
+      title to open the post.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin Highlights
+          ms: 2000
+      - highlight:
+          target:
+            text: Lease Rate Support – EV Models
+          ms: 2000
+  - say: The footer at the bottom of the page provides the Terms, Privacy Policy,
+      Cookie Policy, FAQ, and User Manual. Each one opens in a new tab.
+    steps:
+      - scroll:
+          role: button
+          name: Terms
+      - highlight:
+          target:
+            role: button
+            name: Terms
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Privacy Policy
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: Cookie Policy
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: FAQ
+          ms: 1500
+      - highlight:
+          target:
+            role: button
+            name: User Manual
+          ms: 1500
+  - say: Use the search bar at the top of every page to search posts and attachments
+      across all bulletin boards you can access.
+    steps:
+      - hover:
+          text: Bulletin Highlight
+      - highlight:
+          target:
+            placeholder: Search
+          ms: 2000
+      - click:
+          placeholder: Search
+      - pause: 500
+      - highlight:
+          target:
+            role: listbox
+          ms: 1000
+  - say: Your last 10 searches are saved in this browser. Hover over a search term
+      and click the delete button to remove it.
+    steps:
+      - hover:
+          role: option
+          nth: 0
+      - highlight:
+          target:
+            role: button
+            within:
+              role: option
+              nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+  - say: Enter a keyword and press Enter or click the search icon. If you enter more
+      than one word, only results that contain all of the words are shown.
+    steps:
+      - type:
+          target:
+            placeholder: Search
+          text: EV9
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: Search Result for
+      - pause: 2000
+  - say: Search results show matching posts and attachments. Only posts you have
+      permission to view and that are currently posted appear in the results.
+    steps:
+      - highlight:
+          target:
+            placeholder: Search
+          ms: 1500
+      - highlight:
+          target:
+            placeholder: Select Board
+          ms: 1500
+      - highlight:
+          target:
+            text: Relevance
+          ms: 1500
+      - highlight:
+          target:
+            text: Anytime
+          ms: 1500
+      - highlight:
+          target:
+            role: heading
+            name: EV9
+          ms: 2000
+  - say: A post card shows the menu path, title, a short preview of the content, and
+      the posting date. Your keyword is highlighted.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin news
+            nth: 1
+          ms: 1500
+      - highlight:
+          target:
+            role: heading
+            name: EV9
+          ms: 1500
+      - highlight:
+          target:
+            text: Updated showroom display guidelines for the
+          ms: 2000
+      - highlight:
+          target:
+            text: Oct 19, 2026
+          ms: 1500
+  - say: When your keyword is found in an attachment, the file appears as a separate
+      card with its file name and the matching text. One post can show up to
+      five file cards.
+    steps:
+      - scroll:
+          text: en_catalog_k5.pdf
+      - highlight:
+          target:
+            text: en_catalog_k5.pdf
+          ms: 1500
+  - say: You can also search by reference numbers, such as a bulletin number. Enter
+      the number exactly as it was registered.
+    steps:
+      - click:
+          placeholder: Search
+      - type:
+          target:
+            placeholder: Search
+          text: 2026-10-106
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: Search Result for
+      - pause: 1500
+      - highlight:
+          target:
+            text: 2026-10-106
+            nth: 1
+          ms: 2000
+  - say: Results are sorted by relevance by default. Select Most recent to see the
+      newest posts first.
+    steps:
+      - type:
+          target:
+            role: textbox
+          text: EV9
+      - open: /search?keyword=EV9
+      - waitFor:
+          text: Search Result for
+      - click:
+          role: combobox
+          name: ""
+          nth: 2
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+      - click:
+          role: option
+          name: Most recent
+      - pause: 1000
+      - highlight:
+          target:
+            role: heading
+            nth: 1
+          ms: 1500
+  - say: Choose a period to narrow the results, or select Custom range to set your
+      own start and end dates.
+    steps:
+      - click:
+          role: combobox
+          name: ""
+          nth: 3
+      - waitFor:
+          role: listbox
+      - highlight:
+          target:
+            role: listbox
+          ms: 1500
+      - click:
+          role: option
+          name: Custom range
+      - waitFor:
+          role: textbox
+          name: date picker
+      - click:
+          role: textbox
+          name: date picker
+          nth: 0
+      - pause: 1500
+      - click:
+          role: textbox
+          name: date picker
+          nth: 1
+      - pause: 1500
+      - highlight:
+          target:
+            text: Custom range
+          ms: 1500
+  - say: Select one or more boards to see results from those boards only. If no
+      board is selected, results from all boards are shown.
+    steps:
+      - type:
+          target:
+            role: textbox
+          text: EV
+      - open: /search?keyword=EV
+      - waitFor:
+          text: Search Result for
+      - click:
+          role: button
+          name: 열기
+      - waitFor:
+          role: listbox
+      - pause: 1500
+      - click:
+          role: checkbox
+          name: checkbox
+          nth: 0
+      - click:
+          role: checkbox
+          name: checkbox
+          nth: 1
+      - pause: 1000
+      - click:
+          text: Search Result for
+      - pause: 1500
+  - say: Click a post title, preview, or thumbnail to open the post. Click the last
+      item in the menu path to go to that bulletin board.
+    steps:
+      - type:
+          target:
+            role: textbox
+          text: EV9
+      - open: /search?keyword=EV9
+      - waitFor:
+          role: heading
+          name: EV
+      - hover:
+          role: button
+          name: Bulletin news
+      - highlight:
+          target:
+            role: button
+            name: Bulletin news
+          ms: 1500
+      - click:
+          role: heading
+          name: EV9
+      - pause: 2000
+  - say: Click a file card to preview the attachment without opening the post.
+    steps:
+      - scroll:
+          text: en_catalog_k5.pdf
+      - highlight:
+          target:
+            text: en_catalog_k5.pdf
+          ms: 2000
+  - say: Twenty results are shown at a time. Click Load more results to see more.
+      The button disappears when there are no more results.
+    steps:
+      - type:
+          target:
+            role: textbox
+          text: the
+      - open: /search?keyword=the
+      - waitFor:
+          role: button
+          name: Load more results
+      - scroll:
+          role: button
+          name: Load more results
+      - highlight:
+          target:
+            role: button
+            name: Load more results
+          ms: 1500
+      - click:
+          role: button
+          name: Load more results
+      - pause: 1500
+      - highlight:
+          target:
+            role: heading
+            nth: 22
+          ms: 1500
+  - say: If nothing matches, check the spelling or try different or more general
+      keywords.
+    steps:
+      - type:
+          target:
+            role: textbox
+          text: xyz2026test
+      - click:
+          role: button
+          name: 검색
+      - waitFor:
+          text: did not match any documents
+      - highlight:
+          target:
+            text: did not match any documents
+          ms: 2500
+  - say: That's it for this guide. You're now ready to use this feature on your own.
+      Thank you for watching.
+    steps: []
