@@ -6,7 +6,7 @@ sections:
 mutates: true
 maskSystem: true
 scenes:
-  - say: Bulletin Board Management lists every bulletin board used in Kia Dealers.
+  - say: Bulletin Board Management lists every bulletin board used in Dealers.
       Create boards here, then connect them to a menu in Menu Management.
     steps:
       - open: /board
@@ -121,8 +121,8 @@ scenes:
             placeholder: Please enter the board description. (max 200 characters)
           text: Demo board for the guide video.
   - say: Choose Enabled or Disabled for each post attribute. With Target Audience
-      enabled, writers can target by job title, dealer group, dealer, zone, and
-      district.
+      enabled, writers can target posts by job title, dealer group, dealer,
+      zone, and district. You can also configure the Attachments attribute.
     steps:
       - scroll:
           text: "*Additional Attribute"
@@ -131,7 +131,7 @@ scenes:
           target:
             text: "*Target Audience"
             exact: true
-          ms: 2000
+          ms: 3000
       - highlight:
           target:
             text: "*Attachments"
@@ -151,8 +151,9 @@ scenes:
             text: Field Name / Display Format
           ms: 2000
   - say: Click Add, enter the field name, and choose Single selection with a
-      dropdown. Add the display values with the plus button, then a description,
-      and save.
+      dropdown. Add the display values with the + button. Then enter a
+      description, set field attributes such as Usage Status, Required, or
+      Searchable, and click Save.
     steps:
       - click:
           role: button
@@ -163,11 +164,11 @@ scenes:
       - type:
           target:
             placeholder: Field Name (eg. model)
-          text: Model
+          text: Vehicle type
       - type:
           target:
             placeholder: Nom du champ (p. ex. modèle)
-          text: Modèle
+          text: Type de véhicule
       - choose:
           target:
             text: Please select a display format
@@ -176,13 +177,11 @@ scenes:
       - type:
           target:
             placeholder: Display Value (eg. Red, Blue, Green...)
-            nth: 0
-          text: EV6
+          text: Sedan
       - type:
           target:
             placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
-            nth: 0
-          text: EV6
+          text: Berline
       - click:
           role: button
           name: Add
@@ -193,20 +192,34 @@ scenes:
           target:
             placeholder: Display Value (eg. Red, Blue, Green...)
             nth: 1
-          text: EV9
+          text: Hatchback
       - type:
           target:
             placeholder: "Valeur affichée (p. ex. : Rouge, Bleu, Vert…)"
             nth: 1
-          text: EV9
+          text: Berline compacte
       - type:
           target:
             placeholder: Description (eg. Please select the model)
-          text: Please select the model
+          text: Please select the vehicle type
       - type:
           target:
             placeholder: Description (p. ex., Veuillez sélectionner le modèle)
-          text: Veuillez sélectionner le modèle
+          text: Veuillez sélectionner le type de véhicule
+      - highlight:
+          target:
+            text: Usage status
+            within:
+              role: dialog
+          ms: 1000
+      - highlight:
+          target:
+            text: Required Field
+          ms: 1000
+      - highlight:
+          target:
+            text: Search Filter
+          ms: 1000
       - pause: 1000
       - click:
           role: button
@@ -222,7 +235,7 @@ scenes:
           within:
             role: dialog
       - waitFor:
-          text: Model
+          text: Vehicle type
           exact: true
   - say: A single selection with radio buttons allows up to 5 display values.
     steps:
