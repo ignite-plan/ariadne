@@ -1,0 +1,351 @@
+title: Job Management
+intro: This video shows how to search jobs, view a job's permissions and change
+  history, and set up menu permissions and Quick Links for a job.
+sections:
+  - 06-job-management/01-job-list-view.md
+  - 06-job-management/02-job-creation.md
+  - 06-job-management/03-view-job.md
+  - 06-job-management/04-job-editing.md
+scenes:
+  - say: Job Management lists every job. A job decides which menus a dealer employee
+      can use.
+    steps:
+      - open: /permission
+      - waitFor:
+          role: columnheader
+          name: Job Code
+      - highlight:
+          target:
+            role: heading
+            name: Job Management
+          ms: 2000
+  - say: Each job has a unique job code, assigned automatically when it is created,
+      with its title, description, and who updated it last.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Job Code
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Job Title
+          ms: 1500
+  - say: Status shows whether a job is Active or Inactive. Only active jobs can be
+      selected in Dealer Employee Management. Employees who already have an
+      inactive job can still log in, but cannot use the service.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Status
+          ms: 3000
+  - say: To find a job, search by job title or job code, or filter by status, then
+      click Search.
+    steps:
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+          text: ignite
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          role: row
+          name: ignite
+      - highlight:
+          target:
+            role: row
+            name: ignite
+          ms: 2000
+  - say: Click Detail to open the job.
+    steps:
+      - click:
+          role: button
+          within:
+            role: row
+            name: ignite
+      - waitFor:
+          text: View Job
+          exact: true
+      - highlight:
+          target:
+            text: Job Information
+            exact: true
+          ms: 1500
+  - say: Job Information shows the job code, the job title in English and French,
+      the description, and the status. A new job is Active by default.
+    steps:
+      - highlight:
+          target:
+            text: Job Code
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Status
+            exact: true
+          ms: 1500
+  - say: Menu Permission shows only the menus this job has permissions for.
+    steps:
+      - scroll:
+          text: Menu Permission
+          exact: true
+      - highlight:
+          target:
+            text: Menu Permission
+            exact: true
+          ms: 2500
+  - say: If the job has been changed, click See All Changes to see its edit history.
+    steps:
+      - scroll:
+          role: button
+          name: See All Changes
+      - click:
+          role: button
+          name: See All Changes
+      - waitFor:
+          role: columnheader
+          name: Change Details
+  - say: Each change shows the date, what was changed, the value before and after,
+      and who made it. Permission changes are shown as the permission and the
+      menu name.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Change Details
+          ms: 2500
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Click Edit to change the job.
+    steps:
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Edit Job
+          exact: true
+      - pause: 1000
+  - say: The job code cannot be changed. You can edit the title, the description,
+      the status, and the menu permissions and Quick Links.
+    steps:
+      - highlight:
+          target:
+            text: Job Code
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Inactive
+            exact: true
+          ms: 1500
+  - say: Save becomes active only after you make a change. Click Cancel to go back
+      without saving.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Save
+            exact: true
+          ms: 2000
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+      - waitFor:
+          text: View Job
+          exact: true
+  - say: Some jobs, such as Super Admin and Dealer Principal, are locked and cannot
+      be edited.
+    steps:
+      - open: /permission
+      - waitFor:
+          role: columnheader
+          name: Job Code
+      - type:
+          target:
+            role: textbox
+            name: Text Field
+          text: Super Admin
+      - click:
+          role: button
+          name: Search
+          exact: true
+      - waitFor:
+          role: row
+          name: Super Admin
+      - click:
+          role: button
+          within:
+            role: row
+            name: Super Admin
+      - waitFor:
+          text: View Job
+          exact: true
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Permission settings for this job are locked.
+      - highlight:
+          target:
+            role: dialog
+          ms: 2500
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
+  - say: To create a job, go back to the list and click Create New.
+    steps:
+      - click:
+          role: button
+          name: View List
+      - waitFor:
+          role: columnheader
+          name: Job Code
+      - click:
+          role: button
+          name: Create New
+      - waitFor:
+          text: Create Job
+          exact: true
+  - say: The job title is required in both English and French, up to 20 characters.
+      The description is optional, up to 50 characters.
+    steps:
+      - highlight:
+          target:
+            placeholder: Enter Job Name (max 20 characters)
+          ms: 1500
+      - highlight:
+          target:
+            placeholder: Saisissez le nom du poste (20 caractères max.)
+          ms: 1500
+      - highlight:
+          target:
+            placeholder: Add job title description (50 characters max)
+          ms: 1500
+  - say: Menu Permission lists the active menus and the permissions set for them in
+      Menu Management. Choose the permissions this job should have.
+    steps:
+      - scroll:
+          text: Menu Permission
+          exact: true
+      - highlight:
+          target:
+            role: tree
+            nth: 1
+          ms: 2500
+  - say: Permissions follow the menu structure. Access is needed before Read, and
+      Read before Write. Check Access for a menu, and its Read box becomes
+      available.
+    steps:
+      - click:
+          role: checkbox
+          nth: 1
+          within:
+            role: treeitem
+            name: Bulletin Board
+            nth: 0
+            within:
+              role: tree
+              nth: 1
+      - pause: 1500
+  - say: A parent menu needs at least Access before its submenus can get
+      permissions. Expand the menu to see its submenus. All selects every
+      permission for a menu.
+    steps:
+      - click:
+          role: button
+          nth: 0
+          within:
+            role: treeitem
+            name: Bulletin Board
+            nth: 0
+            within:
+              role: tree
+              nth: 1
+      - pause: 2000
+      - click:
+          role: checkbox
+          nth: 2
+          within:
+            role: treeitem
+            name: Bulletin Board
+            nth: 0
+            within:
+              role: tree
+              nth: 1
+      - pause: 1500
+  - say: Here we clear these permissions again, so nothing is changed.
+    steps:
+      - click:
+          role: checkbox
+          nth: 2
+          within:
+            role: treeitem
+            name: Bulletin Board
+            nth: 0
+            within:
+              role: tree
+              nth: 1
+      - click:
+          role: checkbox
+          nth: 1
+          within:
+            role: treeitem
+            name: Bulletin Board
+            nth: 0
+            within:
+              role: tree
+              nth: 1
+      - pause: 1000
+  - say: With Quick Links, you can preset up to 20 Quick Links for the job. When an
+      employee gets this job for the first time and has no Quick Links, the
+      preset is applied. Click the star next to a menu to add it, and drag to
+      reorder.
+    steps:
+      - highlight:
+          target:
+            text: Quick Links
+            exact: true
+          ms: 3500
+  - say: Click Import Job to copy the permissions and Quick Links of an existing
+      job. Select a job in the popup and click Import. Permissions you have
+      already set on this screen are not overwritten.
+    steps:
+      - scroll:
+          role: button
+          name: Import Job
+      - highlight:
+          target:
+            role: button
+            name: Import Job
+          ms: 3000
+  - say: Click Create to create the job. A unique job code is assigned. Click Cancel
+      to leave without saving.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Create
+            exact: true
+          ms: 2000
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+      - waitFor:
+          role: columnheader
+          name: Job Code
+      - pause: 1000

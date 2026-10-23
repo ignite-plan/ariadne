@@ -1,0 +1,262 @@
+title: Weekly Bulletin Summary Email Management
+intro: This video shows how to set up the weekly bulletin summary, generate a
+  summary for a date range, and review and send summary emails.
+sections:
+  - 11-weekly-bulletin-summary-email-management/00-intro.md
+  - 11-weekly-bulletin-summary-email-management/01-bulletin-summary-settings.md
+  - 11-weekly-bulletin-summary-email-management/02-bulletin-summary-list-view.md
+mutates: true
+scenes:
+  - say: Weekly Bulletin Summary Email Management creates summaries of the posts in
+      each bulletin and sends them by email.
+    steps:
+      - open: /weekly-email
+      - waitFor:
+          text: Bulletin Summary List
+          exact: true
+      - highlight:
+          target:
+            role: heading
+            name: Weekly Bulletin Summary Email Management
+          ms: 2000
+  - say: Summaries can be created every week, or for a specific date range. Users
+      with Write permission can generate summaries, and users with Read
+      permission can view them.
+    steps:
+      - highlight:
+          target:
+            text: Bulletin Summary Settings
+          ms: 3000
+  - say: Auto Summary sends a weekly bulletin summary email to the recipients you
+      set. Current schedule shows the day and time it runs.
+    steps:
+      - highlight:
+          target:
+            text: Auto Summary (Weekly)
+            exact: true
+          ms: 1500
+      - highlight:
+          target:
+            text: Current schedule
+            exact: true
+          ms: 2000
+  - say: By default, the summary is generated every Monday at 8 AM. It covers posts
+      from Monday 00:00 to Sunday 23:59 of the previous week.
+    steps:
+      - highlight:
+          target:
+            text: New schedule applies from the next day.
+          ms: 3000
+  - say: Email address shows who receives the weekly summary.
+    steps:
+      - highlight:
+          target:
+            text: Email address
+            exact: true
+          ms: 2000
+  - say: Click Set schedule to change the schedule and the recipients.
+    steps:
+      - click:
+          role: button
+          name: Set schedule
+      - waitFor:
+          text: Set Schedule enables weekly scheduling of automated post summary emails
+            for each board.
+      - highlight:
+          target:
+            role: dialog
+          ms: 2000
+  - say: In Change Schedule, select any day from Monday to Sunday.
+    steps:
+      - choose:
+          target:
+            role: combobox
+            within:
+              role: dialog
+          option: Every Wed at 8:00 AM EST (Covers posts Last Wed 00:00~ This Tue 23:59)
+      - waitFor:
+          text: Next scheduled date
+          exact: true
+  - say: Next scheduled date shows when the next summary will be sent, based on the
+      new setting. A new schedule takes effect from the next day.
+    steps:
+      - highlight:
+          target:
+            text: Next scheduled date
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            text: Changes will be applied from the next day.
+          ms: 2000
+  - say: In To Email address, enter up to 10 addresses, separated by semicolons.
+      Each address must include an at sign and be valid, or sending is blocked
+      with an error message.
+    steps:
+      - highlight:
+          target:
+            text: Enter email address up to 10. Separate with semicolon(;) each email.
+          ms: 3000
+  - say: Click Save to apply the change. Here we cancel instead. If you made
+      changes, you are asked to confirm before leaving.
+    steps:
+      - click:
+          role: button
+          name: Cancel
+          within:
+            role: dialog
+      - waitFor:
+          text: Leave without saving?
+      - click:
+          role: button
+          name: Discard
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Manual Summary generates a bulletin summary for a date range of up to 7
+      days. Only users with Write permission can see this section.
+    steps:
+      - highlight:
+          target:
+            text: Manual Summary
+            exact: true
+          ms: 2000
+  - say: By default, the range is set to the last few days, ending yesterday. Today
+      and future dates cannot be selected.
+    steps:
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 0
+          ms: 1500
+      - highlight:
+          target:
+            role: textbox
+            name: date picker
+            nth: 1
+          ms: 1500
+  - say: When you change the start date, the end date moves to three days later, or
+      to yesterday if that comes first. The end date must be within 7 days of
+      the start date. If you select a longer range, a message appears and the
+      dates are reset.
+    steps:
+      - pause: 4000
+  - say: The total number of posts in the range is checked. If there are no posts,
+      or 100 or more, Generate is disabled. Reduce the range to stay within the
+      limit.
+    steps:
+      - highlight:
+          target:
+            text: Generate and send a bulletin summary for a selected 7-day range.
+          ms: 3000
+  - say: Click Generate to create the summary. When it is ready, the Bulletin
+      Summary Email pop-up opens so you can review and send it.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Generate
+          ms: 2500
+  - say: Generated summaries are listed in Bulletin Summary List, with the total
+      count at the top.
+    steps:
+      - scroll:
+          text: Bulletin Summary List
+          exact: true
+      - highlight:
+          target:
+            text: Bulletin Summary List
+            exact: true
+          ms: 2000
+  - say: The subject shows whether a summary is Weekly or Target, and which posting
+      period it covers. Target Posting Period and Created Date are shown in EST.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Bulletin Summary Subject
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Target Posting Period
+          ms: 1500
+      - highlight:
+          target:
+            role: columnheader
+            name: Created Date
+          ms: 1500
+  - say: Click a subject to open the Bulletin Summary Email pop-up.
+    steps:
+      - click:
+          role: link
+          name: Kia Dealers Target Bulletin Summary
+          nth: 0
+      - waitFor:
+          text: Email Send Settings
+          exact: true
+      - pause: 1000
+  - say: In Email Send Settings, enter the recipients with the same rules, and
+      select English, French, or both.
+    steps:
+      - highlight:
+          target:
+            placeholder: Please enter the email address (eg. abc@hyundai.com;
+              efg@hyundai@com)
+          ms: 2000
+      - highlight:
+          target:
+            text: "*Select Language"
+            exact: true
+          ms: 1500
+  - say: Bulletin Summary shows the email content. Switch between the English and
+      French versions with the tabs.
+    steps:
+      - scroll:
+          text: Bulletin Summary
+          exact: true
+          within:
+            role: dialog
+      - click:
+          role: tab
+          name: French
+          within:
+            role: dialog
+      - pause: 2500
+      - click:
+          role: tab
+          name: English
+          within:
+            role: dialog
+      - pause: 1500
+  - say: Click Copy HTML to copy the email content as HTML.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Copy HTML
+          ms: 2000
+  - say: Click Send Email to send the summary. Users with Read permission see only
+      the summary content, without the send settings.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Send Email
+          ms: 2500
+      - click:
+          role: button
+          name: Cancel
+          within:
+            role: dialog
+      - pause: 1000
+  - say: You can also click Send in the Email column to open the same pop-up.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Send
+            nth: 0
+            exact: true
+          ms: 2500

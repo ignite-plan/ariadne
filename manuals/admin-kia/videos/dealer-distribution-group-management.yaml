@@ -1,0 +1,269 @@
+title: Dealer Distribution Group Management
+intro: This video shows how to view, create, edit, and delete dealer
+  distribution groups.
+sections:
+  - 04-dealer-distribution-group-management/01-dealer-distribution-group-list-view.md
+  - 04-dealer-distribution-group-management/02-dealer-distribution-group-creation.md
+  - 04-dealer-distribution-group-management/03-dealer-distribution-group-detail-view.md
+  - 04-dealer-distribution-group-management/04-dealer-distribution-group-editing.md
+mutates: true
+scenes:
+  - say: In Dealer Distribution Group Management, you can create, edit, delete, and
+      view groups of dealers.
+    steps:
+      - open: /dealer/group
+      - waitFor:
+          role: columnheader
+          name: Description
+      - highlight:
+          target:
+            role: heading
+            name: Dealer Distribution Group Management
+          ms: 2000
+  - say: Each row shows the group's name, description, and number of dealers, and
+      who updated it last, and when.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Name
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealers
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated by
+          ms: 1500
+  - say: Click Detail to open a group's details.
+    steps:
+      - click:
+          role: button
+          name: view
+          within:
+            role: row
+            name: DLR_DIST_GRP_01
+      - waitFor:
+          text: View Dealer Distribution Group
+      - highlight:
+          target:
+            text: Dealer Distribution Group Information
+          ms: 2000
+  - say: The details show the group name, description, the number of dealers, and
+      how many dealers there are in each status.
+    steps:
+      - highlight:
+          target:
+            text: Dealer Status
+            exact: true
+          ms: 2500
+  - say: Dealer List shows the dealers in the group, with their number, status, and
+      the date they were added. Click Detail to open a dealer's details.
+    steps:
+      - scroll:
+          text: Dealer List
+          exact: true
+      - highlight:
+          target:
+            role: columnheader
+            name: Dealer No.
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated date
+          ms: 1500
+  - say: Use Delete to delete the group, Edit to change it, and View List to go back
+      to the list.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Delete
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: button
+            name: Edit
+            exact: true
+          ms: 1200
+      - click:
+          role: button
+          name: View List
+      - waitFor:
+          role: columnheader
+          name: Description
+  - say: To create a group, click Create New.
+    steps:
+      - click:
+          role: button
+          name: Create New
+      - waitFor:
+          text: Create Dealer Distribution Group
+      - pause: 1000
+  - say: The group name is required, up to 20 characters, and must be unique. If the
+      name is already taken, an error message appears.
+    steps:
+      - type:
+          target:
+            placeholder: Name (max 20characters)
+          text: DLR_DIST_GRP_01
+      - click:
+          role: checkbox
+          name: kia test 01 (2) | ACTIVE
+      - click:
+          role: button
+          name: Create
+          exact: true
+      - waitFor:
+          text: This name is already taken
+      - highlight:
+          target:
+            text: This name is already taken
+          ms: 2000
+  - say: Enter a new name, and an optional description of up to 50 characters.
+    steps:
+      - type:
+          target:
+            placeholder: Name (max 20characters)
+          text: Video Test G{stamp}
+      - type:
+          target:
+            placeholder: Dealer Distribution Group description (50characters max)
+          text: Group for the guide video
+  - say: Dealer List shows all dealers, with their name, number, and status. They
+      are sorted by status, then by name. Search by dealer name or number.
+    steps:
+      - type:
+          target:
+            placeholder: Type dealer name or dealer number
+            nth: 0
+          text: kia test
+      - pause: 1500
+  - say: Check a dealer to add it to Selected Dealers on the right.
+    steps:
+      - click:
+          role: checkbox
+          name: kia test 02 (3) | ACTIVE
+      - pause: 1000
+      - highlight:
+          target:
+            text: Selected Dealers
+            exact: true
+          ms: 2000
+  - say: To remove a dealer, uncheck it, or click the x button in Selected Dealers.
+      You can search the selected dealers too.
+    steps:
+      - highlight:
+          target:
+            label: delete
+            nth: 1
+          ms: 1500
+      - click:
+          label: delete
+          nth: 1
+      - pause: 1000
+      - click:
+          role: checkbox
+          name: kia test 02 (3) | ACTIVE
+      - pause: 1000
+  - say: Click Create to save the group. It appears in the list.
+    steps:
+      - type:
+          target:
+            placeholder: Type dealer name or dealer number
+            nth: 0
+          text: ""
+      - click:
+          role: button
+          name: Create
+          exact: true
+      - waitFor:
+          role: row
+          name: Video Test G{stamp}
+      - highlight:
+          target:
+            role: row
+            name: Video Test G{stamp}
+          ms: 2000
+  - say: Open the new group and click Edit to change it.
+    steps:
+      - click:
+          role: button
+          name: view
+          within:
+            role: row
+            name: Video Test G{stamp}
+      - waitFor:
+          text: View Dealer Distribution Group
+      - click:
+          role: button
+          name: Edit
+          exact: true
+      - waitFor:
+          text: Edit Dealer Distribution Group
+  - say: You can edit the name, the description, and the dealers. Dealers already in
+      the group are checked.
+    steps:
+      - highlight:
+          target:
+            text: Selected Dealers
+            exact: true
+          ms: 2000
+      - click:
+          role: checkbox
+          name: kia test 01 (2) | ACTIVE
+      - click:
+          role: checkbox
+          name: DLR_KCA_01_EN (4) | ACTIVE
+      - pause: 1000
+  - say: When you change the dealers and click Save, a pop-up lists the dealers
+      added and removed. Click Confirm to apply the changes, or Cancel to go
+      back to editing.
+    steps:
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Save Changes?
+      - highlight:
+          target:
+            role: dialog
+          ms: 3000
+      - click:
+          role: button
+          name: Confirm
+          within:
+            role: dialog
+      - waitFor:
+          text: View Dealer Distribution Group
+      - pause: 1500
+  - say: To delete the group, click Delete. All dealers in the group become
+      ungrouped.
+    steps:
+      - click:
+          role: button
+          name: Delete
+          exact: true
+      - waitFor:
+          text: Delete Dealer Distribution Group?
+      - highlight:
+          target:
+            role: dialog
+          ms: 2500
+      - click:
+          role: button
+          name: Delete
+          within:
+            role: dialog
+      - waitFor:
+          role: columnheader
+          name: Description
+      - pause: 1500

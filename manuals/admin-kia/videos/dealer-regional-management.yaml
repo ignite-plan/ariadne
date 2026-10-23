@@ -1,0 +1,396 @@
+title: Dealer Regional Management
+intro: This video shows how to view dealers by zone and district, manage zones
+  and districts, and bulk update dealer assignments with Excel.
+sections:
+  - 03-zone-district-management-dealer-regional-management/01-zone-district-management-view.md
+  - 03-zone-district-management-dealer-regional-management/02-zone-district-creation-modification-and-deletion.md
+  - 03-zone-district-management-dealer-regional-management/03-excel-upload-bulk-update.md
+mutates: true
+scenes:
+  - say: In Zone/District Management, you can see which zone and district each
+      dealer is assigned to, and create, edit, and delete zones and districts.
+    steps:
+      - open: /dealer/zone
+      - waitFor:
+          text: Dealer List
+          exact: true
+      - highlight:
+          target:
+            role: heading
+            name: Zone/District Management
+          ms: 2000
+  - say: On the left, all zones and districts are shown as a tree. The number in
+      parentheses is how many dealers are assigned to each one.
+    steps:
+      - highlight:
+          target:
+            role: tree
+            nth: 1
+          ms: 3000
+  - say: Click a zone or district to see its dealers on the right. When you open the
+      screen, All is selected, so every dealer is listed.
+    steps:
+      - highlight:
+          target:
+            text: All
+            exact: true
+            within:
+              role: tree
+              nth: 1
+          ms: 1500
+      - highlight:
+          target:
+            text: Dealer List
+            exact: true
+          ms: 1500
+  - say: Each row shows the number, zone, district, dealer number and name, status,
+      and the date the zone or district was last updated. The list is sorted by
+      the most recent assignment.
+    steps:
+      - highlight:
+          target:
+            role: columnheader
+            name: Zone
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: District
+            exact: true
+          ms: 1200
+      - highlight:
+          target:
+            role: columnheader
+            name: Updated date
+          ms: 2000
+  - say: Click a district to see only the dealers in that district.
+    steps:
+      - click:
+          text: E1
+          exact: true
+          within:
+            role: tree
+            nth: 1
+      - pause: 2000
+  - say: Click a zone to see the dealers in that zone, including all of its
+      districts. Clicking a zone also collapses or expands it, the same as the
+      plus and minus box in front of it.
+    steps:
+      - click:
+          text: ER
+          exact: true
+          within:
+            role: tree
+            nth: 1
+      - pause: 2000
+      - click:
+          text: ER
+          exact: true
+          within:
+            role: tree
+            nth: 1
+      - pause: 1000
+  - say: Unassigned shows dealers that have no zone, or that belong to a zone but
+      have no district.
+    steps:
+      - click:
+          text: Unassigned
+          nth: 0
+          exact: true
+          within:
+            role: tree
+            nth: 1
+      - pause: 2000
+  - say: Click Detail to open the dealer's details.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Detail
+            nth: 0
+          ms: 2000
+  - say: To create a zone, click Add Zone. An input box appears in the tree.
+    steps:
+      - click:
+          role: button
+          name: Add Zone
+      - waitFor:
+          placeholder: Zone Name (Max 20characters)
+      - highlight:
+          target:
+            placeholder: Zone Name (Max 20characters)
+          ms: 1500
+  - say: Zone names must be unique. If the name is already taken, an error message
+      appears.
+    steps:
+      - type:
+          target:
+            placeholder: Zone Name (Max 20characters)
+          text: ER
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: This name is already taken
+      - highlight:
+          target:
+            text: This name is already taken
+          ms: 2000
+  - say: Enter a new name of up to 20 characters and click Save.
+    steps:
+      - type:
+          target:
+            placeholder: Zone Name (Max 20characters)
+          text: Video Test Z{stamp}
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Video Test Z{stamp}
+          exact: true
+      - highlight:
+          target:
+            text: Video Test Z{stamp}
+            exact: true
+          ms: 1500
+  - say: The new zone appears in the tree with its own Unassigned group. Hover over
+      the zone to see its buttons, and click the plus button to add a district
+      under it.
+    steps:
+      - open: /dealer/zone
+      - waitFor:
+          text: Video Test Z{stamp}
+          exact: true
+      - scroll:
+          text: Video Test Z{stamp}
+          exact: true
+      - hover:
+          text: Video Test Z{stamp}
+          exact: true
+      - highlight:
+          target:
+            label: add
+            within:
+              role: button
+              name: Video Test Z{stamp}
+          ms: 1500
+      - click:
+          label: add
+          within:
+            role: button
+            name: Video Test Z{stamp}
+      - waitFor:
+          placeholder: District Name (Max 20characters)
+  - say: Enter the district name and click Save.
+    steps:
+      - type:
+          target:
+            placeholder: District Name (Max 20characters)
+          text: Video Test D{stamp}
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Video Test D{stamp}
+          exact: true
+      - pause: 1000
+  - say: Add another district the same way.
+    steps:
+      - hover:
+          text: Video Test Z{stamp}
+          exact: true
+      - click:
+          label: add
+          within:
+            role: button
+            name: Video Test Z{stamp}
+      - type:
+          target:
+            placeholder: District Name (Max 20characters)
+          text: Video Test E{stamp}
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: Video Test E{stamp}
+          exact: true
+      - pause: 1000
+  - say: District names must be unique within the same zone.
+    steps:
+      - hover:
+          text: Video Test Z{stamp}
+          exact: true
+      - click:
+          label: add
+          within:
+            role: button
+            name: Video Test Z{stamp}
+      - type:
+          target:
+            placeholder: District Name (Max 20characters)
+          text: Video Test D{stamp}
+      - click:
+          role: button
+          name: Save
+          exact: true
+      - waitFor:
+          text: This name is already taken
+      - highlight:
+          target:
+            text: This name is already taken
+          ms: 2000
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+  - say: Click the pencil icon to edit a zone's name, then save or cancel.
+    steps:
+      - hover:
+          text: Video Test Z{stamp}
+          exact: true
+      - click:
+          label: edit
+          nth: 0
+          within:
+            role: button
+            name: Video Test Z{stamp}
+      - waitFor:
+          placeholder: Zone Name (Max 20characters)
+      - highlight:
+          target:
+            placeholder: Zone Name (Max 20characters)
+          ms: 2000
+      - click:
+          role: button
+          name: Cancel
+          exact: true
+  - say: Hover over a district and click the minus button to delete it. Dealers in
+      that district keep their zone, but no longer belong to a district.
+    steps:
+      - hover:
+          text: Video Test E{stamp}
+          exact: true
+      - highlight:
+          target:
+            label: delete
+            within:
+              role: button
+              name: Video Test E{stamp}
+          ms: 1500
+      - click:
+          label: delete
+          within:
+            role: button
+            name: Video Test E{stamp}
+      - pause: 2000
+  - say: You can also reorder zones and districts. Press and hold an item for one
+      second, then drag it. Districts move with their zone, and a district can
+      only move within its own zone.
+    steps:
+      - highlight:
+          target:
+            role: tree
+            nth: 1
+          ms: 3500
+  - say: To delete a zone, click its minus button. A message warns that its
+      districts will also be deleted, and its dealers will become unassigned.
+    steps:
+      - hover:
+          text: Video Test Z{stamp}
+          exact: true
+      - click:
+          label: delete
+          nth: 0
+          within:
+            role: button
+            name: Video Test Z{stamp}
+      - waitFor:
+          text: Delete Zone?
+      - highlight:
+          target:
+            role: dialog
+          ms: 2500
+      - click:
+          role: button
+          name: Delete
+          within:
+            role: dialog
+      - pause: 2000
+  - say: To change many dealers' zones and districts at once, use Bulk Update. Only
+      users with write permission can see this button.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Bulk Update
+          ms: 1500
+      - click:
+          role: button
+          name: Bulk Update
+      - waitFor:
+          text: Template Download
+  - say: First, click Template Download and fill in the official template. Updates
+      are matched by Dealer No. only, and you must not add, delete, or reorder
+      columns.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Template Download
+          ms: 2500
+      - highlight:
+          target:
+            role: dialog
+          ms: 2500
+  - say: Only xlsx files up to 20MB are allowed. The system reads Dealer No., New
+      Zone Code, and New District Code from the first sheet. The district must
+      belong to the selected zone.
+    steps:
+      - highlight:
+          target:
+            text: "Hierarchy Match: The New District Code must be a valid child of the New
+              Zone Code."
+          ms: 3000
+  - say: Click Update and choose your file. Each row is processed on its own. Valid
+      rows are applied, and invalid rows are skipped. Processing continues even
+      if you leave the page.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Update
+            exact: true
+          ms: 2500
+  - say: When processing is complete, a summary shows how many rows succeeded and
+      failed. If some rows failed, you can download an error report with the row
+      number and the reason.
+    steps:
+      - click:
+          role: button
+          name: Cancel
+          within:
+            role: dialog
+      - pause: 1000
+  - say: Click Update Log to see past uploads. A log is saved whenever processing
+      starts, and you can download the uploaded file and the error report again.
+    steps:
+      - click:
+          role: button
+          name: Update Log
+      - waitFor:
+          role: columnheader
+          name: Error Report
+      - highlight:
+          target:
+            role: dialog
+          ms: 3000
+      - click:
+          role: button
+          name: OK
+          within:
+            role: dialog
