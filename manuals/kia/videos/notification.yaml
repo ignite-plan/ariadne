@@ -1,8 +1,9 @@
-title: Notification & Notification Setting
+title: Notification
 intro: This video shows how to check your notifications and choose which
   notifications you receive.
 sections:
   - 05-email-notification/00-intro.md
+mutates: true
 maskPersonal: true
 maskSystem: true
 scenes:
@@ -25,8 +26,8 @@ scenes:
       - waitFor:
           text: Notification Setting
       - pause: 2000
-  - say: Each card shows the post title and when it arrived, and the icon tells you
-      what kind of post it is. Click a card to jump straight to that post.
+  - say: "Each card shows the post title and when it arrived, and the icon tells you
+      what kind of post it is. "
     steps:
       - highlight:
           target:
@@ -35,9 +36,24 @@ scenes:
           ms: 2000
       - highlight:
           target:
-            text: 1 day ago
+            text: 2 days ago
+          ms: 1000
+  - say: There are four notification types. Welcome is a one-time message shown when
+      you first log in after registration. Important notice is a post marked as
+      important by an administrator. General post is a regular post without
+      attachments. Attachment post is a post that includes attached files. Click
+      a card to jump straight to that post.
+    steps:
+      - highlight:
+          target:
+            text: EV9 Product Guide
             nth: 0
-          ms: 1500
+          ms: 2000
+      - highlight:
+          target:
+            text: excited to have you on board
+          ms: 2500
+      - pause: 1000
   - say: If a post is edited after it is sent, a new card with an Edited tag appears
       in the list.
     steps:
@@ -50,14 +66,14 @@ scenes:
       - highlight:
           target:
             text: Edited
-            nth: 3
-          ms: 2000
+            nth: 4
+          ms: 1000
       - highlight:
           target:
             role: heading
             name: EV9 Product Guide
-          ms: 2000
-      - pause: 3000
+          ms: 1000
+      - pause: 1000
       - highlight:
           target:
             role: button
@@ -120,3 +136,6 @@ scenes:
           target:
             text: Notification
           ms: 3000
+  - say: That's it for this guide. You're now ready to use this feature on your own.
+      Thank you for watching.
+    steps: []

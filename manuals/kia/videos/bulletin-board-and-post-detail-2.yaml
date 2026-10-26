@@ -36,7 +36,7 @@ scenes:
           target:
             role: combobox
             name: Title
-          ms: 1500
+          ms: 1000
       - click:
           role: combobox
           nth: 1
@@ -45,7 +45,7 @@ scenes:
       - highlight:
           target:
             text: Bulletin Type
-          ms: 1500
+          ms: 1000
       - click:
           text: Select
       - click:
@@ -54,19 +54,17 @@ scenes:
       - highlight:
           target:
             text: Bulletin Number
-          ms: 1500
+          ms: 1000
       - click:
           role: combobox
           nth: 3
       - waitFor:
           role: listbox
-      - pause: 1500
       - highlight:
           target:
             role: textbox
             name: date picker
-            nth: 0
-          ms: 2000
+          ms: 1000
   - say: >-
       The total post count shows the list. You can also sort the list, for
       example by the latest date. 
@@ -77,7 +75,7 @@ scenes:
       - highlight:
           target:
             text: Total 11
-          ms: 2000
+          ms: 1000
       - click:
           text: Date Latest
       - click:
@@ -85,8 +83,7 @@ scenes:
           name: Date Latest
       - highlight:
           target:
-            text: Title
-            nth: 1
+            text: "20"
           ms: 1000
       - highlight:
           target:
@@ -95,21 +92,18 @@ scenes:
       - highlight:
           target:
             text: New
-            nth: 3
-          ms: 2000
-      - highlight:
-          target:
-            text: Date
             nth: 2
           ms: 1000
-      - hover:
-          role: button
-          name: catalog_morning.pdf
-      - pause: 1500
       - highlight:
           target:
-            text: Bulletin Number
-            nth: 1
+            text: Oct 21, 2026
+          ms: 1000
+      - hover:
+          text: catalog_morning_.pdf
+      - pause: 1000
+      - highlight:
+          target:
+            text: 2026-10-1001
           ms: 1000
   - say: The post detail shows the title, additional information, and the posting
       date in American format. Click Copy Link to copy the post link for
@@ -120,15 +114,15 @@ scenes:
       - highlight:
           target:
             text: EV9 Product Guide
-          ms: 2000
+          ms: 500
       - highlight:
           target:
             text: "Bulletin Number : 2026-10-1001"
-          ms: 2000
+          ms: 1000
       - highlight:
           target:
             text: Oct 21, 2026
-          ms: 2000
+          ms: 1000
       - hover:
           role: button
           name: Copy Link
@@ -140,7 +134,7 @@ scenes:
       - highlight:
           target:
             text: This guide cover
-          ms: 2000
+          ms: 1000
       - pause: 1000
   - say: Images in the post open in the image gallery. You can download the image or
       close the gallery from the top right, and move between images with the
@@ -165,7 +159,7 @@ scenes:
             name: paste-1792573463247.png
             within:
               role: dialog
-          ms: 2000
+          ms: 1000
       - click:
           role: button
           nth: 1
@@ -177,14 +171,14 @@ scenes:
     steps:
       - highlight:
           target:
-            text: Attachment 2
+            text: Attachment 3
           ms: 2000
       - click:
           role: button
           name: en_catalog_k5.pdf
       - waitFor:
           role: dialog
-      - pause: 5000
+      - pause: 6000
       - click:
           role: button
           nth: 1
@@ -207,26 +201,11 @@ scenes:
           ms: 2000
   - say: >-
       That is how to find a post on the bulletin board and read its details,
-      images, and attachments. Click View List to return to the post list.
+      images, and attachments.
 
-      Thank you for watching.
+      That's it for this guide. Thank you for watching.
     steps:
       - scroll:
           role: heading
           name: EV9 Product Guide
-      - highlight:
-          target:
-            role: heading
-            name: EV9 Product Guide
-          ms: 2000
-      - click:
-          role: button
-          name: View List
-      - waitFor:
-          text: Bulletin Menu
-      - highlight:
-          target:
-            role: heading
-            name: Bulletin news
-          ms: 2000
       - pause: 2000

@@ -1,7 +1,6 @@
 title: Dealer Employee Troubleshooting
 intro: This video shows how to find out why a dealer employee cannot log in, or
-  cannot see a menu or a post in Kia Dealers, using Dealer Employee
-  Troubleshooting.
+  cannot see a menu or a post in Dealers, using Dealer Employee Troubleshooting.
 sections:
   - 13-dealer-employee-troubleshooting/00-intro.md
 mutates: true
@@ -324,19 +323,27 @@ scenes:
       - waitFor:
           role: row
           name: Menu Permission Fail
-      - pause: 1000
+      - pause: 2000
   - say: The menu and its parent menus are displayed, but the Menu Permission step
-      failed. The user's job title has no access permission for this menu.
+      failed.
     steps:
       - highlight:
           target:
             role: row
             name: Menu Permission Fail
           ms: 3500
-  - say: Go to Setting opens the menu's access permission tab in Menu Management. If
-      the menu has no permissions defined yet, as here, you are asked to add
-      them in Menu Details first. We will fix a failed permission later in this
-      video.
+  - say: The user's job title has no access permission for this menu.
+    steps:
+      - scroll:
+          role: row
+          name: Menu Permission Fail
+      - pause: 800
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Fail
+          ms: 3500
+  - say: Go to Setting opens the menu's access permission tab in Menu Management.
     steps:
       - highlight:
           target:
@@ -346,6 +353,19 @@ scenes:
               role: row
               name: Menu Permission Fail
           ms: 3500
+  - say: If the menu has no permissions defined yet, as here, you are asked to add
+      them in Menu Details first. We will fix a failed permission later in this
+      video.
+    steps:
+      - scroll:
+          role: row
+          name: Menu Permission Fail
+      - pause: 800
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Fail
+          ms: 4000
   - say: Click Reset to clear the search conditions and the result.
     steps:
       - click:
@@ -479,9 +499,19 @@ scenes:
           role: row
           name: Menu Permission Fail
       - pause: 1000
-  - say: The menu is displayed, but Menu Permission failed. Sales Manager has no
-      access permission for Dealer Bulletins.
+  - say: The menu is displayed, but Menu Permission failed.
     steps:
+      - highlight:
+          target:
+            role: row
+            name: Menu Permission Fail
+          ms: 3000
+  - say: Sales Manager has no access permission for Dealer Bulletins.
+    steps:
+      - scroll:
+          role: row
+          name: Menu Permission Fail
+      - pause: 800
       - highlight:
           target:
             role: row
@@ -806,6 +836,8 @@ scenes:
             role: heading
             name: Dealer Employee Troubleshooting
           ms: 2500
+  - say: That's it for this guide. Thank you for watching.
+    steps: []
 cleanup:
   - open: /menu?menuId=6921&tab=1
   - waitFor:

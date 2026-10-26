@@ -1,0 +1,139 @@
+title: Notification & Notification Settings
+intro: This video shows how to check your notifications and choose which
+  notifications you receive.
+sections:
+  - 05-email-notification/00-intro.md
+mutates: true
+maskPersonal: true
+maskSystem: true
+scenes:
+  - say: The bell icon in the GNB shows a numbered badge whenever you have unread
+      notifications.
+    steps:
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - highlight:
+          target:
+            text: Notification
+          ms: 2500
+  - say: Click the bell to open the notification layer. The badge resets once the
+      layer is open.
+    steps:
+      - click:
+          role: button
+          name: ""
+          nth: 4
+      - waitFor:
+          text: Notification Setting
+      - pause: 2000
+  - say: Notifications are listed newest first, and each card shows the post title
+      and when it arrived. Click a card to jump straight to that post.
+    steps:
+      - highlight:
+          target:
+            text: EV9 Product Guide
+            nth: 0
+          ms: 2000
+      - highlight:
+          target:
+            text: 2 days ago
+          ms: 1500
+      - highlight:
+          target:
+            text: 4 days ago
+            nth: 0
+          ms: 1500
+  - say: Each card's icon tells you what kind of post it is. Welcome is a one-time
+      message shown when you first log in after registration. The other icons
+      mark a regular post or a post with an attachment.
+    steps:
+      - highlight:
+          target:
+            text: excited to have you on board
+          ms: 2500
+      - highlight:
+          target:
+            text: EV9 Product Guide
+            nth: 0
+          ms: 2000
+  - say: If a post is edited after it is sent, a new card with an Edited tag appears
+      at the top of the list.
+    steps:
+      - highlight:
+          target:
+            text: Edited
+            nth: 0
+          ms: 2000
+      - highlight:
+          target:
+            text: Edited
+            nth: 1
+          ms: 1500
+      - click:
+          text: EV9 Product Guide
+          nth: 1
+      - waitFor:
+          role: heading
+          name: EV9 Product Guide
+      - pause: 1500
+      - open: /
+      - waitFor:
+          text: Bulletin Highlights
+      - click:
+          role: button
+          name: ""
+          nth: 4
+      - waitFor:
+          text: Notification Setting
+  - say: At the bottom of the notification layer, click Notification Setting to
+      choose what you want to be notified about. This applies only to your
+      currently active dealership.
+    steps:
+      - highlight:
+          target:
+            role: button
+            name: Notification Setting
+          ms: 1500
+      - click:
+          role: button
+          name: Notification Setting
+      - waitFor:
+          text: Notification Type
+      - pause: 1500
+  - say: Choose All Posts to receive every post notification, or Important Posts
+      Only to receive just the important notices configured by an admin. This
+      one setting applies to both email and web notifications.
+    steps:
+      - highlight:
+          target:
+            text: All Posts
+          ms: 1500
+      - highlight:
+          target:
+            text: Important Posts Only
+          ms: 1500
+      - click:
+          label: Important Posts Only
+      - pause: 1000
+  - say: Save your change to apply it. Notifications generated outside the allowed
+      notification hours are delivered in a batch at the start of the next
+      business day.
+    steps:
+      - highlight:
+          target:
+            text: Notifications generated outside the allowed notification hours will be
+              delivered in a batch at the start of the next business day.
+          ms: 2500
+      - highlight:
+          target:
+            text: Save
+          ms: 1500
+      - click:
+          text: Cancel
+      - waitFor:
+          text: Bulletin Highlights
+      - highlight:
+          target:
+            text: Notification
+          ms: 2000
