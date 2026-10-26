@@ -150,22 +150,90 @@ scenes:
             text: Inactive
             exact: true
           ms: 1500
-  - say: Save becomes active only after you make a change. Click Cancel to go back
-      without saving.
+  - say: The Quick Links column lets you preset up to 20 Quick Links for the job.
+      When an employee gets this job for the first time and has no Quick Links,
+      the preset is applied. Click the star next to a menu to add it.
+    steps:
+      - scroll:
+          role: treeitem
+          name: Dealer Bulletins
+          within:
+            role: tree
+            nth: 1
+      - click:
+          role: img
+          nth: 0
+          within:
+            role: treeitem
+            name: Dealer Bulletins
+            within:
+              role: tree
+              nth: 1
+      - pause: 800
+      - click:
+          role: img
+          nth: 0
+          within:
+            role: treeitem
+            name: EV performance
+            within:
+              role: tree
+              nth: 1
+      - pause: 800
+      - click:
+          role: img
+          nth: 0
+          within:
+            role: treeitem
+            name: EV Guides
+            within:
+              role: tree
+              nth: 1
+      - pause: 1000
+  - say: The selected menus appear in Arrange Quick Links on the right, with the
+      number selected. Drag them to change the order.
+    steps:
+      - scroll:
+          text: Arrange Quick Links
+      - highlight:
+          target:
+            text: Arrange Quick Links
+          ms: 3500
+  - say: Save becomes active only after you make a change. Click Save to apply it.
     steps:
       - highlight:
           target:
             role: button
             name: Save
             exact: true
-          ms: 2000
+          ms: 1500
       - click:
           role: button
-          name: Cancel
+          name: Save
           exact: true
       - waitFor:
           text: View Job
           exact: true
+      - pause: 1000
+  - say: The job details now show a Quick Links column, with a star on each preset
+      menu.
+    steps:
+      - scroll:
+          text: Quick Links
+          exact: true
+      - highlight:
+          target:
+            text: Quick Links
+            exact: true
+          ms: 2000
+      - highlight:
+          target:
+            role: treeitem
+            name: Dealer Bulletins
+            within:
+              role: tree
+              nth: 1
+          ms: 2000
   - say: Some jobs, such as Dealer Admin and Dealer Principal, are locked and cannot
       be edited.
     steps:
@@ -312,30 +380,69 @@ scenes:
               role: tree
               nth: 1
       - pause: 1000
-  - say: With Quick Links, you can preset up to 20 Quick Links for the job. When an
-      employee gets this job for the first time and has no Quick Links, the
-      preset is applied. Click the star next to a menu to add it, and drag to
-      reorder.
-    steps:
-      - highlight:
-          target:
-            text: Quick Links
-            exact: true
-          ms: 3500
-  - say: Click Import Job to copy the permissions and Quick Links of an existing
-      job. Select a job in the popup and click Import. Permissions you have
-      already set on this screen are not overwritten.
+  - say: To start from an existing job, click Import Job. Search for the job in the
+      popup and select it.
     steps:
       - scroll:
           role: button
           name: Import Job
+      - click:
+          role: button
+          name: Import Job
+      - waitFor:
+          role: dialog
+      - type:
+          target:
+            placeholder: Select
+            within:
+              role: dialog
+          text: ign
+      - waitFor:
+          role: option
+          name: ignite
+          exact: true
+      - click:
+          role: option
+          name: ignite
+          exact: true
+      - pause: 1000
+  - say: Click Import. A message warns that the selected job's permissions will
+      replace your current settings. Click Yes, Import to continue.
+    steps:
+      - click:
+          role: button
+          name: Import
+          exact: true
+          within:
+            role: dialog
+      - waitFor:
+          text: This will override existing permissions.
       - highlight:
           target:
-            role: button
-            name: Import Job
+            role: dialog
           ms: 3000
-  - say: Click Create to create the job. A unique job code is assigned. Click Cancel
-      to leave without saving. That's it for this guide. You're now ready to use
+      - click:
+          role: button
+          name: Yes, Import
+          within:
+            role: dialog
+      - waitFor:
+          text: Arrange Quick Links
+      - pause: 1000
+  - say: The permissions and Quick Links of the imported job are filled in. You can
+      change them before creating the job.
+    steps:
+      - highlight:
+          target:
+            role: tree
+            nth: 1
+          ms: 2500
+      - highlight:
+          target:
+            text: Arrange Quick Links
+          ms: 2500
+  - say: Click Create to create the job. A unique job code is assigned. Click Cancel and
+      then Discard to leave without saving. That's it for this guide. You're now ready to use
       this feature on your own. Thank you for watching.
     steps:
       - highlight:
@@ -349,6 +456,51 @@ scenes:
           name: Cancel
           exact: true
       - waitFor:
+          text: Leave without saving?
+      - click:
+          role: button
+          name: Discard
+          within:
+            role: dialog
+      - waitFor:
           role: columnheader
           name: Job Code
       - pause: 1000
+cleanup:
+  - open: /permission/edit/14
+  - waitFor:
+      text: Arrange Quick Links
+  - click:
+      role: img
+      nth: 0
+      within:
+        role: treeitem
+        name: Dealer Bulletins
+        within:
+          role: tree
+          nth: 1
+  - click:
+      role: img
+      nth: 0
+      within:
+        role: treeitem
+        name: EV performance
+        within:
+          role: tree
+          nth: 1
+  - click:
+      role: img
+      nth: 0
+      within:
+        role: treeitem
+        name: EV Guides
+        within:
+          role: tree
+          nth: 1
+  - click:
+      role: button
+      name: Save
+      exact: true
+  - waitFor:
+      text: View Job
+      exact: true
