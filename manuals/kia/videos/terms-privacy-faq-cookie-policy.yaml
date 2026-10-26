@@ -1,12 +1,16 @@
 title: Terms / Privacy / FAQ / Cookie Policy
 intro: This video shows how to open the Terms, Privacy Policy, Cookie Policy,
-  FAQ, and User Manual pages from the footer of Kia Dealers.
+  frequently asked questions, and User Manual pages from the footer of Kia
+  Dealers.
 sections:
   - 02-home/07-footer.md
 mutates: true
 maskSystem: true
 scenes:
   - say: The footer at the very bottom of the home page has links to the Terms,
+      Privacy Policy, Cookie Policy, F-A-Q, and User Manual. Each one opens in a
+      new tab.
+    caption: The footer at the very bottom of the home page has links to the Terms,
       Privacy Policy, Cookie Policy, FAQ, and User Manual. Each one opens in a
       new tab.
     steps:
@@ -204,7 +208,8 @@ scenes:
           role: button
           name: Save Preferences
       - pause: 1500
-  - say: Now click FAQ in the footer to check frequently asked questions.
+  - say: Now click F-A-Q in the footer to check frequently asked questions.
+    caption: Now click FAQ in the footer to check frequently asked questions.
     steps:
       - open: /
       - waitFor:
@@ -266,8 +271,10 @@ scenes:
           text: ALL
           exact: true
       - pause: 2000
-  - say: Finally, click User Manual in the footer. The FAQ page opens with the user
-      manual content.
+  - say: Finally, click User Manual in the footer. The F-A-Q page opens with the
+      user manual content.
+    caption: Finally, click User Manual in the footer. The FAQ page opens with the
+      user manual content.
     steps:
       - open: /
       - waitFor:
