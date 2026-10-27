@@ -3,6 +3,11 @@ title: My Profile
 routes: []
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "196779644"
+    version: 81
+  - page: "536947651"
+    version: 1
 ---
 
 ## My Profile
@@ -11,7 +16,7 @@ i18nPrefix: []
 
 - You can view your profile and edit your personal information.
 
-- To open it, click your account information in the GNB, then click **My profile**.
+- To open it, click the profile icon in the GNB to open the account side sheet, then click **\[My Profile\]**.
 
 
 
@@ -133,3 +138,59 @@ i18nPrefix: []
   - A notification email about the update is sent to your account email. The email lists only the titles of the changed items, not the details.
 
 - Click **\[Cancel\]** to cancel editing.
+
+
+
+
+**Dealer Information**
+
+- This screen shows the information of the dealership you are currently signed in to. It is read-only and has no buttons or input fields.
+
+- To open it, click the arrow (>) next to the dealership name on Home.
+
+- The screen title is **Dealer Information**.
+
+
+
+![Company Information](images/company-information.png){width=6.27in}
+
+
+
+**Dealership Summary (left area)**
+
+- **Company Name**: The name of the dealership.
+
+- **Dealer No.**: The dealer number of the dealership.
+
+**Company Overview**
+
+- The information is created in Dealer Management. If there is no information, "-" is displayed.
+
+- **Company name**: The dealership name.
+
+- **Email**: The email registered for the dealership.
+
+- **Website**: The dealership website.
+
+- **Phone number**: The dealership phone number.
+
+- **Address**: The dealership address.
+
+- **Zip/Postal code**: The dealership zip or postal code.
+
+- **Founding Date**: The date the dealership was founded.
+
+- **Total Facilities**: The total number of facilities the dealership has.
+
+- **Facility Type (Registered)**: The registered facility types and the number registered for each, in the form {facility type}(n).
+
+
+**Dealer Principal Information**
+
+- **First Name**: The first name of the dealer principal.
+
+- **Last Name**: The last name of the dealer principal.
+
+- **Email**: The business email of the dealer principal.
+
+- **Business Phone**: The business phone number of the dealer principal.
