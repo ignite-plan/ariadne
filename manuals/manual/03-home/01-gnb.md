@@ -66,7 +66,6 @@ refreshedFrom:
 
 - **Notification:**
 
-<!-- TODO: 확인 필요 - 기획서(홈기본화면)에 알림 레이어와 알림 설정 상세가 없음. 아래 알림 설정/수신 유형/발송 규칙은 다른 근거로 확인 필요 -->
 
   - If there are notifications, the notification details will be displayed.\
 
@@ -138,94 +137,8 @@ refreshedFrom:
 
 - When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to use My Profile, Reset Password, My dealership, and Logout. Company name, business email, and business phone are also shown with icons.
 
-- **My Profile** opens the user profile screen, and **My dealership** opens the My Dealership screen.
-
-<!-- TODO: 기획서(홈기본화면)는 GIDPGRO-331로 프로필 화면을 분리했다고 함. 아래 Profile Screen View 섹션의 유지 여부 확인 필요 -->\
-  
-  
-
-![Account layer](images/account-layer-3.png){width=4.2in}
 
 
-
-
-**Profile Screen View:**
-
-- When **My profile** is clicked, users can view their registered profile information.
-
-- On this screen, users can only view the registered profile information; modification or deletion is not possible.
-
-- If a photo is registered to the account, the registered photo will be displayed.
-
-- Name information and the user\'s email are displayed.
-
-- If the user is a dealer principal, that badge will be displayed on the left.
-
-![Profile](images/profile.png){width=5.28in}
-
-- User information, information about the dealer company the user belongs to, and information about the dealer representative are displayed in the right area.
-
-<!-- -->
-
-- **Profile area**
-
-  - **Picture**
-
-  - **Name**
-
-  - **Account Email:** Account email information.
-
-    - Account-related emails will be sent to this address. If a password reset is requested, an email with instructions will be sent to this address.
-
-- **My profile area**
-
-  - **Partner id:** The user\'s account ID
-
-  - **Business Email:** The business email address.
-
-    - Notification emails for new posts published on Dealers will be sent to this address.
-
-  - **Business phone:** The registered user\'s business phone number
-
-  - **Personal phone:** The registered user\'s personal phone number. If this information is not registered, it is marked with \'-\'
-
-  - **Language:** Displays the default language value
-
-  - **Age:** Calculates and displays the age based on the registered birth date information. If this information is not registered, it is marked with \'-\'
-
-<!-- -->
-
-- **Company overview**
-
-  - **Company name:** The name of the dealer company to which the user belongs
-
-  - **Email:** The email information of the affiliated dealer company
-
-  - **Website:** The website address of the affiliated dealer company
-
-  - **Phone number:** The phone number of the affiliated dealer company
-
-  - **Address:** The address information of the affiliated dealer company
-
-  - **Zip/postal code:** The postal code of the affiliated dealer company\'s address
-
-  - **Founding date:** The establishment date of the affiliated dealer company
-
-  - **Total facilities:** The number of assets registered to the affiliated dealer company
-
-  - **Facility purposes(registered):** The number of assets according to the purpose of the registered assets
-
-  <!-- -->
-
-  - **Dealer principal information**
-
-    - **First name:** The dealer representative\'s name information, surname
-
-    - **Last name:** The dealer representative\'s name information, first name
-
-    - **Email:** The dealer representative\'s email information
-
-    - **Business phone:** The dealer representative\'s phone number
 
 **Reset Password**
 
