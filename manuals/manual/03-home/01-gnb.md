@@ -3,6 +3,9 @@ title: GNB
 routes: []
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "536947651"
+    version: 1
 ---
 
 ## GNB
@@ -25,6 +28,9 @@ i18nPrefix: []
 
 - When clicking on the search box, keyboard input is activated and up to 10 recent searches are displayed. When hovering the mouse over a recent search term, a delete button appears, and clicking it immediately deletes that search history.
 
+
+- English uppercase and lowercase letters are treated as the same character when filtering.
+
 - After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
 
   ![Recent searches](images/recent-searches.png){width=2.99in}
@@ -35,21 +41,22 @@ i18nPrefix: []
 
 - The GNB displays the name of the currently active dealer.
 
-- Multi-dealer users: an arrow icon is displayed, and clicking the dealer name or icon opens a dealer selection box.
+- Single-dealer users: the arrow icon is not displayed and clicking the dealer name has no effect.
+
+- Multi-dealer users: an arrow icon is displayed, and clicking the dealer name or icon opens a dealer selection box. The same policy applies to custom screens.
 
 ![Multi dealer switch selection box](images/multi-dealer-switch-selection-box.png){width=6.79in}
 
-- Dealers are grouped by brand: HYUNDAI (listed first) and GENESIS as separate sections. Only the brand section(s) applicable to the user are displayed.
+- Dealers are grouped by brand: HYUNDAI (listed first) and GENESIS as separate sections. The order is fixed (HYUNDAI, then GENESIS), even when viewed from Genesis. Only the brand section(s) applicable to the user are displayed. If the user has multiple dealers in only one brand, only that brand section is displayed (a Kia multi-dealer user sees only Kia).
 
-- Only dealers where the employee status is Active are listed, in alphabetical order (A--Z). The currently active dealer is shown in bold with a check icon.
 
 - A vertical scroll is provided if the list exceeds the maximum height of the selection box.
 
-- After switching, the user is redirected to the Home screen of the newly selected dealer.
 
-<!-- -->
 
-- 
+- **Dealer Employee Management**
+
+  - Displayed in the GNB only when the user's job title is Super admin. Selecting it opens the Dealer Employee Management screen.
 
 - **Quick Link**
 
@@ -58,6 +65,8 @@ i18nPrefix: []
     ![Quick Link](images/quick-link.png){width=2.49in}
 
 - **Notification:**
+
+<!-- TODO: 확인 필요 - 기획서(홈기본화면)에 알림 레이어와 알림 설정 상세가 없음. 아래 알림 설정/수신 유형/발송 규칙은 다른 근거로 확인 필요 -->
 
   - If there are notifications, the notification details will be displayed.\
 
@@ -113,8 +122,6 @@ i18nPrefix: []
 
 - **Language setting:**
 
-  - The language setting button is displayed.
-
     ![Language setting](images/language-setting.png){width=2.30in}
 
 - When clicked, language information is displayed in the right layer, and you can select a language using **radio buttons.**
@@ -129,13 +136,22 @@ i18nPrefix: []
 
 - If the user has registered a profile picture, the profile image is displayed. If an image has not been registered, a default image is displayed.
 
-- When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to view Profile, Reset password, and logout.\
+- When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to use My Profile, Reset Password, My dealership, and Logout. Company name, business email, and business phone are also shown with icons.
+
+- **My Profile** opens the user profile screen, and **My dealership** opens the My Dealership screen.
+
+<!-- TODO: 기획서(홈기본화면)는 GIDPGRO-331로 프로필 화면을 분리했다고 함. 아래 Profile Screen View 섹션의 유지 여부 확인 필요 -->\
   
-  ![Account layer](images/account-layer.png){width=2.28in}
+  
+
+![Account layer](images/account-layer-3.png){width=4.2in}
+
+
+
 
 **Profile Screen View:**
 
-- When **Profile** is clicked, users can view their registered profile information.
+- When **My profile** is clicked, users can view their registered profile information.
 
 - On this screen, users can only view the registered profile information; modification or deletion is not possible.
 
@@ -213,8 +229,13 @@ i18nPrefix: []
 
 **Reset Password**
 
-![Reset Password](images/reset-password.png){width=3.44in}
 
-- When you click **Reset Password,** a URL to reset your password will be sent to your registered account email address.
+- When you click **Reset Password,** a **Reset password** modal is displayed with the message "Reset password? A password reset link will be sent via email."
+
+  - **Cancel**: The modal closes and no password-related action is performed.
+
+  - **Confirm**: The modal closes and a URL to reset your password is sent to your registered account email address.
+
+- If the request fails with a 400 error, the message "For security reasons, we cannot resend the password reset email at this time because the password was recently changed. Please try again later." is displayed. For any other error, "An error occurred while communicating with the external system. Please try again later." is displayed. Both messages have a **Confirm** button.
 
 - Once you complete the password change through the provided URL, the new password will be applied.
