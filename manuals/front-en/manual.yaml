@@ -27,8 +27,8 @@ chapters:
       - 04-quick-link.md
       - 05-board-you-ve-visited.md
       - 06-bulletin-highlight.md
-      - 07-footer.md
-      - 08-my-profile.md
+      - 07-my-profile.md
+      - 08-footer.md
   - title: Search Result
     dir: 04-search-result
     sections:
