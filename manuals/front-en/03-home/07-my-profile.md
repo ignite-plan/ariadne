@@ -3,13 +3,22 @@ title: My Profile
 routes: []
 sources: []
 i18nPrefix: []
+refreshedFrom:
+  - page: "196779644"
+    version: 82
+  - page: "536947651"
+    version: 1
+  - page: "690604276"
+    version: 1
 ---
 
 ## My Profile
 
 - This screen shows your personal profile and the business information registered for the dealership you are logged in to. You can edit your personal information here.
 
-- To open it, click the **Account** icon in the GNB and select **My Profile**.
+- To open it, click the **Account** icon in the GNB to open the Account side sheet, and then click **\[My Profile\]**.
+
+- The Account side sheet shows your photo (or an initials avatar if no photo is registered), the **\[My Profile\]** button, your name, job title, company name, business email, and business phone. Its menu has **Reset Password**, **My dealership**, and **Logout**. If the side sheet is taller than the viewport, the title area stays fixed and the lower area scrolls.
 
 
 
@@ -29,11 +38,15 @@ i18nPrefix: []
 
 - The summary card on the left shows:
 
-  - **Photo**: Your registered photo. If no photo is registered, a default thumbnail is shown.
+  - **Photo**: Your registered photo. If no photo is registered, an initials avatar is shown.
+
+    - For Latin characters, the first letters of the First Name and Last Name are used (for example, Isabel Marant → IM).
+
+  - **ID**: A tooltip is available. It says "ID(Account) in this system is managed through hmg-PartnerID. The hmg-PartnerID is a unified account credential system provided by Hyundai Motor Group to business partners and suppliers accessing HMG systems and services."
 
   - **Name**: Your name in the order First Name, Last Name.
 
-  - **Account Email**: Your registered account email.
+  - **Email**: Your registered account email.
 
   - **Dealer principal badge**: Shown only if you are a dealer principal.
 
@@ -72,17 +85,19 @@ i18nPrefix: []
 
 
 
-- **Photo**: Your profile photo.
+- **Picture**: Your profile photo.
 
-  - Optional.
+  - Optional. If you are the Dealer Principal of the dealership, it is required and an asterisk (*) is shown next to the label.
 
-  - Supported formats: JPEG (JPG) or PNG, up to 20MB.
+  - Guide text: "Supported image formats: JPEG (JPG) or PNG, up to 20MB in size."
 
-  - Click the photo area to upload an image file.
+  - Click the profile area to upload an image file.
 
-  - If a photo is already registered, click the x button to delete it.
+  - If a photo is already registered, click the x button to delete it. After you delete it, the profile is saved without an image.
 
-  - If the format is not supported or the file is larger than 20MB, a popup shows "Supported image formats: JPEG (JPG) or PNG, up to 20MB in size." Click **\[OK\]** to close it.
+  - A photo change is applied only after you click **\[Save\]**.
+
+  - If the format is not supported or the file is larger than 20MB, an error popup shows "Supported image formats: JPEG (JPG) or PNG, up to 20MB in size." The title "File Size Exceeds Limit" is shown only when the format is not supported. Click **\[Confirm\]** to close it.
 
 - **First Name**: Your first name.
 
@@ -108,9 +123,6 @@ i18nPrefix: []
 
   - Maximum 50 characters.
 
-  - The email format is checked as you type. If the format is invalid, "Please enter a valid email" is shown below the field.
-
-  - Help text: "This email is used to manage the account, including password reset requests."
 
 - **Personal Phone**: Your personal phone number.
 
@@ -126,8 +138,7 @@ i18nPrefix: []
 
   - Select English or French.
 
-  - After you save a language change, the new language becomes your default.
-
+  - After you save a language change, the new language becomes your default and the screen opens in that language.
 
 - **Date of Birth**: Your date of birth.
 
@@ -144,9 +155,56 @@ i18nPrefix: []
 - Click **\[Save\]** to save your changes.
 
   - The button is enabled only when you have made a change.
+  - After saving, your information is updated and shown on the screen. If you changed the language, the screen opens in the new language.
 
-  - If a required field is empty, "Please fill in this field" is shown.
 
-  - After saving, your information is updated and shown on the screen.
+- Click **\[Cancel\]** to leave edit mode.
 
-  - A notification email about the change is sent to your Account Email. The email lists only the titles of the changed items, not the details.
+  - If you have entered anything, a confirmation popup shows "This will delete all entered content. Are you sure you want to proceed?"
+
+  - Click **\[Cancel\]** in the popup to stay on the edit screen, or **\[Discard\]** to clear your input and return to the view screen.
+
+
+**Dealer Information**
+
+- Click **\>** next to the Dealer Name on Home to open **Dealer Information**. It shows the information of the dealership you are logged in to. Items with no information show "-".
+
+- The screen title is **Dealer Information**.
+
+
+
+![Dealer Information](images/dealer-information.png){width=6.27in}
+
+
+
+- On the left, the **Company Name** and **Dealer No.** are shown as a title and a value.
+
+- **Company Overview**: Information created in dealer management.
+
+  - **Company name**
+
+  - **Email**
+
+  - **Website**
+
+  - **Phone number**
+
+  - **Address**
+
+  - **Zip/Postal code**
+
+  - **Founding Date**
+
+  - **Total Facilities**: The total number of facilities the dealership owns.
+
+  - **Facility Type (Registered)**: The facility types the dealership owns and the number registered, in the format {facility type}(n).
+
+- **Dealer Principal Information**:
+
+  - **First Name**
+
+  - **Last Name**
+
+  - **Email**: The business email of the Dealer Principal.
+
+  - **Business Phone**
