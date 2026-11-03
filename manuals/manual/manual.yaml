@@ -9,10 +9,6 @@ capture:
 code:
   app: apps/hyundai-fo
 chapters:
-  - title: TABLE OF CONTENTS {table-of-contents .TOC-Heading}
-    dir: 01-table-of-contents-table-of-contents-toc-heading
-    sections:
-      - 00-intro.md
   - title: Login & Logout
     dir: 02-login-and-logout
     sections:

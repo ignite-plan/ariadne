@@ -43,7 +43,11 @@ i18nPrefix: []
 
   - Select Logout from this sheet.
 
-![Logout button](images/logout-button.png){width=2.28in}
+
+
+![Logout Button](images/logout-button-2.png){width=3.4in}
+
+
 
 - Automatic logout instructions:
 

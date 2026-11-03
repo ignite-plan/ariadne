@@ -7,17 +7,7 @@ i18nPrefix: []
 
 ## Footer
 
-- In the footer area at the very bottom of the Dealers homepage, you can check the Terms, privacy policy, FAQ, Cookie policy and User Manual content.
-
-**[Service Term]{.mark}**
-
-- [Clicking on **Service Term** allows you to check the latest service terms.]{.mark}
-
-- [When you click Service Term, the Service Term page will open in a new tab.]{.mark}
-
-- [Clicking on the select box in the upper right provides previous versions of the service terms.]{.mark}
-
-![Service Term](images/service-term.png){width=6.79in}
+- In the footer area at the very bottom of the Dealers homepage, you can check the privacy policy, FAQ, Cookie policy and User Manual content.
 
 **Privacy Policy**
 
