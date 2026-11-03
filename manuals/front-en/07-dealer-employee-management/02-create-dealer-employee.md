@@ -117,7 +117,10 @@ A registered picture is displayed as a circle. Click the x button to delete it.
 
 - If the information is correct, click the \[Save\] button to add the employee details.
 
-![Verifying user popup](images/verifying-user-popup.png){width=4.14in}
+
+![Verifying user popup](images/verifying-user-popup-2.png){width=3.4in}
+
+
 
 - If existing ID information is mapped and imported, the following fields cannot be edited
 

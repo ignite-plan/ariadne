@@ -6,8 +6,6 @@ i18nPrefix: []
 refreshedFrom:
   - page: "196779644"
     version: 82
-  - page: "536947651"
-    version: 1
   - page: "690604276"
     version: 1
 ---
@@ -61,7 +59,7 @@ refreshedFrom:
 
 - **Personal Phone**: Your personal phone number.
 
-- **Language**: Your language setting.
+- **Language**: Your language setting. 
 
 - **Age**: Calculated from your date of birth as a full age. If no date of birth is registered, "-" is shown.
 
@@ -97,7 +95,6 @@ refreshedFrom:
 
   - A photo change is applied only after you click **\[Save\]**.
 
-  - If the format is not supported or the file is larger than 20MB, an error popup shows "Supported image formats: JPEG (JPG) or PNG, up to 20MB in size." The title "File Size Exceeds Limit" is shown only when the format is not supported. Click **\[Confirm\]** to close it.
 
 - **First Name**: Your first name.
 
@@ -122,7 +119,6 @@ refreshedFrom:
   - Required.
 
   - Maximum 50 characters.
-
 
 - **Personal Phone**: Your personal phone number.
 
@@ -153,9 +149,6 @@ refreshedFrom:
 **Save and Cancel**
 
 - Click **\[Save\]** to save your changes.
-
-  - The button is enabled only when you have made a change.
-  - After saving, your information is updated and shown on the screen. If you changed the language, the screen opens in the new language.
 
 
 - Click **\[Cancel\]** to leave edit mode.
