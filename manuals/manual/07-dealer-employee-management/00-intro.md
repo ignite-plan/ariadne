@@ -18,5 +18,4 @@ refreshedFrom:
 
 - The list shows only employees of dealer companies who are not in draft status. Deleting an account is not supported.
 
-- Only users with the **Dealer Principal** or **Distributor Admin** job roles can access and view this screen.
-<!-- TODO: 확인 필요 - Dealer Principal 또는 Super Admin만 접근 가능한지 (기획서 요약에 없음) -->
+- Only users with the **Dealer Principal** or **Distributor Admin** job
