@@ -28,31 +28,6 @@ refreshedFrom:
 
 - The filters are arranged in the order of user information, then dealer information.
 
-- **Text search:** You can search by partial match. Select the search criterion in the select box next to the search field. The default is **User Name**, and the options are **User Name**, **HMG Partner ID**, and **User No.**
-
-- **Status:** Select one status of the user account. All statuses are selected by default.
-
-  - **Active:** Account activated status
-
-  - **Inactive:** Account deactivated status
-
-- **Job title:** Select the job titles assigned to the users. You can select more than one. The list contains all jobs created in Job management, and the placeholder is "Select". Selecting nothing is the same as selecting all. Select **None** to find employees who have no job.
-
-- **Dealer:** Select one or more dealers. Each option is displayed as "dealer name|dealer no", and the placeholder is "Select". Options are sorted by dealer status first (active, Forecasted Appointment, under terminated, inactive, terminated, applicant, rejected applicant) and then alphabetically (a-z).
-
-- **Zone/District:** Search by the Zone/District of the employee's dealership. The Zone list starts with **Unassigned**, followed by the created Zones in order. The District is disabled until a Zone is selected. A selected Zone appears as a chip with its name and an x button, and a selected District appears as "Zone name > District name" (for example, Gyeonggi>Suwon).
-
-- When you type a keyword in a multi-select box, the items that partially match are displayed. Selecting an item selects only that value.
-
-- Conditions are combined with OR within a column and with AND between columns.
-
-- Clicking the **\[search\]** button displays the results of the set conditions. If there are no results, only the message "No results found. Try different search terms or filters." is displayed.
-
-- Clicking the **\[reset\] icon** button clears all filters and resets the list.
-
-<!-- -->
-
-- The dealer employee list is sorted by updated date, with the most recent first. It shows only employees who belong to a dealership and are not in draft status. Account deletion is not provided. The list provides the following information:
 
   - **User No.:** A unique user number generated sequentially from 1 by the Dealers system.
 
