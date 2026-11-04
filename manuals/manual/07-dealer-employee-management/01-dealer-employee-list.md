@@ -82,6 +82,3 @@ refreshedFrom:
   - An employee with multiple dealerships appears as one row for each dealership.
 
 - By default, 20 items are displayed per page. You can change it to 20, 30, 40, or 50 items. If there are more results than the page size, pagination is displayed.
-
-<!-- TODO: 확인 필요 - 기획서 요약에는 Detail 돋보기로 조회 화면에 진입한다고만 되어 있고, 기존 매뉴얼의 'Partner ID 또는 이름 클릭으로 상세 조회'가 유지되는지 알 수 없음 (STG 로그인 세션 만료로 화면 확인 불가) -->
-<!-- TODO: 확인 필요 - 이미지(dealer-employee-list-img-1, employee-list-search-filter)는 Zone/District, Dealer 필터 추가 등 새 구성이 반영되지 않았을 수 있음 (STG 세션 만료로 재캡처 못함) -->
