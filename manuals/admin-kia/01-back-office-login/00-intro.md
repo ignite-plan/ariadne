@@ -23,8 +23,6 @@ On the login screen, proceed with the following steps:
 
 - Select a project -- **Kia Dealers_BO**
 
-![HMG Admin](images/hmg-admin.png){width=6.26in}
-
 **Back Office Main Screen**
 
 ![HMG Admin Head area](images/hmg-admin-head-area.png){width=4.20in}
