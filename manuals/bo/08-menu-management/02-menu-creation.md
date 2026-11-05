@@ -18,12 +18,13 @@ i18nPrefix: []
 
 - In the Menu Detail screen, you must enter required fields to create a menu.
 
-![Creating Menu](images/creating-menu.png){width=6.27in}
+![Creating Menu](images/creating-menu-2.png){width=6.27in}
+
 
 **Menu Display Information[\
-]{.mark}**![](images/menu-creation-img-1.png){width=6.20in}
+]{.mark}**
 
-Creating Menu -- Display information
+![Creating Menu -- Display information](images/image-3.png){width=6.27in}
 
 - A status banner at the top of the Menu Detail screen shows the current Display setting (On/Off). If the tenant's Mobile Web setting (Tenant Management > Basic Information) is enabled, the banner shows separate PC and Mobile statuses; if disabled, only the PC status is shown and the Mobile Display setting field below is not displayed.
 
@@ -42,12 +43,8 @@ Creating Menu -- Display information
   - **Updated Date/Updated By**: The date the menu was modified and the person who modified it are automatically entered.
 
     - Creation rule: MM DD, YYYY (EST) / ID(employee number)
-   
-<!-- TODO: 모바일웹 설정 기능 화면 캡처 필요-->
 
-<!-- TODO: 확인 필요 - GIDPGRO-436/914 Mobile Display setting 필드와 PC/Mobile 배너는 STG(CA 법인, 모바일웹 OFF)에서 확인되지 않음. 기획서 06월 output·위키 메뉴 관리 문서에는 필드 기술 없고 Mobile Web PC BO 문서 기준 -->
-
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-436 Display Setting 이미지에 Mobile Display setting·PC/Mobile 배너가 없음 (모바일웹 ON 테넌트) -->
+![Scheduled Display(Enabled)](images/image-4.png){width=6.27in}
 
 - [**Mobile Display setting (Required field)**: A function to control whether the menu and its sub-menus are displayed on the Mobile Front screen. Only displayed when the tenant's Mobile Web setting is enabled; if the tenant's Mobile Web setting is disabled, this field (and the Mobile status in the banner above) is not shown and only the PC Display setting applies.]{.mark}
 
@@ -60,10 +57,10 @@ Creating Menu -- Display information
 
   - [ **(Default) Disabled:** The scheduled menu exposure function is not used. The menu will appear on the Front screen within approximately 1-2 minutes after saving.]{.mark}
 
-  - [**Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. Guidance message: "The menu will become visible on the Front screen at the start of the selected date (00:00 EST).".]{.mark} [\
-    ]{.mark} ![](images/menu-creation-img-2.png){width=1.39in}
+  - **Enabled:** A Display start date field (date only, format MM/DD/YYYY, EST) is displayed. Only dates from the next day onward can be selected; today and past dates are disabled. The menu becomes visible on the Front screen at 00:00 EST of the selected date. Guidance message: "The menu will become visible on the Front screen at the start of the selected date (00:00 EST).".
 
-Calendar setting
+![Calendar Setting](images/calendar-setting-2.png){width=3.4in}
+
 
 <!-- TODO: 이미지 갱신 필요 - GIDPDVO-2242 Display Start Date가 Date Picker(날짜만)로 바뀌어 기존 캡처(시간 선택 포함)와 다를 수 있음 -->
 
@@ -73,16 +70,20 @@ Calendar setting
 
   - While Scheduled Display is set to Disabled, date validation is skipped.
 
+
+
 **Menu Basic Information**
 
-![](images/menu-creation-img-3.png){width=5.31in}
+![](images/image.png){width=4.2in}
+
 
 <!-- TODO:  메뉴타입 화면 갱신 필요 -->
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
-- **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset. [Menu name, Menu-board mapping, Domain, and Menu URL are reset, while the Menu Permission List is kept as is.]{.mark}\
 
-  ![Menu type](images/menu-creation-img-4.png){width=1.59in}
+- **Menu Type (Required field)**: A function that determines the type of the menu. There are 3 menu types in total [(Same Tab, Bulletin board, New Tab)]{.mark}. When changing the menu type, some items will be reset. [Menu name, Menu-board mapping, Domain, and Menu URL are reset, while the Menu Permission List is kept as is.]{.mark}\
+  
+![Menu Type](images/menu-type.png){width=3.4in}
 
 - Domain: A function that specifies which domain the menu operates on. You can select a domain address. The required field input setting for Domain changes according to the Menu type. [\
   ]{.mark} ![](images/menu-creation-img-5.png){width=2.32in}

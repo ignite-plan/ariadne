@@ -8,22 +8,17 @@ i18nPrefix: []
 
 ## Menu View
 
-**[\
-]{.mark}**![](images/menu-view-img-1.png){width=5.88in}
+![Menu View](images/menu-view-3.png){width=6.27in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-914 상단 Menu Display Status 배너 추가 -->
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2242 Display start date 표기(MM/DD/YYYY) 변경 -->
-
-<!-- TODO: STG에 반영 범위 밖 변경 보임 - Created Date/Updated Date 영역이 Create Date/Update Date, Create by/Update by 표기로 Scheduled Display 아래에 배치되고, 날짜 형식이 "Oct 19, 2026(EST)" 로 보임 -->
-
-Menu Detail
+**Menu Detail**
 
 - When a menu is successfully saved or when you click a menu name in the Menu List, you move to the menu detail screen.
 
 - The Menu Detail tab displays saved menu property data, and Menu Access Permission displays job title and user settings that can access the menu.
 
 - [**Menu Display Status**: The banner at the top of the Menu Details tab shows whether the selected menu is currently visible on the Front-end screen.]{.mark}
+
+![Menu Display Status](images/menu-display-status-2.png){width=3.4in}
 
   - [**Visible** (green dot): The menu is displayed on the Front-end screen.]{.mark}
 

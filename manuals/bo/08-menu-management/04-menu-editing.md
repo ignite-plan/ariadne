@@ -81,7 +81,9 @@ i18nPrefix: []
 
 - After clicking **\[Later\]**, clicking \[Edit\] again starts again from step 1. If the condition is not resolved, the same pop-up is displayed again.
 
-![](images/menu-editing-img-2.png){width=2.99in}
+![Menu access permissions List -- Import Job title pop-up](images/menu-access-permissions-list-import-job-title-pop-up.png){width=3.4in}
+
+
 
 Menu access permissions List -- Import Job title pop-up
 
