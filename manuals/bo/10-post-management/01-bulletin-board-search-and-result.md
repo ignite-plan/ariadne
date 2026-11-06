@@ -49,6 +49,8 @@ i18nPrefix: []
 
 **Bulletin Board List**
 
+![Bulletin Board List Search](images/image-28.png){width=6.27in}
+
 - **Board ID**: The ID of the bulletin board.
 
 - **Board Name**: The name of the bulletin board, displayed according to the language setting.
@@ -72,12 +74,6 @@ i18nPrefix: []
 - Click a row to go to the post list of that bulletin board.
 
 - If the list fails to load, an error message and a **\[Retry\]** button are displayed.
-
-<!-- TODO: 확인 필요 - Announcement 게시판은 Menu-Board Mapping이 No여도 목록 위쪽에 보이도록 예외 처리 (기획서 OI-03 개발 확인 중, 미결). STG에서는 Announcements가 목록 맨 위에 Mapping "-"로 보임 -->
-
-<!-- TODO: 확인 필요 - 페이지네이션 여부 (Jira 2026-07-02 결정은 "페이지네이션 없이 전체 게시판을 한 페이지에", 같은 기획서 표에는 "1페이지 최대 100개"도 적혀 있음. 미결) -->
-
-<!-- TODO: 확인 필요 - Menu Path 검색 방식 (현대 요청은 Menu Path를 최소 Level 1 기준으로 검색하는 것이며 Menu 드롭다운이 이를 맡는 것으로 보임, 기획서 OI-01/OI-02 미결) -->
 
 - The bulletin board name and description are displayed at the top.
 

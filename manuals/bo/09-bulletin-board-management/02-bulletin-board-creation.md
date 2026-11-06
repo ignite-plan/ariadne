@@ -15,9 +15,7 @@ i18nPrefix: []
 
 - Default values are selected in the Post attribute setting.
 
-![Creating Bulletin board](images/creating-bulletin-board.png){width=6.27in}
-
-
+![Creating Bulletin board](images/image-13.png){width=6.27in}
 
 **Board Basic Information**
 
@@ -44,9 +42,8 @@ i18nPrefix: []
 - The descriptions of each post attribute information are as follows:
 
 **Posting Period**\
-![](images/bulletin-board-creation-img-1.png){width=6.27in}
 
-Creating Bulletin board -- Post attribute setting information1
+![Creating Bulletin board - Post attribute setting information1](images/bulletin-board-creation-img-1.png){width=6.27in}
 
 - **Enabled(Default):** This is a function that allows you to set the posting period for posts, enabling features like scheduled posting.
 
@@ -63,6 +60,8 @@ Creating Bulletin board -- Post attribute setting information1
 - When a post is saved, it is immediately displayed and the posting period is set to indefinite (9999-12-31).
 
 - The posting period is displayed in the post list.
+
+<!-- -->
 
 **Target Audience**
 
@@ -97,6 +96,8 @@ Creating Bulletin board -- Post attribute setting information1
 - The target audience option UI is not displayed in the post details.
 
 - If the bulletin board is linked to a menu, posts are displayed to all users who can access the menu.
+
+<!-- -->
 
 **Important Notice**
 
@@ -193,9 +194,12 @@ Creating Bulletin board -- Post attribute setting information5
 
 ![Additional attribute setting pop-up](images/additional-attribute-setting-pop-up.png){width=5.17in}
 
-![](images/bulletin-board-creation-img-4.png){width=2.50in}![](images/bulletin-board-creation-img-5.png){width=2.71in}
+![Additional attribute setting pop-up - Display format](images/bulletin-board-creation-img-4.png){width=3.4in}
 
-Additional attribute setting pop-up - Display format
+![Additional attribute setting pop-up - text type](images/bulletin-board-creation-img-5.png){width=3.4in}
+
+
+
 
 **Field Name (Required field)**
 
@@ -222,9 +226,10 @@ Additional attribute setting pop-up - Display format
 - **Date (MM-DD-YYYY):** Displayed as a calendar UI, date selection is possible
 
 - **Input box(text):** Displayed as a text input field where users can directly enter text values.\
-  ![](images/bulletin-board-creation-img-6.png){width=4.33in}
 
-Additional attribute setting pop-up -- Display format 2
+
+  ![Additional attribute setting pop-up - Display format 2](images/bulletin-board-creation-img-6.png){width=4.33in}
+
 
 **Display Values (Required field for dropdowns, radio buttons)**
 
@@ -250,19 +255,11 @@ Additional attribute setting pop-up -- Display format 2
 
 - **Scroll:** Right scroll is created when there are 5 or more Display Values
 
-![Additional attribute setting pop-up -- Display values setting 1](images/additional-attribute-setting-pop-up-display-values-setting-1.png){width=4.97in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2050 Display Values 안내 문구가 "You can add up to 40 items for dropdowns and 5 for radio buttons."로 바뀜 -->
-
-<!-- TODO: 확인 필요 - 기획서 [202606output]는 아직 드롭다운 Display Values 최대 30개로 적혀 있음 (GIDPDVO-2050은 Jira 완료 내용과 STG 화면 기준으로 40개 반영) -->
-
-<!-- TODO: 확인 필요 - GIDPGRO-914 Menu Display Status 배너는 근거 문서(Mobile Web PC BO)가 기획서 요약에 없고 반영 범위(2026-07) 밖이라 반영하지 않음. STG 신규 생성 화면에는 이 배너가 보이지 않음 -->
-
+![Additional attribute setting pop-up -- Display values setting 1](images/image-14.png){width=6.27in}
 
 - Example of screen display when there are 5 or more display values (a scroll is created on the right.)\
-  ![](images/bulletin-board-creation-img-7.png){width=4.26in}
 
-Additional attribute setting pop-up -- Display values setting 2
+![Additional attribute setting pop-up - Display values setting 2](images/image-15.png){width=6.27in}
 
 - When **the \[+Add\] button** is clicked, EN and FR input field UIs are displayed as a pair at the bottom, and you can add up to 40 for Dropdowns and up to 5 for Radio buttons.
 
@@ -274,9 +271,10 @@ Additional attribute setting pop-up -- Display values setting 2
 
 **Description (Required field for dropdowns)**
 
-- Used as placeholder text and is the text displayed in the BO post select box when dropdown is selected in the display format. ![](images/bulletin-board-creation-img-8.png){width=4.91in}
+- Used as placeholder text and is the text displayed in the BO post select box when dropdown is selected in the display format.
 
-Additional attribute setting pop-up -- Description
+![Additional attribute setting pop-up - Description](images/image-16.png){width=4.2in}
+
 
 **Usage Status (Required field)**
 
@@ -288,9 +286,8 @@ Additional attribute setting pop-up -- Description
 
 - **Note:** When Usage status is OFF, the Additional attribute cannot be set in BO Post management and is not displayed in the BO Bulletin board \> List setting area. The value is also not displayed on the FO screen.
 
-![](images/bulletin-board-creation-img-9.png){width=5.42in}
+![Additional attribute setting pop-up -- Usage status](images/bulletin-board-creation-img-9.png){width=5.42in}
 
-Additional attribute setting pop-up -- Usage status
 
 **Required Field (Required field)**
 
@@ -298,9 +295,10 @@ Additional attribute setting pop-up -- Usage status
 
 - The (Default) value is set to OFF, and ON/OFF settings can be configured.
 
-- Note: When Required field is ON, the Additional attribute value is marked as required (\*) in BO Post management and is also displayed as required in the BO Bulletin board \> List setting area. When Required field is OFF, it can be used as an optional value.![](images/bulletin-board-creation-img-10.png){width=5.14in}
+- Note: When Required field is ON, the Additional attribute value is marked as required (\*) in BO Post management and is also displayed as required in the BO Bulletin board \> List setting area. When Required field is OFF, it can be used as an optional value.
 
-Additional attribute setting pop-up -- Required field
+ ![Additional attribute setting pop-up -- Required field](images/bulletin-board-creation-img-10.png){width=5.14in}
+
 
 **Search Filter**
 
@@ -364,7 +362,7 @@ Additional attribute setting pop-up -- Required field
 
 **Additional Attribute Modification and Deletion**
 
-![Editing Additional attribute setting](images/bulletin-board-creation-img-11.png){width=2.73in}
+![Editing Additional attribute setting](images/image-17.png){width=4.2in}
 
 - Usage status toggle: When ON is clicked, if the number of uses exceeds 5, a popup indicating it is unavailable is displayed
 

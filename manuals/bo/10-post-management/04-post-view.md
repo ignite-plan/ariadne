@@ -10,7 +10,18 @@ i18nPrefix: []
 
 - You can view saved posts.
 
-- **Menu Display Status**: A banner at the top of the screen shows whether the menu linked to the bulletin board is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.
+![](images/image-38.png){width=4.2in}\
+![](images/post-view-img-2.png){width=5.02in}\
+![](images/post-view-img-3.png){width=5.68in}\
+![Post Detail](images/post-view-img-4.png){width=5.75in}
+
+- **Post Status Information**
+
+![Post Detail -- Post status information](images/image-39.png){width=6.27in}
+
+- **Board Name:** The bulletin board name (bulletin board ID) to which the post belongs is displayed.
+
+- **Menu Display Status**: This feature shows whether the menu linked to the bulletin board is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.
 
   - If the tenant has Mobile Web enabled, PC and Mobile are each shown as Visible or Not Visible.
 
@@ -18,50 +29,32 @@ i18nPrefix: []
 
   - Visible is marked with a green dot, and Not Visible with a gray dot.
 
-  - The fixed notice below the banner reads: "This menu's visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting."
-
-<!-- TODO: 확인 필요 - 게시글 조회 화면의 Menu Display Status 배너 (STG 확인 가능한 조회 화면은 메뉴와 연결되지 않은 Announcement 게시글뿐이라 배너가 보이지 않음. 배너 위치·고정 안내 문구 표시 방식은 기획서 요약 기준) -->
-
 - Posts of a menu whose Mobile Display is Disabled do not appear in the Mobile Home Bulletin Highlight or the Mobile integrated search. The post view screen has no separate mobile setting.
 
-![](images/post-view-img-1.png){width=4.88in}\
-![](images/post-view-img-2.png){width=5.02in}\
-![](images/post-view-img-3.png){width=5.68in}\
+- **Post ID:** When the post is saved, the post ID is displayed.
 
-![Post Detail](images/post-view-img-4.png){width=5.75in}
-
-- **Post Status Information**
-
-![Post Detail -- Post status information](images/post-detail-post-status-information.png){width=5.93in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-914 조회 화면 상단 Menu Display Status 배너 추가 -->
-
-- Board Name: The bulletin board name (bulletin board ID) to which the post belongs is displayed.
-
-- Post ID: When the post is saved, the post ID is displayed.
-
-- \[Copy Front-end URL\]: When clicked, the Front-end URL of the post is copied to the clipboard.
+- **\[Copy Front-end URL\]:** When clicked, the Front-end URL of the post is copied to the clipboard.
 
   - This feature allows administrators to easily copy and share the Front-end access URL of a post.
 
   - The button becomes visible after the post has been saved (i.e., when the post ID is generated) and you access the post detail view.
 
-- Post status: The posting status is displayed according to the posting period of the post.
+- **Post status:** The posting status is displayed according to the posting period of the post.
 
-- Visible: Currently posted (when the current time is within the posting period), if it\'s currently being posted, the dot color in front of the posting status changes to green.
+- **Visible:** Currently posted (when the current time is within the posting period), if it\'s currently being posted, the dot color in front of the posting status changes to green.
 
-- Not visible: The post is currently not visible. Awaiting posting (when the posting start date has not arrived) or Posting ended (when the current time is after the posting end date)
+- **Not visible:** The post is currently not visible. Awaiting posting (when the posting start date has not arrived) or Posting ended (when the current time is after the posting end date)
 
-- Display setting: The display setting for the post is shown.
+- **Display setting:** The display setting for the post is shown.
 
 <!-- -->
+<!-- -->
 
-- **Post Attribute Information**\
-  ![](images/post-view-img-5.png){width=6.27in}
 
-Post Detail -- Post Attribute information
+**Post Attribute Information**\
+  ![Post Detail -- Post Attribute information](images/post-view-img-5.png){width=6.27in}
 
-- Posting Period: The set posting period is shown.
+- **Posting Period:** The set posting period is shown.
 
   - If the posting period is set to indefinite, the posting start date and time is specified and Unlimited Posting is checked.
 
@@ -69,11 +62,11 @@ Post Detail -- Post Attribute information
 
 <!-- -->
 
-- Target Audience: The target audience items are shown, and the post is published to targets that meet the AND conditions of the selected target audience. The selected option values are displayed as chip filters below.
+- **Target Audience:**  The target audience items are shown, and the post is published to targets that meet the AND conditions of the selected target audience. The selected option values are displayed as chip filters below.
 
   - If saved with the default settings, all target audience options are shown as All values.
 
-- Important Notice: The set important notice value is displayed.
+- **Important Notice:** The set important notice value is displayed.
 
   - If the important notice setting is selected as Enabled:
 
@@ -105,11 +98,11 @@ Post Detail -- Post Attribute information
 
 - Title/Content(EN/FR): The title and content of the post entered in English/French are displayed.
 
-  - EN/FR tabs are provided in the upper left.
+  - EN/FR areas are provided in the upper left.
 
-  - By default, EN is displayed, showing the title and content entered in English.
+  - The EN is displayed, showing the title and content entered in English.
 
-  - Clicking the FR tab shows the title and content entered in French.
+  - The FR area shows the title and content entered in French.
 
 ![Post Detail -- title/content](images/post-detail-title-content.png){width=6.27in}
 
@@ -117,34 +110,29 @@ Post Detail -- Post Attribute information
 
 - Attachments (EN/FR): Attached PDF files are displayed, and when the attached file icon or file name is clicked, file preview is possible.
 
-- ![](images/post-view-img-6.png){width=6.27in}
-
-Post Detail -- Attachments 1
+- ![Post Detail -- Attachments 1](images/post-view-img-6.png){width=6.27in}
 
 - The total number of attached files is displayed in the upper left of the file, and the file size and download button are displayed to the right of the attached file.
 
-![](images/post-view-img-7.png){width=3.44in}
-
-Post Detail -- Attachments 2
+![Post Detail -- Attachments 2](images/post-view-img-7.png){width=3.44in}
 
 - When the file icon and file name are clicked, a file preview popup is displayed, and watermarks are displayed on each page of the PDF file.\
-  ![](images/post-view-img-8.png){width=4.33in}
-
-Post Detail -- Attachments preview pop-up
+  ![Post Detail -- Attachments preview pop-up](images/post-view-img-8.png){width=4.33in}
 
 - The file name and extension are displayed in the upper left of the popup window, and the full-screen view button and close button can be clicked in the upper right.\
-  ![](images/post-view-img-9.png){width=5.55in}
 
-Post Detail -- Attachments preview pop-up1
+  ![Post Detail -- Attachments preview pop-up1](images/post-view-img-9.png){width=5.55in}
 
 - Clicking on icons from the left operates as follows:
 
 ![](images/post-view-img-10.png){width=0.63in} ![](images/post-view-img-11.png){width=0.56in}\
-![](images/post-view-img-12.png){width=2.33in}![](images/post-view-img-13.png){width=2.63in}
 
-Post Detail -- Attachments preview pop-up2
+![Post Detail -- Attachments preview pop-up2 side view](images/post-view-img-12.png){width=2.33in}
+
+![Post Detail -- Attachments preview pop-up2 page view](images/post-view-img-13.png){width=2.63in}
 
 - View settings: Thumbnail preview view setting/Normal page view setting\
+
   ![](images/post-view-img-14.png){width=1.15in}
 
 - View current page number/total page number, possible to view page by entering desired page number
@@ -164,7 +152,7 @@ Post Detail -- Attachments preview pop-up2
 ![](images/post-view-img-20.png){width=0.47in}\
 ![](images/post-view-img-21.png){width=1.22in}
 
-- Page rotation: 90 degrees rotation to the left
+- **Page rotation:** 90 degrees rotation to the left
 
 - ![](images/post-view-img-22.png){width=0.75in}
 
@@ -196,43 +184,40 @@ Post Detail -- Attachments preview pop-up2
 
 - If the additional attribute value is multiple selection, the selected display values are shown separately for EN and FR.
 
-- Change History: The post change history is shown.
+- **Change History:** The post change history is shown.
 
   - All modifications due to changes in status values and attribute values within the post are recorded in the change history.
 
   - Status value and attribute value change records:
 
-- Posting status information: Awaiting posting, Currently posted, Posting ended
 
-- Posting attribute information: Target audience, Posting period, Important notice setting, Notification sending setting, Title (EN, FR), Content (EN, FR)
+**Posting status information:** Awaiting posting, Currently posted, Posting ended
 
-- Attachments: EN, FR
+**Posting attribute information:** Target audience, Posting period, Important notice setting, Notification sending setting, Title (EN, FR), Content (EN, FR)
 
-- Additional attributes
+- **Attachments:** EN, FR
+
+- **Additional attributes**
 
 - If there are 5 or more records, right scroll is displayed
 
 - Table columns
 
-  - Change Date: Updated date
+  - **Change Date:** Updated date
 
-<!-- TODO: 확인 필요 - GIDPGRO-581 EST 시각 표기 방식 변경이 조회 화면 Change Date에 어떻게 적용되는지 (기획서 요약은 템플릿 Created Date만 명시, STG의 변경 이력은 비어 있어 확인 불가) -->
+  - **Change Info**: Area and item name where the change information occurred
 
-  - Change Info: Area and item name where the change information occurred
+  - **Change Details**: Displays detailed content of values before/after change
 
-  - Change Details: Displays detailed content of values before/after change
+  - **User ID**: Displays the name and User ID (employee number) of the user who performed the action
 
-  - User ID: Displays the name and User ID (employee number) of the user who performed the action
+  - **Auto Status Update**: If automatically changed by the system due to set time or trigger, it is marked as \'Auto Status Update\'
 
-  - Auto Status Update: If automatically changed by the system due to set time or trigger, it is marked as \'Auto Status Update\'
+![Post Detail -- Change history](images/image-40.png){width=6.27in}
 
-![Post Detail -- Change history](images/post-detail-change-history.png){width=5.81in}
+- **Comments:** Comments on the post are viewed.
 
-- Comments: Comments on the post are viewed.
-
-![](images/post-view-img-24.png){width=6.77in}
-
-Post Detail -- Comments 1
+![Post Detail -- Comments 1](images/post-view-img-24.png){width=6.77in}
 
 - Name, employee number, and author display are shown, and when you write a comment and click the Save button, the comment is registered.
 
@@ -246,10 +231,10 @@ Post Detail -- Comments 1
 
 <!-- -->
 
-- \[View List\]: Move to list
+- **\[View List\]:** Move to list
 
-- \[Delete\]: The delete button is only displayed for posts that have never been published, and when the button is clicked, permissions are verified and deletion is only possible if you have permission to write posts.
+- **\[Delete\]**: The delete button is only displayed for posts that have never been published, and when the button is clicked, permissions are verified and deletion is only possible if you have permission to write posts.
 
   - Deletion is only possible if you have permission
 
-- \[Edit\]: After checking if you have permission to modify the post at the time of clicking, if you have permission, you enter the modification screen.
+- **\[Edit\]:** After checking if you have permission to modify the post at the time of clicking, if you have permission, you enter the modification screen.

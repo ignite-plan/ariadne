@@ -25,8 +25,6 @@ i18nPrefix: []
 
   - When changing the Display setting from Disabled to Enabled, Scheduled Display is reset to Disabled even if it was previously Enabled (for example, with a past date), so the menu can be saved immediately without date validation.
 
-<!-- TODO: STG에 반영 범위 밖 변경 보임 - STG 확인 팝업 문구가 "...and reset any related. scheduled display settings."로 표시됨 (기획서 요약은 "related scheduled display settings."). 문구 오탈자 여부 확인 필요 -->
-
 - [Mobile Display setting: If the tenant's Mobile Web setting is enabled, the Mobile Display setting is displayed below the Display setting as a dependent field, and the status banner shows PC and Mobile statuses (PC \[ON\] + Mobile \[ON\] (default) / PC \[ON\] + Mobile \[OFF\] / PC \[OFF\] + Mobile \[OFF\]). If the tenant's Mobile Web setting is disabled, no Mobile status is displayed and only one status based on PC is shown.]{.mark}
 
 - [Scheduled Display date:]{.mark}
@@ -83,19 +81,12 @@ i18nPrefix: []
 
 ![Menu access permissions List -- Import Job title pop-up](images/menu-access-permissions-list-import-job-title-pop-up.png){width=3.4in}
 
-
-
-Menu access permissions List -- Import Job title pop-up
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2168 Import Job title pop-up 버튼이 [Cancel]/[Confirm]에서 [Add Manually]/[Import]로 바뀌고 Add Menu Permission, Add Parent Menu Permission, Add Parent Menu Access Permission 팝업이 추가됨 (menu-editing-img-2) -->
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2477 흐름 이미지가 Job title flow와 User flow 두 개로 나뉨 -->
-
 - In the Menu Access Permission pop-up, the Job title popup shows the Job titles that the User belongs to even if that User has permissions (Job and User permissions can overlap). The User name pop-up does not show Users who are already included in a selected Job title.
 
 - A permission cannot be removed on the Job title tab if a sub-menu has the Job-access permission, and on the User name tab if a sub-menu has the User-access permission.
 
-![](images/menu-editing-img-3.png){width=2.94in} ![](images/menu-editing-img-4.png){width=2.94in}
+![Menu access permissions pop-up detail](images/menu-editing-img-3.png){width=2.94in} ![Pop-up](images/menu-editing-img-4.png){width=2.94in}
 
-Menu access permissions pop-up detail
+
 
 - If there are modified permissions, saving is possible, and a permission change notification popup is displayed.

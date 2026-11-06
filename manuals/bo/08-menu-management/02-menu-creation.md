@@ -61,9 +61,6 @@ i18nPrefix: []
 
 ![Calendar Setting](images/calendar-setting-2.png){width=3.4in}
 
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2242 Display Start Date가 Date Picker(날짜만)로 바뀌어 기존 캡처(시간 선택 포함)와 다를 수 있음 -->
-
   - If the menu is saved without selecting a date, a validation popup "Please enter required information." is displayed.
 
   - If the selected date becomes a past date (midnight boundary), a popup "Scheduled Display is set to a past date. Please adjust it to a future date." is displayed.
@@ -74,10 +71,8 @@ i18nPrefix: []
 
 **Menu Basic Information**
 
-![](images/image.png){width=4.2in}
+![Menu type -deafult](images/image.png){width=4.2in}
 
-
-<!-- TODO:  메뉴타입 화면 갱신 필요 -->
 ![Creating Menu -- Basic information](images/creating-menu-basic-information.png){width=5.31in}
 
 
@@ -97,12 +92,10 @@ Domain dropdown
   - Example:
 
     - Domain: <https://dealers.hyundai-corp.io>
+    - Menu URL: /?menuId={5654}
 
-    - Menu URL: /board/238\
+![ Linking menu-board mapping - Domain and Menu URL](images/image-5.png){width=4.2in}
 
-      ![Linking menu-board mapping - Domain and Menu URL](images/menu-creation-img-6.png){width=3.04in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2326 Menu URL 하단 "Is this page implemented with DEALERS' Frontend Library?" 라디오버튼이 캡처에 없음 -->
 
 - [**Is this page implemented with DEALERS' Frontend Library?**: A radio button that marks whether the linked page is built with the DEALERS Frontend Library, so the Front GNB/LNB menu can be highlighted accurately. Displayed below Menu URL only when Menu Type is Same Tab or New Tab and a Domain address (not "No selection (Directory)") is selected; not displayed for Bulletin Board menus or when Domain is "No selection (Directory)".]{.mark}
 
@@ -113,26 +106,24 @@ Domain dropdown
 - (Default) [Same Tab]{.mark}: When selected, Domain has \"No selection (Directory)\" selected, and Menu name must be entered as required.
 
   - **Purpose**: Used as a general menu type, can be used as a Directory menu or Link page navigation menu. [\
-    ]{.mark}![](images/menu-creation-img-7.png){width=3.69in}
+    ]{.mark}
 
-Menu type -- [Same Tab]{.mark} information 1
+![Menu type - Same Tab information 1](images/menu-2.png){width=6.27in}
 
 - Menus with \"No selection (directory)\" selected in Domain do not navigate to any screen when clicked. They can be used as directory-purpose menus in a folder open/close format.\
-  ![](images/menu-creation-img-8.png){width=3.32in}
 
-Menu type -- [Same Tab]{.mark} information 2(Domain: No selection)
+  ![ Menu type - Same Tab information 2(Domain: No selection)](images/menu-creation-img-8.png){width=3.32in}
 
 - If you select and save a domain address, clicking the menu on the front screen will navigate to that link address.[\
-  ]{.mark}![](images/menu-creation-img-9.png){width=3.34in}
+  ]{.mark}
 
-Menu type -- [Same Tab]{.mark} information3 (Domain: address)
+  ![ Menu type -- Same Tab information3 (Domain: address)](images/menu-creation-img-9.png){width=3.34in}
 
 - Bulletin Board: When selected, the \'Menu-Board Mapping\' function is exposed, Domain becomes a required field, and Menu name, Domain, Menu URL are set to read-only. (Existing values are removed if any.)
 
   - **Purpose**: Can be used as a Bulletin board menu where posts can be published.\
-    ![](images/menu-creation-img-10.png){width=4.17in}
 
-Menu type -- Bulletin board information 1
+![Menu type -- Bulletin board information 1](images/image-8.png){width=4.2in}
 
 - Menu-Baord Mapping(Required field): When selecting a bulletin board from the dropdown, Menu name, Domain, and Menu URL are automatically entered according to the selected board information.\
   ![](images/menu-creation-img-11.png){width=2.48in}![](images/menu-creation-img-12.png){width=2.42in}
@@ -149,19 +140,14 @@ Menu type -- Bulletin board information 3
   - **Purpose**: Can be used as an External Link menu that opens in a new tab to domain addresses other than Dealers page addresses.
 
   - Domain becomes a required field, and you can create menus that open in new tabs by selecting addresses registered in Domain.\
-    ![](images/menu-creation-img-14.png){width=5.04in}
 
-Menu type -- [New Tab]{.mark} information 1
+![Menu type - New Tab information 1](images/image-9.png){width=6.27in}
 
 - Since Domain is a required field, it cannot be saved in \"No selection (Directory)\" state.\
-  ![](images/menu-creation-img-15.png){width=3.69in}
-
-Menu type -- [New Tab]{.mark} information 2
+  ![Menu type - New Tab information 2](images/menu-creation-img-15.png){width=3.69in}
 
 - If you select and save an external link address in Domain, clicking the menu on the front screen will open a new tab to that address.\
-  ![](images/menu-creation-img-16.png){width=4.50in}
-
-Menu type -- [New Tab]{.mark} information 3
+  ![Menu type - New Tab information 3](images/menu-creation-img-16.png){width=4.50in}
 
 - Domain Setting
 
@@ -175,11 +161,12 @@ Menu type -- [New Tab]{.mark} information 3
 
 - You can click the domain edit button to enter Domain and SSO callback path.
 
-![](images/menu-creation-img-17.png){width=6.27in}![](images/menu-creation-img-18.png){width=6.27in}
+![ ](images/menu-creation-img-17.png){width=6.27in}
 
-Editing Domain Setting
+![ ](images/image-11.png){width=6.27in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2104 Domain/SSO callback path 입력칸의 placeholder·글자수 카운터가 캡처에 없음 -->
+![Editing Domain Setting](images/image-10.png){width=6.27in}
+
 
 - [**Domain**: Placeholder "e.g., https://example.com", with a character counter (n/100) shown below the input. Validated in order, with an inline error for the first rule that fails:]{.mark}
 
@@ -205,9 +192,9 @@ Editing Domain Setting
 
 - Clicking **\[Save\]** in the Domain Setting popup immediately reflects the change in the Domain List, regardless of whether the menu itself is saved.
 
-![](images/menu-creation-img-19.png){width=6.27in}![](images/menu-creation-img-20.png){width=6.27in}
+![Creating Menu - Basic information 1](images/image-12.png){width=6.27in}
 
-Creating Menu -- Basic information 2
+![Creating Menu - Basic information 2](images/menu-creation-img-20.png){width=6.27in}
 
 - Menu Name (Front-end screen) (Required field): Menu name can be entered up to 50 characters in EN and FR. [The languages follow the Primary/Secondary languages set in Tenant Management; for a tenant without a Secondary language, only the Primary language is entered.]{.mark}
 
@@ -216,9 +203,8 @@ Creating Menu -- Basic information 2
 - Menu Description (For Admin Use): Menu description entered by operators for internal management purposes, can be entered up to 300 characters.
 
 **Menu Display Information**
-![](images/menu-creation-img-21.png){width=6.27in}
 
-Creating Menu -- Permission List information 1
+![Creating Menu - Permission List information 1](images/menu-creation-img-21.png){width=6.27in}
 
 - Menu Permission List: A function to add/delete and manage permissions for the menu.
 
@@ -227,10 +213,6 @@ Creating Menu -- Permission List information 1
 - Menu permissions can be added through the Menu permission \[+Add\] button, and can be saved when all required fields are entered.
 
 - [Menu permissions can be added, edited, and deleted regardless of the Domain setting, including for Same Tab menus whose Domain is "No selection (Directory)". Permissions added to a parent Directory menu are used when granting Job Title and User permissions to its sub-menus.]{.mark}
-
-<!-- TODO: 확인 필요 - GIDPDVO-2067 Jira '확인 필요 케이스' 4건(하위에만 권한이 있던 Directory에 상위 권한 추가 후 삭제 시나리오, Directory permission code 채번, 운영 중 하위 메뉴와의 접근 권한 정합성, 운영 중 하위 메뉴의 Import 팝업 노출) 결론 (기획서 요약에 없음) -->
-
-<!-- TODO: 확인 필요 - GIDPDVO-1723 권한 하이라키 알럿에서 Write 문구를 빼고 'Access > Read order is maintained'로 바뀐 알럿의 전체 문구 (기획서 요약에 없음) -->
 
   - Permission(Required field): Access, Read can be selected, and duplicates are not allowed.
 

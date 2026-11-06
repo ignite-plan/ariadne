@@ -43,6 +43,4 @@ After Saving
 - The saved list settings will define the **column headers** shown in the **front-end bulletin board list**, as in the example below:\
   (The screen below is an example of the actual front-end view based on the List Setting configuration.)
 
-![](images/list-setting-editing-img-2.png){width=6.27in}
-
-Listing setting detail -- Post List Example
+![Listing setting detail -- Post List Example](images/list-setting-editing-img-2.png){width=6.27in}

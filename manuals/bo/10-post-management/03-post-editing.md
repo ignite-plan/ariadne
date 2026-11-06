@@ -7,27 +7,27 @@ i18nPrefix: []
 
 ## Post Editing
 
-• You can edit the content of existing posts or change posting conditions.![](images/post-editing-img-1.png){width=4.99in}
+• You can edit the content of existing posts or change posting conditions.
 
-![Editing Post -- post attribute information 1](images/editing-post-post-attribute-information-1.png){width=5.28in}
+![Editing Post -- post attribute information 1](images/image-34.png){width=6.27in}
 
-Editing Post -- post attribute information 2
+![Editing Post -- post attribute information 2](images/image-42.png){width=6.27in}
 
-![](images/post-editing-img-2.png){width=6.27in}
-
-Editing Post -- post attribute information3
-
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-914 상단에 Menu Display Status(PC/Mobile)와 안내 문구가 추가됨 -->
+![Editing Post -- post attribute information3](images/post-editing-img-2.png){width=6.27in}
 
 - **Menu Display Status**: Shows whether the menu linked to the board is visible on the front-end screen.
+
+
+![Editing Post -- Menu Display Status](images/image-43.png){width=6.27in}
+
 
   - When the tenant's mobile web is ON, both values are shown (for example, "PC: Visible | Mobile: Not Visible"). When it is OFF, only one value (Visible / Not Visible) is shown.
 
   - The notice "This menu's visibility is based on its own Display Setting & Scheduled Display. If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting." is displayed below it.
 
-• When modifying the posting period, the following policy applies: ![](images/post-editing-img-3.png){width=6.27in}
+• When modifying the posting period, the following policy applies: 
 
-Editing Post -- Posting period 1
+![Editing Post -- Posting period 1](images/post-editing-img-3.png){width=6.27in}
 
 - When the posting period is modified, it changes to the modified posting period.
 
@@ -35,9 +35,8 @@ Editing Post -- Posting period 1
 
 - When modifying the posting period of an important notice post, the following policy applies:
 
-![](images/post-editing-img-4.png){width=4.88in}
+![Editing Post -- Important Notice 1](images/post-editing-img-4.png){width=4.88in}
 
-Editing Post -- Important Notice 1
 
 - When the important notice posting period is modified, it changes to the modified posting period.
 
@@ -65,9 +64,7 @@ Editing Post -- Important Notice 1
 
 - The entered values for Title/Content (EN/FR) are displayed.
 
-![Editing Post -- Contents 1](images/editing-post-contents-1.png){width=6.27in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-149 Contents 영역에 [Load Template] 버튼과 Title/Summary 글자수 표시가 추가됨 -->
+![Editing Post -- Contents 1](images/image-37.png){width=6.27in}
 
 - **\[Load Template\]**: Fills the Title and Summary (EN/FR) with a saved template.
 
@@ -83,7 +80,7 @@ Editing Post -- Important Notice 1
 
 - Title allows up to 300 characters and Summary up to 50,000 characters. The number of characters entered is displayed.
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2055 FR 영역 상단에 번역 배너가 추가됨 (덮어쓰기 확인 팝업, 인라인 경고, Character Limit Exceeded 팝업도 해당) -->
+![Translator Banner](images/translator-banner.png){width=6.27in}
 
 - [**Translation banner**: A banner is displayed at the top of the FR area. It contains the **\[EN → FR Translate\]** button and the notice "Clicking the left button will translate the English text entered above and display the French translation in the field below." Only EN to FR translation is supported. The banner is displayed only to users with Write permission for creating and editing posts (it is hidden for Read-only users), and it is currently available only for tenants with two languages (EN, FR).]{.mark}
 

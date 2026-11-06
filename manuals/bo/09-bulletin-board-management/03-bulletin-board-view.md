@@ -8,18 +8,13 @@ i18nPrefix: []
 
 ## Bulletin Board View
 
-- When you click [a row ]{.mark}in the bulletin board list, you move to the[ Board Details full-page screen.]{.mark}
+- When you click a row in the bulletin board list, you move to the Board Details full-page screen.
 
-<!-- TODO: 확인 필요 - 기존 "Board Name 또는 Details 아이콘 클릭" 진입은 새 기획서(GIDPRQST-76)에 없음. 아래 문장 유지 여부 (GIDPDVO-2053) -->
 - You can access through the view button in the Board Name or Details column within the bulletin board list view results.
-
-<!-- TODO: 기획서(GIDPRQST-76 v20)는 화면 타이틀이 "Board Details", STG 화면은 제목 "Bulletin Board Management" 아래에 "Board Details" 소제목 -->
 
 - Basic board data such as Board ID, Name, Description are displayed at the top. The Post Attribute Setting that specifies the attributes of posts connected to the bulletin board is displayed at the bottom.
 
-![Bulletin board detail](images/bulletin-board-view-img-1.png){width=4.82in}
-
-
+![Bulletin board detail](images/image-19.png){width=6.27in}
 
 - **Board Name (EN, FR Required field):** For Announcement Boards, which are automatically created during tenant setup, the board name (EN/FR) and description **can be modified**. (e.g., EN Default: Announcement, FR Default: Annonce)
 
@@ -29,13 +24,11 @@ i18nPrefix: []
 
 - For Announcement Boards, the Edit button is enabled, but the Delete button is **not displayed**.
 
-![Bulletin board- Announcement](images/bulletin-board-announcement.png){width=5.38in}
+![Bulletin board- Announcement](images/image-21.png){width=6.27in}
 
 - **Board Basic Information**
 
-![Bulletin board detail -- Basic information](images/bulletin-board-detail-basic-information.png){width=6.27in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-914 Menu Display Status 배너가 테넌트 모바일웹 설정에 따라 PC/Mobile 2개 또는 1개로 표시됨 -->
+![Bulletin board detail -- Basic information](images/image-22.png){width=6.27in}
 
 -[ When the bulletin board is linked to a menu, a Menu Display Status banner is displayed at the top of the screen. It appears the same way on the view and edit screens.]{.mark}
 
@@ -53,7 +46,6 @@ i18nPrefix: []
 
   - [The banner is not displayed for Announcement Boards because they are not linked to a menu.]{.mark}
 
-<!-- TODO: 확인 필요 - 테넌트 모바일웹 미설정 화면 (기획서에 "디자인 작업 예정"으로 표기됨) -->
 
 - Basic information related to the bulletin board is displayed.
 
@@ -61,9 +53,7 @@ i18nPrefix: []
 
 - Board Name: The bulletin board name, and when mapped to a menu, the bulletin board name is displayed on the front screen.
 
-- [**Menu Path**: Displayed directly below Menu-Board Mapping. When the bulletin board is mapped to a menu, the full menu path (1 to 4 levels, all menu names shown, line breaks allowed) is displayed in the format `Sales > Bulletins > 20-General`. If Menu-Board Mapping is NO, or for an Announcement Board, `-` is displayed.]{.mark}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2053 Menu Path 필드 추가 (Bulletin board detail -- Basic information) -->
+- [[**Menu Path**: Displayed directly below Menu-Board Mapping. When the bulletin board is mapped to a menu, the full menu path (1 to 4 levels, all menu names shown, line breaks allowed) is displayed in the format `Sales > Bulletins > 20-General`. If Menu-Board Mapping is NO, or for an Announcement Board, `-` is displayed.]{.mark}]{.mark}
 
 <!-- -->
 
@@ -81,40 +71,37 @@ i18nPrefix: []
 
   - For detailed explanation, refer to the \'Post Creation \> Post Attribute setting information\' section above
 
-![](images/bulletin-board-view-img-2.png){width=5.67in}
+![Bulletin board detail -- Post Attribute setting1](images/bulletin-board-view-img-2.png){width=5.67in}
 
-![Bulletin board detail -- Post Attribute setting](images/bulletin-board-detail-post-attribute-setting.png){width=6.21in}
+![Bulletin board detail -- Post Attribute setting2](images/bulletin-board-detail-post-attribute-setting.png){width=6.21in}
 
 - Values entered during post creation are displayed on the post inquiry screen
 
 - **Posting Period**
-  ![](images/bulletin-board-view-img-3.png){width=6.48in}
 
-Bulletin board detail -- Post Attribute setting1
+  ![Bulletin board detail -- Post Attribute setting1](images/bulletin-board-view-img-3.png){width=6.48in}
 
-- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)![](images/bulletin-board-view-img-4.png){width=5.79in}
+- **Target Audience** (Job title, Dealer Distribution Group, Zone, District, Dealer)
 
-Bulletin board detail -- Post Attribute setting2
+  
+  ![Bulletin board detail -- Post Attribute setting2](images/bulletin-board-view-img-4.png){width=5.79in}
 
 - **Important Notice**
-  ![](images/bulletin-board-view-img-5.png){width=3.96in}
 
-Bulletin board detail -- Post Attribute setting3
+  ![Bulletin board detail -- Post Attribute setting3](images/bulletin-board-view-img-5.png){width=3.96in}
 
 - **Notification**
-  ![](images/bulletin-board-view-img-6.png){width=4.71in}
 
-Bulletin board detail -- Post Attribute setting4
+    ![Bulletin board detail -- Post Attribute setting4](images/bulletin-board-view-img-6.png){width=4.71in}
 
 - **Attachments**
-  ![](images/bulletin-board-view-img-7.png){width=4.29in}
 
-Bulletin board detail -- Post Attribute setting5
+    ![Bulletin board detail -- Post Attribute setting5](images/bulletin-board-view-img-7.png){width=4.29in}
+
 
 - **Additional Attribute**
 
 ![Bulletin board detail -- Post Attribute setting6](images/bulletin-board-detail-post-attribute-setting6.png){width=4.58in}
-
 
 
 **Bulletin Board Editing**
@@ -135,11 +122,10 @@ Bulletin board detail -- Post Attribute setting5
 
   -[ **\[View List\]**: Displayed at the bottom left. Clicking it returns you to the bulletin board list.]{.mark}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2053 하단 좌측 [View List] 버튼 추가 (Bulletin board detail 이미지) -->
-
 - Bulletin board attribute values can be freely changed, but they are reflected in the post management screen according to the bulletin board attribute modification policy below.\
 
-  ![Editing Bulletin Board](images/bulletin-board-view-img-8.png){width=3.63in}
+![Editing Bulletin Board](images/image-23.png){width=6.27in}
+
 
 - **The bulletin board/post display policy according to bulletin board attribute modification is as follows:**
 

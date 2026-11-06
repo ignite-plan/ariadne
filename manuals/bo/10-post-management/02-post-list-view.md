@@ -10,25 +10,23 @@ i18nPrefix: []
 - The selected Bulletin Board Name is displayed at the top.\
   Alongside, the system shows whether the board is mapped to a menu, and displays the description of the board.
 
+![Post management - initial view](images/post-management-initial-view.png){width=6.27in}
+
 - **Board-to-Menu Mapping Status**
 
-- If Board-Menu Mapping = Yes:
+  - **If Board-Menu Mapping = Yes:**
 
-  - A \[Go to Manage Board\] button will appear on the right, depending on the user\'s permissions.
+    - A \[Go to Manage Board\] button will appear on the right, depending on the user\'s permissions.
 
-  - Clicking this button navigates to the BO Bulletin Board Detail screen (full page).
+    - Clicking this button navigates to the BO Bulletin Board Detail screen (full page).
 
-  - [The Menu Path of the mapped menu (all levels, up to 4 depths) is displayed in the header. For the Announcement board, \"-\" is displayed.]{.mark}
+    - [The Menu Path of the mapped menu (all levels, up to 4 depths) is displayed in the header. For the Announcement board, \"-\" is displayed.]{.mark}
 
-  <!-- TODO: STG에서 헤더에 Menu Path 표시가 보이지 않음 - 기획서(GIDPDVO-2053)는 Mapping=Yes일 때 Menu Path 표시, 위 Menu Path 문장은 기획서 기준으로 추가 -->
+  - **If Board-Menu Mapping = No:**
 
-- If Board-Menu Mapping = No:
+    - This indicates that the bulletin board is not mapped to any menu.
 
-  - This indicates that the bulletin board is not mapped to any menu.
-
-  <!-- -->
-
-  - You can view posts according to specific conditions.
+    - You can view posts according to specific conditions.
 
 - [**Menu Display Status**: A banner in the header shows whether the menu is visible on the Front-end screen. The Announcement board is not mapped to a menu, so the banner is not displayed.]{.mark}
 
@@ -42,9 +40,7 @@ i18nPrefix: []
 
 - [\[View Board List\]: Located at the bottom left. Clicking it returns to the board selection screen.]{.mark}
 
-![Post List -- Selecting board(Board-menu mapping= yes)](images/post-list-selecting-board-board-menu-mapping-yes.png){width=6.27in}
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2053 Menu Path·[View Board List] 추가, GIDPGRO-914 Menu Display Status 배너 -->
+![Post List -- Selecting board(Board-menu mapping= yes)](images/image-30.png){width=6.27in}
 
 - [**Template Management** tab: Users with Write permission see a \[Template Management\] tab next to the Post List tab. Templates help you quickly fill in the title and content when creating a post.]{.mark}
 
@@ -60,47 +56,44 @@ i18nPrefix: []
 
   - [When \[Delete\] is clicked, a confirmation message is displayed: \"Are you sure you want to delete this template? This action cannot be undone.\"]{.mark}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-149 Template Management 탭 화면 이미지 없음 -->
+![Template managment - example](images/image-31.png){width=6.27in}
 
 - You can search for posts based on keywords in Title, Author, Post ID.\
-  ![](images/post-list-view-img-1.png){width=3.62in}
-
-Post List -- Search filter 1
+  
+  ![Post List -- Search filter 1](images/post-list-view-img-1.png){width=3.62in}
 
 You can search for posts based on Created Date, Updated Date, Posting period.\
-![](images/post-list-view-img-2.png){width=5.49in}
 
-Post List -- Search filter 2
+![Post List -- Search filter 2](images/post-list-view-img-2.png){width=5.49in}
 
-![](images/post-list-view-img-3.png){width=6.27in}
+![Post List -- Search filter 3](images/post-list-view-img-3.png){width=6.27in}
 
-Post List -- Search filter 3
 
-- [Date search period: By default, the last 1 year from today is set, and the period can be up to 1 year.]{.mark}
+- **Date search period:** By default, the last 1 year from today is set, and the period can be up to 3 year. 
 
-  - [Start Date: There is no limit on past dates. When Start Date is selected again, End Date is automatically adjusted to fall within 1 year of the new Start Date.]{.mark}
+  - **Start Date:** There is no limit on past dates. When Start Date is selected again, End Date is automatically adjusted to fall within 3 year of the new Start Date.
 
-  - [End Date: Only dates from Start Date up to Start Date + 1 year can be selected. Changing End Date does not change Start Date.]{.mark}
+  -** End Date:** Only dates from Start Date up to Start Date + 3 year can be selected. Changing End Date does not change Start Date.
 
   - [The date restrictions are explained in a tooltip.]{.mark}
 
-  <!-- TODO: 확인 필요 - End Date 자동 설정의 세부 동작 (기획서 요약에 없음) -->
+![Post Lisd - Date filter](images/post-lisd-date-filter.png){width=3.4in}
 
-- Created Date: You can search for posts in order of most recent creation date.
+- **Created Date:** You can search for posts in order of most recent creation date.
 
-- Updated Date: You can search for posts in order of most recent modification date.
+- **Updated Date**: You can search for posts in order of most recent modification date.
 
-- Posting Period: All posts included within the posting period are displayed, sorted by the most recent posting start date. (If the posting start date is the same, those with the most recent posting end date are displayed at the top.)
+- **Posting Period**: All posts included within the posting period are displayed, sorted by the most recent posting start date. (If the posting start date is the same, those with the most recent posting end date are displayed at the top.)
 
 - If a Search Filter is added to an additional attribute, it becomes searchable.
 
 - As shown in the example below for the Input box (text) type Search Filter, users can directly enter keywords to perform a search.
 
-- \[Reset\]: When clicked, filter conditions are initialized and search results are also reset.
+- **\[Reset\]**: When clicked, filter conditions are initialized and search results are also reset.
 
-- \[Search\]: When clicked, it displays search results for posts that match the set conditions.
+- **\[Search\]**: When clicked, it displays search results for posts that match the set conditions.
 
-Post List: The list of posts matching the applied search criteria is displayed. You can change the sorting and display options as follows:
+- **Post List:** The list of posts matching the applied search criteria is displayed. You can change the sorting and display options as follows:
 
 ![Post List - detail](images/post-list-detail.png){width=6.27in}
 
@@ -108,11 +101,12 @@ Post List: The list of posts matching the applied search criteria is displayed. 
 
 - By default, **20 posts** are displayed, and you can select up to 50 posts to display from the bottom left.
 
-- The post list includes a **pagination** feature that allows you to navigate between page groups using the **\< and \> buttons,** move to the first page using **\<\<,** and move to the last page using **\>\>.[\
-  ]{.mark}** ![](images/post-list-view-img-4.png){width=3.72in}
+- The post list includes a **pagination** feature that allows you to navigate between page groups using the **\< and \> buttons,** move to the first page using **\<\<,** and move to the last page using **\>\>.
+
+  ![](images/post-list-view-img-4.png){width=3.72in}
+
 
 -[ [When \[New Post\] is selected in the viewed bulletin board, the post writing screen is displayed.]{.mark} \[New Post\] is visible only to users with Write permission, and it can always be used regardless of the menu\'s Mobile Display setting.]{.mark}
-
 
 
 - **Post Creation**
@@ -123,7 +117,7 @@ Post List: The list of posts matching the applied search criteria is displayed. 
 
   - Additional input attributes may be displayed differently depending on the bulletin board attribute settings.
 
-![Creating Post](images/creating-post.png){width=4.10in}
+![Creating Post](images/creating-post-2.png){width=6.27in}
 
 There are required and optional values for post creation.
 
@@ -131,17 +125,22 @@ There are required and optional values for post creation.
 
 ![Creating Post -- Board name](images/creating-post-board-name.png){width=6.27in}
 
+- **Menu Display Status:** This menu's visibility is based on its own Display Setting & Scheduled Display.  If the parent menu is hidden, this menu will not appear on the Front-end screen, regardless of its own Display Setting.
+
+![Creating Post - Menu Display Status](images/image-32.png){width=6.27in}
+
+
 - **Display Setting (Required Field):** This setting determines whether the post will be displayed or not.
 
-- **(Default) ON:** The post will be displayed once the posting period begins.
+  - **(Default) ON:** The post will be displayed once the posting period begins.
 
-- **OFF:** The post will not be displayed, regardless of the posting period.
-
-  - When Display setting = OFF, the following fields become **read-only** (values are retained):
-
-  - Posting period, Important Notice, Notification
-
-  - The help text is replaced with the **Display OFF** guidance message.
+  - **OFF:** The post will not be displayed, regardless of the posting period.
+  
+    - When Display setting = OFF, the following fields become **read-only** (values are retained):
+  
+    - Posting period, Important Notice, Notification
+  
+    - The help text is replaced with the **Display OFF** guidance message.
 
 ![Creating Post -- Display setting](images/creating-post-display-setting.png){width=6.27in}
 
@@ -161,9 +160,10 @@ There are required and optional values for post creation.
 
 - The posting start time setting cannot exceed the posting end date, and the posting end time cannot be set before the posting start date and time.
 
-- ![](images/post-list-view-img-5.png){width=2.03in} ![](images/post-list-view-img-6.png){width=2.73in}
+![Calendar setting feature1](images/post-list-view-img-5.png){width=2.03in} 
 
-Calendar setting feature
+![Calendar setting feature2](images/post-list-view-img-6.png){width=2.73in}
+
 
 - **Target Audience:** Selected publishing targets are published under AND conditions.
 
@@ -191,18 +191,16 @@ Calendar setting feature
 
 - **District:** Location information (information entered in Dealer Zone/District Management), regional information under Zone (when Zone is clicked, Districts belonging under Zone are displayed)
 
-- ![](images/post-list-view-img-7.png){width=6.27in}
-
-Creating Post -- Target Audience
+ ![Creating Post -- Target Audience](images/post-list-view-img-7.png){width=6.27in}
 
 - When each publishing target input field is clicked, option values are displayed, and option values can be searched in the input field. (Like search)
 
 - You can select publishing targets with checkboxes, and when the cursor moves, the selected publishing target option values are displayed in chip filter form below the input box. You can remove the publishing target option by pressing the X button on the chip filter.
 
 - Specific job titles(Dealer Principal, Dealer Admin) in the Job Title field are automatically displayed as fixed by the system and cannot be deselected by operators.\
-  ![](images/post-list-view-img-8.png){width=3.37in}
 
-Target Audience -- dropdown setting
+  ![Target Audience -- dropdown setting](images/post-list-view-img-8.png){width=3.37in}
+
 
 - **Important Notice**: This is a value for setting important notices.
 
@@ -248,7 +246,7 @@ Target Audience -- dropdown setting
 
   - After the notification has been sent once, the Notification value remains but the control becomes read-only and can no longer be changed.
 
-- Initial setting (Disabled)
+- **Initial setting (Disabled)**
 
 ![Creating Post -- Notification 1](images/creating-post-notification-1.png){width=5.16in}
 
@@ -258,15 +256,15 @@ Target Audience -- dropdown setting
 
 - **Title/Content (Required field):** You can write the title and content of the post in English/French.
 
-- These are required input values. The initial setting displays the EN tab.
+- These are required input values.
 
-  - Title: The title is limited to 200 characters.
+  - Title: The title is limited to 300 characters.
 
   - Content: The content is limited to 50,000 characters.
 
   - If the character limit is exceeded, input is not possible.
-
-![Creating Post -- Title/Contents1](images/creating-post-title-contents1.png){width=6.27in}
+ 
+![Creating Post -- Title/Contents1](images/image-33.png){width=6.27in}
 
 - You can use the editing tools provided by the editor tool.
 
@@ -276,24 +274,22 @@ Target Audience -- dropdown setting
 
 ![Creating Post -- Title/Contents3](images/creating-post-title-contents3.png){width=3.01in}
 
-- **Attachments:** You can attach files in English/French versions.![](images/post-list-view-img-11.png){width=5.76in}
+- **Attachments:** You can attach files in English/French versions.
 
-Creating Post -- Attachments 1
+![Creating Post -- Attachments 1](images/post-list-view-img-11.png){width=5.76in}
 
 - When Select File is clicked, a file upload window appears, and PDF format files can be attached.
 
 - When \"The same attachments (EN) will be applied\" is clicked in the FR version attachment, the attachments registered in the English attachment are applied identically in the French version.
 
-![](images/post-list-view-img-12.png){width=6.27in}
-
-Creating Post -- Attachments 2
+![Creating Post -- Attachments 2](images/post-list-view-img-12.png){width=6.27in}
 
 - If a file is attached, the number of attached files is displayed at the top.
 
 - When the file icon is clicked, preview is possible.\
-  ![](images/post-list-view-img-13.png){width=3.51in}
 
-Creating Post -- Attachments 2(PDF)
+
+  ![Creating Post -- Attachments 2(PDF)](images/post-list-view-img-13.png){width=3.51in}
 
 - Additional Attribute: If additional attribute values have been added in the bulletin board management menu, the additional attribute field name is displayed.
 
@@ -305,15 +301,12 @@ Creating Post -- Attachments 2(PDF)
 
 - The initial setting displays a UI for selecting period dates and is displayed with no dates entered.
 
-![](images/post-list-view-img-14.png){width=4.91in}
-
-Creating Post -- Additional attribute example 1-1
+![Creating Post -- Additional attribute example 1-1](images/post-list-view-img-14.png){width=4.91in}
 
 - When the Include time toggle is selected, you can select the period date and time.
 
-![](images/post-list-view-img-15.png){width=5.25in}
+![Creating Post -- Additional attribute example 1-2](images/post-list-view-img-15.png){width=5.25in}
 
-Creating Post -- Additional attribute example 1-2
 
 - Date (MM-DD-YYYY): This display format allows date selection.
 
@@ -323,9 +316,8 @@ Creating Post -- Additional attribute example 1-2
 
 - When the Include time toggle is selected, you can select the date and time.
 
-![](images/post-list-view-img-16.png){width=5.50in}
+![Creating Post -- Additional attribute example 2-2](images/post-list-view-img-16.png){width=5.50in}
 
-Creating Post -- Additional attribute example 2-2
 
 - Single Selection (dropdowns): A dropdown box is created.
 
@@ -337,9 +329,8 @@ Creating Post -- Additional attribute example 2-2
 
 - For required fields, a value must be selected in order to save the post.
 
-- ![](images/post-list-view-img-17.png){width=6.16in}
+ ![Creating Post -- Additional attribute example 3-1](images/post-list-view-img-17.png){width=6.16in}
 
-Creating Post -- Additional attribute example 3-1
 
 - Since EN items and FR items form a pair, if you select one display value, the display value of the other language is also selected simultaneously. When changing, EN corresponds.
 
@@ -384,7 +375,7 @@ Creating Post -- Additional attribute example 3-1
 
 ![Creating Post -- Additional attribute example 6-1](images/creating-post-additional-attribute-example-6-1.png){width=6.27in}
 
-![Figure 184 Creating Post -- Additional attribute example 6-2](images/figure-184-creating-post-additional-attribute-example-6-2.png){width=5.81in}
+![ Creating Post -- Additional attribute example 6-2](images/figure-184-creating-post-additional-attribute-example-6-2.png){width=5.81in}
 
 - Duplicate examples:
 
