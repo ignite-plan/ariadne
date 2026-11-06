@@ -25,11 +25,11 @@ i18nPrefix: []
 
   - The **End date** is automatically set to **today's date (current date)**.
 
-  - The **Start date** is automatically set to **1 year before today's date**.
+  - The **Start date** is automatically set to **3 year before today's date**.
 
     - Example) If today is 2026-04-20:
 
-      - Start date: 2025-04-20
+      - Start date: 2023-04-20
 
       - End date: 2026-04-20
 
@@ -37,7 +37,7 @@ i18nPrefix: []
 
 - The post list includes a **pagination** feature that allows you to navigate between page groups using the **\< and \> buttons,** move to the first page using **\<\<,** and move to the last page using **\>\>.**
 
-- Example screen when additional attributes are displayed**:**
+- Example screen when additional attributes are displayed:
 
 ![Bulletin boards with additional attributes](images/post-list-img-1.png){width=5.17in}
 
@@ -73,8 +73,6 @@ i18nPrefix: []
 
 ![Search - Chip filters](images/search-chip-filters.png){width=6.46in}
 
-
-
 **Post Search Results Area**
 
 - **Total:** The **total number of posts** displayed reflects the user\'s access permissions.
@@ -91,13 +89,11 @@ i18nPrefix: []
 
   - For important notice posts, they are fixed at the top and a fixed icon is displayed to the left of the title.
 
-  - 
 
-- ![](images/post-list-img-2.png){width=6.79in} 
+ ![Post Search Results Area](images/post-list-img-2.png){width=6.79in} 
 
-![Post Search Results Area](images/post-search-results-area.png){width=3.89in}
+![Post -- Icon/Title/Date/Flag](images/post-search-results-area.png){width=3.89in}
 
-Post -- Icon/Title/Date/Flag
 
 - **Attachments:** Up to 5 attachments can be displayed.
 
@@ -123,9 +119,9 @@ Post -- Icon/Title/Date/Flag
 
 ![PDF preview](images/pdf-preview.png){width=3.14in}
 
-- The top left of the popup window displays the filename and extension, and the top right has buttons for full view and close. ![](images/post-list-img-3.png){width=5.31in}
-
-PDF Header Area
+- The top left of the popup window displays the filename and extension, and the top right has buttons for full view and close.
+  
+  ![PDF Header Area](images/post-list-img-3.png){width=5.31in}
 
 - Clicking on icons from the left performs the following actions:\
   ![](images/post-list-img-4.png){width=0.63in} ![](images/post-list-img-5.png){width=0.56in}\

@@ -15,23 +15,15 @@ refreshedFrom:
 
 - Clicking **\[create new\]** at the top of the dealer employee list takes you to a screen to create a dealer employee.
 
-
-
 ![Create Dealer Employee](images/create-dealer-employee-2.png){width=4.2in}
-
 
 In the **Basic Information** area, enter the user\'s basic information:
 
-
-
 ![Employee - Basic Information](images/employee-basic-information.png){width=4.2in}
-
-
 
 - **First name(Required):** Maximum 20 characters. Leading and trailing spaces, special characters and numbers cannot be entered.
 
 - **Last name(Required):**  Maximum 20 characters. The same rules as First name apply.
-
 
 - **Picture:** Click the picture area and select an image from your computer.
 A registered picture is displayed as a circle. Click the x button to delete it.
@@ -56,8 +48,6 @@ A registered picture is displayed as a circle. Click the x button to delete it.
 
 
 ![Account Information](images/account-information.png){width=4.2in}
-
-
 
 - **Status(Required):** Select the status of the dealer employee account.
 
@@ -99,13 +89,6 @@ A registered picture is displayed as a circle. Click the x button to delete it.
     - **A duplicate check** is required. After entering your desired ID, click **\[Verify ID\]** to check for duplicates. The button is disabled until at least 5 characters are entered. If the ID is already in use, the message "This ID is already taken. Please try another ID" is shown.
 
     - Consent to create the ID is mandatory.
-
-
-
-
-
-
-<!-- TODO: 이미지 갱신 필요 - GIDPDVO-2350 'HMG Partner ID' 라벨이 'ID'로 변경, 가이드 문구 'Search the ID to confirm and connect the account.' -->
 
 - Use existing account Case
 
@@ -220,6 +203,4 @@ A registered picture is displayed as a circle. Click the x button to delete it.
 
 - When an employee who already has an ID is added as an employee of a dealership and an Employee no. is issued, a "dealership added" notification email is sent to that employee's Account Email.
 
-<!-- TODO: 확인 필요 - '딜러사 추가됨' 이메일 템플릿 이미지/문구 ([Phase3][FO/BO 공통] 이메일 템플릿, 기획서 요약에 없음) -->
-
-- ![](images/create-dealer-employee-img-5.png){width=4.59in}
+![](images/create-dealer-employee-img-5.png){width=4.59in}

@@ -13,9 +13,9 @@ i18nPrefix: []
 
 - **Logo**
 
-- The service logo is displayed at the top left, and clicking on the logo will take you to the home screen.
+  - The service logo is displayed at the top left, and clicking on the logo will take you to the home screen.
 
-- ![Logo image](images/gnb-img-1.png){width=6.79in}
+ ![Logo image](images/gnb-img-1.png){width=6.79in}
 
 - **Search Bar**
 
@@ -23,21 +23,20 @@ i18nPrefix: []
 
 ![Search Bar](images/search-bar.png){width=6.79in}
 
-- When clicking on the search box, keyboard input is activated and up to 10 recent searches are displayed. When hovering the mouse over a recent search term, a delete button appears, and clicking it immediately deletes that search history.
+  - When clicking on the search box, keyboard input is activated and up to 10 recent searches are displayed. When hovering the mouse over a recent search term, a delete button appears, and clicking it immediately deletes that search history.
 
-- After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
+  - After entering a search term, pressing enter or selecting the search icon will execute the search with the entered term and take you to the integrated search results screen. (For integrated search results, see 3.Search Result below)
 
   ![Recent searches](images/gnb-img-2.png){width=5.13in}
 
-- 
 
 - **Multi-Dealer Switch**
 
-- ![Multi dealer switch](images/gnb-img-3.png){width=5.95in}
+ ![Multi dealer switch](images/gnb-img-3.png){width=5.95in}
 
-- The GNB displays the name of the currently active dealer.
-
-- Multi-dealer users: an arrow icon is displayed, and clicking the dealer name or icon opens a dealer selection box.
+  - The GNB displays the name of the currently active dealer.
+  
+  - Multi-dealer users: an arrow icon is displayed, and clicking the dealer name or icon opens a dealer selection box.
 
 ![Multi dealer switch selection box](images/multi-dealer-switch-selection-box.png){width=5.37in}
 
@@ -59,9 +58,9 @@ i18nPrefix: []
 
 - **Notification:**
 
-  - If there are notifications, the notification details will be displayed![](images/gnb-img-5.png){width=5.05in}
-
-Notification
+  - If there are notifications, the notification details will be displayed
+  
+    ![Notification](images/gnb-img-5.png){width=5.05in}
 
 - If there are new notifications, a number notification badge will be displayed, and after the layer screen is displayed, the number notification badge will be reset.\
 
@@ -71,9 +70,9 @@ Notification
 
   ![Notification layer](images/gnb-img-7.png){width=2.35in}
 
-<!-- TODO: 이미지 갱신 필요 - GIDPGRO-669 알림 카드 날짜 옆 Edited 태그 표시 (gnb-img-7) -->
-
 - [**Edited notifications**]{.mark}
+
+![Edited tag](images/image-4.png){width=3.4in}
 
   - [When a post is edited, an **Edited** tag is displayed next to the date on the notification card. The card shows the latest title, icon, and time.]{.mark}
 
@@ -94,8 +93,6 @@ Notification
   - [The first display of a scheduled post (Scheduled Display) is a new notification, not an Edited one. If the scheduled time of an already published post is changed and the post is displayed again, it is shown as Edited.]{.mark}
 
   - [When a post is deleted or hidden, the existing card stays as it is and an error screen is shown when the card is clicked. The card does not move to the top.]{.mark}
-
-    <!-- TODO: 확인 필요 - Page Not Found 안내 문구('Possible reasons: Incorrect URL / Page has been deleted / Page has been moved' 추가) 최종 반영 여부 (GIDPGRO-669 Jira 댓글, 기획서 요약에 최종 반영 확인 없음) -->
 
   - [Icon change: when a post changes between Regular and Important notice, the regular post icon and the important notice icon are swapped. When an attachment is added to a regular post, the icon changes to the attachment icon.]{.mark}
 
@@ -169,13 +166,7 @@ Notification
 
 - When account information is clicked, the user\'s profile image, name, Dealer Name, and Job title are displayed in the right Layer, and it\'s possible to view Profile, Reset password, and logout.
 
-
-
-![Account Layer](images/account-layer-2.png){width=6.27in}
-
-
-
-
+![Account Layer](images/account-layer-2.png){width=3.4in}
 
 **Reset Password**
 
